@@ -41,11 +41,11 @@ let cssContent = lines.slice(styleStart + 1, styleEnd).join("\n");
 cssContent = cssContent
   .replace(
     /url\(['"]?终身岛民-完整无限制版\/a-my-island\/scenes\/20_广场中心\.png['"]?\),\s*url\(['"]?a-my-island\/scenes\/20_广场中心\.png['"]?\)/g,
-    "var(--island-scene-plaza, url('assets/scenes/20_广场中心.png'))"
+    "var(--island-scene-plaza, url('assets/scenes/scene-plaza.png'))"
   )
   .replace(
     /url\(['"]?终身岛民-完整无限制版\/a-my-island\/scenes\/工作台_男_背景图\.png['"]?\),\s*url\(['"]?a-my-island\/scenes\/工作台_男_背景图\.png['"]?\)/g,
-    "var(--island-scene-desk, url('assets/scenes/工作台_男_背景图.png'))"
+    "var(--island-scene-desk, url('assets/scenes/scene-desk.png'))"
   );
 
 const obsidianHostCss = `/* ==========================================================================

@@ -14009,12 +14009,16 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
   async onOpen() {
     const { contentEl } = this;
     contentEl.empty();
-    const plazaUrl = this.resolvePluginAssetUrl("assets/scenes/20_\u5E7F\u573A\u4E2D\u5FC3.png");
-    const deskUrl = this.resolvePluginAssetUrl("assets/scenes/\u5DE5\u4F5C\u53F0_\u7537_\u80CC\u666F\u56FE.png");
+    const plazaUrl = this.resolvePluginAssetUrl("assets/scenes/scene-plaza.png");
+    const deskUrl = this.resolvePluginAssetUrl("assets/scenes/scene-desk.png");
     document.documentElement.style.setProperty("--island-scene-plaza", `url("${plazaUrl}")`);
     document.documentElement.style.setProperty("--island-scene-desk", `url("${deskUrl}")`);
+    if (import_obsidian2.Platform.isMobile || window.innerWidth <= 1366) {
+      document.body.classList.add("is-fullscreen-mode");
+    }
     const rootWrapper = contentEl.createDiv({ cls: "youth-island-plugin-root" });
     rootWrapper.innerHTML = ISLAND_UI_HTML;
+    this.installTabletTouchBridge(rootWrapper);
     bootPrototypeRuntime();
     await this.plugin.vaultStorage.hydrateRuntimeFromVault();
     const win = window;
@@ -14027,6 +14031,76 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
     }
     this.installRuntimePersistenceHooks();
     this.plugin.vaultStorage.scheduleSync(500);
+  }
+  /**
+   * Android 平板触控桥接：将三级脑图画布与节点卡片上的单指拖拽映射为标准鼠标拖拽事件
+   */
+  installTabletTouchBridge(rootEl) {
+    let activeTouchTarget = null;
+    rootEl.addEventListener(
+      "touchstart",
+      (e) => {
+        if (e.touches.length !== 1)
+          return;
+        const target = e.target;
+        if (!target)
+          return;
+        if (target.closest(
+          "button, input, textarea, select, label, a, #exec-carousel-stage, #island-canvas-stage"
+        )) {
+          return;
+        }
+        if (target.closest("#tertiary-canvas-viewport, #tertiary-canvas-world, .tertiary-node-card")) {
+          const touch = e.touches[0];
+          activeTouchTarget = target;
+          target.dispatchEvent(
+            new MouseEvent("mousedown", {
+              bubbles: true,
+              cancelable: true,
+              clientX: touch.clientX,
+              clientY: touch.clientY,
+              button: 0
+            })
+          );
+        }
+      },
+      { passive: true }
+    );
+    rootEl.addEventListener(
+      "touchmove",
+      (e) => {
+        if (!activeTouchTarget || e.touches.length !== 1)
+          return;
+        const touch = e.touches[0];
+        window.dispatchEvent(
+          new MouseEvent("mousemove", {
+            bubbles: true,
+            cancelable: true,
+            clientX: touch.clientX,
+            clientY: touch.clientY,
+            button: 0
+          })
+        );
+      },
+      { passive: true }
+    );
+    const endTouch = (e) => {
+      if (!activeTouchTarget)
+        return;
+      const touch = e.changedTouches[0];
+      window.dispatchEvent(
+        new MouseEvent("mouseup", {
+          bubbles: true,
+          cancelable: true,
+          clientX: touch ? touch.clientX : 0,
+          clientY: touch ? touch.clientY : 0,
+          button: 0
+        })
+      );
+      activeTouchTarget = null;
+    };
+    rootEl.addEventListener("touchend", endTouch, { passive: true });
+    rootEl.addEventListener("touchcancel", endTouch, { passive: true });
   }
   installRuntimePersistenceHooks() {
     if (this.hooksInstalled)

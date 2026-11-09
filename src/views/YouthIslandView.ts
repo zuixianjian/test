@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf, normalizePath } from "obsidian";
+import { ItemView, Platform, WorkspaceLeaf, normalizePath } from "obsidian";
 import type YouthGrowthIslandPlugin from "../main";
 import { ISLAND_UI_HTML } from "../ui/template";
 import { bootPrototypeRuntime } from "../runtime/prototypeScript";
@@ -42,15 +42,23 @@ export class YouthIslandView extends ItemView {
     const { contentEl } = this;
     contentEl.empty();
 
-    // Configure CSS variables for high-res background scenes inside Obsidian
-    const plazaUrl = this.resolvePluginAssetUrl("assets/scenes/20_广场中心.png");
-    const deskUrl = this.resolvePluginAssetUrl("assets/scenes/工作台_男_背景图.png");
+    // Configure CSS variables for high-res background scenes inside Obsidian (ASCII-safe filenames for Android)
+    const plazaUrl = this.resolvePluginAssetUrl("assets/scenes/scene-plaza.png");
+    const deskUrl = this.resolvePluginAssetUrl("assets/scenes/scene-desk.png");
     document.documentElement.style.setProperty("--island-scene-plaza", `url("${plazaUrl}")`);
     document.documentElement.style.setProperty("--island-scene-desk", `url("${deskUrl}")`);
+
+    // On Android / iPad / Mobile devices, automatically enable full-screen mode (no simulated desktop iPad bezel)
+    if (Platform.isMobile || window.innerWidth <= 1366) {
+      document.body.classList.add("is-fullscreen-mode");
+    }
 
     // Mount 1:1 UI DOM
     const rootWrapper = contentEl.createDiv({ cls: "youth-island-plugin-root" });
     rootWrapper.innerHTML = ISLAND_UI_HTML;
+
+    // Install Android/Tablet touch-to-mouse bridge for mindmap canvas & draggable nodes
+    this.installTabletTouchBridge(rootWrapper);
 
     // Boot interactive runtime
     bootPrototypeRuntime();
@@ -75,6 +83,79 @@ export class YouthIslandView extends ItemView {
 
     // Ensure initial Vault folder tree and files exist
     this.plugin.vaultStorage.scheduleSync(500);
+  }
+
+  /**
+   * Android 平板触控桥接：将三级脑图画布与节点卡片上的单指拖拽映射为标准鼠标拖拽事件
+   */
+  private installTabletTouchBridge(rootEl: HTMLElement): void {
+    let activeTouchTarget: EventTarget | null = null;
+    rootEl.addEventListener(
+      "touchstart",
+      (e: TouchEvent) => {
+        if (e.touches.length !== 1) return;
+        const target = e.target as HTMLElement | null;
+        if (!target) return;
+        // Skip interactive form/button controls and areas that already handle touch natively
+        if (
+          target.closest(
+            "button, input, textarea, select, label, a, #exec-carousel-stage, #island-canvas-stage"
+          )
+        ) {
+          return;
+        }
+        if (target.closest("#tertiary-canvas-viewport, #tertiary-canvas-world, .tertiary-node-card")) {
+          const touch = e.touches[0];
+          activeTouchTarget = target;
+          target.dispatchEvent(
+            new MouseEvent("mousedown", {
+              bubbles: true,
+              cancelable: true,
+              clientX: touch.clientX,
+              clientY: touch.clientY,
+              button: 0,
+            })
+          );
+        }
+      },
+      { passive: true }
+    );
+
+    rootEl.addEventListener(
+      "touchmove",
+      (e: TouchEvent) => {
+        if (!activeTouchTarget || e.touches.length !== 1) return;
+        const touch = e.touches[0];
+        window.dispatchEvent(
+          new MouseEvent("mousemove", {
+            bubbles: true,
+            cancelable: true,
+            clientX: touch.clientX,
+            clientY: touch.clientY,
+            button: 0,
+          })
+        );
+      },
+      { passive: true }
+    );
+
+    const endTouch = (e: TouchEvent) => {
+      if (!activeTouchTarget) return;
+      const touch = e.changedTouches[0];
+      window.dispatchEvent(
+        new MouseEvent("mouseup", {
+          bubbles: true,
+          cancelable: true,
+          clientX: touch ? touch.clientX : 0,
+          clientY: touch ? touch.clientY : 0,
+          button: 0,
+        })
+      );
+      activeTouchTarget = null;
+    };
+
+    rootEl.addEventListener("touchend", endTouch, { passive: true });
+    rootEl.addEventListener("touchcancel", endTouch, { passive: true });
   }
 
   private installRuntimePersistenceHooks(): void {

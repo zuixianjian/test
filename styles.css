@@ -265,7 +265,7 @@ body {
   height: 100%;
   background-color: #264326;
   background-image: 
-    var(--island-scene-plaza, url('assets/scenes/20_广场中心.png')),
+    var(--island-scene-plaza, url('assets/scenes/scene-plaza.png')),
     radial-gradient(ellipse at 50% 60%, rgba(135, 196, 130, 0.55) 0%, rgba(68, 119, 70, 0.7) 45%, rgba(35, 71, 36, 0.85) 75%, #152917 100%);
   background-size: cover;
   background-position: center bottom;
@@ -3951,7 +3951,7 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 .ws-specialized-container.is-treasury-theme {
   background-image: 
     linear-gradient(180deg, rgba(28, 21, 14, 0.72) 0%, rgba(38, 28, 18, 0.82) 100%),
-    var(--island-scene-desk, url('assets/scenes/工作台_男_背景图.png')),
+    var(--island-scene-desk, url('assets/scenes/scene-desk.png')),
     radial-gradient(ellipse at 50% 40%, #4a3622 0%, #1a140d 100%);
   background-size: cover;
   background-position: center;
@@ -9012,7 +9012,7 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 .ws-specialized-container.is-achieve-theme {
   background-color: #264326;
   background-image: 
-    var(--island-scene-plaza, url('assets/scenes/20_广场中心.png')),
+    var(--island-scene-plaza, url('assets/scenes/scene-plaza.png')),
     radial-gradient(ellipse at 50% 60%, rgba(135, 196, 130, 0.55) 0%, rgba(68, 119, 70, 0.7) 45%, rgba(35, 71, 36, 0.85) 75%, #152917 100%);
   background-size: cover;
   background-position: center bottom;
