@@ -5,11 +5,12 @@ import { bootPrototypeRuntime } from "../runtime/prototypeScript";
 import { globalIslandEventBus } from "../core/EventBus";
 
 export const VIEW_TYPE_YOUTH_ISLAND = "youth-holistic-growth-island-view";
-const REMOTE_RAW_BASE = "https://raw.githubusercontent.com/zuixianjian/test/master";
+const REMOTE_RAW_BASE = "https://fastly.jsdelivr.net/gh/zuixianjian/test@master";
 
 export class YouthIslandView extends ItemView {
   private plugin: YouthGrowthIslandPlugin;
   private hooksInstalled = false;
+  private stateChangeHandler: (() => void) | null = null;
 
   constructor(leaf: WorkspaceLeaf, plugin: YouthGrowthIslandPlugin) {
     super(leaf);
@@ -82,16 +83,24 @@ export class YouthIslandView extends ItemView {
     const { contentEl } = this;
     contentEl.empty();
 
-    // Configure CSS variables for high-res background scenes (with BRAT / remote install fallback)
-    await this.configureSceneVariables();
+    // Immediately set fallback scene gradients and load high-res background scenes asynchronously in background (never block UI startup)
+    document.documentElement.style.setProperty(
+      "--island-scene-plaza",
+      "linear-gradient(135deg, #1b382b 0%, #2f5436 45%, #182c1f 100%)"
+    );
+    document.documentElement.style.setProperty(
+      "--island-scene-desk",
+      "radial-gradient(ellipse at 50% 50%, #453221 0%, #251b12 100%)"
+    );
+    void this.configureSceneVariables();
 
-    // On Android / iPad / Mobile devices, automatically enable full-screen mode (no simulated desktop iPad bezel)
-    if (Platform.isMobile || window.innerWidth <= 1366) {
-      document.body.classList.add("is-fullscreen-mode");
-    }
+    // Enable 100% full-screen tablet mode inside Obsidian (eliminates prototype switcher bar, iPad frame, and Obsidian chrome)
+    document.body.classList.add("is-fullscreen-mode", "youth-island-tablet-fullscreen");
 
     // Mount 1:1 UI DOM
-    const rootWrapper = contentEl.createDiv({ cls: "youth-island-plugin-root" });
+    const rootWrapper = contentEl.createDiv({
+      cls: "youth-island-plugin-root youth-island-obsidian-view-root",
+    });
     rootWrapper.innerHTML = ISLAND_UI_HTML;
 
     // Install Android/Tablet touch-to-mouse bridge for mindmap canvas & draggable nodes
@@ -116,7 +125,7 @@ export class YouthIslandView extends ItemView {
     }
 
     // Install closed-loop Vault persistence & EventBus hooks
-    this.installRuntimePersistenceHooks();
+    this.installRuntimePersistenceHooks(rootWrapper);
 
     // Ensure initial Vault folder tree and files exist
     this.plugin.vaultStorage.scheduleSync(500);
@@ -141,7 +150,11 @@ export class YouthIslandView extends ItemView {
         ) {
           return;
         }
-        if (target.closest("#tertiary-canvas-viewport, #tertiary-canvas-world, .tertiary-node-card")) {
+        if (
+          target.closest(
+            "#tertiary-canvas-viewport, #tertiary-canvas-world, .tertiary-node-card, .tertiary-card"
+          )
+        ) {
           const touch = e.touches[0];
           activeTouchTarget = target;
           target.dispatchEvent(
@@ -195,11 +208,33 @@ export class YouthIslandView extends ItemView {
     rootEl.addEventListener("touchcancel", endTouch, { passive: true });
   }
 
-  private installRuntimePersistenceHooks(): void {
+  private installRuntimePersistenceHooks(rootEl?: HTMLElement): void {
+    const win = window as any;
+
+    if (rootEl) {
+      const onDomFormChange = () => {
+        if (typeof win.syncFormStateToAttributes === "function") {
+          win.syncFormStateToAttributes(rootEl);
+        }
+        if (typeof win.saveCurrentProjectCanvasSnapshot === "function") {
+          win.saveCurrentProjectCanvasSnapshot();
+        }
+        this.plugin.vaultStorage.scheduleSync(400);
+      };
+      rootEl.addEventListener("change", onDomFormChange, { passive: true });
+      rootEl.addEventListener("input", onDomFormChange, { passive: true });
+    }
+
+    if (!this.stateChangeHandler) {
+      this.stateChangeHandler = () => {
+        this.plugin.vaultStorage.scheduleSync(250);
+      };
+      window.addEventListener("youth-island:state-changed", this.stateChangeHandler);
+    }
+
     if (this.hooksInstalled) return;
     this.hooksInstalled = true;
 
-    const win = window as any;
     const hookFn = (fnName: string, eventName: any) => {
       const orig = win[fnName];
       if (typeof orig !== "function" || orig.__vaultHooked) return;
@@ -217,6 +252,7 @@ export class YouthIslandView extends ItemView {
     hookFn("triggerGlobalCheckinClosedLoop", "checkin:success");
     hookFn("handleExecPopupMainCheckin", "node:completed");
     hookFn("completeCheckinPageCard", "node:completed");
+    hookFn("handleNodeCheckin", "node:completed");
 
     // 2. Dual-View Controller
     hookFn("switchHomeGlobalView", "view:switch");
@@ -224,9 +260,16 @@ export class YouthIslandView extends ItemView {
 
     // 3. Secondary Gantt & Tertiary Mindmap Planning
     hookFn("confirmAddProject", "project:created");
+    hookFn("toggleProjectArchive", "project:created");
     hookFn("deriveNodesFromReflectionCard", "edge:redraw");
     hookFn("deriveDrillCardFromReview", "edge:redraw");
     hookFn("confirmAddNewModule", "project:created");
+    hookFn("createCustomModule", "project:created");
+    hookFn("addCustomFieldToCard", "edge:redraw");
+    hookFn("handleTertiaryUndo", "edge:redraw");
+    hookFn("handleTertiaryRedo", "edge:redraw");
+    hookFn("handleTertiaryDeleteNode", "edge:redraw");
+    hookFn("startOrFinishConnecting", "edge:redraw");
 
     // 4. Inquiry Pool & Family Pact Violation Adjudication
     hookFn("convertInquiryToPlan", "project:created");
@@ -250,6 +293,11 @@ export class YouthIslandView extends ItemView {
   }
 
   public async onClose(): Promise<void> {
+    document.body.classList.remove("youth-island-tablet-fullscreen");
+    if (this.stateChangeHandler) {
+      window.removeEventListener("youth-island:state-changed", this.stateChangeHandler);
+      this.stateChangeHandler = null;
+    }
     await this.plugin.vaultStorage.syncRuntimeToVault();
   }
 }

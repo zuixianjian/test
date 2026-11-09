@@ -101,6 +101,49 @@ export class VaultStorageAdapter {
   public async hydrateRuntimeFromVault(): Promise<void> {
     const win = window as any;
 
+    // 0. 读取全量运行时快照（如果存在，则优先还原完整业务状态）
+    const appSnapshot = await this.readJson<Record<string, any>>(
+      "00_Island_Core/app_state_snapshot.json"
+    );
+    if (appSnapshot) {
+      if (appSnapshot.USER_PROFILE_STATE && win.USER_PROFILE_STATE) {
+        Object.assign(win.USER_PROFILE_STATE, appSnapshot.USER_PROFILE_STATE);
+      }
+      if (Array.isArray(appSnapshot.GANTT_PROJECTS) && Array.isArray(win.GANTT_PROJECTS)) {
+        win.GANTT_PROJECTS.splice(0, win.GANTT_PROJECTS.length, ...appSnapshot.GANTT_PROJECTS);
+      }
+      if (appSnapshot.PROJECT_CANVAS_STORE && win.PROJECT_CANVAS_STORE) {
+        Object.assign(win.PROJECT_CANVAS_STORE, appSnapshot.PROJECT_CANVAS_STORE);
+      }
+      if (appSnapshot.PAVILION_META && win.PAVILION_META) {
+        Object.assign(win.PAVILION_META, appSnapshot.PAVILION_META);
+      }
+      if (Array.isArray(appSnapshot.WEEK_BOARD_DATA) && Array.isArray(win.WEEK_BOARD_DATA)) {
+        win.WEEK_BOARD_DATA.splice(0, win.WEEK_BOARD_DATA.length, ...appSnapshot.WEEK_BOARD_DATA);
+      }
+      if (appSnapshot.TREASURY_STATE && win.TREASURY_STATE) {
+        Object.assign(win.TREASURY_STATE, appSnapshot.TREASURY_STATE);
+      }
+      if (appSnapshot.ACHIEVEMENT_STATE && win.ACHIEVEMENT_STATE) {
+        Object.assign(win.ACHIEVEMENT_STATE, appSnapshot.ACHIEVEMENT_STATE);
+      }
+      if (appSnapshot.NOTE_STATE && win.NOTE_STATE) {
+        Object.assign(win.NOTE_STATE, appSnapshot.NOTE_STATE);
+      }
+      if (appSnapshot.BOUNTY_STATE && win.BOUNTY_STATE) {
+        Object.assign(win.BOUNTY_STATE, appSnapshot.BOUNTY_STATE);
+      }
+      if (appSnapshot.INQUIRY_POOL_STATE && win.INQUIRY_POOL_STATE) {
+        Object.assign(win.INQUIRY_POOL_STATE, appSnapshot.INQUIRY_POOL_STATE);
+      }
+      if (typeof appSnapshot.dayCardDeckHtml === "string" && appSnapshot.dayCardDeckHtml.trim().length > 0) {
+        const deck = typeof document !== "undefined" ? document.getElementById("day-card-deck") : null;
+        if (deck) {
+          deck.innerHTML = appSnapshot.dayCardDeckHtml;
+        }
+      }
+    }
+
     const savedProfile = await this.readJson<Record<string, any>>("00_Island_Core/user_profile.json");
     if (savedProfile && win.USER_PROFILE_STATE) {
       Object.assign(win.USER_PROFILE_STATE, savedProfile);
@@ -232,6 +275,26 @@ export class VaultStorageAdapter {
     if (win.BOUNTY_STATE) {
       await this.writeJson("09_Bounties_悬赏公告/bounties.json", win.BOUNTY_STATE);
     }
+
+    // 8. 00_Island_Core/app_state_snapshot.json (全量业务闭环快照：确保平板重启 Obsidian 后卡片状态、脑图拓扑、周看板等 100% 还原)
+    const deckEl = typeof document !== "undefined" ? document.getElementById("day-card-deck") : null;
+    if (deckEl && typeof win.syncFormStateToAttributes === "function") {
+      win.syncFormStateToAttributes(deckEl);
+    }
+    await this.writeJson("00_Island_Core/app_state_snapshot.json", {
+      updatedAt: new Date().toISOString(),
+      USER_PROFILE_STATE: win.USER_PROFILE_STATE || null,
+      GANTT_PROJECTS: win.GANTT_PROJECTS || null,
+      PROJECT_CANVAS_STORE: win.PROJECT_CANVAS_STORE || null,
+      PAVILION_META: win.PAVILION_META || null,
+      WEEK_BOARD_DATA: win.WEEK_BOARD_DATA || null,
+      TREASURY_STATE: win.TREASURY_STATE || null,
+      ACHIEVEMENT_STATE: win.ACHIEVEMENT_STATE || null,
+      NOTE_STATE: win.NOTE_STATE || null,
+      BOUNTY_STATE: win.BOUNTY_STATE || null,
+      INQUIRY_POOL_STATE: win.INQUIRY_POOL_STATE || null,
+      dayCardDeckHtml: deckEl ? deckEl.innerHTML : null,
+    });
 
     globalIslandEventBus.emit("vault:synced", { timestamp: new Date().toISOString() });
   }

@@ -1988,6 +1988,41 @@ const EXEC_CHECKIN_PAGE_META = {
   }
 };
 
+function syncFormStateToAttributes(rootEl) {
+  if (!rootEl) return;
+  rootEl.querySelectorAll('input').forEach(inp => {
+    if (inp.type === 'checkbox' || inp.type === 'radio') {
+      if (inp.checked) inp.setAttribute('checked', 'checked');
+      else inp.removeAttribute('checked');
+    } else if (inp.type !== 'file') {
+      inp.setAttribute('value', inp.value);
+    }
+  });
+  rootEl.querySelectorAll('textarea').forEach(ta => {
+    ta.textContent = ta.value;
+  });
+  rootEl.querySelectorAll('select').forEach(sel => {
+    Array.from(sel.options).forEach(opt => {
+      if (opt.value === sel.value) opt.setAttribute('selected', 'selected');
+      else opt.removeAttribute('selected');
+    });
+  });
+}
+
+function notifyIslandStateChanged() {
+  try {
+    window.dispatchEvent(new CustomEvent('youth-island:state-changed'));
+  } catch (e) {}
+}
+
+function toggleObsidianTabletFullscreen() {
+  const isFull = document.body.classList.toggle('youth-island-tablet-fullscreen');
+  closeOriginalSettingsPanel();
+  showIslandToast(isFull
+    ? '🖥️ 已恢复平板 100% 全屏沉浸显示'
+    : '📖 已显示 Obsidian 顶部与侧边导航栏，可进入 Obsidian 设置或再次点击恢复全屏');
+}
+
 function renderTailoredExecutionStage(pavilionId) {
   const checkinType = normalizeExecCheckinType(pavilionId);
   const container = document.getElementById('exec-popup-task-view');
@@ -2001,7 +2036,7 @@ function renderTailoredExecutionStage(pavilionId) {
   }
 }
 
-function openExecCardPopupView(pavilionId) {
+function openExecCardPopupView(pavilionId, clickedCardEl) {
   const popup = document.getElementById('exec-task-workspace') || document.getElementById('exec-card-popup-view');
   if (!popup) return;
 
@@ -2009,20 +2044,22 @@ function openExecCardPopupView(pavilionId) {
   const meta = EXEC_CHECKIN_PAGE_META[checkinType] || EXEC_CHECKIN_PAGE_META.goal;
   currentExecPopupPavilion = meta.legacyKey || 'study';
   window.currentExecCheckinType = checkinType;
+  window.currentActiveExecDeckCardId = clickedCardEl ? clickedCardEl.id : ('exec-card-' + checkinType);
   isExecProjectNodesViewActive = false;
 
   const data = EXEC_PROJECT_DATA[currentExecPopupPavilion] || EXEC_PROJECT_DATA.study;
+  const customTitle = clickedCardEl ? (clickedCardEl.getAttribute('data-label') || '') : '';
 
-  // 更新顶栏信息（与节点卡片打卡页面完全一致）
+  // 更新顶栏信息（与节点卡片打卡页面完全一致，若为动态派生卡则显示动态卡片真实标题）
   const titleEl = document.getElementById('exec-popup-title');
   const badgeEl = document.getElementById('exec-popup-badge');
   const breadEl = document.getElementById('exec-popup-breadcrumb');
   const mapTitleEl = document.getElementById('exec-project-map-title');
   const mapSumEl = document.getElementById('exec-project-map-summary');
 
-  if (titleEl) titleEl.textContent = meta.title;
+  if (titleEl) titleEl.textContent = customTitle || meta.title;
   if (badgeEl) badgeEl.textContent = meta.badge;
-  if (breadEl) breadEl.textContent = meta.breadcrumb;
+  if (breadEl) breadEl.textContent = customTitle ? ('🏝️ 晨曦岛 ❯ ⚡ 执行中心 ❯ ' + customTitle) : meta.breadcrumb;
   if (mapTitleEl) mapTitleEl.textContent = meta.projectName || data.projectName || meta.title;
   if (mapSumEl) mapSumEl.textContent = data.summary;
 
@@ -2046,7 +2083,13 @@ function openExecCardPopupView(pavilionId) {
 
   const taskView = document.getElementById('exec-popup-task-view');
   const projView = document.getElementById('exec-popup-project-view');
-  if (taskView) taskView.style.display = 'flex';
+  if (taskView) {
+    taskView.style.display = 'flex';
+    if (customTitle) {
+      const innerTitle = taskView.querySelector('.work-node-title');
+      if (innerTitle) innerTitle.textContent = customTitle;
+    }
+  }
   if (projView) projView.style.display = 'none';
 
   const subviewDay = document.getElementById('exec-subview-day');
@@ -2080,6 +2123,7 @@ function closeExecCardPopupView() {
 
   // 将在执行打卡页中的最新修改同步回【✅ 节点卡片打卡页面】对应画板并清空临时容器，避免重复 ID
   if (taskView && taskView.dataset.activeCheckinType && taskView.innerHTML.trim()) {
+    syncFormStateToAttributes(taskView);
     const cType = taskView.dataset.activeCheckinType;
     const targetCanvas = document.querySelector('#checkin-frame-' + cType + ' .frame-ui-canvas');
     if (targetCanvas) {
@@ -2117,6 +2161,7 @@ function closeExecCardPopupView() {
   if (subviewWeek) subviewWeek.style.display = '';
   if (subviewMonth) subviewMonth.style.display = '';
   switchExecSubView(currentExecSubView || 'day');
+  notifyIslandStateChanged();
 }
 
 // 核心功能：点击查看项目按钮中间会显示出自由画布并展示该项目打卡节点前后所有的相关节点 (样式完全参考通用三级节点页面)
@@ -2435,7 +2480,37 @@ function appendDailyAutoLog(logText, focusMinutes) {
 }
 
 function renderHomeSemesterGoalsBanner() {
-  // 执行视图已按照设计规范彻底移除各馆规划目标条，专注今日沉浸打卡
+  const listEl = document.getElementById('island-goal-cards-list');
+  if (!listEl || !Array.isArray(window.GANTT_PROJECTS)) return;
+  const activeProjs = window.GANTT_PROJECTS.filter(p => !p.isArchived);
+  if (activeProjs.length === 0) return;
+
+  const badgeColors = {
+    '学业攻坚': { bg: '#eff6ff', color: '#1d4ed8', bar: '#2563eb' },
+    '兴趣特长': { bg: '#f0fdf4', color: '#15803d', bar: '#16a34a' },
+    '修身立宪': { bg: '#fef3c7', color: '#b45309', bar: '#d97706' },
+    '认知思辨': { bg: '#f5f3ff', color: '#6d28d9', bar: '#7c3aed' }
+  };
+
+  listEl.innerHTML = activeProjs.slice(0, 6).map(p => {
+    const res = typeof computeProjectProgressAndStatus === 'function'
+      ? computeProjectProgressAndStatus(p)
+      : { progress: 50, completedCount: (p.completedDays || []).length, totalDays: 10 };
+    const cm = badgeColors[p.category] || { bg: '#fef3c7', color: '#b45309', bar: '#d97706' };
+    const pavMeta = (typeof PAVILION_META !== 'undefined' && PAVILION_META[p.pavilion])
+      ? PAVILION_META[p.pavilion]
+      : { name: p.category || '规划馆', icon: '🎯' };
+    const safeTitle = String(p.title || '').replace(/"/g, '&quot;');
+    return '<div class="island-goal-item" onclick="enterSecondaryWorkspace(\'' + (p.pavilion || 'study') + '\', \'gantt\')" title="点击进入【' + (pavMeta.name || p.category) + '】甘特规划沙盘">' +
+      '<div class="goal-item-top">' +
+        '<span class="goal-pav-badge" style="background:' + cm.bg + '; color:' + cm.color + ';">' + (pavMeta.icon || '🎯') + ' ' + (pavMeta.name || p.category) + '</span>' +
+        '<span class="goal-target-title">' + safeTitle + '</span>' +
+        '<span class="goal-pct-text" style="color:' + cm.color + ';">' + res.progress + '%</span>' +
+      '</div>' +
+      '<div class="goal-progress-track"><div class="goal-progress-fill" style="width:' + res.progress + '%; background:' + cm.bar + ';"></div></div>' +
+      '<div class="goal-item-sub"><span>周期: ' + String(p.startDate || '').slice(5) + '~' + String(p.endDate || '').slice(5) + '</span><span>已达标 ' + res.completedCount + '/' + res.totalDays + ' 天</span></div>' +
+    '</div>';
+  }).join('');
 }
 
 function triggerGlobalCheckinClosedLoop(opts) {
@@ -2445,6 +2520,11 @@ function triggerGlobalCheckinClosedLoop(opts) {
   const title = options.title || '攻坚实训任务';
   const focusMinutes = parseInt(options.focusMinutes, 10) || 20;
   const st = window.USER_PROFILE_STATE;
+
+  const deckCards = document.querySelectorAll('#day-card-deck .exec-task-card');
+  if (deckCards.length > 0) {
+    st.totalTodayCount = Math.max(st.totalTodayCount || 5, deckCards.length);
+  }
 
   if (!st.checkedTaskKeys[taskKey]) {
     st.checkedTaskKeys[taskKey] = true;
@@ -2486,13 +2566,17 @@ function triggerGlobalCheckinClosedLoop(opts) {
     }
   }
 
-  // 2. 回写周视图与月历视图状态气泡
+  // 2. 回写周视图与月历视图状态气泡 (确保使用 'done' 状态，杜绝错标为 'completed' 导致显示缺卡)
   if (typeof WEEK_BOARD_DATA !== 'undefined' && Array.isArray(WEEK_BOARD_DATA)) {
     const todayCol = WEEK_BOARD_DATA.find(d => d.isToday) || WEEK_BOARD_DATA[5];
     if (todayCol && Array.isArray(todayCol.tasks)) {
-      const pendingTask = todayCol.tasks.find(t => t.status !== 'completed');
+      const pName = (typeof PAVILION_META !== 'undefined' && PAVILION_META[pavilionId] && PAVILION_META[pavilionId].name) ? PAVILION_META[pavilionId].name : '';
+      const pendingTask = todayCol.tasks.find(t => t.status === 'pending' && (t.title === title || (pName && t.pavilion.includes(pName.slice(0, 2))))) ||
+                          todayCol.tasks.find(t => t.status === 'pending');
       if (pendingTask) {
-        pendingTask.status = 'completed';
+        pendingTask.status = 'done';
+        pendingTask.evidence = '✓ 已上传真实打卡物证并加盖时间戳 (' + focusMinutes + ' 分钟)';
+        pendingTask.reflection = '“知行合一，今日按计划圆满达成打卡目标！”';
       }
     }
     if (typeof renderWeekBoard === 'function') {
@@ -2535,6 +2619,8 @@ function triggerGlobalCheckinClosedLoop(opts) {
       }
     }
   }
+
+  notifyIslandStateChanged();
 }
 
 function handleExecPopupMainCheckin() {
@@ -2632,8 +2718,17 @@ function handleTaskCardClick(event, pavilionId) {
   if (event.target.closest('button') || event.target.closest('input') || event.target.closest('select') || event.target.closest('textarea') || event.target.closest('label') || event.target.closest('.card-scene-btn') || event.target.closest('.card-graphic-pill')) {
     return;
   }
+  const cardEl = event.currentTarget || event.target.closest('.exec-task-card');
+  if (cardEl && !cardEl.classList.contains('card-active')) {
+    const allCards = Array.from(document.querySelectorAll('#day-card-deck .exec-task-card'));
+    const idx = allCards.indexOf(cardEl);
+    if (idx >= 0) {
+      goToDayCard(idx);
+      return;
+    }
+  }
   // 在执行视图中间操作区直接打开与【✅ 节点卡片打卡页面】1:1 一致的专属打卡页面
-  openExecCardPopupView(pavilionId);
+  openExecCardPopupView(pavilionId, cardEl);
 }
 
 function enterSecondaryWorkspace(pavilionId, subView) {
@@ -3593,6 +3688,23 @@ function completeCheckinPageCard(type, btn, sealText) {
     deckStatus.innerText = '🟢 已' + sealText;
     deckStatus.style.color = '#059669';
   }
+  if (window.currentActiveExecDeckCardId) {
+    const activeDeckCard = document.getElementById(window.currentActiveExecDeckCardId);
+    if (activeDeckCard) {
+      const pill = activeDeckCard.querySelector('.task-status-pill');
+      if (pill) {
+        pill.className = 'task-status-pill completed';
+        pill.innerText = '🟢 已' + sealText;
+        pill.style.color = '#059669';
+      }
+      const actionBtn = activeDeckCard.querySelector('.card-graphic-pill.pill-timer, .card-graphic-pill.pill-checkin, .card-graphic-pill.pill-reflection');
+      if (actionBtn) {
+        actionBtn.innerText = '✓ 已' + sealText;
+        actionBtn.style.background = '#10b981';
+        actionBtn.style.color = '#fff';
+      }
+    }
+  }
   const tcardMap = { goal: 'tcard-1', drill: 'tcard-2', habit: 'tcard-3', reflection: 'tcard-4', custom: 'tcard-5' };
   if (tcardMap[type]) {
     const tStatus = document.getElementById('status-text-' + tcardMap[type]);
@@ -3602,48 +3714,83 @@ function completeCheckinPageCard(type, btn, sealText) {
     }
   }
 
+  const popupTitleEl = document.getElementById('exec-popup-title');
+  const realTaskTitle = (popupTitleEl && popupTitleEl.textContent.trim()) ? popupTitleEl.textContent.trim() : (sealText + '节点打卡 (' + type + ')');
+
   // 数据闭环: 统一调用全域闭环引擎回写甘特、周/月历、HUD与每日随记
   triggerGlobalCheckinClosedLoop({
-    taskKey: 'checkin-page-' + type,
+    taskKey: window.currentActiveExecDeckCardId || ('checkin-page-' + type),
     pavilionId: type,
-    title: sealText + '节点打卡 (' + type + ')',
+    title: realTaskTitle,
     focusMinutes: 20
   });
 
   showIslandToast('🎉 恭喜！已完成【' + sealText + '】打卡闭环！甘特进度、履约率与每日随记已同步更新！');
+  if (document.body.classList.contains('has-exec-fullscreen') && typeof closeExecCardPopupView === 'function') {
+    setTimeout(() => {
+      closeExecCardPopupView();
+    }, 950);
+  }
 }
 
 // ==========================================================================
-// 4. 14 大保留高能工具事件响应 (二级工作台)
+// 4. 14 大保留高能工具事件响应 (二级与三级工作台真实几何排布与聚焦)
 // ==========================================================================
 
 function alignGridLayout() {
+  if (typeof pushTertiaryHistory === 'function') pushTertiaryHistory();
+  const world = document.getElementById('tertiary-canvas-world');
+  if (world) {
+    const cards = Array.from(world.querySelectorAll('.tertiary-card'));
+    const cols = Math.min(3, Math.max(2, Math.ceil(Math.sqrt(cards.length))));
+    cards.forEach((card, idx) => {
+      const r = Math.floor(idx / cols);
+      const c = idx % cols;
+      card.style.left = (80 + c * 420) + 'px';
+      card.style.top = (50 + r * 360) + 'px';
+    });
+    if (typeof renderTertiaryEdges === 'function') renderTertiaryEdges();
+    if (typeof saveCurrentProjectCanvasSnapshot === 'function') saveCurrentProjectCanvasSnapshot();
+  }
   const container = document.getElementById('ws-canvas-container');
   if (container) {
     container.style.animation = 'none';
     container.offsetHeight;
     container.style.animation = 'islandPanelPopIn 0.3s ease';
   }
-  showIslandToast('▦ 网格布局已智能对齐');
+  showIslandToast('▦ 网格布局已智能对齐全部节点卡片');
 }
 
 function addCustomNodePrompt() {
-  const name = prompt('请输入新建三级攻坚节点名称：', '新派生任务节点');
-  if (name) {
-    showIslandToast('🌳 已成功在画布新增节点【' + name + '】并建立知识连线！');
-  }
+  openTertiaryAddNodeModal();
 }
 
 function fitCanvasView() {
+  const stage = document.getElementById('tertiary-canvas-stage');
+  if (stage) {
+    if (typeof stage.scrollTo === 'function') stage.scrollTo({ left: 0, top: 0, behavior: 'smooth' });
+    else { stage.scrollLeft = 0; stage.scrollTop = 0; }
+  }
   showIslandToast('⛶ 画布视口已自适应居中全量卡片');
 }
 
 function focusActiveNode() {
+  const firstCard = document.querySelector('#tertiary-canvas-world .tertiary-card');
+  if (firstCard && typeof firstCard.scrollIntoView === 'function') {
+    firstCard.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+    firstCard.style.boxShadow = '0 0 0 4px #f59e0b';
+    setTimeout(() => { firstCard.style.boxShadow = ''; }, 1600);
+  }
   showIslandToast('🎯 已聚焦到当前核心攻坚节点');
 }
 
 function centerActiveNode() {
-  showIslandToast('⊙ 已将选中卡片平移至视口中央');
+  const cards = document.querySelectorAll('#tertiary-canvas-world .tertiary-card');
+  const midCard = cards[Math.floor(cards.length / 2)] || cards[0];
+  if (midCard && typeof midCard.scrollIntoView === 'function') {
+    midCard.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+  }
+  showIslandToast('⊙ 已将核心卡片平移至视口中央');
 }
 
 function openZoomScopeModal() {
@@ -3766,16 +3913,51 @@ function toggleTertiaryRouteSetup() {
 // 多项目独立三级脑图存储空间 (确保每个甘特项目拥有自己独立的节点卡片与连线拓扑)
 window.PROJECT_CANVAS_STORE = {};
 window.currentTertiaryProjId = 'p1';
+window.TERTIARY_HISTORY = { undoStack: [], redoStack: [] };
+
+function pushTertiaryHistory() {
+  const world = document.getElementById('tertiary-canvas-world');
+  if (!world) return;
+  syncFormStateToAttributes(world);
+  const cardsHtml = Array.from(world.querySelectorAll('.tertiary-card')).map(el => {
+    const clone = el.cloneNode(true);
+    clone.removeAttribute('data-drag-bound');
+    return clone.outerHTML;
+  }).join('\n');
+  window.TERTIARY_HISTORY.undoStack.push({
+    cardsHtml: cardsHtml,
+    edges: JSON.parse(JSON.stringify(window.TERTIARY_EDGES || []))
+  });
+  if (window.TERTIARY_HISTORY.undoStack.length > 25) {
+    window.TERTIARY_HISTORY.undoStack.shift();
+  }
+  window.TERTIARY_HISTORY.redoStack = [];
+}
+
+function updateTertiaryNodeCountBadge() {
+  const totalCards = document.querySelectorAll('#tertiary-canvas-world .tertiary-card').length;
+  const activeCountEl = document.getElementById('tertiary-top-active-count');
+  if (activeCountEl) activeCountEl.innerText = totalCards + ' 项';
+  const statCountEl = document.getElementById('tertiary-stat-node-count');
+  if (statCountEl) statCountEl.innerText = totalCards + ' 节点';
+}
 
 function saveCurrentProjectCanvasSnapshot() {
   const pid = window.currentTertiaryProjId || 'p1';
   const world = document.getElementById('tertiary-canvas-world');
   if (!world) return;
-  const cardHtmlList = Array.from(world.querySelectorAll('.tertiary-card')).map(el => el.outerHTML);
+  syncFormStateToAttributes(world);
+  const cardHtmlList = Array.from(world.querySelectorAll('.tertiary-card')).map(el => {
+    const clone = el.cloneNode(true);
+    clone.removeAttribute('data-drag-bound');
+    return clone.outerHTML;
+  });
   window.PROJECT_CANVAS_STORE[pid] = {
     cardsHtml: cardHtmlList.join('\n'),
     edges: JSON.parse(JSON.stringify(window.TERTIARY_EDGES || []))
   };
+  updateTertiaryNodeCountBadge();
+  notifyIslandStateChanged();
 }
 
 function buildStarterCanvasForProject(proj) {
@@ -3909,11 +4091,7 @@ function cycleGridMode() {
 function initTertiaryWorkspace() {
   bindTertiaryCardsDrag();
   renderTertiaryEdges();
-  const activeCountEl = document.getElementById('tertiary-top-active-count');
-  if (activeCountEl) {
-    const totalCards = document.querySelectorAll('.tertiary-card').length;
-    activeCountEl.innerText = totalCards + ' 项';
-  }
+  updateTertiaryNodeCountBadge();
 }
 
 // ==================== 三级脑图节点卡片最小化与展开交互控制器 ====================
@@ -3983,21 +4161,55 @@ function bindTertiaryCardsDrag() {
   });
 }
 
+function getDownstreamChildCardIds(rootId) {
+  const visited = new Set([rootId]);
+  const queue = [rootId];
+  const result = [];
+  while (queue.length > 0) {
+    const curr = queue.shift();
+    (window.TERTIARY_EDGES || []).forEach(e => {
+      if (e.sourceId === curr && !visited.has(e.targetId)) {
+        visited.add(e.targetId);
+        result.push(e.targetId);
+        queue.push(e.targetId);
+      }
+    });
+  }
+  return result;
+}
+
 function bindCardDragSingle(card) {
-  if (card.dataset.dragBound === 'true') return;
+  if (card._dragInitialized) return;
+  card._dragInitialized = true;
   card.dataset.dragBound = 'true';
 
   let isDragging = false;
+  let hasMoved = false;
   let startX = 0, startY = 0;
   let initialLeft = 0, initialTop = 0;
+  let followerInitialPositions = [];
 
   const onPointerDown = (e) => {
-    if (e.target.closest('button') || e.target.closest('input') || e.target.closest('.work-card-connect-handle')) return;
+    if (e.target.closest('button') || e.target.closest('input') || e.target.closest('select') || e.target.closest('textarea') || e.target.closest('.work-card-connect-handle')) return;
     isDragging = true;
+    hasMoved = false;
     startX = e.clientX || (e.touches && e.touches[0].clientX);
     startY = e.clientY || (e.touches && e.touches[0].clientY);
     initialLeft = parseInt(card.style.left, 10) || card.offsetLeft;
     initialTop = parseInt(card.style.top, 10) || card.offsetTop;
+    followerInitialPositions = [];
+    if (childrenFollowEnabled && card.id) {
+      getDownstreamChildCardIds(card.id).forEach(cid => {
+        const childEl = document.getElementById(cid);
+        if (childEl) {
+          followerInitialPositions.push({
+            el: childEl,
+            left: parseInt(childEl.style.left, 10) || childEl.offsetLeft,
+            top: parseInt(childEl.style.top, 10) || childEl.offsetTop
+          });
+        }
+      });
+    }
     card.style.zIndex = '35';
     e.stopPropagation();
   };
@@ -4008,8 +4220,16 @@ function bindCardDragSingle(card) {
     const clientY = e.clientY || (e.touches && e.touches[0].clientY);
     const dx = clientX - startX;
     const dy = clientY - startY;
-    card.style.left = (initialLeft + dx) + 'px';
-    card.style.top = (initialTop + dy) + 'px';
+    if (!hasMoved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
+      hasMoved = true;
+      pushTertiaryHistory();
+    }
+    card.style.left = Math.max(10, initialLeft + dx) + 'px';
+    card.style.top = Math.max(10, initialTop + dy) + 'px';
+    followerInitialPositions.forEach(f => {
+      f.el.style.left = Math.max(10, f.left + dx) + 'px';
+      f.el.style.top = Math.max(10, f.top + dy) + 'px';
+    });
     renderTertiaryEdges();
   };
 
@@ -4017,6 +4237,9 @@ function bindCardDragSingle(card) {
     if (isDragging) {
       isDragging = false;
       card.style.zIndex = '20';
+      if (hasMoved) {
+        saveCurrentProjectCanvasSnapshot();
+      }
     }
   };
 
@@ -5221,17 +5444,19 @@ function createCustomModule(type) {
   '<div class="work-card-connect-handle" data-card-id="' + cardId + '" onclick="startOrFinishConnecting(this.dataset.cardId, event)" title="点击与下一节点建立路线连线">🔗</div>';
 
   world.appendChild(newCard);
+  pushTertiaryHistory();
   bindCardDragSingle(newCard);
   tertiaryCardIndex++;
 
   const activeCountEl = document.getElementById('tertiary-top-active-count');
   if (activeCountEl) {
-    const totalCards = document.querySelectorAll('.tertiary-card').length;
+    const totalCards = document.querySelectorAll('.tertiary-card, .tertiary-node-card').length;
     activeCountEl.innerText = totalCards + ' 项';
   }
 
   showIslandToast('✨ 已成功创建【' + m.name + '】模块：' + title);
   renderTertiaryEdges();
+  saveCurrentProjectCanvasSnapshot();
 }
 
 function createBackgroundGroupPrompt() {
@@ -5288,31 +5513,95 @@ function toggleEdgeLabels() {
 }
 
 function handleTertiaryUndo() {
-  showIslandToast('↩️ 已撤销上一步操作 (Ctrl+Z)');
+  if (!window.TERTIARY_HISTORY || !window.TERTIARY_HISTORY.undoStack || window.TERTIARY_HISTORY.undoStack.length === 0) {
+    showIslandToast('⚠️ 当前暂无可撤销的历史步骤');
+    return;
+  }
+  const world = document.getElementById('tertiary-canvas-world');
+  if (!world) return;
+  const currentCards = [];
+  world.querySelectorAll('.tertiary-card, .tertiary-node-card').forEach(c => {
+    currentCards.push({ id: c.id, left: c.style.left, top: c.style.top, html: c.outerHTML });
+  });
+  window.TERTIARY_HISTORY.redoStack.push({
+    cards: currentCards,
+    edges: JSON.parse(JSON.stringify(window.TERTIARY_EDGES || []))
+  });
+  const prevState = window.TERTIARY_HISTORY.undoStack.pop();
+  world.querySelectorAll('.tertiary-card, .tertiary-node-card').forEach(c => c.remove());
+  (prevState.cards || []).forEach(c => {
+    const temp = document.createElement('div');
+    temp.innerHTML = c.html;
+    const node = temp.firstElementChild;
+    if (node) {
+      node.removeAttribute('data-drag-bound');
+      node.style.left = c.left;
+      node.style.top = c.top;
+      world.appendChild(node);
+    }
+  });
+  window.TERTIARY_EDGES = JSON.parse(JSON.stringify(prevState.edges || []));
+  bindTertiaryCardsDrag();
+  renderTertiaryEdges();
+  saveCurrentProjectCanvasSnapshot();
+  showIslandToast('↩️ 已撤销上一步操作 (剩余可撤销 ' + window.TERTIARY_HISTORY.undoStack.length + ' 步)');
 }
 
 function handleTertiaryRedo() {
-  showIslandToast('↪️ 已重做下一步操作 (Ctrl+Y)');
+  if (!window.TERTIARY_HISTORY || !window.TERTIARY_HISTORY.redoStack || window.TERTIARY_HISTORY.redoStack.length === 0) {
+    showIslandToast('⚠️ 当前暂无可重做的历史步骤');
+    return;
+  }
+  const world = document.getElementById('tertiary-canvas-world');
+  if (!world) return;
+  const currentCards = [];
+  world.querySelectorAll('.tertiary-card, .tertiary-node-card').forEach(c => {
+    currentCards.push({ id: c.id, left: c.style.left, top: c.style.top, html: c.outerHTML });
+  });
+  window.TERTIARY_HISTORY.undoStack.push({
+    cards: currentCards,
+    edges: JSON.parse(JSON.stringify(window.TERTIARY_EDGES || []))
+  });
+  const nextState = window.TERTIARY_HISTORY.redoStack.pop();
+  world.querySelectorAll('.tertiary-card, .tertiary-node-card').forEach(c => c.remove());
+  (nextState.cards || []).forEach(c => {
+    const temp = document.createElement('div');
+    temp.innerHTML = c.html;
+    const node = temp.firstElementChild;
+    if (node) {
+      node.removeAttribute('data-drag-bound');
+      node.style.left = c.left;
+      node.style.top = c.top;
+      world.appendChild(node);
+    }
+  });
+  window.TERTIARY_EDGES = JSON.parse(JSON.stringify(nextState.edges || []));
+  bindTertiaryCardsDrag();
+  renderTertiaryEdges();
+  saveCurrentProjectCanvasSnapshot();
+  showIslandToast('↪️ 已重做下一步操作');
 }
 
 function handleTertiaryDeleteNode() {
-  const cards = document.querySelectorAll('.tertiary-card');
+  const cards = document.querySelectorAll('.tertiary-card, .tertiary-node-card');
   if (cards.length <= 1) {
     showIslandToast('⚠️ 当前仅剩 1 个核心卡片，不可删除！');
     return;
   }
-  const lastCard = cards[cards.length - 1];
-  const cardId = lastCard.id;
-  lastCard.remove();
+  pushTertiaryHistory();
+  const targetCard = document.querySelector('.tertiary-card.is-selected, .tertiary-node-card.is-selected') || cards[cards.length - 1];
+  const cardId = targetCard.id;
+  targetCard.remove();
   window.TERTIARY_EDGES = (window.TERTIARY_EDGES || []).filter(e => e.sourceId !== cardId && e.targetId !== cardId);
   renderTertiaryEdges();
+  saveCurrentProjectCanvasSnapshot();
 
   const activeCountEl = document.getElementById('tertiary-top-active-count');
   if (activeCountEl) {
-    const totalCards = document.querySelectorAll('.tertiary-card').length;
+    const totalCards = document.querySelectorAll('.tertiary-card, .tertiary-node-card').length;
     activeCountEl.innerText = totalCards + ' 项';
   }
-  showIslandToast('🗑️ 已删除末尾节点卡片及关联路线');
+  showIslandToast('🗑️ 已删除节点卡片及关联路线（可点击 ↩️ 撤销恢复）');
 }
 
 function openNodeSearchModal() {
@@ -5937,6 +6226,24 @@ function renderWeekBoard(filter) {
 
   filter = filter || window.currentWeekFilter || 'all';
 
+  // 动态统计全周各状态数量并同步刷新顶部筛选标签
+  let totalAll = 0, totalDone = 0, totalPending = 0, totalOverdue = 0;
+  WEEK_BOARD_DATA.forEach(col => {
+    (col.tasks || []).forEach(t => {
+      totalAll++;
+      if (t.status === 'done') totalDone++;
+      else if (t.status === 'pending') totalPending++;
+      else if (t.status === 'overdue') totalOverdue++;
+    });
+  });
+  document.querySelectorAll('.week-filter-tab').forEach(tab => {
+    const f = tab.getAttribute('data-filter');
+    if (f === 'all') tab.textContent = '全部 (' + totalAll + ')';
+    else if (f === 'done') tab.textContent = '🟢 已打卡 (' + totalDone + ')';
+    else if (f === 'pending') tab.textContent = '🟡 待办 (' + totalPending + ')';
+    else if (f === 'overdue') tab.textContent = '🔴 缺卡 (' + totalOverdue + ')';
+  });
+
   let html = '';
   WEEK_BOARD_DATA.forEach((col, idx) => {
     const isToday = (idx === 5 && window.currentWeekOffset === 0);
@@ -6200,20 +6507,29 @@ function inspectMonthDate(year, month, day) {
   const countOverdue = document.getElementById('inspector-count-overdue');
 
   if (day === 31) {
-    if (countDone) countDone.textContent = '2 项';
+    const todayTasks = (WEEK_BOARD_DATA[5] && Array.isArray(WEEK_BOARD_DATA[5].tasks)) ? WEEK_BOARD_DATA[5].tasks : [];
+    const doneTasks = todayTasks.filter(t => t.status === 'done');
+    const pendingTasks = todayTasks.filter(t => t.status === 'pending');
+    const overdueTasks = todayTasks.filter(t => t.status === 'overdue');
+
+    if (countDone) countDone.textContent = doneTasks.length + ' 项';
     if (listDone) {
-      listDone.innerHTML = 
-        '<div class="inspector-task-item"><span>🏫 校史馆：进退位口算达标终极大攻坚 (25分钟)</span><span style="color:#16a34a; font-weight:800; font-size:11px;">✓ 已完成</span></div>' +
-        '<div class="inspector-task-item"><span>🏸 武道馆：羽毛球杀球300次耐力突破 (40分钟)</span><span style="color:#16a34a; font-weight:800; font-size:11px;">✓ 已完成</span></div>';
+      listDone.innerHTML = doneTasks.length > 0
+        ? doneTasks.map(t => '<div class="inspector-task-item"><span>' + (t.pavilionBadge ? t.pavilionBadge.split(' ')[0] + ' ' : '🏫 ') + t.pavilion + '：' + t.title + ' (' + t.duration + ')</span><span style="color:#16a34a; font-weight:800; font-size:11px;">✓ 已完成</span></div>').join('')
+        : '<div style="color:#94a3b8; font-size:11px; padding:6px 0;">今日暂无已完成事项</div>';
     }
-    if (countPending) countPending.textContent = '2 项';
+    if (countPending) countPending.textContent = pendingTasks.length + ' 项';
     if (listPending) {
-      listPending.innerHTML = 
-        '<div class="inspector-task-item"><span>🧠 思辨馆：辩论复盘手记与布鲁姆评价阶梯</span><span style="color:#d97706; font-weight:800; font-size:11px;">🟡 待打卡</span></div>' +
-        '<div class="inspector-task-item"><span>📖 每日随记：1分钟心流思辨反思短片录制</span><span style="color:#d97706; font-weight:800; font-size:11px;">🟡 待打卡</span></div>';
+      listPending.innerHTML = pendingTasks.length > 0
+        ? pendingTasks.map(t => '<div class="inspector-task-item"><span>' + (t.pavilionBadge ? t.pavilionBadge.split(' ')[0] + ' ' : '🧠 ') + t.pavilion + '：' + t.title + '</span><span style="color:#d97706; font-weight:800; font-size:11px;">🟡 待打卡</span></div>').join('')
+        : '<div style="color:#16a34a; font-size:11px; font-weight:700; padding:6px 0;">🎉 今日待办已全部清空达成！</div>';
     }
-    if (countOverdue) countOverdue.textContent = '0 项';
-    if (listOverdue) listOverdue.innerHTML = '<div style="color:#94a3b8; font-size:11px; padding:6px 0;">🎉 今日无超期未办事项！</div>';
+    if (countOverdue) countOverdue.textContent = overdueTasks.length + ' 项';
+    if (listOverdue) {
+      listOverdue.innerHTML = overdueTasks.length > 0
+        ? overdueTasks.map(t => '<div class="inspector-task-item"><span>🔴 ' + t.pavilion + '：' + t.title + '</span><span style="color:#dc2626; font-weight:800; font-size:11px;">未办缺卡</span></div>').join('')
+        : '<div style="color:#94a3b8; font-size:11px; padding:6px 0;">🎉 今日无超期未办事项！</div>';
+    }
   } else {
     if (countDone) countDone.textContent = '3 项';
     if (listDone) {
@@ -8964,7 +9280,8 @@ function renderGanttChart() {
           '<span class="gantt-status-pill ' + sm.cls + '">' + sm.label + '</span>' +
         '</div>' +
         '<div class="col-cell-ops">' +
-          '<button class="gantt-op-btn gantt-plan-btn" data-id="' + p.id + '" onclick="handleGanttEditPlan(this)" title="调整该项目的规划周期与策略">📝 规划</button>' +
+          '<button class="gantt-op-btn gantt-plan-btn" data-id="' + p.id + '" onclick="openEditProjectModal(this.dataset.id)" title="编辑项目名称、起止周期与攻坚策略">✏️ 编辑</button>' +
+          '<button class="gantt-op-btn gantt-plan-btn" data-id="' + p.id + '" onclick="handleGanttEditPlan(this)" title="进入该项目三级思维导图拆解画布">🔮 脑图</button>' +
           '<button class="gantt-op-btn gantt-archive-btn ' + (p.isArchived ? 'is-archived' : '') + '" data-id="' + p.id + '" onclick="handleGanttArchive(this)" title="' + (p.isArchived ? '解除归档' : '归档该项目') + '">' +
             (p.isArchived ? '📂 已归' : '📦 归档') +
           '</button>' +
@@ -10627,6 +10944,9 @@ function recordTreeTestDemo() {
   if (typeof enterModuleExecutionView === "function") (window as any).enterModuleExecutionView = enterModuleExecutionView;
   if (typeof openExecutionWorkspace === "function") (window as any).openExecutionWorkspace = openExecutionWorkspace;
   if (typeof normalizeExecCheckinType === "function") (window as any).normalizeExecCheckinType = normalizeExecCheckinType;
+  if (typeof syncFormStateToAttributes === "function") (window as any).syncFormStateToAttributes = syncFormStateToAttributes;
+  if (typeof notifyIslandStateChanged === "function") (window as any).notifyIslandStateChanged = notifyIslandStateChanged;
+  if (typeof toggleObsidianTabletFullscreen === "function") (window as any).toggleObsidianTabletFullscreen = toggleObsidianTabletFullscreen;
   if (typeof renderTailoredExecutionStage === "function") (window as any).renderTailoredExecutionStage = renderTailoredExecutionStage;
   if (typeof openExecCardPopupView === "function") (window as any).openExecCardPopupView = openExecCardPopupView;
   if (typeof closeExecutionWorkspace === "function") (window as any).closeExecutionWorkspace = closeExecutionWorkspace;
@@ -10698,6 +11018,8 @@ function recordTreeTestDemo() {
   if (typeof openCameraSettings === "function") (window as any).openCameraSettings = openCameraSettings;
   if (typeof toggleArchiveView === "function") (window as any).toggleArchiveView = toggleArchiveView;
   if (typeof toggleTertiaryRouteSetup === "function") (window as any).toggleTertiaryRouteSetup = toggleTertiaryRouteSetup;
+  if (typeof pushTertiaryHistory === "function") (window as any).pushTertiaryHistory = pushTertiaryHistory;
+  if (typeof updateTertiaryNodeCountBadge === "function") (window as any).updateTertiaryNodeCountBadge = updateTertiaryNodeCountBadge;
   if (typeof saveCurrentProjectCanvasSnapshot === "function") (window as any).saveCurrentProjectCanvasSnapshot = saveCurrentProjectCanvasSnapshot;
   if (typeof buildStarterCanvasForProject === "function") (window as any).buildStarterCanvasForProject = buildStarterCanvasForProject;
   if (typeof enterTertiaryWorkspace === "function") (window as any).enterTertiaryWorkspace = enterTertiaryWorkspace;
@@ -10708,6 +11030,7 @@ function recordTreeTestDemo() {
   if (typeof toggleTertiaryCardMinimize === "function") (window as any).toggleTertiaryCardMinimize = toggleTertiaryCardMinimize;
   if (typeof toggleAllTertiaryCardsMinimize === "function") (window as any).toggleAllTertiaryCardsMinimize = toggleAllTertiaryCardsMinimize;
   if (typeof bindTertiaryCardsDrag === "function") (window as any).bindTertiaryCardsDrag = bindTertiaryCardsDrag;
+  if (typeof getDownstreamChildCardIds === "function") (window as any).getDownstreamChildCardIds = getDownstreamChildCardIds;
   if (typeof bindCardDragSingle === "function") (window as any).bindCardDragSingle = bindCardDragSingle;
   if (typeof renderTertiaryEdges === "function") (window as any).renderTertiaryEdges = renderTertiaryEdges;
   if (typeof openEdgePopover === "function") (window as any).openEdgePopover = openEdgePopover;
@@ -10929,6 +11252,12 @@ function recordTreeTestDemo() {
   if (typeof PROJECT_CANVAS_STORE !== "undefined") (window as any).PROJECT_CANVAS_STORE = PROJECT_CANVAS_STORE;
   if (typeof PAVILION_META !== "undefined") (window as any).PAVILION_META = PAVILION_META;
   if (typeof EXEC_CARDS_DATA !== "undefined") (window as any).EXEC_CARDS_DATA = EXEC_CARDS_DATA;
+  if (typeof WEEK_BOARD_DATA !== "undefined") (window as any).WEEK_BOARD_DATA = WEEK_BOARD_DATA;
+  if (typeof TREASURY_STATE !== "undefined") (window as any).TREASURY_STATE = TREASURY_STATE;
+  if (typeof ACHIEVEMENT_STATE !== "undefined") (window as any).ACHIEVEMENT_STATE = ACHIEVEMENT_STATE;
+  if (typeof NOTE_STATE !== "undefined") (window as any).NOTE_STATE = NOTE_STATE;
+  if (typeof BOUNTY_STATE !== "undefined") (window as any).BOUNTY_STATE = BOUNTY_STATE;
+  if (typeof INQUIRY_POOL_STATE !== "undefined") (window as any).INQUIRY_POOL_STATE = INQUIRY_POOL_STATE;
 
   (window as any).__reinitYouthIslandDom = function () {
     islandSettingsBound = false;
@@ -10943,6 +11272,8 @@ function recordTreeTestDemo() {
     if (typeof renderHomeSemesterGoalsBanner === "function") renderHomeSemesterGoalsBanner();
     if (typeof recalcAndRenderGlobalHUD === "function") recalcAndRenderGlobalHUD();
     if (typeof renderBountyModalAndBillboard === "function") renderBountyModalAndBillboard();
+    if (typeof renderGanttChart === "function") renderGanttChart();
+    if (typeof initTertiaryWorkspace === "function") initTertiaryWorkspace();
     if (typeof switchHomeGlobalView === "function") switchHomeGlobalView("exec");
   };
 

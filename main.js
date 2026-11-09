@@ -167,6 +167,47 @@ var VaultStorageAdapter = class {
    */
   async hydrateRuntimeFromVault() {
     const win = window;
+    const appSnapshot = await this.readJson(
+      "00_Island_Core/app_state_snapshot.json"
+    );
+    if (appSnapshot) {
+      if (appSnapshot.USER_PROFILE_STATE && win.USER_PROFILE_STATE) {
+        Object.assign(win.USER_PROFILE_STATE, appSnapshot.USER_PROFILE_STATE);
+      }
+      if (Array.isArray(appSnapshot.GANTT_PROJECTS) && Array.isArray(win.GANTT_PROJECTS)) {
+        win.GANTT_PROJECTS.splice(0, win.GANTT_PROJECTS.length, ...appSnapshot.GANTT_PROJECTS);
+      }
+      if (appSnapshot.PROJECT_CANVAS_STORE && win.PROJECT_CANVAS_STORE) {
+        Object.assign(win.PROJECT_CANVAS_STORE, appSnapshot.PROJECT_CANVAS_STORE);
+      }
+      if (appSnapshot.PAVILION_META && win.PAVILION_META) {
+        Object.assign(win.PAVILION_META, appSnapshot.PAVILION_META);
+      }
+      if (Array.isArray(appSnapshot.WEEK_BOARD_DATA) && Array.isArray(win.WEEK_BOARD_DATA)) {
+        win.WEEK_BOARD_DATA.splice(0, win.WEEK_BOARD_DATA.length, ...appSnapshot.WEEK_BOARD_DATA);
+      }
+      if (appSnapshot.TREASURY_STATE && win.TREASURY_STATE) {
+        Object.assign(win.TREASURY_STATE, appSnapshot.TREASURY_STATE);
+      }
+      if (appSnapshot.ACHIEVEMENT_STATE && win.ACHIEVEMENT_STATE) {
+        Object.assign(win.ACHIEVEMENT_STATE, appSnapshot.ACHIEVEMENT_STATE);
+      }
+      if (appSnapshot.NOTE_STATE && win.NOTE_STATE) {
+        Object.assign(win.NOTE_STATE, appSnapshot.NOTE_STATE);
+      }
+      if (appSnapshot.BOUNTY_STATE && win.BOUNTY_STATE) {
+        Object.assign(win.BOUNTY_STATE, appSnapshot.BOUNTY_STATE);
+      }
+      if (appSnapshot.INQUIRY_POOL_STATE && win.INQUIRY_POOL_STATE) {
+        Object.assign(win.INQUIRY_POOL_STATE, appSnapshot.INQUIRY_POOL_STATE);
+      }
+      if (typeof appSnapshot.dayCardDeckHtml === "string" && appSnapshot.dayCardDeckHtml.trim().length > 0) {
+        const deck = typeof document !== "undefined" ? document.getElementById("day-card-deck") : null;
+        if (deck) {
+          deck.innerHTML = appSnapshot.dayCardDeckHtml;
+        }
+      }
+    }
     const savedProfile = await this.readJson("00_Island_Core/user_profile.json");
     if (savedProfile && win.USER_PROFILE_STATE) {
       Object.assign(win.USER_PROFILE_STATE, savedProfile);
@@ -273,6 +314,24 @@ var VaultStorageAdapter = class {
     if (win.BOUNTY_STATE) {
       await this.writeJson("09_Bounties_\u60AC\u8D4F\u516C\u544A/bounties.json", win.BOUNTY_STATE);
     }
+    const deckEl = typeof document !== "undefined" ? document.getElementById("day-card-deck") : null;
+    if (deckEl && typeof win.syncFormStateToAttributes === "function") {
+      win.syncFormStateToAttributes(deckEl);
+    }
+    await this.writeJson("00_Island_Core/app_state_snapshot.json", {
+      updatedAt: (/* @__PURE__ */ new Date()).toISOString(),
+      USER_PROFILE_STATE: win.USER_PROFILE_STATE || null,
+      GANTT_PROJECTS: win.GANTT_PROJECTS || null,
+      PROJECT_CANVAS_STORE: win.PROJECT_CANVAS_STORE || null,
+      PAVILION_META: win.PAVILION_META || null,
+      WEEK_BOARD_DATA: win.WEEK_BOARD_DATA || null,
+      TREASURY_STATE: win.TREASURY_STATE || null,
+      ACHIEVEMENT_STATE: win.ACHIEVEMENT_STATE || null,
+      NOTE_STATE: win.NOTE_STATE || null,
+      BOUNTY_STATE: win.BOUNTY_STATE || null,
+      INQUIRY_POOL_STATE: win.INQUIRY_POOL_STATE || null,
+      dayCardDeckHtml: deckEl ? deckEl.innerHTML : null
+    });
     globalIslandEventBus.emit("vault:synced", { timestamp: (/* @__PURE__ */ new Date()).toISOString() });
   }
   /**
@@ -420,7 +479,7 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
 
   <!-- \u4E3B\u89C6\u53E3\u5BB9\u5668 (\u5305\u542B\u771F\u673A\u5E73\u677F\u5916\u58F3) -->
   <main id="main-viewport">
-    <div class="ipad-shell-wrapper in-frame-mode" id="ipad-wrapper">
+    <div class="ipad-shell-wrapper" id="ipad-wrapper">
       <div class="ipad-screen-container" id="ipad-screen">
         <!-- \u6A21\u5F0F 1: 1:1 \u6E38\u620F\u5316\u6D77\u5C9B\u753B\u5E03\u821E\u53F0 -->
 
@@ -713,6 +772,7 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
           <div class="work-node-card-header">
             <span class="work-node-badge" style="background:#ecfdf5; color:#047857; border:1px solid #a7f3d0;">\u{1F33F} \u4E60\u60EF\u8DF5\u884C</span>
             <span class="work-node-title">\u6BCF\u65E5\u53E3\u7B97\u81EA\u5F8B\u9632\u5B88\u65E5\u8BFE</span>
+            <span id="status-text-exec-card-habit" class="task-status-pill pending" style="font-size:10px; font-weight:800; color:#047857;">\u65E5\u5E38\u81EA\u5F8B</span>
           </div>
           <div class="work-node-body" style="display:flex; flex-direction:column; gap:7px;">
             <p style="font-weight:750; color:#14532d; font-size:11.5px; margin:0;">\u3010\u77E5\u884C\u5408\u4E00\u65E5\u8BFE\u3011\u6668\u95F4 15 \u5206\u949F\u72EC\u7ACB\u53E3\u7B97\u76F2\u5237\uFF0C\u606A\u5B88\u65E0\u5C4F\u5E55\u7EAF\u51C0\u65F6\u523B\u3002</p>
@@ -752,6 +812,7 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
           <div class="work-node-card-header">
             <span class="work-node-badge" style="background:#f5f3ff; color:#7c3aed; border:1px solid #ddd6fe;">\u{1F4DD} \u8BC4\u4F30\u590D\u76D8</span>
             <span class="work-node-title">\u53E3\u7B97\u9519\u56E0\u5F52\u56E0\u4E0E\u53CD\u601D\u4FBF\u7B7E</span>
+            <span id="status-text-exec-card-reflection" class="task-status-pill pending" style="font-size:10px; font-weight:800; color:#7c3aed;">\u5F85\u590D\u76D8</span>
           </div>
           <div class="work-node-body" style="display:flex; flex-direction:column; gap:7px;">
             <div style="background:#faf5ff; border:1px solid #e9d5ff; border-radius:8px; padding:6px 8px; font-size:11px;" onclick="event.stopPropagation()">
@@ -789,6 +850,7 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
           <div class="work-node-card-header">
             <span class="work-node-badge" style="background:#f0fdf4; color:#15803d; border:1px solid #86efac;">\u2699\uFE0F \u81EA\u5B9A\u4E49\u914D\u7F6E</span>
             <span class="work-node-title">\u822A\u5929\u79D1\u666E\u9986\u81EA\u4E3B\u7814\u5B66\u4E0E\u6C34\u706B\u7BAD\u5236\u4F5C</span>
+            <span id="status-text-exec-card-custom" class="task-status-pill pending" style="font-size:10px; font-weight:800; color:#15803d;">\u5F85\u6253\u5361</span>
           </div>
           <div class="work-node-body" style="display:flex; flex-direction:column; gap:7px;">
             <div style="background:#f0fdf4; border:1px dashed #86efac; padding:6px 8px; border-radius:8px; font-size:10.5px; color:#14532d;" onclick="event.stopPropagation()">
@@ -1577,6 +1639,10 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
       \u{1F33F} \u7ACB\u5373\u8FDB\u5165\u6C89\u6D78\u4E13\u6CE8\u6A21\u5F0F
     </button>
 
+    <button class="a-my-island-island-settings-close" onclick="toggleObsidianTabletFullscreen()" style="cursor:pointer; font-weight:800; font-size:12px; width:100%; margin-bottom:8px; background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;">
+      \u{1F5A5}\uFE0F \u5207\u6362 Obsidian \u9876\u680F/\u5168\u5C4F\u663E\u793A (\u8FD4\u56DE\u8BBE\u7F6E\u4E0E\u63D2\u4EF6\u7BA1\u7406)
+    </button>
+
     <button class="a-my-island-island-settings-close" onclick="closeOriginalSettingsPanel()">\u5173\u95ED</button>
   </div>
 
@@ -2056,7 +2122,7 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
 
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:6px; border-top:1px solid #f1e4d0; font-size:10.5px;">
             <span id="drill-footer-dur-tcard-2">\u9884\u8BA1\u4E13\u6CE8\uFF1A\u23F1\uFE0F 20 \u5206\u949F</span>
-            <span style="color:#b45309; font-weight:800; font-size:10px;">\u26A1 \u653B\u575A\u5B9E\u8BAD\u89C4\u8303</span>
+            <button type="button" class="card-graphic-pill pill-timer" onclick="handleNodeCheckin(this, 'tcard-2', 'timer'); event.stopPropagation();" style="padding:2px 9px; font-size:10px; cursor:pointer;">\u{1F31F} \u7ACB\u5373\u6253\u5361</button>
           </div>
         </div>
         <div class="work-card-connect-handle" onclick="startOrFinishConnecting('tcard-2', event)" title="\u70B9\u51FB\u4E0E\u4E0B\u4E00\u8282\u70B9\u5EFA\u7ACB\u8DEF\u7EBF\u8FDE\u7EBF">\u{1F517}</div>
@@ -2067,6 +2133,7 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
         <div class="work-node-card-header" ondblclick="toggleTertiaryCardMinimize('tcard-3', event)" title="\u53CC\u51FB\u6807\u9898\u680F\u6700\u5C0F\u5316/\u5C55\u5F00\u5361\u7247">
           <span class="work-node-badge" style="background:#ecfdf5; color:#047857; border:1px solid #a7f3d0;">\u{1F33F} \u4E60\u60EF\u8DF5\u884C</span>
           <span class="work-node-title">\u6BCF\u65E5\u53E3\u7B97\u81EA\u5F8B\u9632\u5B88\u65E5\u8BFE</span>
+          <span id="status-text-tcard-3" style="font-size:10px; font-weight:800; color:#047857; margin-left:auto;">\u65E5\u5E38\u5B88\u5219</span>
           <button type="button" class="node-card-collapse-toggle" onclick="toggleTertiaryCardMinimize('tcard-3', event)" title="\u6700\u5C0F\u5316/\u5C55\u5F00\u5361\u7247">\u{1F53C}</button>
         </div>
         <div class="work-node-body" style="display:flex; flex-direction:column; gap:7px;">
@@ -2097,7 +2164,7 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
           </div>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:6px; border-top:1px solid #f1e4d0; font-size:10.5px;">
             <span style="color:#047857; font-weight:800; font-size:10px;">\u{1F33F} \u4E60\u60EF\u9632\u5B88\u5E95\u7EBF\u6E05\u5355</span>
-            <span style="color:#64748b; font-size:10px;">\u65E5\u5E38\u5B88\u5219</span>
+            <button type="button" class="card-graphic-pill pill-checkin" onclick="handleNodeCheckin(this, 'tcard-3', 'habit'); event.stopPropagation();" style="padding:2px 9px; font-size:10px; cursor:pointer;">\u{1F33F} \u77E5\u884C\u6253\u5361</button>
           </div>
         </div>
         <div class="work-card-connect-handle" onclick="startOrFinishConnecting('tcard-3', event)" title="\u70B9\u51FB\u4E0E\u4E0B\u4E00\u8282\u70B9\u5EFA\u7ACB\u8DEF\u7EBF\u8FDE\u7EBF">\u{1F517}</div>
@@ -2147,6 +2214,7 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
         <div class="work-node-card-header" ondblclick="toggleTertiaryCardMinimize('tcard-5', event)" title="\u53CC\u51FB\u6807\u9898\u680F\u6700\u5C0F\u5316/\u5C55\u5F00\u5361\u7247">
           <span class="work-node-badge" style="background:#f0fdf4; color:#15803d; border:1px solid #86efac;">\u2699\uFE0F \u81EA\u5B9A\u4E49\u914D\u7F6E</span>
           <span class="work-node-title">\u822A\u5929\u79D1\u666E\u9986\u81EA\u4E3B\u7814\u5B66\u4E0E\u6C34\u706B\u7BAD\u5236\u4F5C</span>
+          <span id="status-text-tcard-5" style="font-size:10px; font-weight:800; color:#15803d; margin-left:auto;">\u5F85\u6253\u5361</span>
           <button type="button" class="node-card-collapse-toggle" onclick="toggleTertiaryCardMinimize('tcard-5', event)" title="\u6700\u5C0F\u5316/\u5C55\u5F00\u5361\u7247">\u{1F53C}</button>
         </div>
         <div class="work-node-body" style="display:flex; flex-direction:column; gap:7px;">
@@ -2194,7 +2262,7 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
           </div>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:6px; border-top:1px solid #f1e4d0; font-size:10.5px;">
             <span style="color:#15803d; font-weight:750;">\u4E2A\u6027\u5316\u5B9A\u5236\u4EFB\u52A1</span>
-            <span style="color:#64748b; font-size:10px;">\u81EA\u4E3B\u914D\u7F6E Schema</span>
+            <button type="button" class="card-graphic-pill pill-checkin" onclick="handleNodeCheckin(this, 'tcard-5', 'custom'); event.stopPropagation();" style="padding:2px 9px; font-size:10px; cursor:pointer; background:#16a34a; color:#fff; border:1px solid #15803d;">\u{1F31F} \u7ACB\u5373\u6253\u5361</button>
           </div>
         </div>
         <div class="work-card-connect-handle" onclick="startOrFinishConnecting('tcard-5', event)" title="\u70B9\u51FB\u4E0E\u4E0B\u4E00\u8282\u70B9\u5EFA\u7ACB\u8DEF\u7EBF\u8FDE\u7EBF">\u{1F517}</div>
@@ -6590,6 +6658,42 @@ function bootPrototypeRuntime() {
       legacyKey: "note"
     }
   };
+  function syncFormStateToAttributes(rootEl) {
+    if (!rootEl)
+      return;
+    rootEl.querySelectorAll("input").forEach((inp) => {
+      if (inp.type === "checkbox" || inp.type === "radio") {
+        if (inp.checked)
+          inp.setAttribute("checked", "checked");
+        else
+          inp.removeAttribute("checked");
+      } else if (inp.type !== "file") {
+        inp.setAttribute("value", inp.value);
+      }
+    });
+    rootEl.querySelectorAll("textarea").forEach((ta) => {
+      ta.textContent = ta.value;
+    });
+    rootEl.querySelectorAll("select").forEach((sel) => {
+      Array.from(sel.options).forEach((opt) => {
+        if (opt.value === sel.value)
+          opt.setAttribute("selected", "selected");
+        else
+          opt.removeAttribute("selected");
+      });
+    });
+  }
+  function notifyIslandStateChanged() {
+    try {
+      window.dispatchEvent(new CustomEvent("youth-island:state-changed"));
+    } catch (e) {
+    }
+  }
+  function toggleObsidianTabletFullscreen() {
+    const isFull = document.body.classList.toggle("youth-island-tablet-fullscreen");
+    closeOriginalSettingsPanel();
+    showIslandToast(isFull ? "\u{1F5A5}\uFE0F \u5DF2\u6062\u590D\u5E73\u677F 100% \u5168\u5C4F\u6C89\u6D78\u663E\u793A" : "\u{1F4D6} \u5DF2\u663E\u793A Obsidian \u9876\u90E8\u4E0E\u4FA7\u8FB9\u5BFC\u822A\u680F\uFF0C\u53EF\u8FDB\u5165 Obsidian \u8BBE\u7F6E\u6216\u518D\u6B21\u70B9\u51FB\u6062\u590D\u5168\u5C4F");
+  }
   function renderTailoredExecutionStage(pavilionId) {
     const checkinType = normalizeExecCheckinType(pavilionId);
     const container = document.getElementById("exec-popup-task-view");
@@ -6601,7 +6705,7 @@ function bootPrototypeRuntime() {
       container.dataset.activeCheckinType = checkinType;
     }
   }
-  function openExecCardPopupView(pavilionId) {
+  function openExecCardPopupView(pavilionId, clickedCardEl) {
     const popup = document.getElementById("exec-task-workspace") || document.getElementById("exec-card-popup-view");
     if (!popup)
       return;
@@ -6609,19 +6713,21 @@ function bootPrototypeRuntime() {
     const meta = EXEC_CHECKIN_PAGE_META[checkinType] || EXEC_CHECKIN_PAGE_META.goal;
     currentExecPopupPavilion = meta.legacyKey || "study";
     window.currentExecCheckinType = checkinType;
+    window.currentActiveExecDeckCardId = clickedCardEl ? clickedCardEl.id : "exec-card-" + checkinType;
     isExecProjectNodesViewActive = false;
     const data = EXEC_PROJECT_DATA[currentExecPopupPavilion] || EXEC_PROJECT_DATA.study;
+    const customTitle = clickedCardEl ? clickedCardEl.getAttribute("data-label") || "" : "";
     const titleEl = document.getElementById("exec-popup-title");
     const badgeEl = document.getElementById("exec-popup-badge");
     const breadEl = document.getElementById("exec-popup-breadcrumb");
     const mapTitleEl = document.getElementById("exec-project-map-title");
     const mapSumEl = document.getElementById("exec-project-map-summary");
     if (titleEl)
-      titleEl.textContent = meta.title;
+      titleEl.textContent = customTitle || meta.title;
     if (badgeEl)
       badgeEl.textContent = meta.badge;
     if (breadEl)
-      breadEl.textContent = meta.breadcrumb;
+      breadEl.textContent = customTitle ? "\u{1F3DD}\uFE0F \u6668\u66E6\u5C9B \u276F \u26A1 \u6267\u884C\u4E2D\u5FC3 \u276F " + customTitle : meta.breadcrumb;
     if (mapTitleEl)
       mapTitleEl.textContent = meta.projectName || data.projectName || meta.title;
     if (mapSumEl)
@@ -6644,8 +6750,14 @@ function bootPrototypeRuntime() {
     renderTailoredExecutionStage(checkinType);
     const taskView = document.getElementById("exec-popup-task-view");
     const projView = document.getElementById("exec-popup-project-view");
-    if (taskView)
+    if (taskView) {
       taskView.style.display = "flex";
+      if (customTitle) {
+        const innerTitle = taskView.querySelector(".work-node-title");
+        if (innerTitle)
+          innerTitle.textContent = customTitle;
+      }
+    }
     if (projView)
       projView.style.display = "none";
     const subviewDay = document.getElementById("exec-subview-day");
@@ -6677,6 +6789,7 @@ function bootPrototypeRuntime() {
     const popup = document.getElementById("exec-task-workspace") || document.getElementById("exec-card-popup-view");
     const taskView = document.getElementById("exec-popup-task-view");
     if (taskView && taskView.dataset.activeCheckinType && taskView.innerHTML.trim()) {
+      syncFormStateToAttributes(taskView);
       const cType = taskView.dataset.activeCheckinType;
       const targetCanvas = document.querySelector("#checkin-frame-" + cType + " .frame-ui-canvas");
       if (targetCanvas) {
@@ -6717,6 +6830,7 @@ function bootPrototypeRuntime() {
     if (subviewMonth)
       subviewMonth.style.display = "";
     switchExecSubView(currentExecSubView || "day");
+    notifyIslandStateChanged();
   }
   function toggleExecPopupProjectNodesView() {
     const data = EXEC_PROJECT_DATA[currentExecPopupPavilion] || EXEC_PROJECT_DATA.study;
@@ -6990,6 +7104,25 @@ function bootPrototypeRuntime() {
     }
   }
   function renderHomeSemesterGoalsBanner() {
+    const listEl = document.getElementById("island-goal-cards-list");
+    if (!listEl || !Array.isArray(window.GANTT_PROJECTS))
+      return;
+    const activeProjs = window.GANTT_PROJECTS.filter((p) => !p.isArchived);
+    if (activeProjs.length === 0)
+      return;
+    const badgeColors = {
+      "\u5B66\u4E1A\u653B\u575A": { bg: "#eff6ff", color: "#1d4ed8", bar: "#2563eb" },
+      "\u5174\u8DA3\u7279\u957F": { bg: "#f0fdf4", color: "#15803d", bar: "#16a34a" },
+      "\u4FEE\u8EAB\u7ACB\u5BAA": { bg: "#fef3c7", color: "#b45309", bar: "#d97706" },
+      "\u8BA4\u77E5\u601D\u8FA8": { bg: "#f5f3ff", color: "#6d28d9", bar: "#7c3aed" }
+    };
+    listEl.innerHTML = activeProjs.slice(0, 6).map((p) => {
+      const res = typeof computeProjectProgressAndStatus === "function" ? computeProjectProgressAndStatus(p) : { progress: 50, completedCount: (p.completedDays || []).length, totalDays: 10 };
+      const cm = badgeColors[p.category] || { bg: "#fef3c7", color: "#b45309", bar: "#d97706" };
+      const pavMeta = typeof PAVILION_META !== "undefined" && PAVILION_META[p.pavilion] ? PAVILION_META[p.pavilion] : { name: p.category || "\u89C4\u5212\u9986", icon: "\u{1F3AF}" };
+      const safeTitle = String(p.title || "").replace(/"/g, "&quot;");
+      return `<div class="island-goal-item" onclick="enterSecondaryWorkspace('` + (p.pavilion || "study") + `', 'gantt')" title="\u70B9\u51FB\u8FDB\u5165\u3010` + (pavMeta.name || p.category) + '\u3011\u7518\u7279\u89C4\u5212\u6C99\u76D8"><div class="goal-item-top"><span class="goal-pav-badge" style="background:' + cm.bg + "; color:" + cm.color + ';">' + (pavMeta.icon || "\u{1F3AF}") + " " + (pavMeta.name || p.category) + '</span><span class="goal-target-title">' + safeTitle + '</span><span class="goal-pct-text" style="color:' + cm.color + ';">' + res.progress + '%</span></div><div class="goal-progress-track"><div class="goal-progress-fill" style="width:' + res.progress + "%; background:" + cm.bar + ';"></div></div><div class="goal-item-sub"><span>\u5468\u671F: ' + String(p.startDate || "").slice(5) + "~" + String(p.endDate || "").slice(5) + "</span><span>\u5DF2\u8FBE\u6807 " + res.completedCount + "/" + res.totalDays + " \u5929</span></div></div>";
+    }).join("");
   }
   function triggerGlobalCheckinClosedLoop(opts) {
     const options = opts || {};
@@ -6998,6 +7131,10 @@ function bootPrototypeRuntime() {
     const title = options.title || "\u653B\u575A\u5B9E\u8BAD\u4EFB\u52A1";
     const focusMinutes = parseInt(options.focusMinutes, 10) || 20;
     const st = window.USER_PROFILE_STATE;
+    const deckCards = document.querySelectorAll("#day-card-deck .exec-task-card");
+    if (deckCards.length > 0) {
+      st.totalTodayCount = Math.max(st.totalTodayCount || 5, deckCards.length);
+    }
     if (!st.checkedTaskKeys[taskKey]) {
       st.checkedTaskKeys[taskKey] = true;
       st.completedTodayCount = Math.min(st.totalTodayCount, st.completedTodayCount + 1);
@@ -7036,9 +7173,12 @@ function bootPrototypeRuntime() {
     if (typeof WEEK_BOARD_DATA !== "undefined" && Array.isArray(WEEK_BOARD_DATA)) {
       const todayCol = WEEK_BOARD_DATA.find((d) => d.isToday) || WEEK_BOARD_DATA[5];
       if (todayCol && Array.isArray(todayCol.tasks)) {
-        const pendingTask = todayCol.tasks.find((t) => t.status !== "completed");
+        const pName2 = typeof PAVILION_META !== "undefined" && PAVILION_META[pavilionId] && PAVILION_META[pavilionId].name ? PAVILION_META[pavilionId].name : "";
+        const pendingTask = todayCol.tasks.find((t) => t.status === "pending" && (t.title === title || pName2 && t.pavilion.includes(pName2.slice(0, 2)))) || todayCol.tasks.find((t) => t.status === "pending");
         if (pendingTask) {
-          pendingTask.status = "completed";
+          pendingTask.status = "done";
+          pendingTask.evidence = "\u2713 \u5DF2\u4E0A\u4F20\u771F\u5B9E\u6253\u5361\u7269\u8BC1\u5E76\u52A0\u76D6\u65F6\u95F4\u6233 (" + focusMinutes + " \u5206\u949F)";
+          pendingTask.reflection = "\u201C\u77E5\u884C\u5408\u4E00\uFF0C\u4ECA\u65E5\u6309\u8BA1\u5212\u5706\u6EE1\u8FBE\u6210\u6253\u5361\u76EE\u6807\uFF01\u201D";
         }
       }
       if (typeof renderWeekBoard === "function") {
@@ -7075,6 +7215,7 @@ function bootPrototypeRuntime() {
         }
       }
     }
+    notifyIslandStateChanged();
   }
   function handleExecPopupMainCheckin() {
     const btn = document.getElementById("btn-exec-popup-main-checkin");
@@ -7163,7 +7304,16 @@ function bootPrototypeRuntime() {
     if (event.target.closest("button") || event.target.closest("input") || event.target.closest("select") || event.target.closest("textarea") || event.target.closest("label") || event.target.closest(".card-scene-btn") || event.target.closest(".card-graphic-pill")) {
       return;
     }
-    openExecCardPopupView(pavilionId);
+    const cardEl = event.currentTarget || event.target.closest(".exec-task-card");
+    if (cardEl && !cardEl.classList.contains("card-active")) {
+      const allCards = Array.from(document.querySelectorAll("#day-card-deck .exec-task-card"));
+      const idx = allCards.indexOf(cardEl);
+      if (idx >= 0) {
+        goToDayCard(idx);
+        return;
+      }
+    }
+    openExecCardPopupView(pavilionId, cardEl);
   }
   function enterSecondaryWorkspace(pavilionId, subView) {
     currentWsPavilion = pavilionId || "study";
@@ -8156,6 +8306,23 @@ function bootPrototypeRuntime() {
       deckStatus.innerText = "\u{1F7E2} \u5DF2" + sealText;
       deckStatus.style.color = "#059669";
     }
+    if (window.currentActiveExecDeckCardId) {
+      const activeDeckCard = document.getElementById(window.currentActiveExecDeckCardId);
+      if (activeDeckCard) {
+        const pill = activeDeckCard.querySelector(".task-status-pill");
+        if (pill) {
+          pill.className = "task-status-pill completed";
+          pill.innerText = "\u{1F7E2} \u5DF2" + sealText;
+          pill.style.color = "#059669";
+        }
+        const actionBtn = activeDeckCard.querySelector(".card-graphic-pill.pill-timer, .card-graphic-pill.pill-checkin, .card-graphic-pill.pill-reflection");
+        if (actionBtn) {
+          actionBtn.innerText = "\u2713 \u5DF2" + sealText;
+          actionBtn.style.background = "#10b981";
+          actionBtn.style.color = "#fff";
+        }
+      }
+    }
     const tcardMap = { goal: "tcard-1", drill: "tcard-2", habit: "tcard-3", reflection: "tcard-4", custom: "tcard-5" };
     if (tcardMap[type]) {
       const tStatus = document.getElementById("status-text-" + tcardMap[type]);
@@ -8164,37 +8331,80 @@ function bootPrototypeRuntime() {
         tStatus.style.color = "#059669";
       }
     }
+    const popupTitleEl = document.getElementById("exec-popup-title");
+    const realTaskTitle = popupTitleEl && popupTitleEl.textContent.trim() ? popupTitleEl.textContent.trim() : sealText + "\u8282\u70B9\u6253\u5361 (" + type + ")";
     triggerGlobalCheckinClosedLoop({
-      taskKey: "checkin-page-" + type,
+      taskKey: window.currentActiveExecDeckCardId || "checkin-page-" + type,
       pavilionId: type,
-      title: sealText + "\u8282\u70B9\u6253\u5361 (" + type + ")",
+      title: realTaskTitle,
       focusMinutes: 20
     });
     showIslandToast("\u{1F389} \u606D\u559C\uFF01\u5DF2\u5B8C\u6210\u3010" + sealText + "\u3011\u6253\u5361\u95ED\u73AF\uFF01\u7518\u7279\u8FDB\u5EA6\u3001\u5C65\u7EA6\u7387\u4E0E\u6BCF\u65E5\u968F\u8BB0\u5DF2\u540C\u6B65\u66F4\u65B0\uFF01");
+    if (document.body.classList.contains("has-exec-fullscreen") && typeof closeExecCardPopupView === "function") {
+      setTimeout(() => {
+        closeExecCardPopupView();
+      }, 950);
+    }
   }
   function alignGridLayout() {
+    if (typeof pushTertiaryHistory === "function")
+      pushTertiaryHistory();
+    const world = document.getElementById("tertiary-canvas-world");
+    if (world) {
+      const cards = Array.from(world.querySelectorAll(".tertiary-card"));
+      const cols = Math.min(3, Math.max(2, Math.ceil(Math.sqrt(cards.length))));
+      cards.forEach((card, idx) => {
+        const r = Math.floor(idx / cols);
+        const c = idx % cols;
+        card.style.left = 80 + c * 420 + "px";
+        card.style.top = 50 + r * 360 + "px";
+      });
+      if (typeof renderTertiaryEdges === "function")
+        renderTertiaryEdges();
+      if (typeof saveCurrentProjectCanvasSnapshot === "function")
+        saveCurrentProjectCanvasSnapshot();
+    }
     const container = document.getElementById("ws-canvas-container");
     if (container) {
       container.style.animation = "none";
       container.offsetHeight;
       container.style.animation = "islandPanelPopIn 0.3s ease";
     }
-    showIslandToast("\u25A6 \u7F51\u683C\u5E03\u5C40\u5DF2\u667A\u80FD\u5BF9\u9F50");
+    showIslandToast("\u25A6 \u7F51\u683C\u5E03\u5C40\u5DF2\u667A\u80FD\u5BF9\u9F50\u5168\u90E8\u8282\u70B9\u5361\u7247");
   }
   function addCustomNodePrompt() {
-    const name = prompt("\u8BF7\u8F93\u5165\u65B0\u5EFA\u4E09\u7EA7\u653B\u575A\u8282\u70B9\u540D\u79F0\uFF1A", "\u65B0\u6D3E\u751F\u4EFB\u52A1\u8282\u70B9");
-    if (name) {
-      showIslandToast("\u{1F333} \u5DF2\u6210\u529F\u5728\u753B\u5E03\u65B0\u589E\u8282\u70B9\u3010" + name + "\u3011\u5E76\u5EFA\u7ACB\u77E5\u8BC6\u8FDE\u7EBF\uFF01");
-    }
+    openTertiaryAddNodeModal();
   }
   function fitCanvasView() {
+    const stage = document.getElementById("tertiary-canvas-stage");
+    if (stage) {
+      if (typeof stage.scrollTo === "function")
+        stage.scrollTo({ left: 0, top: 0, behavior: "smooth" });
+      else {
+        stage.scrollLeft = 0;
+        stage.scrollTop = 0;
+      }
+    }
     showIslandToast("\u26F6 \u753B\u5E03\u89C6\u53E3\u5DF2\u81EA\u9002\u5E94\u5C45\u4E2D\u5168\u91CF\u5361\u7247");
   }
   function focusActiveNode() {
+    const firstCard = document.querySelector("#tertiary-canvas-world .tertiary-card");
+    if (firstCard && typeof firstCard.scrollIntoView === "function") {
+      firstCard.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+      firstCard.style.boxShadow = "0 0 0 4px #f59e0b";
+      setTimeout(() => {
+        firstCard.style.boxShadow = "";
+      }, 1600);
+    }
     showIslandToast("\u{1F3AF} \u5DF2\u805A\u7126\u5230\u5F53\u524D\u6838\u5FC3\u653B\u575A\u8282\u70B9");
   }
   function centerActiveNode() {
-    showIslandToast("\u2299 \u5DF2\u5C06\u9009\u4E2D\u5361\u7247\u5E73\u79FB\u81F3\u89C6\u53E3\u4E2D\u592E");
+    const cards = document.querySelectorAll("#tertiary-canvas-world .tertiary-card");
+    const midCard = cards[Math.floor(cards.length / 2)] || cards[0];
+    if (midCard && typeof midCard.scrollIntoView === "function") {
+      midCard.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+    }
+    showIslandToast("\u2299 \u5DF2\u5C06\u6838\u5FC3\u5361\u7247\u5E73\u79FB\u81F3\u89C6\u53E3\u4E2D\u592E");
   }
   function openZoomScopeModal() {
     showIslandToast("\u{1F50D} \u67E5\u770B\u8303\u56F4\u5DF2\u5207\u6362\u4E3A\uFF1A\u3010\u672C\u65E5\u5173\u952E\u4EFB\u52A1\u62D3\u6251\u3011");
@@ -8302,16 +8512,52 @@ function bootPrototypeRuntime() {
   }
   window.PROJECT_CANVAS_STORE = {};
   window.currentTertiaryProjId = "p1";
+  window.TERTIARY_HISTORY = { undoStack: [], redoStack: [] };
+  function pushTertiaryHistory() {
+    const world = document.getElementById("tertiary-canvas-world");
+    if (!world)
+      return;
+    syncFormStateToAttributes(world);
+    const cardsHtml = Array.from(world.querySelectorAll(".tertiary-card")).map((el) => {
+      const clone = el.cloneNode(true);
+      clone.removeAttribute("data-drag-bound");
+      return clone.outerHTML;
+    }).join("\n");
+    window.TERTIARY_HISTORY.undoStack.push({
+      cardsHtml,
+      edges: JSON.parse(JSON.stringify(window.TERTIARY_EDGES || []))
+    });
+    if (window.TERTIARY_HISTORY.undoStack.length > 25) {
+      window.TERTIARY_HISTORY.undoStack.shift();
+    }
+    window.TERTIARY_HISTORY.redoStack = [];
+  }
+  function updateTertiaryNodeCountBadge() {
+    const totalCards = document.querySelectorAll("#tertiary-canvas-world .tertiary-card").length;
+    const activeCountEl = document.getElementById("tertiary-top-active-count");
+    if (activeCountEl)
+      activeCountEl.innerText = totalCards + " \u9879";
+    const statCountEl = document.getElementById("tertiary-stat-node-count");
+    if (statCountEl)
+      statCountEl.innerText = totalCards + " \u8282\u70B9";
+  }
   function saveCurrentProjectCanvasSnapshot() {
     const pid = window.currentTertiaryProjId || "p1";
     const world = document.getElementById("tertiary-canvas-world");
     if (!world)
       return;
-    const cardHtmlList = Array.from(world.querySelectorAll(".tertiary-card")).map((el) => el.outerHTML);
+    syncFormStateToAttributes(world);
+    const cardHtmlList = Array.from(world.querySelectorAll(".tertiary-card")).map((el) => {
+      const clone = el.cloneNode(true);
+      clone.removeAttribute("data-drag-bound");
+      return clone.outerHTML;
+    });
     window.PROJECT_CANVAS_STORE[pid] = {
       cardsHtml: cardHtmlList.join("\n"),
       edges: JSON.parse(JSON.stringify(window.TERTIARY_EDGES || []))
     };
+    updateTertiaryNodeCountBadge();
+    notifyIslandStateChanged();
   }
   function buildStarterCanvasForProject(proj) {
     const pTitle = proj ? proj.title : "\u65B0\u6210\u957F\u89C4\u5212\u9879\u76EE";
@@ -8382,11 +8628,7 @@ function bootPrototypeRuntime() {
   function initTertiaryWorkspace() {
     bindTertiaryCardsDrag();
     renderTertiaryEdges();
-    const activeCountEl = document.getElementById("tertiary-top-active-count");
-    if (activeCountEl) {
-      const totalCards = document.querySelectorAll(".tertiary-card").length;
-      activeCountEl.innerText = totalCards + " \u9879";
-    }
+    updateTertiaryNodeCountBadge();
   }
   function toggleTertiaryCardMinimize(cardId, event) {
     if (event)
@@ -8446,21 +8688,54 @@ function bootPrototypeRuntime() {
       bindCardDragSingle(card);
     });
   }
+  function getDownstreamChildCardIds(rootId) {
+    const visited = /* @__PURE__ */ new Set([rootId]);
+    const queue = [rootId];
+    const result = [];
+    while (queue.length > 0) {
+      const curr = queue.shift();
+      (window.TERTIARY_EDGES || []).forEach((e) => {
+        if (e.sourceId === curr && !visited.has(e.targetId)) {
+          visited.add(e.targetId);
+          result.push(e.targetId);
+          queue.push(e.targetId);
+        }
+      });
+    }
+    return result;
+  }
   function bindCardDragSingle(card) {
-    if (card.dataset.dragBound === "true")
+    if (card._dragInitialized)
       return;
+    card._dragInitialized = true;
     card.dataset.dragBound = "true";
     let isDragging = false;
+    let hasMoved = false;
     let startX = 0, startY = 0;
     let initialLeft = 0, initialTop = 0;
+    let followerInitialPositions = [];
     const onPointerDown = (e) => {
-      if (e.target.closest("button") || e.target.closest("input") || e.target.closest(".work-card-connect-handle"))
+      if (e.target.closest("button") || e.target.closest("input") || e.target.closest("select") || e.target.closest("textarea") || e.target.closest(".work-card-connect-handle"))
         return;
       isDragging = true;
+      hasMoved = false;
       startX = e.clientX || e.touches && e.touches[0].clientX;
       startY = e.clientY || e.touches && e.touches[0].clientY;
       initialLeft = parseInt(card.style.left, 10) || card.offsetLeft;
       initialTop = parseInt(card.style.top, 10) || card.offsetTop;
+      followerInitialPositions = [];
+      if (childrenFollowEnabled && card.id) {
+        getDownstreamChildCardIds(card.id).forEach((cid) => {
+          const childEl = document.getElementById(cid);
+          if (childEl) {
+            followerInitialPositions.push({
+              el: childEl,
+              left: parseInt(childEl.style.left, 10) || childEl.offsetLeft,
+              top: parseInt(childEl.style.top, 10) || childEl.offsetTop
+            });
+          }
+        });
+      }
       card.style.zIndex = "35";
       e.stopPropagation();
     };
@@ -8471,14 +8746,25 @@ function bootPrototypeRuntime() {
       const clientY = e.clientY || e.touches && e.touches[0].clientY;
       const dx = clientX - startX;
       const dy = clientY - startY;
-      card.style.left = initialLeft + dx + "px";
-      card.style.top = initialTop + dy + "px";
+      if (!hasMoved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
+        hasMoved = true;
+        pushTertiaryHistory();
+      }
+      card.style.left = Math.max(10, initialLeft + dx) + "px";
+      card.style.top = Math.max(10, initialTop + dy) + "px";
+      followerInitialPositions.forEach((f) => {
+        f.el.style.left = Math.max(10, f.left + dx) + "px";
+        f.el.style.top = Math.max(10, f.top + dy) + "px";
+      });
       renderTertiaryEdges();
     };
     const onPointerUp = () => {
       if (isDragging) {
         isDragging = false;
         card.style.zIndex = "20";
+        if (hasMoved) {
+          saveCurrentProjectCanvasSnapshot();
+        }
       }
     };
     card.addEventListener("mousedown", onPointerDown);
@@ -9408,15 +9694,17 @@ function bootPrototypeRuntime() {
     newCard.style.top = "380px";
     newCard.innerHTML = '<div class="work-node-card-header"><span class="work-node-badge" style="background:' + m.bg + "; color:" + m.color + "; border:1px solid " + m.color + '44;">' + m.icon + " " + m.name + '</span><span class="work-node-title">' + title + '</span><span style="font-size:10px; font-weight:800; color:' + m.color + ';">\u8FDB\u884C\u4E2D</span></div><div class="work-node-body"><p style="font-weight:750; color:#4a3a2a;">\u3010\u4E13\u9879\u8BFE\u9898\u5206\u89E3\u3011\u65B0\u5F55\u5165\u7684\u4E09\u7EA7\u653B\u575A\u6267\u884C\u5355\u5143\u3002</p><div style="background:#f9fafb; border:1px solid #e5e7eb; padding:8px; border-radius:8px; font-size:10.5px; color:#4b5563;">\u{1F4CC} \u4EFB\u52A1\u63A8\u8FDB\u4E2D\uFF0C\u53EF\u901A\u8FC7\u53F3\u4FA7 \u{1F517} \u624B\u67C4\u5EFA\u7ACB\u4E0A\u4E0B\u7EA7\u8DEF\u7EBF\u3002</div><div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:8px; border-top:1px solid #f1e4d0; font-size:10.5px;"><span>\u72B6\u6001\uFF1A\u6D3B\u8DC3</span><button class="card-graphic-pill pill-brush" style="padding:2px 8px; font-size:10px;" data-msg="\u5DF2\u6807\u8BB0\u63A8\u8FDB" onclick="showIslandToast(this.dataset.msg)">\u2713 \u6253\u5361\u63A8\u8FDB</button></div></div><div class="work-card-connect-handle" data-card-id="' + cardId + '" onclick="startOrFinishConnecting(this.dataset.cardId, event)" title="\u70B9\u51FB\u4E0E\u4E0B\u4E00\u8282\u70B9\u5EFA\u7ACB\u8DEF\u7EBF\u8FDE\u7EBF">\u{1F517}</div>';
     world.appendChild(newCard);
+    pushTertiaryHistory();
     bindCardDragSingle(newCard);
     tertiaryCardIndex++;
     const activeCountEl = document.getElementById("tertiary-top-active-count");
     if (activeCountEl) {
-      const totalCards = document.querySelectorAll(".tertiary-card").length;
+      const totalCards = document.querySelectorAll(".tertiary-card, .tertiary-node-card").length;
       activeCountEl.innerText = totalCards + " \u9879";
     }
     showIslandToast("\u2728 \u5DF2\u6210\u529F\u521B\u5EFA\u3010" + m.name + "\u3011\u6A21\u5757\uFF1A" + title);
     renderTertiaryEdges();
+    saveCurrentProjectCanvasSnapshot();
   }
   function createBackgroundGroupPrompt() {
     const name = prompt("\u8BF7\u8F93\u5165\u65B0\u5EFA\u80CC\u666F\u5206\u7EC4\u6846\u540D\u79F0\uFF1A", "\u53E3\u7B97\u6838\u5FC3\u5FC3\u7B97\u7EC4");
@@ -9465,28 +9753,94 @@ function bootPrototypeRuntime() {
     showIslandToast("\u{1F524} \u8FDE\u7EBF\u6587\u5B57\u663E\u793A\uFF1A" + (isHidden ? "\u5DF2\u5F00\u542F" : "\u5DF2\u5173\u95ED"));
   }
   function handleTertiaryUndo() {
-    showIslandToast("\u21A9\uFE0F \u5DF2\u64A4\u9500\u4E0A\u4E00\u6B65\u64CD\u4F5C (Ctrl+Z)");
+    if (!window.TERTIARY_HISTORY || !window.TERTIARY_HISTORY.undoStack || window.TERTIARY_HISTORY.undoStack.length === 0) {
+      showIslandToast("\u26A0\uFE0F \u5F53\u524D\u6682\u65E0\u53EF\u64A4\u9500\u7684\u5386\u53F2\u6B65\u9AA4");
+      return;
+    }
+    const world = document.getElementById("tertiary-canvas-world");
+    if (!world)
+      return;
+    const currentCards = [];
+    world.querySelectorAll(".tertiary-card, .tertiary-node-card").forEach((c) => {
+      currentCards.push({ id: c.id, left: c.style.left, top: c.style.top, html: c.outerHTML });
+    });
+    window.TERTIARY_HISTORY.redoStack.push({
+      cards: currentCards,
+      edges: JSON.parse(JSON.stringify(window.TERTIARY_EDGES || []))
+    });
+    const prevState = window.TERTIARY_HISTORY.undoStack.pop();
+    world.querySelectorAll(".tertiary-card, .tertiary-node-card").forEach((c) => c.remove());
+    (prevState.cards || []).forEach((c) => {
+      const temp = document.createElement("div");
+      temp.innerHTML = c.html;
+      const node = temp.firstElementChild;
+      if (node) {
+        node.removeAttribute("data-drag-bound");
+        node.style.left = c.left;
+        node.style.top = c.top;
+        world.appendChild(node);
+      }
+    });
+    window.TERTIARY_EDGES = JSON.parse(JSON.stringify(prevState.edges || []));
+    bindTertiaryCardsDrag();
+    renderTertiaryEdges();
+    saveCurrentProjectCanvasSnapshot();
+    showIslandToast("\u21A9\uFE0F \u5DF2\u64A4\u9500\u4E0A\u4E00\u6B65\u64CD\u4F5C (\u5269\u4F59\u53EF\u64A4\u9500 " + window.TERTIARY_HISTORY.undoStack.length + " \u6B65)");
   }
   function handleTertiaryRedo() {
-    showIslandToast("\u21AA\uFE0F \u5DF2\u91CD\u505A\u4E0B\u4E00\u6B65\u64CD\u4F5C (Ctrl+Y)");
+    if (!window.TERTIARY_HISTORY || !window.TERTIARY_HISTORY.redoStack || window.TERTIARY_HISTORY.redoStack.length === 0) {
+      showIslandToast("\u26A0\uFE0F \u5F53\u524D\u6682\u65E0\u53EF\u91CD\u505A\u7684\u5386\u53F2\u6B65\u9AA4");
+      return;
+    }
+    const world = document.getElementById("tertiary-canvas-world");
+    if (!world)
+      return;
+    const currentCards = [];
+    world.querySelectorAll(".tertiary-card, .tertiary-node-card").forEach((c) => {
+      currentCards.push({ id: c.id, left: c.style.left, top: c.style.top, html: c.outerHTML });
+    });
+    window.TERTIARY_HISTORY.undoStack.push({
+      cards: currentCards,
+      edges: JSON.parse(JSON.stringify(window.TERTIARY_EDGES || []))
+    });
+    const nextState = window.TERTIARY_HISTORY.redoStack.pop();
+    world.querySelectorAll(".tertiary-card, .tertiary-node-card").forEach((c) => c.remove());
+    (nextState.cards || []).forEach((c) => {
+      const temp = document.createElement("div");
+      temp.innerHTML = c.html;
+      const node = temp.firstElementChild;
+      if (node) {
+        node.removeAttribute("data-drag-bound");
+        node.style.left = c.left;
+        node.style.top = c.top;
+        world.appendChild(node);
+      }
+    });
+    window.TERTIARY_EDGES = JSON.parse(JSON.stringify(nextState.edges || []));
+    bindTertiaryCardsDrag();
+    renderTertiaryEdges();
+    saveCurrentProjectCanvasSnapshot();
+    showIslandToast("\u21AA\uFE0F \u5DF2\u91CD\u505A\u4E0B\u4E00\u6B65\u64CD\u4F5C");
   }
   function handleTertiaryDeleteNode() {
-    const cards = document.querySelectorAll(".tertiary-card");
+    const cards = document.querySelectorAll(".tertiary-card, .tertiary-node-card");
     if (cards.length <= 1) {
       showIslandToast("\u26A0\uFE0F \u5F53\u524D\u4EC5\u5269 1 \u4E2A\u6838\u5FC3\u5361\u7247\uFF0C\u4E0D\u53EF\u5220\u9664\uFF01");
       return;
     }
-    const lastCard = cards[cards.length - 1];
-    const cardId = lastCard.id;
-    lastCard.remove();
+    pushTertiaryHistory();
+    const targetCard = document.querySelector(".tertiary-card.is-selected, .tertiary-node-card.is-selected") || cards[cards.length - 1];
+    const cardId = targetCard.id;
+    targetCard.remove();
     window.TERTIARY_EDGES = (window.TERTIARY_EDGES || []).filter((e) => e.sourceId !== cardId && e.targetId !== cardId);
     renderTertiaryEdges();
+    saveCurrentProjectCanvasSnapshot();
     const activeCountEl = document.getElementById("tertiary-top-active-count");
     if (activeCountEl) {
-      const totalCards = document.querySelectorAll(".tertiary-card").length;
+      const totalCards = document.querySelectorAll(".tertiary-card, .tertiary-node-card").length;
       activeCountEl.innerText = totalCards + " \u9879";
     }
-    showIslandToast("\u{1F5D1}\uFE0F \u5DF2\u5220\u9664\u672B\u5C3E\u8282\u70B9\u5361\u7247\u53CA\u5173\u8054\u8DEF\u7EBF");
+    showIslandToast("\u{1F5D1}\uFE0F \u5DF2\u5220\u9664\u8282\u70B9\u5361\u7247\u53CA\u5173\u8054\u8DEF\u7EBF\uFF08\u53EF\u70B9\u51FB \u21A9\uFE0F \u64A4\u9500\u6062\u590D\uFF09");
   }
   function openNodeSearchModal() {
     const kw = prompt("\u{1F50D} \u641C\u7D22\u4E09\u7EA7\u653B\u575A\u8282\u70B9\u5173\u952E\u8BCD\uFF08\u5982\uFF1A\u97E6\u8FBE\u3001\u516C\u5F0F\u3001\u827E\u5BBE\u6D69\u65AF\uFF09\uFF1A", "\u97E6\u8FBE");
@@ -10073,6 +10427,29 @@ function bootPrototypeRuntime() {
     if (!container)
       return;
     filter = filter || window.currentWeekFilter || "all";
+    let totalAll = 0, totalDone = 0, totalPending = 0, totalOverdue = 0;
+    WEEK_BOARD_DATA.forEach((col) => {
+      (col.tasks || []).forEach((t) => {
+        totalAll++;
+        if (t.status === "done")
+          totalDone++;
+        else if (t.status === "pending")
+          totalPending++;
+        else if (t.status === "overdue")
+          totalOverdue++;
+      });
+    });
+    document.querySelectorAll(".week-filter-tab").forEach((tab) => {
+      const f = tab.getAttribute("data-filter");
+      if (f === "all")
+        tab.textContent = "\u5168\u90E8 (" + totalAll + ")";
+      else if (f === "done")
+        tab.textContent = "\u{1F7E2} \u5DF2\u6253\u5361 (" + totalDone + ")";
+      else if (f === "pending")
+        tab.textContent = "\u{1F7E1} \u5F85\u529E (" + totalPending + ")";
+      else if (f === "overdue")
+        tab.textContent = "\u{1F534} \u7F3A\u5361 (" + totalOverdue + ")";
+    });
     let html = "";
     WEEK_BOARD_DATA.forEach((col, idx) => {
       const isToday = idx === 5 && window.currentWeekOffset === 0;
@@ -10288,20 +10665,25 @@ function bootPrototypeRuntime() {
     const listOverdue = document.getElementById("inspector-list-overdue");
     const countOverdue = document.getElementById("inspector-count-overdue");
     if (day === 31) {
+      const todayTasks = WEEK_BOARD_DATA[5] && Array.isArray(WEEK_BOARD_DATA[5].tasks) ? WEEK_BOARD_DATA[5].tasks : [];
+      const doneTasks = todayTasks.filter((t) => t.status === "done");
+      const pendingTasks = todayTasks.filter((t) => t.status === "pending");
+      const overdueTasks = todayTasks.filter((t) => t.status === "overdue");
       if (countDone)
-        countDone.textContent = "2 \u9879";
+        countDone.textContent = doneTasks.length + " \u9879";
       if (listDone) {
-        listDone.innerHTML = '<div class="inspector-task-item"><span>\u{1F3EB} \u6821\u53F2\u9986\uFF1A\u8FDB\u9000\u4F4D\u53E3\u7B97\u8FBE\u6807\u7EC8\u6781\u5927\u653B\u575A (25\u5206\u949F)</span><span style="color:#16a34a; font-weight:800; font-size:11px;">\u2713 \u5DF2\u5B8C\u6210</span></div><div class="inspector-task-item"><span>\u{1F3F8} \u6B66\u9053\u9986\uFF1A\u7FBD\u6BDB\u7403\u6740\u7403300\u6B21\u8010\u529B\u7A81\u7834 (40\u5206\u949F)</span><span style="color:#16a34a; font-weight:800; font-size:11px;">\u2713 \u5DF2\u5B8C\u6210</span></div>';
+        listDone.innerHTML = doneTasks.length > 0 ? doneTasks.map((t) => '<div class="inspector-task-item"><span>' + (t.pavilionBadge ? t.pavilionBadge.split(" ")[0] + " " : "\u{1F3EB} ") + t.pavilion + "\uFF1A" + t.title + " (" + t.duration + ')</span><span style="color:#16a34a; font-weight:800; font-size:11px;">\u2713 \u5DF2\u5B8C\u6210</span></div>').join("") : '<div style="color:#94a3b8; font-size:11px; padding:6px 0;">\u4ECA\u65E5\u6682\u65E0\u5DF2\u5B8C\u6210\u4E8B\u9879</div>';
       }
       if (countPending)
-        countPending.textContent = "2 \u9879";
+        countPending.textContent = pendingTasks.length + " \u9879";
       if (listPending) {
-        listPending.innerHTML = '<div class="inspector-task-item"><span>\u{1F9E0} \u601D\u8FA8\u9986\uFF1A\u8FA9\u8BBA\u590D\u76D8\u624B\u8BB0\u4E0E\u5E03\u9C81\u59C6\u8BC4\u4EF7\u9636\u68AF</span><span style="color:#d97706; font-weight:800; font-size:11px;">\u{1F7E1} \u5F85\u6253\u5361</span></div><div class="inspector-task-item"><span>\u{1F4D6} \u6BCF\u65E5\u968F\u8BB0\uFF1A1\u5206\u949F\u5FC3\u6D41\u601D\u8FA8\u53CD\u601D\u77ED\u7247\u5F55\u5236</span><span style="color:#d97706; font-weight:800; font-size:11px;">\u{1F7E1} \u5F85\u6253\u5361</span></div>';
+        listPending.innerHTML = pendingTasks.length > 0 ? pendingTasks.map((t) => '<div class="inspector-task-item"><span>' + (t.pavilionBadge ? t.pavilionBadge.split(" ")[0] + " " : "\u{1F9E0} ") + t.pavilion + "\uFF1A" + t.title + '</span><span style="color:#d97706; font-weight:800; font-size:11px;">\u{1F7E1} \u5F85\u6253\u5361</span></div>').join("") : '<div style="color:#16a34a; font-size:11px; font-weight:700; padding:6px 0;">\u{1F389} \u4ECA\u65E5\u5F85\u529E\u5DF2\u5168\u90E8\u6E05\u7A7A\u8FBE\u6210\uFF01</div>';
       }
       if (countOverdue)
-        countOverdue.textContent = "0 \u9879";
-      if (listOverdue)
-        listOverdue.innerHTML = '<div style="color:#94a3b8; font-size:11px; padding:6px 0;">\u{1F389} \u4ECA\u65E5\u65E0\u8D85\u671F\u672A\u529E\u4E8B\u9879\uFF01</div>';
+        countOverdue.textContent = overdueTasks.length + " \u9879";
+      if (listOverdue) {
+        listOverdue.innerHTML = overdueTasks.length > 0 ? overdueTasks.map((t) => '<div class="inspector-task-item"><span>\u{1F534} ' + t.pavilion + "\uFF1A" + t.title + '</span><span style="color:#dc2626; font-weight:800; font-size:11px;">\u672A\u529E\u7F3A\u5361</span></div>').join("") : '<div style="color:#94a3b8; font-size:11px; padding:6px 0;">\u{1F389} \u4ECA\u65E5\u65E0\u8D85\u671F\u672A\u529E\u4E8B\u9879\uFF01</div>';
+      }
     } else {
       if (countDone)
         countDone.textContent = "3 \u9879";
@@ -11967,7 +12349,7 @@ function bootPrototypeRuntime() {
         for (let k = 0; k < 5; k++) {
           miniSquaresHtml += '<span class="mini-sq ' + (k < filledMini ? "done" : "empty") + '"></span>';
         }
-        tableHtml += '<div class="gantt-table-row" id="row-tbl-' + p.id + '"><div class="col-cell-cat"><span class="gantt-cat-tag" style="background:' + cm.bg + "; color:" + cm.color + "; border-color:" + cm.border + ';">' + cm.icon + " " + p.category + '</span></div><div class="col-cell-title"><div class="gantt-proj-name" title="' + p.title + '">' + p.title + '<span class="gantt-drilldown-link" data-id="' + p.id + '" onclick="enterTertiaryWorkspace(this.dataset.id)" title="\u4E0B\u94BB\u8FDB\u5165\u8BE5\u4E09\u7EA7\u8282\u70B9\u653B\u575A\u62D3\u6251\u753B\u5E03">\u{1F52E} \u4E0B\u94BB</span></div><div class="gantt-proj-desc" title="' + p.desc + '">' + p.desc + '</div></div><div class="col-cell-dates"><span class="gantt-date-chip">' + p.startDate.slice(5) + " ~ " + p.endDate.slice(5) + '</span><div class="gantt-mini-squares" title="\u6253\u5361\u8FBE\u6210\uFF1A' + res.completedCount + "/" + res.totalDays + " \u5929 (" + res.progress + '%)">' + miniSquaresHtml + '</div><div class="gantt-mini-pct">' + res.progress + '%</div></div><div class="col-cell-status"><span class="gantt-status-pill ' + sm.cls + '">' + sm.label + '</span></div><div class="col-cell-ops"><button class="gantt-op-btn gantt-plan-btn" data-id="' + p.id + '" onclick="handleGanttEditPlan(this)" title="\u8C03\u6574\u8BE5\u9879\u76EE\u7684\u89C4\u5212\u5468\u671F\u4E0E\u7B56\u7565">\u{1F4DD} \u89C4\u5212</button><button class="gantt-op-btn gantt-archive-btn ' + (p.isArchived ? "is-archived" : "") + '" data-id="' + p.id + '" onclick="handleGanttArchive(this)" title="' + (p.isArchived ? "\u89E3\u9664\u5F52\u6863" : "\u5F52\u6863\u8BE5\u9879\u76EE") + '">' + (p.isArchived ? "\u{1F4C2} \u5DF2\u5F52" : "\u{1F4E6} \u5F52\u6863") + "</button></div></div>";
+        tableHtml += '<div class="gantt-table-row" id="row-tbl-' + p.id + '"><div class="col-cell-cat"><span class="gantt-cat-tag" style="background:' + cm.bg + "; color:" + cm.color + "; border-color:" + cm.border + ';">' + cm.icon + " " + p.category + '</span></div><div class="col-cell-title"><div class="gantt-proj-name" title="' + p.title + '">' + p.title + '<span class="gantt-drilldown-link" data-id="' + p.id + '" onclick="enterTertiaryWorkspace(this.dataset.id)" title="\u4E0B\u94BB\u8FDB\u5165\u8BE5\u4E09\u7EA7\u8282\u70B9\u653B\u575A\u62D3\u6251\u753B\u5E03">\u{1F52E} \u4E0B\u94BB</span></div><div class="gantt-proj-desc" title="' + p.desc + '">' + p.desc + '</div></div><div class="col-cell-dates"><span class="gantt-date-chip">' + p.startDate.slice(5) + " ~ " + p.endDate.slice(5) + '</span><div class="gantt-mini-squares" title="\u6253\u5361\u8FBE\u6210\uFF1A' + res.completedCount + "/" + res.totalDays + " \u5929 (" + res.progress + '%)">' + miniSquaresHtml + '</div><div class="gantt-mini-pct">' + res.progress + '%</div></div><div class="col-cell-status"><span class="gantt-status-pill ' + sm.cls + '">' + sm.label + '</span></div><div class="col-cell-ops"><button class="gantt-op-btn gantt-plan-btn" data-id="' + p.id + '" onclick="openEditProjectModal(this.dataset.id)" title="\u7F16\u8F91\u9879\u76EE\u540D\u79F0\u3001\u8D77\u6B62\u5468\u671F\u4E0E\u653B\u575A\u7B56\u7565">\u270F\uFE0F \u7F16\u8F91</button><button class="gantt-op-btn gantt-plan-btn" data-id="' + p.id + '" onclick="handleGanttEditPlan(this)" title="\u8FDB\u5165\u8BE5\u9879\u76EE\u4E09\u7EA7\u601D\u7EF4\u5BFC\u56FE\u62C6\u89E3\u753B\u5E03">\u{1F52E} \u8111\u56FE</button><button class="gantt-op-btn gantt-archive-btn ' + (p.isArchived ? "is-archived" : "") + '" data-id="' + p.id + '" onclick="handleGanttArchive(this)" title="' + (p.isArchived ? "\u89E3\u9664\u5F52\u6863" : "\u5F52\u6863\u8BE5\u9879\u76EE") + '">' + (p.isArchived ? "\u{1F4C2} \u5DF2\u5F52" : "\u{1F4E6} \u5F52\u6863") + "</button></div></div>";
       });
     }
     tableRowsContainer.innerHTML = tableHtml;
@@ -13349,6 +13731,12 @@ function bootPrototypeRuntime() {
     window.openExecutionWorkspace = openExecutionWorkspace;
   if (typeof normalizeExecCheckinType === "function")
     window.normalizeExecCheckinType = normalizeExecCheckinType;
+  if (typeof syncFormStateToAttributes === "function")
+    window.syncFormStateToAttributes = syncFormStateToAttributes;
+  if (typeof notifyIslandStateChanged === "function")
+    window.notifyIslandStateChanged = notifyIslandStateChanged;
+  if (typeof toggleObsidianTabletFullscreen === "function")
+    window.toggleObsidianTabletFullscreen = toggleObsidianTabletFullscreen;
   if (typeof renderTailoredExecutionStage === "function")
     window.renderTailoredExecutionStage = renderTailoredExecutionStage;
   if (typeof openExecCardPopupView === "function")
@@ -13491,6 +13879,10 @@ function bootPrototypeRuntime() {
     window.toggleArchiveView = toggleArchiveView;
   if (typeof toggleTertiaryRouteSetup === "function")
     window.toggleTertiaryRouteSetup = toggleTertiaryRouteSetup;
+  if (typeof pushTertiaryHistory === "function")
+    window.pushTertiaryHistory = pushTertiaryHistory;
+  if (typeof updateTertiaryNodeCountBadge === "function")
+    window.updateTertiaryNodeCountBadge = updateTertiaryNodeCountBadge;
   if (typeof saveCurrentProjectCanvasSnapshot === "function")
     window.saveCurrentProjectCanvasSnapshot = saveCurrentProjectCanvasSnapshot;
   if (typeof buildStarterCanvasForProject === "function")
@@ -13511,6 +13903,8 @@ function bootPrototypeRuntime() {
     window.toggleAllTertiaryCardsMinimize = toggleAllTertiaryCardsMinimize;
   if (typeof bindTertiaryCardsDrag === "function")
     window.bindTertiaryCardsDrag = bindTertiaryCardsDrag;
+  if (typeof getDownstreamChildCardIds === "function")
+    window.getDownstreamChildCardIds = getDownstreamChildCardIds;
   if (typeof bindCardDragSingle === "function")
     window.bindCardDragSingle = bindCardDragSingle;
   if (typeof renderTertiaryEdges === "function")
@@ -13949,6 +14343,18 @@ function bootPrototypeRuntime() {
     window.PAVILION_META = PAVILION_META;
   if (typeof EXEC_CARDS_DATA !== "undefined")
     window.EXEC_CARDS_DATA = EXEC_CARDS_DATA;
+  if (typeof WEEK_BOARD_DATA !== "undefined")
+    window.WEEK_BOARD_DATA = WEEK_BOARD_DATA;
+  if (typeof TREASURY_STATE !== "undefined")
+    window.TREASURY_STATE = TREASURY_STATE;
+  if (typeof ACHIEVEMENT_STATE !== "undefined")
+    window.ACHIEVEMENT_STATE = ACHIEVEMENT_STATE;
+  if (typeof NOTE_STATE !== "undefined")
+    window.NOTE_STATE = NOTE_STATE;
+  if (typeof BOUNTY_STATE !== "undefined")
+    window.BOUNTY_STATE = BOUNTY_STATE;
+  if (typeof INQUIRY_POOL_STATE !== "undefined")
+    window.INQUIRY_POOL_STATE = INQUIRY_POOL_STATE;
   window.__reinitYouthIslandDom = function() {
     islandSettingsBound = false;
     if (typeof initIslandSettings === "function")
@@ -13973,6 +14379,10 @@ function bootPrototypeRuntime() {
       recalcAndRenderGlobalHUD();
     if (typeof renderBountyModalAndBillboard === "function")
       renderBountyModalAndBillboard();
+    if (typeof renderGanttChart === "function")
+      renderGanttChart();
+    if (typeof initTertiaryWorkspace === "function")
+      initTertiaryWorkspace();
     if (typeof switchHomeGlobalView === "function")
       switchHomeGlobalView("exec");
   };
@@ -13981,11 +14391,12 @@ function bootPrototypeRuntime() {
 
 // src/views/YouthIslandView.ts
 var VIEW_TYPE_YOUTH_ISLAND = "youth-holistic-growth-island-view";
-var REMOTE_RAW_BASE = "https://raw.githubusercontent.com/zuixianjian/test/master";
+var REMOTE_RAW_BASE = "https://fastly.jsdelivr.net/gh/zuixianjian/test@master";
 var YouthIslandView = class extends import_obsidian2.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     this.hooksInstalled = false;
+    this.stateChangeHandler = null;
     this.plugin = plugin;
   }
   getViewType() {
@@ -14044,11 +14455,19 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
   async onOpen() {
     const { contentEl } = this;
     contentEl.empty();
-    await this.configureSceneVariables();
-    if (import_obsidian2.Platform.isMobile || window.innerWidth <= 1366) {
-      document.body.classList.add("is-fullscreen-mode");
-    }
-    const rootWrapper = contentEl.createDiv({ cls: "youth-island-plugin-root" });
+    document.documentElement.style.setProperty(
+      "--island-scene-plaza",
+      "linear-gradient(135deg, #1b382b 0%, #2f5436 45%, #182c1f 100%)"
+    );
+    document.documentElement.style.setProperty(
+      "--island-scene-desk",
+      "radial-gradient(ellipse at 50% 50%, #453221 0%, #251b12 100%)"
+    );
+    void this.configureSceneVariables();
+    document.body.classList.add("is-fullscreen-mode", "youth-island-tablet-fullscreen");
+    const rootWrapper = contentEl.createDiv({
+      cls: "youth-island-plugin-root youth-island-obsidian-view-root"
+    });
     rootWrapper.innerHTML = ISLAND_UI_HTML;
     this.installTabletTouchBridge(rootWrapper);
     bootPrototypeRuntime();
@@ -14061,7 +14480,7 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
     if (typeof win.switchHomeGlobalView === "function") {
       win.switchHomeGlobalView(defaultView);
     }
-    this.installRuntimePersistenceHooks();
+    this.installRuntimePersistenceHooks(rootWrapper);
     this.plugin.vaultStorage.scheduleSync(500);
   }
   /**
@@ -14082,7 +14501,9 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
         )) {
           return;
         }
-        if (target.closest("#tertiary-canvas-viewport, #tertiary-canvas-world, .tertiary-node-card")) {
+        if (target.closest(
+          "#tertiary-canvas-viewport, #tertiary-canvas-world, .tertiary-node-card, .tertiary-card"
+        )) {
           const touch = e.touches[0];
           activeTouchTarget = target;
           target.dispatchEvent(
@@ -14134,11 +14555,30 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
     rootEl.addEventListener("touchend", endTouch, { passive: true });
     rootEl.addEventListener("touchcancel", endTouch, { passive: true });
   }
-  installRuntimePersistenceHooks() {
+  installRuntimePersistenceHooks(rootEl) {
+    const win = window;
+    if (rootEl) {
+      const onDomFormChange = () => {
+        if (typeof win.syncFormStateToAttributes === "function") {
+          win.syncFormStateToAttributes(rootEl);
+        }
+        if (typeof win.saveCurrentProjectCanvasSnapshot === "function") {
+          win.saveCurrentProjectCanvasSnapshot();
+        }
+        this.plugin.vaultStorage.scheduleSync(400);
+      };
+      rootEl.addEventListener("change", onDomFormChange, { passive: true });
+      rootEl.addEventListener("input", onDomFormChange, { passive: true });
+    }
+    if (!this.stateChangeHandler) {
+      this.stateChangeHandler = () => {
+        this.plugin.vaultStorage.scheduleSync(250);
+      };
+      window.addEventListener("youth-island:state-changed", this.stateChangeHandler);
+    }
     if (this.hooksInstalled)
       return;
     this.hooksInstalled = true;
-    const win = window;
     const hookFn = (fnName, eventName) => {
       const orig = win[fnName];
       if (typeof orig !== "function" || orig.__vaultHooked)
@@ -14155,12 +14595,20 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
     hookFn("triggerGlobalCheckinClosedLoop", "checkin:success");
     hookFn("handleExecPopupMainCheckin", "node:completed");
     hookFn("completeCheckinPageCard", "node:completed");
+    hookFn("handleNodeCheckin", "node:completed");
     hookFn("switchHomeGlobalView", "view:switch");
     hookFn("switchMainSection", "view:mode-change");
     hookFn("confirmAddProject", "project:created");
+    hookFn("toggleProjectArchive", "project:created");
     hookFn("deriveNodesFromReflectionCard", "edge:redraw");
     hookFn("deriveDrillCardFromReview", "edge:redraw");
     hookFn("confirmAddNewModule", "project:created");
+    hookFn("createCustomModule", "project:created");
+    hookFn("addCustomFieldToCard", "edge:redraw");
+    hookFn("handleTertiaryUndo", "edge:redraw");
+    hookFn("handleTertiaryRedo", "edge:redraw");
+    hookFn("handleTertiaryDeleteNode", "edge:redraw");
+    hookFn("startOrFinishConnecting", "edge:redraw");
     hookFn("convertInquiryToPlan", "project:created");
     hookFn("submitPactViolationAdjudication", "pact:violation");
     hookFn("recordLiveTreasuryTransaction", "treasury:recorded");
@@ -14177,6 +14625,11 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
     hookFn("saveImmersivePref", "settings:updated");
   }
   async onClose() {
+    document.body.classList.remove("youth-island-tablet-fullscreen");
+    if (this.stateChangeHandler) {
+      window.removeEventListener("youth-island:state-changed", this.stateChangeHandler);
+      this.stateChangeHandler = null;
+    }
     await this.plugin.vaultStorage.syncRuntimeToVault();
   }
 };

@@ -60,4 +60,21 @@ assert(
   `All ${onclickCalls.size} template onclick functions are defined in runtime (${missing.join(", ")})`
 );
 
+// 6. Verify Tablet Full-Screen Adaptation & Closed-Loop Persistence
+assert(
+  !templateTs.includes("ipad-shell-wrapper in-frame-mode"),
+  "template.ts stripped simulated iPad bezel class (in-frame-mode)"
+);
+assert(
+  css.includes("body.youth-island-tablet-fullscreen") &&
+    css.includes(".youth-island-plugin-root .global-header"),
+  "styles.css includes 100% tablet fullscreen & prototype header hidden rules"
+);
+assert(
+  mainJs.includes("app_state_snapshot.json") &&
+    mainJs.includes("handleNodeCheckin") &&
+    mainJs.includes("toggleObsidianTabletFullscreen"),
+  "main.js includes full Vault snapshot persistence, tertiary node check-in, and fullscreen toggle"
+);
+
 console.log("\n🎉 All Obsidian plugin build & closed-loop integrity checks passed!");

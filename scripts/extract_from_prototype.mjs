@@ -50,7 +50,7 @@ cssContent = cssContent
 
 const obsidianHostCss = `/* ==========================================================================
    终身岛民 · 青少儿全人成长与自主进化系统 (Obsidian Plugin Stylesheet)
-   Generated from high_fidelity_ui_preview.html (1:1 Visual Specification)
+   Generated from high_fidelity_ui_preview.html (1:1 Visual Specification + Tablet Fullscreen Adaptation)
    ========================================================================== */
 
 .workspace-leaf-content[data-type="youth-holistic-growth-island-view"] .view-content {
@@ -63,15 +63,79 @@ const obsidianHostCss = `/* ====================================================
   background: #0d1512;
 }
 
-.youth-island-plugin-root {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+.youth-island-plugin-root,
+.youth-island-obsidian-view-root {
+  width: 100% !important;
+  height: 100% !important;
+  position: relative !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
   user-select: none;
   font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Strip design prototype showcase header, 11-module gallery mode, and simulated iPad bezel chrome inside Obsidian */
+.youth-island-plugin-root .global-header,
+.youth-island-plugin-root #gallery-stage-view,
+.youth-island-plugin-root .ipad-home-indicator,
+.youth-island-obsidian-view-root .global-header,
+.youth-island-obsidian-view-root #gallery-stage-view,
+.youth-island-obsidian-view-root .ipad-home-indicator {
+  display: none !important;
+}
+
+.youth-island-plugin-root #main-viewport,
+.youth-island-plugin-root .ipad-shell-wrapper,
+.youth-island-plugin-root .ipad-shell-wrapper.in-frame-mode,
+.youth-island-plugin-root .ipad-screen-container,
+.youth-island-obsidian-view-root #main-viewport,
+.youth-island-obsidian-view-root .ipad-shell-wrapper,
+.youth-island-obsidian-view-root .ipad-shell-wrapper.in-frame-mode,
+.youth-island-obsidian-view-root .ipad-screen-container {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  top: 0 !important;
+  left: 0 !important;
+}
+
+/* True 100% Full-Screen Immersive Mode on Android Tablet / iPad in Obsidian */
+body.youth-island-tablet-fullscreen .workspace-leaf-content[data-type="youth-holistic-growth-island-view"] {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  z-index: 9000 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #1c251d !important;
+}
+
+body.youth-island-tablet-fullscreen .workspace-leaf-content[data-type="youth-holistic-growth-island-view"] > .view-header {
+  display: none !important;
+}
+
+body.youth-island-tablet-fullscreen .workspace-leaf-content[data-type="youth-holistic-growth-island-view"] > .view-content {
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important;
+}
+
+body.youth-island-tablet-fullscreen .workspace-ribbon,
+body.youth-island-tablet-fullscreen .mobile-navbar,
+body.youth-island-tablet-fullscreen .status-bar,
+body.youth-island-tablet-fullscreen .workspace-tab-header-container,
+body.youth-island-tablet-fullscreen .titlebar {
+  display: none !important;
 }
 
 `;
@@ -81,7 +145,9 @@ fs.writeFileSync(path.join(ROOT, "styles.css"), obsidianHostCss + cssContent + "
 // 2. Extract HTML Template -> src/ui/template.ts
 const htmlPart1 = lines.slice(bodyStart + 1, scriptStart).join("\n");
 const htmlPart2 = lines.slice(scriptEnd + 1, bodyEnd).join("\n");
-const combinedHtml = (htmlPart1 + "\n" + htmlPart2).trim();
+const combinedHtml = (htmlPart1 + "\n" + htmlPart2)
+  .trim()
+  .replace(/class="ipad-shell-wrapper\s+in-frame-mode"/g, 'class="ipad-shell-wrapper"');
 
 fs.mkdirSync(path.join(ROOT, "src", "ui"), { recursive: true });
 fs.writeFileSync(
@@ -129,6 +195,12 @@ ${windowExports}
   if (typeof PROJECT_CANVAS_STORE !== "undefined") (window as any).PROJECT_CANVAS_STORE = PROJECT_CANVAS_STORE;
   if (typeof PAVILION_META !== "undefined") (window as any).PAVILION_META = PAVILION_META;
   if (typeof EXEC_CARDS_DATA !== "undefined") (window as any).EXEC_CARDS_DATA = EXEC_CARDS_DATA;
+  if (typeof WEEK_BOARD_DATA !== "undefined") (window as any).WEEK_BOARD_DATA = WEEK_BOARD_DATA;
+  if (typeof TREASURY_STATE !== "undefined") (window as any).TREASURY_STATE = TREASURY_STATE;
+  if (typeof ACHIEVEMENT_STATE !== "undefined") (window as any).ACHIEVEMENT_STATE = ACHIEVEMENT_STATE;
+  if (typeof NOTE_STATE !== "undefined") (window as any).NOTE_STATE = NOTE_STATE;
+  if (typeof BOUNTY_STATE !== "undefined") (window as any).BOUNTY_STATE = BOUNTY_STATE;
+  if (typeof INQUIRY_POOL_STATE !== "undefined") (window as any).INQUIRY_POOL_STATE = INQUIRY_POOL_STATE;
 
   (window as any).__reinitYouthIslandDom = function () {
     islandSettingsBound = false;
@@ -143,6 +215,8 @@ ${windowExports}
     if (typeof renderHomeSemesterGoalsBanner === "function") renderHomeSemesterGoalsBanner();
     if (typeof recalcAndRenderGlobalHUD === "function") recalcAndRenderGlobalHUD();
     if (typeof renderBountyModalAndBillboard === "function") renderBountyModalAndBillboard();
+    if (typeof renderGanttChart === "function") renderGanttChart();
+    if (typeof initTertiaryWorkspace === "function") initTertiaryWorkspace();
     if (typeof switchHomeGlobalView === "function") switchHomeGlobalView("exec");
   };
 

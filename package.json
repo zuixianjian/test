@@ -4,8 +4,8 @@
   "description": "终身岛民 · 青少儿全人成长与自主进化系统 Obsidian Plugin",
   "main": "main.js",
   "scripts": {
-    "dev": "node esbuild.config.mjs",
-    "build": "node esbuild.config.mjs production",
+    "dev": "node scripts/extract_from_prototype.mjs && node esbuild.config.mjs",
+    "build": "node scripts/extract_from_prototype.mjs && node esbuild.config.mjs production",
     "extract": "node scripts/extract_from_prototype.mjs",
     "package-android": "node scripts/package_android.mjs",
     "test": "node scripts/verify_plugin.mjs"
