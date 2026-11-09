@@ -27,14 +27,34 @@ export class YouthIslandView extends ItemView {
     return "compass";
   }
 
-  private resolvePluginAssetUrl(relAssetPath: string): string {
+  private async configureSceneVariables(): Promise<void> {
     try {
       const configDir = this.app.vault.configDir || ".obsidian";
       const pluginDir = `${configDir}/plugins/${this.plugin.manifest.id}`;
-      const fullPath = normalizePath(`${pluginDir}/${relAssetPath}`);
-      return this.app.vault.adapter.getResourcePath(fullPath);
+      const plazaPath = normalizePath(`${pluginDir}/assets/scenes/scene-plaza.png`);
+      const deskPath = normalizePath(`${pluginDir}/assets/scenes/scene-desk.png`);
+
+      if (await this.app.vault.adapter.exists(plazaPath)) {
+        const plazaUrl = this.app.vault.adapter.getResourcePath(plazaPath);
+        document.documentElement.style.setProperty("--island-scene-plaza", `url("${plazaUrl}")`);
+      } else {
+        document.documentElement.style.setProperty(
+          "--island-scene-plaza",
+          "linear-gradient(135deg, #1b382b 0%, #2f5436 45%, #182c1f 100%)"
+        );
+      }
+
+      if (await this.app.vault.adapter.exists(deskPath)) {
+        const deskUrl = this.app.vault.adapter.getResourcePath(deskPath);
+        document.documentElement.style.setProperty("--island-scene-desk", `url("${deskUrl}")`);
+      } else {
+        document.documentElement.style.setProperty(
+          "--island-scene-desk",
+          "radial-gradient(ellipse at 50% 50%, #453221 0%, #251b12 100%)"
+        );
+      }
     } catch {
-      return relAssetPath;
+      // Fallback to built-in gradients
     }
   }
 
@@ -42,11 +62,8 @@ export class YouthIslandView extends ItemView {
     const { contentEl } = this;
     contentEl.empty();
 
-    // Configure CSS variables for high-res background scenes inside Obsidian (ASCII-safe filenames for Android)
-    const plazaUrl = this.resolvePluginAssetUrl("assets/scenes/scene-plaza.png");
-    const deskUrl = this.resolvePluginAssetUrl("assets/scenes/scene-desk.png");
-    document.documentElement.style.setProperty("--island-scene-plaza", `url("${plazaUrl}")`);
-    document.documentElement.style.setProperty("--island-scene-desk", `url("${deskUrl}")`);
+    // Configure CSS variables for high-res background scenes (with BRAT / remote install fallback)
+    await this.configureSceneVariables();
 
     // On Android / iPad / Mobile devices, automatically enable full-screen mode (no simulated desktop iPad bezel)
     if (Platform.isMobile || window.innerWidth <= 1366) {

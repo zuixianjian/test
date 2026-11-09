@@ -13996,23 +13996,37 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
   getIcon() {
     return "compass";
   }
-  resolvePluginAssetUrl(relAssetPath) {
+  async configureSceneVariables() {
     try {
       const configDir = this.app.vault.configDir || ".obsidian";
       const pluginDir = `${configDir}/plugins/${this.plugin.manifest.id}`;
-      const fullPath = (0, import_obsidian2.normalizePath)(`${pluginDir}/${relAssetPath}`);
-      return this.app.vault.adapter.getResourcePath(fullPath);
+      const plazaPath = (0, import_obsidian2.normalizePath)(`${pluginDir}/assets/scenes/scene-plaza.png`);
+      const deskPath = (0, import_obsidian2.normalizePath)(`${pluginDir}/assets/scenes/scene-desk.png`);
+      if (await this.app.vault.adapter.exists(plazaPath)) {
+        const plazaUrl = this.app.vault.adapter.getResourcePath(plazaPath);
+        document.documentElement.style.setProperty("--island-scene-plaza", `url("${plazaUrl}")`);
+      } else {
+        document.documentElement.style.setProperty(
+          "--island-scene-plaza",
+          "linear-gradient(135deg, #1b382b 0%, #2f5436 45%, #182c1f 100%)"
+        );
+      }
+      if (await this.app.vault.adapter.exists(deskPath)) {
+        const deskUrl = this.app.vault.adapter.getResourcePath(deskPath);
+        document.documentElement.style.setProperty("--island-scene-desk", `url("${deskUrl}")`);
+      } else {
+        document.documentElement.style.setProperty(
+          "--island-scene-desk",
+          "radial-gradient(ellipse at 50% 50%, #453221 0%, #251b12 100%)"
+        );
+      }
     } catch {
-      return relAssetPath;
     }
   }
   async onOpen() {
     const { contentEl } = this;
     contentEl.empty();
-    const plazaUrl = this.resolvePluginAssetUrl("assets/scenes/scene-plaza.png");
-    const deskUrl = this.resolvePluginAssetUrl("assets/scenes/scene-desk.png");
-    document.documentElement.style.setProperty("--island-scene-plaza", `url("${plazaUrl}")`);
-    document.documentElement.style.setProperty("--island-scene-desk", `url("${deskUrl}")`);
+    await this.configureSceneVariables();
     if (import_obsidian2.Platform.isMobile || window.innerWidth <= 1366) {
       document.body.classList.add("is-fullscreen-mode");
     }

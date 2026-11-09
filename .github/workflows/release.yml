@@ -1,0 +1,53 @@
+name: Release Obsidian Plugin
+
+on:
+  push:
+    branches:
+      - master
+      - main
+    tags:
+      - "*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies & build
+        run: |
+          npm install
+          npm run build
+
+      - name: Read version from manifest.json
+        id: manifest
+        run: |
+          VERSION=$(node -p "require('./manifest.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create or Update GitHub Release for Obsidian / BRAT
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.manifest.outputs.version }}
+          name: "v${{ steps.manifest.outputs.version }} - 终身岛民·青少儿全人成长与自主进化系统"
+          body: |
+            ### 🏝️ 终身岛民 · 青少儿全人成长与自主进化系统 v${{ steps.manifest.outputs.version }}
+            - 支持通过 **Obsidian BRAT** 插件输入本仓库地址一键远程拉取安装与自动更新
+            - 包含标准 Obsidian Release 资产：`manifest.json`、`main.js`、`styles.css`、`versions.json`
+          draft: false
+          prerelease: false
+          files: |
+            manifest.json
+            main.js
+            styles.css
+            versions.json
