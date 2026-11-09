@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Scratch & temporary scripts
+scratch/
+*.bak
+*.log
+
+# Large local reference packages & demo video
+演示.mp4
+终身岛民-完整无限制版/
+终身岛民1.6.0/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+Desktop.ini

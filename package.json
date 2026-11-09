@@ -1,0 +1,28 @@
+{
+  "name": "youth-holistic-growth-island",
+  "version": "1.0.0",
+  "description": "终身岛民 · 青少儿全人成长与自主进化系统 Obsidian Plugin",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "node esbuild.config.mjs production",
+    "extract": "node scripts/extract_from_prototype.mjs",
+    "test": "node scripts/verify_plugin.mjs"
+  },
+  "keywords": [
+    "obsidian-plugin",
+    "youth-growth",
+    "holistic-education",
+    "gantt",
+    "mindmap",
+    "habit-tracker"
+  ],
+  "author": "Lifelong Islander Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "esbuild": "^0.20.0",
+    "obsidian": "^1.5.0",
+    "typescript": "^5.3.3"
+  }
+}
