@@ -1,10 +1,11 @@
-import { ItemView, Platform, WorkspaceLeaf, normalizePath } from "obsidian";
+import { ItemView, Platform, WorkspaceLeaf, normalizePath, requestUrl } from "obsidian";
 import type YouthGrowthIslandPlugin from "../main";
 import { ISLAND_UI_HTML } from "../ui/template";
 import { bootPrototypeRuntime } from "../runtime/prototypeScript";
 import { globalIslandEventBus } from "../core/EventBus";
 
 export const VIEW_TYPE_YOUTH_ISLAND = "youth-holistic-growth-island-view";
+const REMOTE_RAW_BASE = "https://raw.githubusercontent.com/zuixianjian/test/master";
 
 export class YouthIslandView extends ItemView {
   private plugin: YouthGrowthIslandPlugin;
@@ -31,28 +32,47 @@ export class YouthIslandView extends ItemView {
     try {
       const configDir = this.app.vault.configDir || ".obsidian";
       const pluginDir = `${configDir}/plugins/${this.plugin.manifest.id}`;
-      const plazaPath = normalizePath(`${pluginDir}/assets/scenes/scene-plaza.png`);
-      const deskPath = normalizePath(`${pluginDir}/assets/scenes/scene-desk.png`);
+      const scenesDir = normalizePath(`${pluginDir}/assets/scenes`);
+      const plazaPath = normalizePath(`${scenesDir}/scene-plaza.png`);
+      const deskPath = normalizePath(`${scenesDir}/scene-desk.png`);
 
-      if (await this.app.vault.adapter.exists(plazaPath)) {
-        const plazaUrl = this.app.vault.adapter.getResourcePath(plazaPath);
-        document.documentElement.style.setProperty("--island-scene-plaza", `url("${plazaUrl}")`);
-      } else {
-        document.documentElement.style.setProperty(
-          "--island-scene-plaza",
-          "linear-gradient(135deg, #1b382b 0%, #2f5436 45%, #182c1f 100%)"
-        );
-      }
+      const ensureRemoteAsset = async (localPath: string, relUrl: string, fallbackGradient: string, cssVar: string) => {
+        if (await this.app.vault.adapter.exists(localPath)) {
+          const resourceUrl = this.app.vault.adapter.getResourcePath(localPath);
+          document.documentElement.style.setProperty(cssVar, `url("${resourceUrl}")`);
+          return;
+        }
+        // Use remote raw URL with gradient fallback immediately, and cache locally in background
+        const remoteUrl = `${REMOTE_RAW_BASE}/${relUrl}`;
+        document.documentElement.style.setProperty(cssVar, `url("${remoteUrl}"), ${fallbackGradient}`);
+        try {
+          if (!(await this.app.vault.adapter.exists(scenesDir))) {
+            await this.app.vault.adapter.mkdir(normalizePath(`${pluginDir}/assets`));
+            await this.app.vault.adapter.mkdir(scenesDir);
+          }
+          const resp = await requestUrl({ url: remoteUrl, method: "GET" });
+          if (resp.status === 200 && resp.arrayBuffer) {
+            await this.app.vault.adapter.writeBinary(localPath, resp.arrayBuffer);
+            const cachedUrl = this.app.vault.adapter.getResourcePath(localPath);
+            document.documentElement.style.setProperty(cssVar, `url("${cachedUrl}")`);
+          }
+        } catch {
+          // Keep remote URL / gradient fallback if offline
+        }
+      };
 
-      if (await this.app.vault.adapter.exists(deskPath)) {
-        const deskUrl = this.app.vault.adapter.getResourcePath(deskPath);
-        document.documentElement.style.setProperty("--island-scene-desk", `url("${deskUrl}")`);
-      } else {
-        document.documentElement.style.setProperty(
-          "--island-scene-desk",
-          "radial-gradient(ellipse at 50% 50%, #453221 0%, #251b12 100%)"
-        );
-      }
+      await ensureRemoteAsset(
+        plazaPath,
+        "assets/scenes/scene-plaza.png",
+        "linear-gradient(135deg, #1b382b 0%, #2f5436 45%, #182c1f 100%)",
+        "--island-scene-plaza"
+      );
+      await ensureRemoteAsset(
+        deskPath,
+        "assets/scenes/scene-desk.png",
+        "radial-gradient(ellipse at 50% 50%, #453221 0%, #251b12 100%)",
+        "--island-scene-desk"
+      );
     } catch {
       // Fallback to built-in gradients
     }

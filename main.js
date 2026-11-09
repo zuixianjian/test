@@ -13981,6 +13981,7 @@ function bootPrototypeRuntime() {
 
 // src/views/YouthIslandView.ts
 var VIEW_TYPE_YOUTH_ISLAND = "youth-holistic-growth-island-view";
+var REMOTE_RAW_BASE = "https://raw.githubusercontent.com/zuixianjian/test/master";
 var YouthIslandView = class extends import_obsidian2.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
@@ -14000,26 +14001,43 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
     try {
       const configDir = this.app.vault.configDir || ".obsidian";
       const pluginDir = `${configDir}/plugins/${this.plugin.manifest.id}`;
-      const plazaPath = (0, import_obsidian2.normalizePath)(`${pluginDir}/assets/scenes/scene-plaza.png`);
-      const deskPath = (0, import_obsidian2.normalizePath)(`${pluginDir}/assets/scenes/scene-desk.png`);
-      if (await this.app.vault.adapter.exists(plazaPath)) {
-        const plazaUrl = this.app.vault.adapter.getResourcePath(plazaPath);
-        document.documentElement.style.setProperty("--island-scene-plaza", `url("${plazaUrl}")`);
-      } else {
-        document.documentElement.style.setProperty(
-          "--island-scene-plaza",
-          "linear-gradient(135deg, #1b382b 0%, #2f5436 45%, #182c1f 100%)"
-        );
-      }
-      if (await this.app.vault.adapter.exists(deskPath)) {
-        const deskUrl = this.app.vault.adapter.getResourcePath(deskPath);
-        document.documentElement.style.setProperty("--island-scene-desk", `url("${deskUrl}")`);
-      } else {
-        document.documentElement.style.setProperty(
-          "--island-scene-desk",
-          "radial-gradient(ellipse at 50% 50%, #453221 0%, #251b12 100%)"
-        );
-      }
+      const scenesDir = (0, import_obsidian2.normalizePath)(`${pluginDir}/assets/scenes`);
+      const plazaPath = (0, import_obsidian2.normalizePath)(`${scenesDir}/scene-plaza.png`);
+      const deskPath = (0, import_obsidian2.normalizePath)(`${scenesDir}/scene-desk.png`);
+      const ensureRemoteAsset = async (localPath, relUrl, fallbackGradient, cssVar) => {
+        if (await this.app.vault.adapter.exists(localPath)) {
+          const resourceUrl = this.app.vault.adapter.getResourcePath(localPath);
+          document.documentElement.style.setProperty(cssVar, `url("${resourceUrl}")`);
+          return;
+        }
+        const remoteUrl = `${REMOTE_RAW_BASE}/${relUrl}`;
+        document.documentElement.style.setProperty(cssVar, `url("${remoteUrl}"), ${fallbackGradient}`);
+        try {
+          if (!await this.app.vault.adapter.exists(scenesDir)) {
+            await this.app.vault.adapter.mkdir((0, import_obsidian2.normalizePath)(`${pluginDir}/assets`));
+            await this.app.vault.adapter.mkdir(scenesDir);
+          }
+          const resp = await (0, import_obsidian2.requestUrl)({ url: remoteUrl, method: "GET" });
+          if (resp.status === 200 && resp.arrayBuffer) {
+            await this.app.vault.adapter.writeBinary(localPath, resp.arrayBuffer);
+            const cachedUrl = this.app.vault.adapter.getResourcePath(localPath);
+            document.documentElement.style.setProperty(cssVar, `url("${cachedUrl}")`);
+          }
+        } catch {
+        }
+      };
+      await ensureRemoteAsset(
+        plazaPath,
+        "assets/scenes/scene-plaza.png",
+        "linear-gradient(135deg, #1b382b 0%, #2f5436 45%, #182c1f 100%)",
+        "--island-scene-plaza"
+      );
+      await ensureRemoteAsset(
+        deskPath,
+        "assets/scenes/scene-desk.png",
+        "radial-gradient(ellipse at 50% 50%, #453221 0%, #251b12 100%)",
+        "--island-scene-desk"
+      );
     } catch {
     }
   }
