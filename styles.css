@@ -5568,14 +5568,46 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 /* 4. 周看板与月日历视图容器：增设轻透羊皮纸背板，既透出小岛又确保表格易读 */
 #exec-subview-week,
 #exec-subview-month {
-  background: rgba(255, 254, 246, 0.92) !important;
-  border: 2px solid #ecd9b8 !important;
-  border-radius: 22px !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25) !important;
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 10px 16px 16px !important;
+  border-radius: 0 !important;
+  border: none !important;
+  background: rgba(255, 254, 246, 0.96) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
-  margin: 6px 16px !important;
   box-sizing: border-box !important;
+  overflow: hidden !important;
+  z-index: 30 !important;
+  display: none;
+}
+
+#exec-subview-week.active,
+#exec-subview-month.active {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+#week-board-columns-container {
+  flex: 1 !important;
+  height: calc(100% - 50px) !important;
+  min-height: 0 !important;
+  display: flex !important;
+  gap: 10px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding-bottom: 8px !important;
+}
+
+#month-calendar-grid {
+  flex: 1 !important;
+  height: calc(100% - 50px) !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  padding-bottom: 8px !important;
 }
 
 
@@ -6317,7 +6349,7 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 
 /* 左列：项目目录与基本信息清单 (580px 宽，各列间距充裕绝不遮挡) */
 .gantt-table-col {
-  width: 630px; min-width: 630px;
+  width: 680px; min-width: 680px;
   border-right: 2px solid rgba(140, 107, 69, 0.25);
   display: flex;
   flex-direction: column;
@@ -6342,7 +6374,7 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 .col-head-title { flex: 1; min-width: 0; padding: 0 10px; }
 .col-head-dates { width: 98px; flex-shrink: 0; text-align: center; }
 .col-head-status { width: 78px; flex-shrink: 0; text-align: center; }
-.col-head-ops { width: 165px; flex-shrink: 0; text-align: center; }
+.col-head-ops { width: 220px; flex-shrink: 0; text-align: center; }
 
 .gantt-table-rows {
   flex: 1;
@@ -6369,7 +6401,7 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 .col-cell-title { flex: 1; min-width: 0; padding: 0 10px; }
 .col-cell-dates { width: 98px; flex-shrink: 0; text-align: center; }
 .col-cell-status { width: 78px; flex-shrink: 0; text-align: center; display: flex; align-items: center; justify-content: center; }
-.col-cell-ops { width: 165px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.col-cell-ops { width: 220px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 6px; }
 
 .gantt-cat-tag {
   display: inline-flex;
@@ -7021,6 +7053,8 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 
 /* ==================== 三级脑图节点卡片最小化与展开切换样式 ==================== */
 .tertiary-card {
+  touch-action: none !important;
+  will-change: left, top !important;
   transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
               min-height 0.25s cubic-bezier(0.4, 0, 0.2, 1),
               box-shadow 0.2s ease,

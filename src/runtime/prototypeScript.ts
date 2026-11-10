@@ -2497,23 +2497,26 @@ function renderHomeSemesterGoalsBanner() {
     '认知思辨': { bg: '#f5f3ff', color: '#6d28d9', bar: '#7c3aed' }
   };
 
-  listEl.innerHTML = activeProjs.slice(0, 6).map(p => {
+  listEl.innerHTML = activeProjs.slice(0, 3).map(p => {
     const res = typeof computeProjectProgressAndStatus === 'function'
       ? computeProjectProgressAndStatus(p)
       : { progress: 50, completedCount: (p.completedDays || []).length, totalDays: 10 };
     const cm = badgeColors[p.category] || { bg: '#fef3c7', color: '#b45309', bar: '#d97706' };
     const pavMeta = (typeof PAVILION_META !== 'undefined' && PAVILION_META[p.pavilion])
       ? PAVILION_META[p.pavilion]
-      : { name: p.category || '规划馆', icon: '🎯' };
+      : { name: p.category || '学业', icon: '📐' };
     const safeTitle = String(p.title || '').replace(/"/g, '&quot;');
-    return '<div class="island-goal-item" onclick="enterSecondaryWorkspace(\'' + (p.pavilion || 'study') + '\', \'gantt\')" title="点击进入【' + (pavMeta.name || p.category) + '】甘特规划沙盘">' +
-      '<div class="goal-item-top">' +
-        '<span class="goal-pav-badge" style="background:' + cm.bg + '; color:' + cm.color + ';">' + (pavMeta.icon || '🎯') + ' ' + (pavMeta.name || p.category) + '</span>' +
-        '<span class="goal-target-title">' + safeTitle + '</span>' +
-        '<span class="goal-pct-text" style="color:' + cm.color + ';">' + res.progress + '%</span>' +
+    const safeDesc = String(p.desc || '稳步推进阶段量化攻坚').replace(/"/g, '&quot;');
+    return '<div class="island-goal-item-card" onclick="enterSecondaryWorkspace(\'' + (p.pavilion || 'study') + '\', \'gantt\')" title="点击直达【' + (pavMeta.name || p.category) + '】甘特总览规划">' +
+      '<div class="goal-card-top-row">' +
+        '<span class="goal-card-pav-tag" style="background:' + cm.bg + '; color:' + cm.color + ';">' + (pavMeta.icon || '🎯') + ' ' + (pavMeta.name || p.category) + '</span>' +
+        '<span class="goal-card-pct-badge" style="color:' + cm.bar + ';">' + res.progress + '% (' + res.completedCount + '/' + res.totalDays + '天)</span>' +
       '</div>' +
-      '<div class="goal-progress-track"><div class="goal-progress-fill" style="width:' + res.progress + '%; background:' + cm.bar + ';"></div></div>' +
-      '<div class="goal-item-sub"><span>周期: ' + String(p.startDate || '').slice(5) + '~' + String(p.endDate || '').slice(5) + '</span><span>已达标 ' + res.completedCount + '/' + res.totalDays + ' 天</span></div>' +
+      '<div class="goal-card-title">🎯 《' + safeTitle + '》</div>' +
+      '<div class="goal-card-bottom-row">' +
+        '<span class="goal-card-desc-text">' + safeDesc + '</span>' +
+        '<div class="goal-card-progress-track"><div class="goal-card-progress-bar" style="width:' + res.progress + '%; background:' + cm.bar + ';"></div></div>' +
+      '</div>' +
     '</div>';
   }).join('');
 }
@@ -3080,6 +3083,7 @@ window.BOUNTY_STATE = null;
 
 function renderBountyModalAndBillboard() {
   const b = window.BOUNTY_STATE;
+  const billboard = document.getElementById('home-bounty-billboard');
   const hTitle = document.getElementById('home-bounty-title');
   const hTimer = document.getElementById('home-bounty-timer');
   const hReward = document.getElementById('home-bounty-reward');
@@ -3087,6 +3091,7 @@ function renderBountyModalAndBillboard() {
   const hAuthor = document.getElementById('home-bounty-author');
 
   if (!b) {
+    if (billboard) billboard.style.display = 'none';
     if (hTitle) hTitle.textContent = '暂无进行中的悬赏契约';
     if (hTimer) hTimer.textContent = '⏱️ 待张榜';
     if (hReward) hReward.textContent = '🎁 点击发布亲子心愿悬赏';
@@ -3132,7 +3137,8 @@ function renderBountyModalAndBillboard() {
     return;
   }
 
-  // 1. 同步顶栏告示牌
+  // 1. 同步顶栏告示牌 (有悬赏时才在顶栏显示)
+  if (billboard) billboard.style.display = 'flex';
   if (hTitle) hTitle.textContent = b.title;
   if (hTimer) hTimer.textContent = '⏱️ ' + b.days + '天期';
   if (hReward) hReward.textContent = b.reward;
@@ -4126,6 +4132,19 @@ function cycleGridMode() {
   alignGridLayout();
 }
 
+function handleOpenObsidianCanvas(projId) {
+  const targetId = projId || window.currentTertiaryProjId || 'p1';
+  if (typeof window.__openProjectInObsidianCanvas === 'function') {
+    window.__openProjectInObsidianCanvas(targetId);
+  } else {
+    showIslandToast('🎨 正在 Obsidian Canvas 核心插件中全屏打开项目画布...');
+  }
+}
+
+function openCurrentProjectInObsidianCanvas() {
+  handleOpenObsidianCanvas(window.currentTertiaryProjId);
+}
+
 function initTertiaryWorkspace() {
   bindTertiaryCardsDrag();
   renderTertiaryEdges();
@@ -4252,6 +4271,10 @@ function bindCardDragSingle(card) {
     e.stopPropagation();
   };
 
+  let rafPending = false;
+  let targetLeft = 0;
+  let targetTop = 0;
+
   const onPointerMove = (e) => {
     if (!isDragging) return;
     const clientX = e.clientX || (e.touches && e.touches[0].clientX);
@@ -4262,13 +4285,22 @@ function bindCardDragSingle(card) {
       hasMoved = true;
       pushTertiaryHistory();
     }
-    card.style.left = Math.max(10, initialLeft + dx) + 'px';
-    card.style.top = Math.max(10, initialTop + dy) + 'px';
-    followerInitialPositions.forEach(f => {
-      f.el.style.left = Math.max(10, f.left + dx) + 'px';
-      f.el.style.top = Math.max(10, f.top + dy) + 'px';
-    });
-    renderTertiaryEdges();
+    targetLeft = Math.max(10, initialLeft + dx);
+    targetTop = Math.max(10, initialTop + dy);
+
+    if (!rafPending) {
+      rafPending = true;
+      requestAnimationFrame(() => {
+        card.style.left = targetLeft + 'px';
+        card.style.top = targetTop + 'px';
+        followerInitialPositions.forEach(f => {
+          f.el.style.left = Math.max(10, f.left + dx) + 'px';
+          f.el.style.top = Math.max(10, f.top + dy) + 'px';
+        });
+        renderTertiaryEdges();
+        rafPending = false;
+      });
+    }
   };
 
   const onPointerUp = () => {
@@ -5755,6 +5787,10 @@ let currentWeekFilter = 'all';
 
 function switchExecSubView(view) {
   currentExecSubView = view;
+  const goalDock = document.getElementById('island-goal-cards-dock');
+  if (goalDock) {
+    goalDock.style.display = (view === 'day') ? '' : 'none';
+  }
   ['day', 'week', 'month'].forEach(v => {
     const btn = document.getElementById('btn-exec-' + v);
     const pane = document.getElementById('exec-subview-' + v);
@@ -8834,6 +8870,7 @@ function renderGanttChart() {
           '<span class="gantt-status-pill ' + sm.cls + '">' + sm.label + '</span>' +
         '</div>' +
         '<div class="col-cell-ops">' +
+          '<button class="gantt-op-btn gantt-plan-btn" data-id="' + p.id + '" onclick="handleOpenObsidianCanvas(this.dataset.id)" title="在 Obsidian 原生 Canvas 核心画布插件中全屏打开（原生加速，丝滑顺畅）" style="background:#eff6ff; color:#2563eb; border-color:#93c5fd;">🎨 Canvas</button>' +
           '<button class="gantt-op-btn gantt-plan-btn" data-id="' + p.id + '" onclick="openEditProjectModal(this.dataset.id)" title="编辑项目名称、起止周期与攻坚策略">✏️ 编辑</button>' +
           '<button class="gantt-op-btn gantt-plan-btn" data-id="' + p.id + '" onclick="handleGanttEditPlan(this)" title="进入该项目三级思维导图拆解画布">🔮 脑图</button>' +
           '<button class="gantt-op-btn gantt-archive-btn ' + (p.isArchived ? 'is-archived' : '') + '" data-id="' + p.id + '" onclick="handleGanttArchive(this)" title="' + (p.isArchived ? '解除归档' : '归档该项目') + '">' +
@@ -10585,6 +10622,8 @@ function recordTreeTestDemo() {
   if (typeof exitTertiaryWorkspace === "function") (window as any).exitTertiaryWorkspace = exitTertiaryWorkspace;
   if (typeof toggleTertiaryMinimap === "function") (window as any).toggleTertiaryMinimap = toggleTertiaryMinimap;
   if (typeof cycleGridMode === "function") (window as any).cycleGridMode = cycleGridMode;
+  if (typeof handleOpenObsidianCanvas === "function") (window as any).handleOpenObsidianCanvas = handleOpenObsidianCanvas;
+  if (typeof openCurrentProjectInObsidianCanvas === "function") (window as any).openCurrentProjectInObsidianCanvas = openCurrentProjectInObsidianCanvas;
   if (typeof initTertiaryWorkspace === "function") (window as any).initTertiaryWorkspace = initTertiaryWorkspace;
   if (typeof toggleTertiaryCardMinimize === "function") (window as any).toggleTertiaryCardMinimize = toggleTertiaryCardMinimize;
   if (typeof toggleAllTertiaryCardsMinimize === "function") (window as any).toggleAllTertiaryCardsMinimize = toggleAllTertiaryCardsMinimize;

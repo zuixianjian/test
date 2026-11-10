@@ -77,4 +77,29 @@ assert(
   "main.js includes full Vault snapshot persistence, tertiary node check-in, and fullscreen toggle"
 );
 
+// 7. Verify Tablet Optimizations & Obsidian Native Canvas Integration
+assert(
+  css.includes(".island-goal-item-card") &&
+    css.includes(".goal-card-top-row") &&
+    css.includes(".goal-card-pct-badge"),
+  "styles.css contains 1:1 island goal item micro-card styles"
+);
+assert(
+  templateTs.includes('home-bounty-billboard') &&
+    templateTs.includes('display:none'),
+  "template.ts hides home bounty billboard when no active contract"
+);
+assert(
+  mainJs.includes("__openProjectInObsidianCanvas") &&
+    mainJs.includes("buildObsidianCanvasJson") &&
+    mainJs.includes("openProjectInCanvas"),
+  "main.js includes Obsidian native Canvas core plugin integration & file generation"
+);
+assert(
+  css.includes("#exec-subview-week") &&
+    css.includes("#exec-subview-month") &&
+    css.includes("inset: 0 !important"),
+  "styles.css ensures week board and month calendar 100% full-screen immersive view"
+);
+
 console.log("\n🎉 All Obsidian plugin build & closed-loop integrity checks passed!");

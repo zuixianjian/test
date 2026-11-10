@@ -1,4 +1,4 @@
-import { App, normalizePath } from "obsidian";
+import { App, normalizePath, Notice, TFile } from "obsidian";
 import { YouthIslandPluginSettings } from "../types/models";
 import { globalIslandEventBus } from "../core/EventBus";
 
@@ -305,8 +305,11 @@ export class VaultStorageAdapter {
         const canvasData = canvasStore[projId] || canvasStore[pavKey] || { nodes: [], edges: [] };
         await this.writeJson(`${dirName}/02_Projects/nodes_${projId}.json`, canvasData);
 
+        const safeTitle = String(proj.title || projId).replace(/[\\/:*?"<>|]/g, "_");
+        const canvasJson = this.buildObsidianCanvasJson(proj, pavKey, canvasData);
+        await this.writeJson(`${dirName}/02_Projects/${safeTitle}.canvas`, canvasJson);
+
         if (this.getSettings().autoSyncVaultMarkdown && proj.title) {
-          const safeTitle = String(proj.title).replace(/[\\/:*?"<>|]/g, "_");
           const md = this.buildProjectMarkdown(proj, pavKey, canvasData);
           await this.writeMarkdown(`${dirName}/02_Projects/${safeTitle}.md`, md);
         }
@@ -500,5 +503,244 @@ fulfillment_rate: ${rate}
 7. **【治国 · 遵规守纪】**：严守校规班纪与公共秩序，爱护集体荣誉。
 8. **【平天下 · 志存高远】**：厉行节约、友爱互助，立志成为笃行守正之少年君子。
 `;
+  }
+
+  /**
+   * PRD 3.2.2 & Obsidian Canvas 核心插件集成:
+   * 将三级工作台脑图拓扑数据转换为 Obsidian 原生 .canvas 标准规范 JSON (硬件加速，60/120fps 丝滑拖拽缩放)
+   */
+  public buildObsidianCanvasJson(
+    proj: any,
+    pavKey: string,
+    canvasData?: any
+  ): { nodes: any[]; edges: any[] } {
+    const pTitle = proj?.title || "专项规划课题";
+    const pDesc = proj?.desc || "稳步推进阶段量化攻坚与日常打卡";
+    const projId = proj?.id || "p1";
+
+    const canvasNodes: any[] = [];
+    const canvasEdges: any[] = [];
+
+    // 1. 如果 canvasData 包含结构化 nodes 数组
+    if (Array.isArray(canvasData?.nodes) && canvasData.nodes.length > 0) {
+      canvasData.nodes.forEach((n: any, idx: number) => {
+        const type = String(n.cardType || n.type || "drill");
+        let color = "2"; // 默认橙色攻坚实训
+        if (type.includes("goal")) color = "5"; // 蓝色目标
+        else if (type.includes("reflection")) color = "6"; // 紫色复盘
+        else if (type.includes("habit")) color = "3"; // 黄色习惯
+        else if (type.includes("evidence")) color = "1"; // 红色物证
+        else if (type.includes("resource")) color = "4"; // 绿色资源
+
+        const textLines = [
+          `### ${n.icon || "🎯"} ${n.title || `节点 ${idx + 1}`}`,
+          n.status ? `**状态**：\`${n.status}\`` : "",
+          n.desc ? `> ${n.desc}` : "",
+          n.checklist && Array.isArray(n.checklist)
+            ? n.checklist.map((c: any) => `- [${c.done ? "x" : " "}] ${c.text}`).join("\n")
+            : "",
+        ].filter(Boolean).join("\n\n");
+
+        canvasNodes.push({
+          id: n.id || `node-${idx + 1}`,
+          x: typeof n.x === "number" ? n.x : 80 + idx * 380,
+          y: typeof n.y === "number" ? n.y : 90,
+          width: n.width || 340,
+          height: n.height || 220,
+          type: "text",
+          text: textLines,
+          color,
+        });
+      });
+    } else if (typeof canvasData?.cardsHtml === "string" && canvasData.cardsHtml.trim()) {
+      // 2. 从 HTML 字符串中提取卡片
+      const cardRegex = /<div\s+class="([^"]*tertiary-card[^"]*)"\s+id="([^"]+)"(?:[^>]*data-label="([^"]*)")?[^>]*style="([^"]*)"[^>]*>([\s\S]*?)<\/div>\s*(?=<div\s+class="[^"]*tertiary-card"|$)/gi;
+      let match: RegExpExecArray | null;
+      let cardIdx = 0;
+
+      while ((match = cardRegex.exec(canvasData.cardsHtml)) !== null) {
+        const className = match[1] || "";
+        const cardId = match[2];
+        const styleStr = match[4] || "";
+        const innerHtml = match[5] || "";
+
+        // 解析坐标
+        const topMatch = styleStr.match(/top:\s*(\d+)px/);
+        const leftMatch = styleStr.match(/left:\s*(\d+)px/);
+        const widthMatch = styleStr.match(/width:\s*(\d+)px/);
+        const x = leftMatch ? parseInt(leftMatch[1], 10) : 80 + cardIdx * 380;
+        const y = topMatch ? parseInt(topMatch[1], 10) : 90;
+        const width = widthMatch ? parseInt(widthMatch[1], 10) : 340;
+
+        // 提取标题与色彩
+        let color = "2";
+        let cardTypeName = "攻坚实训";
+        if (className.includes("goal")) {
+          color = "5";
+          cardTypeName = "目标分解";
+        } else if (className.includes("reflection")) {
+          color = "6";
+          cardTypeName = "评估复盘";
+        } else if (className.includes("drill")) {
+          color = "2";
+          cardTypeName = "攻坚实训";
+        } else if (className.includes("resource")) {
+          color = "4";
+          cardTypeName = "资源支撑";
+        } else if (className.includes("evidence")) {
+          color = "1";
+          cardTypeName = "物证交付";
+        }
+
+        const titleMatch = innerHtml.match(/class="[^"]*work-node-title[^"]*"[^>]*>([^<]+)<\/span>/);
+        const badgeMatch = innerHtml.match(/class="[^"]*work-node-badge[^"]*"[^>]*>([^<]+)<\/span>/);
+        const cardTitle = titleMatch ? titleMatch[1].trim() : `${pTitle} · ${cardTypeName}`;
+        const cardBadge = badgeMatch ? badgeMatch[1].trim() : `🎯 ${cardTypeName}`;
+
+        // 提取正文纯文本与复选清单
+        const cleanBody = innerHtml
+          .replace(/<button[\s\S]*?<\/button>/gi, "")
+          .replace(/<div class="work-card-connect-handle"[\s\S]*?<\/div>/gi, "")
+          .replace(/<span class="work-node-badge"[\s\S]*?<\/span>/gi, "")
+          .replace(/<span class="work-node-title"[\s\S]*?<\/span>/gi, "")
+          .replace(/<input\s+type="checkbox"[^>]*>/gi, "- [ ] ")
+          .replace(/<input\s+type="text"[^>]*value="([^"]*)"[^>]*>/gi, "$1\n")
+          .replace(/<[^>]+>/g, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+
+        canvasNodes.push({
+          id: cardId,
+          x,
+          y,
+          width,
+          height: 220,
+          type: "text",
+          text: `### ${cardBadge}\n**${cardTitle}**\n\n${cleanBody}`,
+          color,
+        });
+        cardIdx++;
+      }
+    }
+
+    // 如果未提取到任何节点，提供开箱即用的三大基准标准节点
+    if (canvasNodes.length === 0) {
+      const c1 = `projnode-${projId}-1`;
+      const c2 = `projnode-${projId}-2`;
+      const c3 = `projnode-${projId}-3`;
+
+      canvasNodes.push(
+        {
+          id: c1,
+          x: 80,
+          y: 90,
+          width: 340,
+          height: 200,
+          type: "text",
+          text: `### 🎯 目标分解 · 通关目标\n**《${pTitle}》**\n\n> 📋 验收标准：${pDesc}\n\n- [ ] 制定里程碑分解指标\n- [ ] 归档至成就馆`,
+          color: "5",
+        },
+        {
+          id: c2,
+          x: 480,
+          y: 90,
+          width: 340,
+          height: 200,
+          type: "text",
+          text: `### ⚡ 攻坚实训 · 每日打卡\n**《${pTitle}》实战突破**\n\n- 预计专注时长：⏱️ 20 分钟\n- 执行要领：保持慎独自律，逐项推导留痕\n- [ ] 今日实训打卡完成`,
+          color: "2",
+        },
+        {
+          id: c3,
+          x: 880,
+          y: 90,
+          width: 340,
+          height: 200,
+          type: "text",
+          text: `### 📝 评估复盘 · 改进清单\n**《${pTitle}》周期审视**\n\n> 【复盘指引】记录执行卡点与顿悟经验\n\n- [x] 1. 拆解薄弱动作/卡点进行二次强化\n- [ ] 2. 派生为下一阶段新实训节点`,
+          color: "6",
+        }
+      );
+
+      canvasEdges.push(
+        {
+          id: `edge-${c1}-${c2}`,
+          fromNode: c1,
+          fromSide: "right",
+          toNode: c2,
+          toSide: "left",
+          label: "拆解执行",
+        },
+        {
+          id: `edge-${c2}-${c3}`,
+          fromNode: c2,
+          fromSide: "right",
+          toNode: c3,
+          toSide: "left",
+          label: "复盘纠偏",
+        }
+      );
+    }
+
+    // 转换连线数据
+    const rawEdges: any[] = Array.isArray(canvasData?.edges) ? canvasData.edges : [];
+    if (rawEdges.length > 0) {
+      rawEdges.forEach((e: any, idx: number) => {
+        canvasEdges.push({
+          id: e.id || `edge-${idx + 1}`,
+          fromNode: e.sourceId || e.fromNode,
+          fromSide: "right",
+          toNode: e.targetId || e.toNode,
+          toSide: "left",
+          label: e.label || "关联",
+        });
+      });
+    }
+
+    return { nodes: canvasNodes, edges: canvasEdges };
+  }
+
+  /**
+   * PRD 3.2.2: 在 Obsidian 原生 Canvas 核心插件中打开指定项目画布
+   */
+  public async openProjectInCanvas(projId: string): Promise<boolean> {
+    try {
+      const win = window as any;
+      const allProjects: any[] = Array.isArray(win.GANTT_PROJECTS) ? win.GANTT_PROJECTS : [];
+      let proj = allProjects.find((p) => p.id === projId);
+      if (!proj && allProjects.length > 0) {
+        proj = allProjects[0];
+      }
+      const pavKey = proj?.pavilion || proj?.moduleKey || "study";
+      const dirName = PAVILION_DIR_MAP[pavKey] || "01_School_校史馆";
+      const safeTitle = String(proj?.title || projId || "成长规划项目").replace(/[\\/:*?"<>|]/g, "_");
+      const canvasRelPath = `${dirName}/02_Projects/${safeTitle}.canvas`;
+      const fullPath = this.resolvePath(canvasRelPath);
+
+      // Check if file exists, if not generate it
+      const canvasStore: Record<string, any> = win.PROJECT_CANVAS_STORE || {};
+      const canvasData =
+        (proj && proj.id && canvasStore[proj.id]) ||
+        canvasStore[projId] || { nodes: [], edges: [] };
+      const canvasJson = this.buildObsidianCanvasJson(proj, pavKey, canvasData);
+      await this.writeJson(canvasRelPath, canvasJson);
+
+      const file = this.app.vault.getAbstractFileByPath(fullPath);
+      if (file instanceof TFile && file.extension === "canvas") {
+        const leaf = this.app.workspace.getLeaf(true);
+        await leaf.openFile(file);
+        new Notice(`🎨 已在 Obsidian 原生 Canvas 核心画布中打开《${proj?.title || safeTitle}》！`);
+        return true;
+      } else {
+        new Notice(
+          `💡 画布文件已就绪：${canvasRelPath}\n请在 Obsidian 文件列表中点击打开，或确保在【设置 -> 核心插件】中已启用 Canvas 画布功能。`
+        );
+        return true;
+      }
+    } catch (err: any) {
+      console.error("[VaultStorageAdapter] Failed to open project in Obsidian Canvas:", err);
+      new Notice(`⚠️ 打开 Canvas 画布失败: ${err?.message || err}`);
+      return false;
+    }
   }
 }

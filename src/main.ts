@@ -19,6 +19,11 @@ export default class YouthGrowthIslandPlugin extends Plugin {
 
     this.vaultStorage = new VaultStorageAdapter(this.app, () => this.settings);
 
+    // Bind Obsidian Native Canvas Bridge to window
+    (window as any).__openProjectInObsidianCanvas = async (projId: string) => {
+      await this.vaultStorage.openProjectInCanvas(projId);
+    };
+
     // Register main custom ItemView
     this.registerView(
       VIEW_TYPE_YOUTH_ISLAND,
@@ -72,6 +77,19 @@ export default class YouthGrowthIslandPlugin extends Plugin {
         if (typeof win.switchMainSection === "function") {
           win.switchMainSection("tertiary");
         }
+      },
+    });
+
+    this.addCommand({
+      id: "open-youth-island-canvas",
+      name: "在 Obsidian 原生 Canvas 核心画布中全屏打开当前课题 (Hardware Accelerated Canvas)",
+      callback: async () => {
+        const win = window as any;
+        const currentId =
+          win.currentTertiaryProjId ||
+          (win.GANTT_PROJECTS && win.GANTT_PROJECTS[0]?.id) ||
+          "p1";
+        await this.vaultStorage.openProjectInCanvas(currentId);
       },
     });
 

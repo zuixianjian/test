@@ -346,8 +346,10 @@ var VaultStorageAdapter = class {
         const projId = proj.id || proj.projectId || "default";
         const canvasData = canvasStore[projId] || canvasStore[pavKey] || { nodes: [], edges: [] };
         await this.writeJson(`${dirName}/02_Projects/nodes_${projId}.json`, canvasData);
+        const safeTitle = String(proj.title || projId).replace(/[\\/:*?"<>|]/g, "_");
+        const canvasJson = this.buildObsidianCanvasJson(proj, pavKey, canvasData);
+        await this.writeJson(`${dirName}/02_Projects/${safeTitle}.canvas`, canvasJson);
         if (this.getSettings().autoSyncVaultMarkdown && proj.title) {
-          const safeTitle = String(proj.title).replace(/[\\/:*?"<>|]/g, "_");
           const md = this.buildProjectMarkdown(proj, pavKey, canvasData);
           await this.writeMarkdown(`${dirName}/02_Projects/${safeTitle}.md`, md);
         }
@@ -506,6 +508,227 @@ fulfillment_rate: ${rate}
 8. **\u3010\u5E73\u5929\u4E0B \xB7 \u5FD7\u5B58\u9AD8\u8FDC\u3011**\uFF1A\u5389\u884C\u8282\u7EA6\u3001\u53CB\u7231\u4E92\u52A9\uFF0C\u7ACB\u5FD7\u6210\u4E3A\u7B03\u884C\u5B88\u6B63\u4E4B\u5C11\u5E74\u541B\u5B50\u3002
 `;
   }
+  /**
+   * PRD 3.2.2 & Obsidian Canvas 核心插件集成:
+   * 将三级工作台脑图拓扑数据转换为 Obsidian 原生 .canvas 标准规范 JSON (硬件加速，60/120fps 丝滑拖拽缩放)
+   */
+  buildObsidianCanvasJson(proj, pavKey, canvasData) {
+    const pTitle = proj?.title || "\u4E13\u9879\u89C4\u5212\u8BFE\u9898";
+    const pDesc = proj?.desc || "\u7A33\u6B65\u63A8\u8FDB\u9636\u6BB5\u91CF\u5316\u653B\u575A\u4E0E\u65E5\u5E38\u6253\u5361";
+    const projId = proj?.id || "p1";
+    const canvasNodes = [];
+    const canvasEdges = [];
+    if (Array.isArray(canvasData?.nodes) && canvasData.nodes.length > 0) {
+      canvasData.nodes.forEach((n, idx) => {
+        const type = String(n.cardType || n.type || "drill");
+        let color = "2";
+        if (type.includes("goal"))
+          color = "5";
+        else if (type.includes("reflection"))
+          color = "6";
+        else if (type.includes("habit"))
+          color = "3";
+        else if (type.includes("evidence"))
+          color = "1";
+        else if (type.includes("resource"))
+          color = "4";
+        const textLines = [
+          `### ${n.icon || "\u{1F3AF}"} ${n.title || `\u8282\u70B9 ${idx + 1}`}`,
+          n.status ? `**\u72B6\u6001**\uFF1A\`${n.status}\`` : "",
+          n.desc ? `> ${n.desc}` : "",
+          n.checklist && Array.isArray(n.checklist) ? n.checklist.map((c) => `- [${c.done ? "x" : " "}] ${c.text}`).join("\n") : ""
+        ].filter(Boolean).join("\n\n");
+        canvasNodes.push({
+          id: n.id || `node-${idx + 1}`,
+          x: typeof n.x === "number" ? n.x : 80 + idx * 380,
+          y: typeof n.y === "number" ? n.y : 90,
+          width: n.width || 340,
+          height: n.height || 220,
+          type: "text",
+          text: textLines,
+          color
+        });
+      });
+    } else if (typeof canvasData?.cardsHtml === "string" && canvasData.cardsHtml.trim()) {
+      const cardRegex = /<div\s+class="([^"]*tertiary-card[^"]*)"\s+id="([^"]+)"(?:[^>]*data-label="([^"]*)")?[^>]*style="([^"]*)"[^>]*>([\s\S]*?)<\/div>\s*(?=<div\s+class="[^"]*tertiary-card"|$)/gi;
+      let match;
+      let cardIdx = 0;
+      while ((match = cardRegex.exec(canvasData.cardsHtml)) !== null) {
+        const className = match[1] || "";
+        const cardId = match[2];
+        const styleStr = match[4] || "";
+        const innerHtml = match[5] || "";
+        const topMatch = styleStr.match(/top:\s*(\d+)px/);
+        const leftMatch = styleStr.match(/left:\s*(\d+)px/);
+        const widthMatch = styleStr.match(/width:\s*(\d+)px/);
+        const x = leftMatch ? parseInt(leftMatch[1], 10) : 80 + cardIdx * 380;
+        const y = topMatch ? parseInt(topMatch[1], 10) : 90;
+        const width = widthMatch ? parseInt(widthMatch[1], 10) : 340;
+        let color = "2";
+        let cardTypeName = "\u653B\u575A\u5B9E\u8BAD";
+        if (className.includes("goal")) {
+          color = "5";
+          cardTypeName = "\u76EE\u6807\u5206\u89E3";
+        } else if (className.includes("reflection")) {
+          color = "6";
+          cardTypeName = "\u8BC4\u4F30\u590D\u76D8";
+        } else if (className.includes("drill")) {
+          color = "2";
+          cardTypeName = "\u653B\u575A\u5B9E\u8BAD";
+        } else if (className.includes("resource")) {
+          color = "4";
+          cardTypeName = "\u8D44\u6E90\u652F\u6491";
+        } else if (className.includes("evidence")) {
+          color = "1";
+          cardTypeName = "\u7269\u8BC1\u4EA4\u4ED8";
+        }
+        const titleMatch = innerHtml.match(/class="[^"]*work-node-title[^"]*"[^>]*>([^<]+)<\/span>/);
+        const badgeMatch = innerHtml.match(/class="[^"]*work-node-badge[^"]*"[^>]*>([^<]+)<\/span>/);
+        const cardTitle = titleMatch ? titleMatch[1].trim() : `${pTitle} \xB7 ${cardTypeName}`;
+        const cardBadge = badgeMatch ? badgeMatch[1].trim() : `\u{1F3AF} ${cardTypeName}`;
+        const cleanBody = innerHtml.replace(/<button[\s\S]*?<\/button>/gi, "").replace(/<div class="work-card-connect-handle"[\s\S]*?<\/div>/gi, "").replace(/<span class="work-node-badge"[\s\S]*?<\/span>/gi, "").replace(/<span class="work-node-title"[\s\S]*?<\/span>/gi, "").replace(/<input\s+type="checkbox"[^>]*>/gi, "- [ ] ").replace(/<input\s+type="text"[^>]*value="([^"]*)"[^>]*>/gi, "$1\n").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+        canvasNodes.push({
+          id: cardId,
+          x,
+          y,
+          width,
+          height: 220,
+          type: "text",
+          text: `### ${cardBadge}
+**${cardTitle}**
+
+${cleanBody}`,
+          color
+        });
+        cardIdx++;
+      }
+    }
+    if (canvasNodes.length === 0) {
+      const c1 = `projnode-${projId}-1`;
+      const c2 = `projnode-${projId}-2`;
+      const c3 = `projnode-${projId}-3`;
+      canvasNodes.push(
+        {
+          id: c1,
+          x: 80,
+          y: 90,
+          width: 340,
+          height: 200,
+          type: "text",
+          text: `### \u{1F3AF} \u76EE\u6807\u5206\u89E3 \xB7 \u901A\u5173\u76EE\u6807
+**\u300A${pTitle}\u300B**
+
+> \u{1F4CB} \u9A8C\u6536\u6807\u51C6\uFF1A${pDesc}
+
+- [ ] \u5236\u5B9A\u91CC\u7A0B\u7891\u5206\u89E3\u6307\u6807
+- [ ] \u5F52\u6863\u81F3\u6210\u5C31\u9986`,
+          color: "5"
+        },
+        {
+          id: c2,
+          x: 480,
+          y: 90,
+          width: 340,
+          height: 200,
+          type: "text",
+          text: `### \u26A1 \u653B\u575A\u5B9E\u8BAD \xB7 \u6BCF\u65E5\u6253\u5361
+**\u300A${pTitle}\u300B\u5B9E\u6218\u7A81\u7834**
+
+- \u9884\u8BA1\u4E13\u6CE8\u65F6\u957F\uFF1A\u23F1\uFE0F 20 \u5206\u949F
+- \u6267\u884C\u8981\u9886\uFF1A\u4FDD\u6301\u614E\u72EC\u81EA\u5F8B\uFF0C\u9010\u9879\u63A8\u5BFC\u7559\u75D5
+- [ ] \u4ECA\u65E5\u5B9E\u8BAD\u6253\u5361\u5B8C\u6210`,
+          color: "2"
+        },
+        {
+          id: c3,
+          x: 880,
+          y: 90,
+          width: 340,
+          height: 200,
+          type: "text",
+          text: `### \u{1F4DD} \u8BC4\u4F30\u590D\u76D8 \xB7 \u6539\u8FDB\u6E05\u5355
+**\u300A${pTitle}\u300B\u5468\u671F\u5BA1\u89C6**
+
+> \u3010\u590D\u76D8\u6307\u5F15\u3011\u8BB0\u5F55\u6267\u884C\u5361\u70B9\u4E0E\u987F\u609F\u7ECF\u9A8C
+
+- [x] 1. \u62C6\u89E3\u8584\u5F31\u52A8\u4F5C/\u5361\u70B9\u8FDB\u884C\u4E8C\u6B21\u5F3A\u5316
+- [ ] 2. \u6D3E\u751F\u4E3A\u4E0B\u4E00\u9636\u6BB5\u65B0\u5B9E\u8BAD\u8282\u70B9`,
+          color: "6"
+        }
+      );
+      canvasEdges.push(
+        {
+          id: `edge-${c1}-${c2}`,
+          fromNode: c1,
+          fromSide: "right",
+          toNode: c2,
+          toSide: "left",
+          label: "\u62C6\u89E3\u6267\u884C"
+        },
+        {
+          id: `edge-${c2}-${c3}`,
+          fromNode: c2,
+          fromSide: "right",
+          toNode: c3,
+          toSide: "left",
+          label: "\u590D\u76D8\u7EA0\u504F"
+        }
+      );
+    }
+    const rawEdges = Array.isArray(canvasData?.edges) ? canvasData.edges : [];
+    if (rawEdges.length > 0) {
+      rawEdges.forEach((e, idx) => {
+        canvasEdges.push({
+          id: e.id || `edge-${idx + 1}`,
+          fromNode: e.sourceId || e.fromNode,
+          fromSide: "right",
+          toNode: e.targetId || e.toNode,
+          toSide: "left",
+          label: e.label || "\u5173\u8054"
+        });
+      });
+    }
+    return { nodes: canvasNodes, edges: canvasEdges };
+  }
+  /**
+   * PRD 3.2.2: 在 Obsidian 原生 Canvas 核心插件中打开指定项目画布
+   */
+  async openProjectInCanvas(projId) {
+    try {
+      const win = window;
+      const allProjects = Array.isArray(win.GANTT_PROJECTS) ? win.GANTT_PROJECTS : [];
+      let proj = allProjects.find((p) => p.id === projId);
+      if (!proj && allProjects.length > 0) {
+        proj = allProjects[0];
+      }
+      const pavKey = proj?.pavilion || proj?.moduleKey || "study";
+      const dirName = PAVILION_DIR_MAP[pavKey] || "01_School_\u6821\u53F2\u9986";
+      const safeTitle = String(proj?.title || projId || "\u6210\u957F\u89C4\u5212\u9879\u76EE").replace(/[\\/:*?"<>|]/g, "_");
+      const canvasRelPath = `${dirName}/02_Projects/${safeTitle}.canvas`;
+      const fullPath = this.resolvePath(canvasRelPath);
+      const canvasStore = win.PROJECT_CANVAS_STORE || {};
+      const canvasData = proj && proj.id && canvasStore[proj.id] || canvasStore[projId] || { nodes: [], edges: [] };
+      const canvasJson = this.buildObsidianCanvasJson(proj, pavKey, canvasData);
+      await this.writeJson(canvasRelPath, canvasJson);
+      const file = this.app.vault.getAbstractFileByPath(fullPath);
+      if (file instanceof import_obsidian.TFile && file.extension === "canvas") {
+        const leaf = this.app.workspace.getLeaf(true);
+        await leaf.openFile(file);
+        new import_obsidian.Notice(`\u{1F3A8} \u5DF2\u5728 Obsidian \u539F\u751F Canvas \u6838\u5FC3\u753B\u5E03\u4E2D\u6253\u5F00\u300A${proj?.title || safeTitle}\u300B\uFF01`);
+        return true;
+      } else {
+        new import_obsidian.Notice(
+          `\u{1F4A1} \u753B\u5E03\u6587\u4EF6\u5DF2\u5C31\u7EEA\uFF1A${canvasRelPath}
+\u8BF7\u5728 Obsidian \u6587\u4EF6\u5217\u8868\u4E2D\u70B9\u51FB\u6253\u5F00\uFF0C\u6216\u786E\u4FDD\u5728\u3010\u8BBE\u7F6E -> \u6838\u5FC3\u63D2\u4EF6\u3011\u4E2D\u5DF2\u542F\u7528 Canvas \u753B\u5E03\u529F\u80FD\u3002`
+        );
+        return true;
+      }
+    } catch (err) {
+      console.error("[VaultStorageAdapter] Failed to open project in Obsidian Canvas:", err);
+      new import_obsidian.Notice(`\u26A0\uFE0F \u6253\u5F00 Canvas \u753B\u5E03\u5931\u8D25: ${err?.message || err}`);
+      return false;
+    }
+  }
 };
 
 // src/views/YouthIslandView.ts
@@ -640,7 +863,7 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
 
       <!-- 3. \u53F3\u4FA7\uFF1A\u7F6E\u9876\u60AC\u8D4F\u4EE4\u4E0E\u4ECA\u65E5\u8FBE\u6210\u8FDB\u5EA6\u80F6\u56CA -->
       <div class="topbar-right-zone">
-        <div class="parent-bounty-billboard" id="home-bounty-billboard" onclick="openBountyModal()" title="\u70B9\u51FB\u67E5\u770B\u7F6E\u9876\u5BB6\u957F\u60AC\u8D4F\u4EE4\u8BE6\u60C5\u4E0E\u5E94\u6218\u534F\u8BAE">
+        <div class="parent-bounty-billboard" id="home-bounty-billboard" onclick="openBountyModal()" title="\u70B9\u51FB\u67E5\u770B\u7F6E\u9876\u5BB6\u957F\u60AC\u8D4F\u4EE4\u8BE6\u60C5\u4E0E\u5E94\u6218\u534F\u8BAE" style="display:none;">
           <div class="bounty-badge-icon" id="home-bounty-icon">\u{1F4DC}</div>
           <div class="bounty-content-col">
             <div class="bounty-header-line">
@@ -674,7 +897,7 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
        ========================================================================= -->
   <div id="island-goal-cards-dock" class="island-goal-cards-dock">
     <div id="island-goal-cards-list" class="island-goal-cards-list">
-      <div style="display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:10px 16px; color:#8c6b45; font-size:12px; font-weight:700;">
+      <div style="grid-column: 1 / -1; display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:10px 16px; color:#8c6b45; font-size:12px; font-weight:700;">
         <span>\u{1F331} \u6682\u65E0\u8FDB\u884C\u4E2D\u7684\u5B66\u671F\u89C4\u5212\u9879\u76EE</span>
         <button type="button" class="card-graphic-pill pill-timer" onclick="switchMainSection('ws'); openAddProjectModal();" style="padding:2px 10px; font-size:11px; cursor:pointer;">\u2795 \u7ACB\u5373\u7ACB\u9879</button>
       </div>
@@ -1733,6 +1956,12 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
     <!-- 2. \u4E2D\u95F4\uFF1APRD 3.2.2 \u6838\u5FC3\u8111\u56FE\u64CD\u4F5C\u5DE5\u5177\u5361\u69FD (\u4E0E\u9996\u9875\u6267\u884C\u89C6\u56FE #unified-exec-subview-switcher 1:1 \u98CE\u683C) -->
     <div class="topbar-center-zone ws-center-zone tertiary-center-zone">
       <div class="exec-subview-switcher tertiary-tools-dock" style="display:flex; align-items:center; gap:4px; max-width:none; overflow-x:visible;">
+        <!-- \u7EC4 0: Obsidian \u539F\u751F Canvas \u6838\u5FC3\u63D2\u4EF6\u96C6\u6210 -->
+        <button class="exec-subview-tab a-my-island-graph-tool is-highlight" onclick="openCurrentProjectInObsidianCanvas()" title="\u5728 Obsidian \u539F\u751F Canvas \u6838\u5FC3\u753B\u5E03\u4E2D\u5168\u5C4F\u6253\u5F00\uFF08\u539F\u751F GPU \u52A0\u901F\uFF0C\u4E1D\u6ED1\u7F29\u653E\uFF0C\u65E0\u5361\u987F\uFF09" style="background:linear-gradient(135deg, #eff6ff, #dbeafe); border:1.5px solid #3b82f6; color:#1e40af; min-width:62px; width:62px;">
+          <span class="a-my-island-graph-tool-icon">\u{1F3A8}</span>
+          <span class="a-my-island-graph-tool-label">\u539F\u751FCanvas</span>
+        </button>
+        <div class="a-my-island-graph-tool-separator" style="height:24px; border-left:1.5px solid rgba(139, 90, 43, 0.22); margin:0 2px;"></div>
         <!-- \u7EC4 1: \u8282\u70B9\u751F\u6210 -->
         <button class="exec-subview-tab a-my-island-graph-tool active is-active" onclick="openTertiaryAddNodeModal()" title="\u4ECE 5 \u5927\u901A\u7528\u539F\u578B\u4E0E\u7B80\u5355\u6587\u672C\u4E2D\u65B0\u589E\u8282\u70B9">
           <span class="a-my-island-graph-tool-icon">\u2795</span>
@@ -6942,12 +7171,13 @@ function bootPrototypeRuntime() {
       "\u4FEE\u8EAB\u7ACB\u5BAA": { bg: "#fef3c7", color: "#b45309", bar: "#d97706" },
       "\u8BA4\u77E5\u601D\u8FA8": { bg: "#f5f3ff", color: "#6d28d9", bar: "#7c3aed" }
     };
-    listEl.innerHTML = activeProjs.slice(0, 6).map((p) => {
+    listEl.innerHTML = activeProjs.slice(0, 3).map((p) => {
       const res = typeof computeProjectProgressAndStatus === "function" ? computeProjectProgressAndStatus(p) : { progress: 50, completedCount: (p.completedDays || []).length, totalDays: 10 };
       const cm = badgeColors[p.category] || { bg: "#fef3c7", color: "#b45309", bar: "#d97706" };
-      const pavMeta = typeof PAVILION_META !== "undefined" && PAVILION_META[p.pavilion] ? PAVILION_META[p.pavilion] : { name: p.category || "\u89C4\u5212\u9986", icon: "\u{1F3AF}" };
+      const pavMeta = typeof PAVILION_META !== "undefined" && PAVILION_META[p.pavilion] ? PAVILION_META[p.pavilion] : { name: p.category || "\u5B66\u4E1A", icon: "\u{1F4D0}" };
       const safeTitle = String(p.title || "").replace(/"/g, "&quot;");
-      return `<div class="island-goal-item" onclick="enterSecondaryWorkspace('` + (p.pavilion || "study") + `', 'gantt')" title="\u70B9\u51FB\u8FDB\u5165\u3010` + (pavMeta.name || p.category) + '\u3011\u7518\u7279\u89C4\u5212\u6C99\u76D8"><div class="goal-item-top"><span class="goal-pav-badge" style="background:' + cm.bg + "; color:" + cm.color + ';">' + (pavMeta.icon || "\u{1F3AF}") + " " + (pavMeta.name || p.category) + '</span><span class="goal-target-title">' + safeTitle + '</span><span class="goal-pct-text" style="color:' + cm.color + ';">' + res.progress + '%</span></div><div class="goal-progress-track"><div class="goal-progress-fill" style="width:' + res.progress + "%; background:" + cm.bar + ';"></div></div><div class="goal-item-sub"><span>\u5468\u671F: ' + String(p.startDate || "").slice(5) + "~" + String(p.endDate || "").slice(5) + "</span><span>\u5DF2\u8FBE\u6807 " + res.completedCount + "/" + res.totalDays + " \u5929</span></div></div>";
+      const safeDesc = String(p.desc || "\u7A33\u6B65\u63A8\u8FDB\u9636\u6BB5\u91CF\u5316\u653B\u575A").replace(/"/g, "&quot;");
+      return `<div class="island-goal-item-card" onclick="enterSecondaryWorkspace('` + (p.pavilion || "study") + `', 'gantt')" title="\u70B9\u51FB\u76F4\u8FBE\u3010` + (pavMeta.name || p.category) + '\u3011\u7518\u7279\u603B\u89C8\u89C4\u5212"><div class="goal-card-top-row"><span class="goal-card-pav-tag" style="background:' + cm.bg + "; color:" + cm.color + ';">' + (pavMeta.icon || "\u{1F3AF}") + " " + (pavMeta.name || p.category) + '</span><span class="goal-card-pct-badge" style="color:' + cm.bar + ';">' + res.progress + "% (" + res.completedCount + "/" + res.totalDays + '\u5929)</span></div><div class="goal-card-title">\u{1F3AF} \u300A' + safeTitle + '\u300B</div><div class="goal-card-bottom-row"><span class="goal-card-desc-text">' + safeDesc + '</span><div class="goal-card-progress-track"><div class="goal-card-progress-bar" style="width:' + res.progress + "%; background:" + cm.bar + ';"></div></div></div></div>';
     }).join("");
   }
   function triggerGlobalCheckinClosedLoop(opts) {
@@ -7458,12 +7688,15 @@ function bootPrototypeRuntime() {
   window.BOUNTY_STATE = null;
   function renderBountyModalAndBillboard() {
     const b = window.BOUNTY_STATE;
+    const billboard = document.getElementById("home-bounty-billboard");
     const hTitle = document.getElementById("home-bounty-title");
     const hTimer = document.getElementById("home-bounty-timer");
     const hReward = document.getElementById("home-bounty-reward");
     const hCta = document.getElementById("home-bounty-cta");
     const hAuthor = document.getElementById("home-bounty-author");
     if (!b) {
+      if (billboard)
+        billboard.style.display = "none";
       if (hTitle)
         hTitle.textContent = "\u6682\u65E0\u8FDB\u884C\u4E2D\u7684\u60AC\u8D4F\u5951\u7EA6";
       if (hTimer)
@@ -7543,6 +7776,8 @@ function bootPrototypeRuntime() {
         formBox.style.display = "flex";
       return;
     }
+    if (billboard)
+      billboard.style.display = "flex";
     if (hTitle)
       hTitle.textContent = b.title;
     if (hTimer)
@@ -8516,6 +8751,17 @@ function bootPrototypeRuntime() {
   function cycleGridMode() {
     alignGridLayout();
   }
+  function handleOpenObsidianCanvas(projId) {
+    const targetId = projId || window.currentTertiaryProjId || "p1";
+    if (typeof window.__openProjectInObsidianCanvas === "function") {
+      window.__openProjectInObsidianCanvas(targetId);
+    } else {
+      showIslandToast("\u{1F3A8} \u6B63\u5728 Obsidian Canvas \u6838\u5FC3\u63D2\u4EF6\u4E2D\u5168\u5C4F\u6253\u5F00\u9879\u76EE\u753B\u5E03...");
+    }
+  }
+  function openCurrentProjectInObsidianCanvas() {
+    handleOpenObsidianCanvas(window.currentTertiaryProjId);
+  }
   function initTertiaryWorkspace() {
     bindTertiaryCardsDrag();
     renderTertiaryEdges();
@@ -8630,6 +8876,9 @@ function bootPrototypeRuntime() {
       card.style.zIndex = "35";
       e.stopPropagation();
     };
+    let rafPending = false;
+    let targetLeft = 0;
+    let targetTop = 0;
     const onPointerMove = (e) => {
       if (!isDragging)
         return;
@@ -8641,13 +8890,21 @@ function bootPrototypeRuntime() {
         hasMoved = true;
         pushTertiaryHistory();
       }
-      card.style.left = Math.max(10, initialLeft + dx) + "px";
-      card.style.top = Math.max(10, initialTop + dy) + "px";
-      followerInitialPositions.forEach((f) => {
-        f.el.style.left = Math.max(10, f.left + dx) + "px";
-        f.el.style.top = Math.max(10, f.top + dy) + "px";
-      });
-      renderTertiaryEdges();
+      targetLeft = Math.max(10, initialLeft + dx);
+      targetTop = Math.max(10, initialTop + dy);
+      if (!rafPending) {
+        rafPending = true;
+        requestAnimationFrame(() => {
+          card.style.left = targetLeft + "px";
+          card.style.top = targetTop + "px";
+          followerInitialPositions.forEach((f) => {
+            f.el.style.left = Math.max(10, f.left + dx) + "px";
+            f.el.style.top = Math.max(10, f.top + dy) + "px";
+          });
+          renderTertiaryEdges();
+          rafPending = false;
+        });
+      }
     };
     const onPointerUp = () => {
       if (isDragging) {
@@ -9842,6 +10099,10 @@ function bootPrototypeRuntime() {
   let currentWeekFilter = "all";
   function switchExecSubView(view) {
     currentExecSubView = view;
+    const goalDock = document.getElementById("island-goal-cards-dock");
+    if (goalDock) {
+      goalDock.style.display = view === "day" ? "" : "none";
+    }
     ["day", "week", "month"].forEach((v) => {
       const btn = document.getElementById("btn-exec-" + v);
       const pane = document.getElementById("exec-subview-" + v);
@@ -11758,7 +12019,7 @@ function bootPrototypeRuntime() {
         for (let k = 0; k < 5; k++) {
           miniSquaresHtml += '<span class="mini-sq ' + (k < filledMini ? "done" : "empty") + '"></span>';
         }
-        tableHtml += '<div class="gantt-table-row" id="row-tbl-' + p.id + '"><div class="col-cell-cat"><span class="gantt-cat-tag" style="background:' + cm.bg + "; color:" + cm.color + "; border-color:" + cm.border + ';">' + cm.icon + " " + p.category + '</span></div><div class="col-cell-title"><div class="gantt-proj-name" title="' + p.title + '">' + p.title + '<span class="gantt-drilldown-link" data-id="' + p.id + '" onclick="enterTertiaryWorkspace(this.dataset.id)" title="\u4E0B\u94BB\u8FDB\u5165\u8BE5\u4E09\u7EA7\u8282\u70B9\u653B\u575A\u62D3\u6251\u753B\u5E03">\u{1F52E} \u4E0B\u94BB</span></div><div class="gantt-proj-desc" title="' + p.desc + '">' + p.desc + '</div></div><div class="col-cell-dates"><span class="gantt-date-chip">' + p.startDate.slice(5) + " ~ " + p.endDate.slice(5) + '</span><div class="gantt-mini-squares" title="\u6253\u5361\u8FBE\u6210\uFF1A' + res.completedCount + "/" + res.totalDays + " \u5929 (" + res.progress + '%)">' + miniSquaresHtml + '</div><div class="gantt-mini-pct">' + res.progress + '%</div></div><div class="col-cell-status"><span class="gantt-status-pill ' + sm.cls + '">' + sm.label + '</span></div><div class="col-cell-ops"><button class="gantt-op-btn gantt-plan-btn" data-id="' + p.id + '" onclick="openEditProjectModal(this.dataset.id)" title="\u7F16\u8F91\u9879\u76EE\u540D\u79F0\u3001\u8D77\u6B62\u5468\u671F\u4E0E\u653B\u575A\u7B56\u7565">\u270F\uFE0F \u7F16\u8F91</button><button class="gantt-op-btn gantt-plan-btn" data-id="' + p.id + '" onclick="handleGanttEditPlan(this)" title="\u8FDB\u5165\u8BE5\u9879\u76EE\u4E09\u7EA7\u601D\u7EF4\u5BFC\u56FE\u62C6\u89E3\u753B\u5E03">\u{1F52E} \u8111\u56FE</button><button class="gantt-op-btn gantt-archive-btn ' + (p.isArchived ? "is-archived" : "") + '" data-id="' + p.id + '" onclick="handleGanttArchive(this)" title="' + (p.isArchived ? "\u89E3\u9664\u5F52\u6863" : "\u5F52\u6863\u8BE5\u9879\u76EE") + '">' + (p.isArchived ? "\u{1F4C2} \u5DF2\u5F52" : "\u{1F4E6} \u5F52\u6863") + "</button></div></div>";
+        tableHtml += '<div class="gantt-table-row" id="row-tbl-' + p.id + '"><div class="col-cell-cat"><span class="gantt-cat-tag" style="background:' + cm.bg + "; color:" + cm.color + "; border-color:" + cm.border + ';">' + cm.icon + " " + p.category + '</span></div><div class="col-cell-title"><div class="gantt-proj-name" title="' + p.title + '">' + p.title + '<span class="gantt-drilldown-link" data-id="' + p.id + '" onclick="enterTertiaryWorkspace(this.dataset.id)" title="\u4E0B\u94BB\u8FDB\u5165\u8BE5\u4E09\u7EA7\u8282\u70B9\u653B\u575A\u62D3\u6251\u753B\u5E03">\u{1F52E} \u4E0B\u94BB</span></div><div class="gantt-proj-desc" title="' + p.desc + '">' + p.desc + '</div></div><div class="col-cell-dates"><span class="gantt-date-chip">' + p.startDate.slice(5) + " ~ " + p.endDate.slice(5) + '</span><div class="gantt-mini-squares" title="\u6253\u5361\u8FBE\u6210\uFF1A' + res.completedCount + "/" + res.totalDays + " \u5929 (" + res.progress + '%)">' + miniSquaresHtml + '</div><div class="gantt-mini-pct">' + res.progress + '%</div></div><div class="col-cell-status"><span class="gantt-status-pill ' + sm.cls + '">' + sm.label + '</span></div><div class="col-cell-ops"><button class="gantt-op-btn gantt-plan-btn" data-id="' + p.id + '" onclick="handleOpenObsidianCanvas(this.dataset.id)" title="\u5728 Obsidian \u539F\u751F Canvas \u6838\u5FC3\u753B\u5E03\u63D2\u4EF6\u4E2D\u5168\u5C4F\u6253\u5F00\uFF08\u539F\u751F\u52A0\u901F\uFF0C\u4E1D\u6ED1\u987A\u7545\uFF09" style="background:#eff6ff; color:#2563eb; border-color:#93c5fd;">\u{1F3A8} Canvas</button><button class="gantt-op-btn gantt-plan-btn" data-id="' + p.id + '" onclick="openEditProjectModal(this.dataset.id)" title="\u7F16\u8F91\u9879\u76EE\u540D\u79F0\u3001\u8D77\u6B62\u5468\u671F\u4E0E\u653B\u575A\u7B56\u7565">\u270F\uFE0F \u7F16\u8F91</button><button class="gantt-op-btn gantt-plan-btn" data-id="' + p.id + '" onclick="handleGanttEditPlan(this)" title="\u8FDB\u5165\u8BE5\u9879\u76EE\u4E09\u7EA7\u601D\u7EF4\u5BFC\u56FE\u62C6\u89E3\u753B\u5E03">\u{1F52E} \u8111\u56FE</button><button class="gantt-op-btn gantt-archive-btn ' + (p.isArchived ? "is-archived" : "") + '" data-id="' + p.id + '" onclick="handleGanttArchive(this)" title="' + (p.isArchived ? "\u89E3\u9664\u5F52\u6863" : "\u5F52\u6863\u8BE5\u9879\u76EE") + '">' + (p.isArchived ? "\u{1F4C2} \u5DF2\u5F52" : "\u{1F4E6} \u5F52\u6863") + "</button></div></div>";
       });
     }
     tableRowsContainer.innerHTML = tableHtml;
@@ -13310,6 +13571,10 @@ function bootPrototypeRuntime() {
     window.toggleTertiaryMinimap = toggleTertiaryMinimap;
   if (typeof cycleGridMode === "function")
     window.cycleGridMode = cycleGridMode;
+  if (typeof handleOpenObsidianCanvas === "function")
+    window.handleOpenObsidianCanvas = handleOpenObsidianCanvas;
+  if (typeof openCurrentProjectInObsidianCanvas === "function")
+    window.openCurrentProjectInObsidianCanvas = openCurrentProjectInObsidianCanvas;
   if (typeof initTertiaryWorkspace === "function")
     window.initTertiaryWorkspace = initTertiaryWorkspace;
   if (typeof toggleTertiaryCardMinimize === "function")
@@ -14107,6 +14372,9 @@ var YouthGrowthIslandPlugin = class extends import_obsidian4.Plugin {
   async onload() {
     await this.loadSettings();
     this.vaultStorage = new VaultStorageAdapter(this.app, () => this.settings);
+    window.__openProjectInObsidianCanvas = async (projId) => {
+      await this.vaultStorage.openProjectInCanvas(projId);
+    };
     this.registerView(
       VIEW_TYPE_YOUTH_ISLAND,
       (leaf) => new YouthIslandView(leaf, this)
@@ -14152,6 +14420,15 @@ var YouthGrowthIslandPlugin = class extends import_obsidian4.Plugin {
         if (typeof win.switchMainSection === "function") {
           win.switchMainSection("tertiary");
         }
+      }
+    });
+    this.addCommand({
+      id: "open-youth-island-canvas",
+      name: "\u5728 Obsidian \u539F\u751F Canvas \u6838\u5FC3\u753B\u5E03\u4E2D\u5168\u5C4F\u6253\u5F00\u5F53\u524D\u8BFE\u9898 (Hardware Accelerated Canvas)",
+      callback: async () => {
+        const win = window;
+        const currentId = win.currentTertiaryProjId || win.GANTT_PROJECTS && win.GANTT_PROJECTS[0]?.id || "p1";
+        await this.vaultStorage.openProjectInCanvas(currentId);
       }
     });
     this.addCommand({
