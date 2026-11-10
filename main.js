@@ -1974,8 +1974,20 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
 
         <div class="a-my-island-graph-tool-separator" style="height:24px; border-left:1.5px solid rgba(139, 90, 43, 0.22); margin:0 2px;"></div>
 
-        <!-- \u7EC4 2: \u753B\u5E03\u89C6\u53E3 -->
-        <button class="exec-subview-tab a-my-island-graph-tool" onclick="fitCanvasView()" title="\u81EA\u9002\u5E94\u7F29\u653E\u5C45\u4E2D\u5F53\u524D\u6240\u6709\u5361\u7247">
+        <!-- \u7EC4 2: \u753B\u5E03\u89C6\u53E3\u81EA\u7531\u7F29\u653E\u63A7\u5236 (\u652F\u6301\u53CC\u6307\u634F\u5408 / \u6EDA\u8F6E\u7F29\u653E / \u5FEB\u6377\u952E) -->
+        <button class="exec-subview-tab a-my-island-graph-tool" onclick="zoomTertiaryCanvas(1.18)" title="\u653E\u5927\u8111\u56FE\u753B\u5E03 (\u6216\u4F7F\u7528\u9F20\u6807\u6EDA\u8F6E\u4E0A\u6EDA / \u5E73\u677F\u89E6\u5C4F\u53CC\u6307\u653E\u5927)">
+          <span class="a-my-island-graph-tool-icon">\u2795</span>
+          <span class="a-my-island-graph-tool-label">\u653E\u5927</span>
+        </button>
+        <button class="exec-subview-tab a-my-island-graph-tool" onclick="zoomTertiaryCanvas(0.85)" title="\u7F29\u5C0F\u5C0F\u8111\u56FE\u753B\u5E03 (\u6216\u4F7F\u7528\u9F20\u6807\u6EDA\u8F6E\u4E0B\u6EDA / \u5E73\u677F\u89E6\u5C4F\u53CC\u6307\u7F29\u5C0F)">
+          <span class="a-my-island-graph-tool-icon">\u2796</span>
+          <span class="a-my-island-graph-tool-label">\u7F29\u5C0F</span>
+        </button>
+        <button class="exec-subview-tab a-my-island-graph-tool" onclick="resetTertiaryCanvasZoom()" title="\u6062\u590D 100% \u539F\u59CB\u6BD4\u4F8B">
+          <span class="a-my-island-graph-tool-icon" id="tertiary-zoom-badge" style="font-size:10.5px; font-weight:900; color:#b45309;">100%</span>
+          <span class="a-my-island-graph-tool-label">\u8FD8\u539F</span>
+        </button>
+        <button class="exec-subview-tab a-my-island-graph-tool" onclick="fitCanvasView()" title="\u81EA\u9002\u5E94\u7F29\u653E\u5E76\u5C45\u4E2D\u6240\u6709\u5361\u7247">
           <span class="a-my-island-graph-tool-icon">\u26F6</span>
           <span class="a-my-island-graph-tool-label">\u9002\u5E94\u753B\u5E03</span>
         </button>
@@ -8762,7 +8774,139 @@ function bootPrototypeRuntime() {
   function openCurrentProjectInObsidianCanvas() {
     handleOpenObsidianCanvas(window.currentTertiaryProjId);
   }
+  window.tertiaryZoom = 1;
+  window.tertiaryPanX = 60;
+  window.tertiaryPanY = 40;
+  let tertiaryPanZoomInitialized = false;
+  function applyTertiaryTransform() {
+    const world = document.getElementById("tertiary-canvas-world");
+    if (!world)
+      return;
+    world.style.transform = "translate(" + window.tertiaryPanX + "px, " + window.tertiaryPanY + "px) scale(" + window.tertiaryZoom + ")";
+    world.style.transformOrigin = "0 0";
+    const badge = document.getElementById("tertiary-zoom-badge");
+    if (badge)
+      badge.textContent = Math.round(window.tertiaryZoom * 100) + "%";
+  }
+  function zoomTertiaryCanvas(factor) {
+    const stage = document.getElementById("tertiary-canvas-stage");
+    if (!stage)
+      return;
+    const oldZoom = window.tertiaryZoom || 1;
+    const newZoom = Math.min(3, Math.max(0.25, oldZoom * factor));
+    const centerX = stage.clientWidth / 2;
+    const centerY = stage.clientHeight / 2;
+    window.tertiaryPanX = centerX - (centerX - window.tertiaryPanX) * (newZoom / oldZoom);
+    window.tertiaryPanY = centerY - (centerY - window.tertiaryPanY) * (newZoom / oldZoom);
+    window.tertiaryZoom = newZoom;
+    applyTertiaryTransform();
+  }
+  function resetTertiaryCanvasZoom() {
+    window.tertiaryZoom = 1;
+    window.tertiaryPanX = 60;
+    window.tertiaryPanY = 40;
+    applyTertiaryTransform();
+    showIslandToast("\u{1F50D} \u5DF2\u6062\u590D 100% \u539F\u59CB\u6BD4\u4F8B");
+  }
+  function initTertiaryCanvasPanZoom() {
+    const stage = document.getElementById("tertiary-canvas-stage");
+    if (!stage || tertiaryPanZoomInitialized) {
+      applyTertiaryTransform();
+      return;
+    }
+    tertiaryPanZoomInitialized = true;
+    stage.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      const rect = stage.getBoundingClientRect();
+      const pointerX = e.clientX - rect.left;
+      const pointerY = e.clientY - rect.top;
+      const oldZoom = window.tertiaryZoom || 1;
+      const factor = e.deltaY < 0 ? 1.1 : 0.9;
+      const newZoom = Math.min(3, Math.max(0.25, oldZoom * factor));
+      window.tertiaryPanX = pointerX - (pointerX - window.tertiaryPanX) * (newZoom / oldZoom);
+      window.tertiaryPanY = pointerY - (pointerY - window.tertiaryPanY) * (newZoom / oldZoom);
+      window.tertiaryZoom = newZoom;
+      applyTertiaryTransform();
+    }, { passive: false });
+    let isMousePanning = false;
+    let mouseStartX = 0;
+    let mouseStartY = 0;
+    stage.addEventListener("mousedown", (e) => {
+      if (e.target.closest(".tertiary-card") || e.target.closest("button") || e.target.closest("input") || e.target.closest("select") || e.target.closest("textarea") || e.target.closest(".tertiary-tools-dock") || e.target.closest(".island-top-unified-bar") || e.target.closest(".a-my-island-work-minimap") || e.target.closest(".work-card-connect-handle") || e.target.closest(".tertiary-edge-label-pill")) {
+        return;
+      }
+      isMousePanning = true;
+      mouseStartX = e.clientX - window.tertiaryPanX;
+      mouseStartY = e.clientY - window.tertiaryPanY;
+      stage.style.cursor = "grabbing";
+    });
+    window.addEventListener("mousemove", (e) => {
+      if (!isMousePanning)
+        return;
+      window.tertiaryPanX = e.clientX - mouseStartX;
+      window.tertiaryPanY = e.clientY - mouseStartY;
+      applyTertiaryTransform();
+    });
+    window.addEventListener("mouseup", () => {
+      if (isMousePanning) {
+        isMousePanning = false;
+        stage.style.cursor = "grab";
+      }
+    });
+    let isTouchPanning = false;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let initialPinchDist = 0;
+    let initialPinchZoom = 1;
+    let pinchCenterX = 0;
+    let pinchCenterY = 0;
+    stage.addEventListener("touchstart", (e) => {
+      if (e.target.closest(".tertiary-card") || e.target.closest("button") || e.target.closest("input") || e.target.closest("select") || e.target.closest("textarea") || e.target.closest(".tertiary-tools-dock") || e.target.closest(".island-top-unified-bar") || e.target.closest(".a-my-island-work-minimap") || e.target.closest(".work-card-connect-handle") || e.target.closest(".tertiary-edge-label-pill")) {
+        return;
+      }
+      if (e.touches.length === 1) {
+        isTouchPanning = true;
+        touchStartX = e.touches[0].clientX - window.tertiaryPanX;
+        touchStartY = e.touches[0].clientY - window.tertiaryPanY;
+      } else if (e.touches.length === 2) {
+        isTouchPanning = false;
+        initialPinchDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        initialPinchZoom = window.tertiaryZoom || 1;
+        const rect = stage.getBoundingClientRect();
+        pinchCenterX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+        pinchCenterY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+      }
+    }, { passive: true });
+    stage.addEventListener("touchmove", (e) => {
+      if (isTouchPanning && e.touches.length === 1) {
+        window.tertiaryPanX = e.touches[0].clientX - touchStartX;
+        window.tertiaryPanY = e.touches[0].clientY - touchStartY;
+        applyTertiaryTransform();
+      } else if (e.touches.length === 2 && initialPinchDist > 0) {
+        const currentDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        const ratio = currentDist / initialPinchDist;
+        const oldZoom = window.tertiaryZoom || 1;
+        const newZoom = Math.min(3, Math.max(0.25, initialPinchZoom * ratio));
+        window.tertiaryPanX = pinchCenterX - (pinchCenterX - window.tertiaryPanX) * (newZoom / oldZoom);
+        window.tertiaryPanY = pinchCenterY - (pinchCenterY - window.tertiaryPanY) * (newZoom / oldZoom);
+        window.tertiaryZoom = newZoom;
+        applyTertiaryTransform();
+      }
+    }, { passive: true });
+    stage.addEventListener("touchend", () => {
+      isTouchPanning = false;
+      initialPinchDist = 0;
+    });
+    applyTertiaryTransform();
+  }
   function initTertiaryWorkspace() {
+    initTertiaryCanvasPanZoom();
     bindTertiaryCardsDrag();
     renderTertiaryEdges();
     updateTertiaryNodeCountBadge();
@@ -8884,8 +9028,9 @@ function bootPrototypeRuntime() {
         return;
       const clientX = e.clientX || e.touches && e.touches[0].clientX;
       const clientY = e.clientY || e.touches && e.touches[0].clientY;
-      const dx = clientX - startX;
-      const dy = clientY - startY;
+      const currentZoom = window.tertiaryZoom || 1;
+      const dx = (clientX - startX) / currentZoom;
+      const dy = (clientY - startY) / currentZoom;
       if (!hasMoved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
         hasMoved = true;
         pushTertiaryHistory();
@@ -13575,6 +13720,14 @@ function bootPrototypeRuntime() {
     window.handleOpenObsidianCanvas = handleOpenObsidianCanvas;
   if (typeof openCurrentProjectInObsidianCanvas === "function")
     window.openCurrentProjectInObsidianCanvas = openCurrentProjectInObsidianCanvas;
+  if (typeof applyTertiaryTransform === "function")
+    window.applyTertiaryTransform = applyTertiaryTransform;
+  if (typeof zoomTertiaryCanvas === "function")
+    window.zoomTertiaryCanvas = zoomTertiaryCanvas;
+  if (typeof resetTertiaryCanvasZoom === "function")
+    window.resetTertiaryCanvasZoom = resetTertiaryCanvasZoom;
+  if (typeof initTertiaryCanvasPanZoom === "function")
+    window.initTertiaryCanvasPanZoom = initTertiaryCanvasPanZoom;
   if (typeof initTertiaryWorkspace === "function")
     window.initTertiaryWorkspace = initTertiaryWorkspace;
   if (typeof toggleTertiaryCardMinimize === "function")

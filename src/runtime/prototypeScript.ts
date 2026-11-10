@@ -4145,7 +4145,172 @@ function openCurrentProjectInObsidianCanvas() {
   handleOpenObsidianCanvas(window.currentTertiaryProjId);
 }
 
+window.tertiaryZoom = 1.0;
+window.tertiaryPanX = 60;
+window.tertiaryPanY = 40;
+let tertiaryPanZoomInitialized = false;
+
+function applyTertiaryTransform() {
+  const world = document.getElementById('tertiary-canvas-world');
+  if (!world) return;
+  world.style.transform = 'translate(' + window.tertiaryPanX + 'px, ' + window.tertiaryPanY + 'px) scale(' + window.tertiaryZoom + ')';
+  world.style.transformOrigin = '0 0';
+  const badge = document.getElementById('tertiary-zoom-badge');
+  if (badge) badge.textContent = Math.round(window.tertiaryZoom * 100) + '%';
+}
+
+function zoomTertiaryCanvas(factor) {
+  const stage = document.getElementById('tertiary-canvas-stage');
+  if (!stage) return;
+  const oldZoom = window.tertiaryZoom || 1;
+  const newZoom = Math.min(3.0, Math.max(0.25, oldZoom * factor));
+  const centerX = stage.clientWidth / 2;
+  const centerY = stage.clientHeight / 2;
+  window.tertiaryPanX = centerX - (centerX - window.tertiaryPanX) * (newZoom / oldZoom);
+  window.tertiaryPanY = centerY - (centerY - window.tertiaryPanY) * (newZoom / oldZoom);
+  window.tertiaryZoom = newZoom;
+  applyTertiaryTransform();
+}
+
+function resetTertiaryCanvasZoom() {
+  window.tertiaryZoom = 1.0;
+  window.tertiaryPanX = 60;
+  window.tertiaryPanY = 40;
+  applyTertiaryTransform();
+  showIslandToast('🔍 已恢复 100% 原始比例');
+}
+
+function initTertiaryCanvasPanZoom() {
+  const stage = document.getElementById('tertiary-canvas-stage');
+  if (!stage || tertiaryPanZoomInitialized) {
+    applyTertiaryTransform();
+    return;
+  }
+  tertiaryPanZoomInitialized = true;
+
+  // 1. 鼠标滚轮缩放 (以鼠标指针所在位置为中心缩放)
+  stage.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const rect = stage.getBoundingClientRect();
+    const pointerX = e.clientX - rect.left;
+    const pointerY = e.clientY - rect.top;
+    const oldZoom = window.tertiaryZoom || 1;
+    const factor = e.deltaY < 0 ? 1.1 : 0.9;
+    const newZoom = Math.min(3.0, Math.max(0.25, oldZoom * factor));
+    window.tertiaryPanX = pointerX - (pointerX - window.tertiaryPanX) * (newZoom / oldZoom);
+    window.tertiaryPanY = pointerY - (pointerY - window.tertiaryPanY) * (newZoom / oldZoom);
+    window.tertiaryZoom = newZoom;
+    applyTertiaryTransform();
+  }, { passive: false });
+
+  // 2. 鼠标空白区域抓手拖拽平移画布
+  let isMousePanning = false;
+  let mouseStartX = 0;
+  let mouseStartY = 0;
+
+  stage.addEventListener('mousedown', (e) => {
+    if (e.target.closest('.tertiary-card') ||
+        e.target.closest('button') ||
+        e.target.closest('input') ||
+        e.target.closest('select') ||
+        e.target.closest('textarea') ||
+        e.target.closest('.tertiary-tools-dock') ||
+        e.target.closest('.island-top-unified-bar') ||
+        e.target.closest('.a-my-island-work-minimap') ||
+        e.target.closest('.work-card-connect-handle') ||
+        e.target.closest('.tertiary-edge-label-pill')) {
+      return;
+    }
+    isMousePanning = true;
+    mouseStartX = e.clientX - window.tertiaryPanX;
+    mouseStartY = e.clientY - window.tertiaryPanY;
+    stage.style.cursor = 'grabbing';
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isMousePanning) return;
+    window.tertiaryPanX = e.clientX - mouseStartX;
+    window.tertiaryPanY = e.clientY - mouseStartY;
+    applyTertiaryTransform();
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (isMousePanning) {
+      isMousePanning = false;
+      stage.style.cursor = 'grab';
+    }
+  });
+
+  // 3. Android 平板触屏手势：单指空白处拖动画布平移 + 双指捏合自由缩放 (Pinch-to-zoom)
+  let isTouchPanning = false;
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let initialPinchDist = 0;
+  let initialPinchZoom = 1;
+  let pinchCenterX = 0;
+  let pinchCenterY = 0;
+
+  stage.addEventListener('touchstart', (e) => {
+    if (e.target.closest('.tertiary-card') ||
+        e.target.closest('button') ||
+        e.target.closest('input') ||
+        e.target.closest('select') ||
+        e.target.closest('textarea') ||
+        e.target.closest('.tertiary-tools-dock') ||
+        e.target.closest('.island-top-unified-bar') ||
+        e.target.closest('.a-my-island-work-minimap') ||
+        e.target.closest('.work-card-connect-handle') ||
+        e.target.closest('.tertiary-edge-label-pill')) {
+      return;
+    }
+
+    if (e.touches.length === 1) {
+      isTouchPanning = true;
+      touchStartX = e.touches[0].clientX - window.tertiaryPanX;
+      touchStartY = e.touches[0].clientY - window.tertiaryPanY;
+    } else if (e.touches.length === 2) {
+      isTouchPanning = false;
+      initialPinchDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      initialPinchZoom = window.tertiaryZoom || 1;
+      const rect = stage.getBoundingClientRect();
+      pinchCenterX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+      pinchCenterY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+    }
+  }, { passive: true });
+
+  stage.addEventListener('touchmove', (e) => {
+    if (isTouchPanning && e.touches.length === 1) {
+      window.tertiaryPanX = e.touches[0].clientX - touchStartX;
+      window.tertiaryPanY = e.touches[0].clientY - touchStartY;
+      applyTertiaryTransform();
+    } else if (e.touches.length === 2 && initialPinchDist > 0) {
+      const currentDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const ratio = currentDist / initialPinchDist;
+      const oldZoom = window.tertiaryZoom || 1;
+      const newZoom = Math.min(3.0, Math.max(0.25, initialPinchZoom * ratio));
+      window.tertiaryPanX = pinchCenterX - (pinchCenterX - window.tertiaryPanX) * (newZoom / oldZoom);
+      window.tertiaryPanY = pinchCenterY - (pinchCenterY - window.tertiaryPanY) * (newZoom / oldZoom);
+      window.tertiaryZoom = newZoom;
+      applyTertiaryTransform();
+    }
+  }, { passive: true });
+
+  stage.addEventListener('touchend', () => {
+    isTouchPanning = false;
+    initialPinchDist = 0;
+  });
+
+  applyTertiaryTransform();
+}
+
 function initTertiaryWorkspace() {
+  initTertiaryCanvasPanZoom();
   bindTertiaryCardsDrag();
   renderTertiaryEdges();
   updateTertiaryNodeCountBadge();
@@ -4279,8 +4444,9 @@ function bindCardDragSingle(card) {
     if (!isDragging) return;
     const clientX = e.clientX || (e.touches && e.touches[0].clientX);
     const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-    const dx = clientX - startX;
-    const dy = clientY - startY;
+    const currentZoom = window.tertiaryZoom || 1;
+    const dx = (clientX - startX) / currentZoom;
+    const dy = (clientY - startY) / currentZoom;
     if (!hasMoved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
       hasMoved = true;
       pushTertiaryHistory();
@@ -10624,6 +10790,10 @@ function recordTreeTestDemo() {
   if (typeof cycleGridMode === "function") (window as any).cycleGridMode = cycleGridMode;
   if (typeof handleOpenObsidianCanvas === "function") (window as any).handleOpenObsidianCanvas = handleOpenObsidianCanvas;
   if (typeof openCurrentProjectInObsidianCanvas === "function") (window as any).openCurrentProjectInObsidianCanvas = openCurrentProjectInObsidianCanvas;
+  if (typeof applyTertiaryTransform === "function") (window as any).applyTertiaryTransform = applyTertiaryTransform;
+  if (typeof zoomTertiaryCanvas === "function") (window as any).zoomTertiaryCanvas = zoomTertiaryCanvas;
+  if (typeof resetTertiaryCanvasZoom === "function") (window as any).resetTertiaryCanvasZoom = resetTertiaryCanvasZoom;
+  if (typeof initTertiaryCanvasPanZoom === "function") (window as any).initTertiaryCanvasPanZoom = initTertiaryCanvasPanZoom;
   if (typeof initTertiaryWorkspace === "function") (window as any).initTertiaryWorkspace = initTertiaryWorkspace;
   if (typeof toggleTertiaryCardMinimize === "function") (window as any).toggleTertiaryCardMinimize = toggleTertiaryCardMinimize;
   if (typeof toggleAllTertiaryCardsMinimize === "function") (window as any).toggleAllTertiaryCardsMinimize = toggleAllTertiaryCardsMinimize;

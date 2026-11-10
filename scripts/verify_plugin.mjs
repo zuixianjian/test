@@ -92,8 +92,10 @@ assert(
 assert(
   mainJs.includes("__openProjectInObsidianCanvas") &&
     mainJs.includes("buildObsidianCanvasJson") &&
-    mainJs.includes("openProjectInCanvas"),
-  "main.js includes Obsidian native Canvas core plugin integration & file generation"
+    mainJs.includes("openProjectInCanvas") &&
+    mainJs.includes("initTertiaryCanvasPanZoom") &&
+    mainJs.includes("zoomTertiaryCanvas"),
+  "main.js includes Obsidian native Canvas core plugin integration, file generation, and mindmap free pan/zoom engine"
 );
 assert(
   css.includes("#exec-subview-week") &&

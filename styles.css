@@ -6958,7 +6958,8 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
   bottom: 0;
   width: 100%;
   height: calc(100% - 74px) !important;
-  overflow: auto;
+  overflow: hidden !important;
+  touch-action: none !important;
   background:
     radial-gradient(circle, rgba(160, 110, 60, 0.12) 1.5px, transparent 1.5px),
     linear-gradient(135deg, #fdfbf7 0%, #f5efe6 100%);
@@ -6966,7 +6967,6 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
   background-position: 0 0, 0 0;
   cursor: grab;
   user-select: none;
-  -webkit-overflow-scrolling: touch;
 }
 
 .tertiary-canvas-stage:active {
@@ -6975,10 +6975,13 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 
 /* 画布世界 (坐标参考系) */
 .tertiary-canvas-world {
-  position: relative;
-  min-width: 2200px;
-  min-height: 1200px;
-  transform-origin: 0 0;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 4200px !important;
+  height: 3200px !important;
+  transform-origin: 0 0 !important;
+  will-change: transform !important;
 }
 
 /* 动态 SVG 路线连线层 */
