@@ -238,6 +238,77 @@ var VaultStorageAdapter = class {
     if (savedBounty && win.BOUNTY_STATE) {
       Object.assign(win.BOUNTY_STATE, savedBounty);
     }
+    this.purgeLegacyDemoData(win);
+  }
+  /**
+   * 清除开发与原型阶段预置的假数据，确保用户环境纯净
+   */
+  purgeLegacyDemoData(win) {
+    if (!win)
+      return;
+    if (Array.isArray(win.GANTT_PROJECTS)) {
+      const demoTitles = [
+        "\u5C0F\u5B66\u6570\u5B66\u53E3\u7B97\u8FBE\u6807\u4E0E\u9006\u5411\u601D\u7EF4\u8BAD\u7EC3",
+        "\u5C11\u513F\u8DF3\u7EF3\u8FDE\u8DF3\u7A81\u7834\u4E0E\u534F\u8C03\u6027\u8BAD\u7EC3",
+        "\u300A\u5927\u5B66\u300B\u7ECF\u5178\u6668\u8BFB\u4E0E\u77E5\u884C\u5408\u4E00\u8DF5\u884C\u8BA1\u5212",
+        "\u5C11\u513F\u591A\u5143\u601D\u7EF4\u4E0E\u4EB2\u5B50\u8BAE\u9898\u601D\u8FA8\u8BAD\u7EC3",
+        "\u5C11\u513F\u6C49\u5B57\u89C4\u8303\u4E66\u5199\u4E0E\u770B\u56FE\u5199\u8BDD\u653B\u575A"
+      ];
+      const filtered = win.GANTT_PROJECTS.filter((p) => {
+        if (!p)
+          return false;
+        if (["p1", "p2", "p3", "p4", "p5"].includes(p.id))
+          return false;
+        if (p.title && demoTitles.some((t) => p.title.includes(t)))
+          return false;
+        return true;
+      });
+      win.GANTT_PROJECTS.splice(0, win.GANTT_PROJECTS.length, ...filtered);
+    }
+    if (win.TREASURY_STATE) {
+      if (Array.isArray(win.TREASURY_STATE.ledger)) {
+        win.TREASURY_STATE.ledger = win.TREASURY_STATE.ledger.filter((item) => {
+          if (!item || !item.id)
+            return false;
+          return !item.id.startsWith("TX-202610");
+        });
+      }
+      if (win.TREASURY_STATE.totalBalance === 3280 && win.TREASURY_STATE.totalIncome === 4200) {
+        win.TREASURY_STATE.totalBalance = 0;
+        win.TREASURY_STATE.totalIncome = 0;
+        win.TREASURY_STATE.totalExpense = 0;
+      }
+    }
+    if (win.ACHIEVEMENT_STATE) {
+      if (Array.isArray(win.ACHIEVEMENT_STATE.cultivationItems)) {
+        win.ACHIEVEMENT_STATE.cultivationItems = win.ACHIEVEMENT_STATE.cultivationItems.filter(
+          (item) => item && item.id && !item.id.startsWith("ACH-CULT-202610")
+        );
+      }
+      if (Array.isArray(win.ACHIEVEMENT_STATE.accidentalItems)) {
+        win.ACHIEVEMENT_STATE.accidentalItems = win.ACHIEVEMENT_STATE.accidentalItems.filter(
+          (item) => item && item.id && !item.id.startsWith("ACH-ACC-202610")
+        );
+      }
+    }
+    if (win.BOUNTY_STATE && win.BOUNTY_STATE.id === "BC-202611-MATH95") {
+      win.BOUNTY_STATE = null;
+    }
+    if (Array.isArray(win.WEEK_BOARD_DATA)) {
+      win.WEEK_BOARD_DATA.forEach((col) => {
+        if (Array.isArray(col.tasks)) {
+          col.tasks = col.tasks.filter((t) => t && t.id && !t.id.startsWith("w-task-"));
+        }
+      });
+    }
+    if (win.USER_PROFILE_STATE) {
+      if (win.USER_PROFILE_STATE.streakDays === 18 && win.USER_PROFILE_STATE.baseFulfillmentRate === 96) {
+        win.USER_PROFILE_STATE.streakDays = 0;
+        win.USER_PROFILE_STATE.baseFulfillmentRate = 100;
+        win.USER_PROFILE_STATE.completedTodayCount = 0;
+        win.USER_PROFILE_STATE.totalTodayCount = 0;
+      }
+    }
   }
   /**
    * 防抖触发全量 Vault 同步
@@ -512,11 +583,11 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
             <div class="hud-stats-row">
               <div class="hud-stat-item streak" title="\u8FDE\u7EED\u81EA\u5F8B\u6253\u5361\u5929\u6570">
                 <span>\u{1F525}</span>
-                <span id="hud-streak-count">\u8FDE\u7EED 18 \u5929</span>
+                <span id="hud-streak-count">\u8FDE\u7EED 0 \u5929</span>
               </div>
               <div class="hud-stat-item rate" onclick="openFamilyPactModal(true)" style="cursor:pointer;" title="\u672C\u5468\u7EFC\u5408\u81EA\u5F8B\u5951\u7EA6\u5C65\u7EA6\u7387 \xB7 \u70B9\u51FB\u8C03\u9605\u300A\u4EB2\u5B50\u7ACB\u5BAA\u516C\u7EA6\u300B\u6216\u6267\u884C\u8FDD\u7EA6\u88C1\u51B3">
                 <span>\u{1F4C8}</span>
-                <span id="hud-rate-percent">\u5C65\u7EA6 98%</span>
+                <span id="hud-rate-percent">\u5C65\u7EA6 100%</span>
               </div>
             </div>
           </div>
@@ -574,20 +645,20 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
           <div class="bounty-content-col">
             <div class="bounty-header-line">
               <span class="bounty-tag" id="home-bounty-tag">\u7F6E\u9876\u60AC\u8D4F</span>
-              <span class="bounty-title-text" id="home-bounty-title">\u5C0F\u5B66\u53E3\u7B97\u8FDB\u9000\u4F4D\u4E13\u9879\u7A81\u7834</span>
-              <span class="bounty-timer-pill" id="home-bounty-timer">\u23F1\uFE0F 7\u5929\u5185\u6709\u6548</span>
+              <span class="bounty-title-text" id="home-bounty-title">\u6682\u65E0\u8FDB\u884C\u4E2D\u7684\u60AC\u8D4F\u5951\u7EA6</span>
+              <span class="bounty-timer-pill" id="home-bounty-timer">\u23F1\uFE0F \u7B49\u5F85\u5F20\u699C</span>
             </div>
             <div class="bounty-reward-line">
-              <span class="bounty-gold-highlight" id="home-bounty-reward">\u{1F381} \u79D1\u6280\u9986\u63A2\u7D22\u95E8\u7968</span>
-              <span class="bounty-author-tag" id="home-bounty-author">\u{1F468} \u7238\u7238\u53D1\u5E03</span>
-              <span class="bounty-cta-hint" id="home-bounty-cta">\u5DF2\u5E94\u6218 \xB7 \u53BB\u4EA4\u4ED8 \u203A</span>
+              <span class="bounty-gold-highlight" id="home-bounty-reward">\u{1F381} \u70B9\u51FB\u53EF\u53D1\u5E03\u65B0\u5951\u7EA6</span>
+              <span class="bounty-author-tag" id="home-bounty-author">\u{1F468}\u200D\u{1F469}\u200D\u{1F466} \u4EB2\u5B50\u516C\u7EA6</span>
+              <span class="bounty-cta-hint" id="home-bounty-cta">\u53BB\u53D1\u5E03 \u203A</span>
             </div>
           </div>
         </div>
 
         <div class="topbar-stat-pill" title="\u4ECA\u65E5\u5F85\u529E\u8FBE\u6210\u8FDB\u5EA6">
           <span class="stat-pill-label">\u8FBE\u6210:</span>
-          <span class="stat-pill-val gold" id="exec-stat-progress">2/5</span>
+          <span class="stat-pill-val gold" id="exec-stat-progress">0/0</span>
         </div>
       </div>
     </div>
@@ -603,43 +674,9 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
        ========================================================================= -->
   <div id="island-goal-cards-dock" class="island-goal-cards-dock">
     <div id="island-goal-cards-list" class="island-goal-cards-list">
-      <!-- \u76EE\u6807\u5361 1 -->
-      <div class="island-goal-item-card" onclick="enterSecondaryWorkspace(&apos;study&apos;, &apos;gantt&apos;)" title="\u70B9\u51FB\u76F4\u8FBE\u3010\u6821\u53F2\u9986\u3011\u7518\u7279\u603B\u89C8\u89C4\u5212">
-        <div class="goal-card-top-row">
-          <span class="goal-card-pav-tag" style="background:#eff6ff; color:#1d4ed8;">\u{1F4D0} \u6821\u53F2\u9986 \xB7 \u5B66\u4E1A</span>
-          <span class="goal-card-pct-badge" style="color:#10b981;">70% (14/20\u5929)</span>
-        </div>
-        <div class="goal-card-title">\u{1F3AF} \u300A\u53E3\u7B97\u8FBE\u6807\u4E0E\u9006\u5411\u601D\u7EF4\u901A\u5173\u300B</div>
-        <div class="goal-card-bottom-row">
-          <span class="goal-card-desc-text">100\u4EE5\u5185\u52A0\u51CF\u51C6\u786E\u738798%\u4EE5\u4E0A</span>
-          <div class="goal-card-progress-track"><div class="goal-card-progress-bar" style="width:70%; background:#10b981;"></div></div>
-        </div>
-      </div>
-
-      <!-- \u76EE\u6807\u5361 2 -->
-      <div class="island-goal-item-card" onclick="enterSecondaryWorkspace(&apos;dojo&apos;, &apos;gantt&apos;)" title="\u70B9\u51FB\u76F4\u8FBE\u3010\u6B66\u9053\u9986\u3011\u7518\u7279\u603B\u89C8\u89C4\u5212">
-        <div class="goal-card-top-row">
-          <span class="goal-card-pav-tag" style="background:#fef3c7; color:#b45309;">\u{1F94B} \u6B66\u9053\u9986 \xB7 \u7279\u957F</span>
-          <span class="goal-card-pct-badge" style="color:#10b981;">80% (16/20\u5929)</span>
-        </div>
-        <div class="goal-card-title">\u{1F3AF} \u300A\u5C11\u513F\u8DF3\u7EF3\u8FDE\u8DF3\u7A81\u7834\u5F3A\u5316\u300B</div>
-        <div class="goal-card-bottom-row">
-          <span class="goal-card-desc-text">\u8FDE\u7EED\u5355\u6447300\u6B21\u4E0D\u7ECA\u7EF3\u8FBE\u6807</span>
-          <div class="goal-card-progress-track"><div class="goal-card-progress-bar" style="width:80%; background:#10b981;"></div></div>
-        </div>
-      </div>
-
-      <!-- \u76EE\u6807\u5361 3 -->
-      <div class="island-goal-item-card" onclick="enterSecondaryWorkspace(&apos;cultivation&apos;, &apos;gantt&apos;)" title="\u70B9\u51FB\u76F4\u8FBE\u3010\u4FEE\u8EAB\u9601\u3011\u7518\u7279\u603B\u89C8\u89C4\u5212">
-        <div class="goal-card-top-row">
-          <span class="goal-card-pav-tag" style="background:#f0fdf4; color:#15803d;">\u{1F4DC} \u4FEE\u8EAB\u9601 \xB7 \u54C1\u683C</span>
-          <span class="goal-card-pct-badge" style="color:#f59e0b;">50% (10/20\u5929)</span>
-        </div>
-        <div class="goal-card-title">\u{1F3AF} \u300A\u56FD\u5B66\u7ECF\u5178\u6668\u8BFB\u77E5\u884C\u5408\u4E00\u300B</div>
-        <div class="goal-card-bottom-row">
-          <span class="goal-card-desc-text">\u6668\u8BF5\u300A\u5927\u5B66\u300B\u8DF5\u884C\u5B5D\u4EB2\u614E\u72EC</span>
-          <div class="goal-card-progress-track"><div class="goal-card-progress-bar" style="width:50%; background:#f59e0b;"></div></div>
-        </div>
+      <div style="display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:10px 16px; color:#8c6b45; font-size:12px; font-weight:700;">
+        <span>\u{1F331} \u6682\u65E0\u8FDB\u884C\u4E2D\u7684\u5B66\u671F\u89C4\u5212\u9879\u76EE</span>
+        <button type="button" class="card-graphic-pill pill-timer" onclick="switchMainSection('ws'); openAddProjectModal();" style="padding:2px 10px; font-size:11px; cursor:pointer;">\u2795 \u7ACB\u5373\u7ACB\u9879</button>
       </div>
     </div>
   </div>
@@ -659,254 +696,17 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
     <!-- 3D \u821E\u53F0\u5BB9\u5668 -->
     <div class="exec-carousel-stage" id="exec-carousel-stage">
             <div class="exec-card-deck" id="day-card-deck">
-
-        <!-- 1. \u{1F3AF} \u76EE\u6807\u5206\u89E3\u5361 (card-goal \xB7 \u4E0E\u901A\u7528\u4E09\u7EA7\u8282\u70B9\u9875\u9762 #tcard-1 \u5185\u5BB9 1:1 \u4E00\u81F4) -->
-        <div class="exec-task-card tertiary-goal-card card-active" id="exec-card-goal" data-index="0" data-task-id="1" data-pavilion="goal" data-label="\u53E3\u7B97\u8FBE\u6807\u4E0E\u601D\u7EF4\u901A\u5173\u76EE\u6807" onclick="handleTaskCardClick(event, 'goal')" title="\u70B9\u51FB\u5361\u7247\u8FDB\u5165\u3010\u{1F3AF} \u76EE\u6807\u5206\u89E3\u8282\u70B9\u5361\u3011\u4E13\u5C5E\u6253\u5361\u9875\u9762">
-          <div class="work-node-card-header">
-            <span class="work-node-badge" style="background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe;">\u{1F3AF} \u76EE\u6807\u5206\u89E3</span>
-            <span class="work-node-title">\u53E3\u7B97\u8FBE\u6807\u4E0E\u601D\u7EF4\u901A\u5173\u76EE\u6807</span>
-            <span class="task-status-pill pending" id="status-text-exec-card-goal" style="font-size:10px; font-weight:800; color:#1d4ed8;">\u9636\u6BB5\u91CC\u7A0B\u7891</span>
-          </div>
-          <div class="work-node-body" style="display:flex; flex-direction:column; gap:7px;">
-            <!-- \u53EF\u81EA\u5B9A\u4E49\u65B0\u589E/\u5220\u9664\u7684\u591A\u4E2A\u91CF\u5316\u901A\u5173\u6307\u6807 (\u4E24\u5217\uFF1A\u6307\u6807\u540D + \u6307\u6807\u6570\u636E) -->
-            <div style="background:#f8fafc; border:1px solid #bfdbfe; border-radius:8px; padding:6px 8px;" onclick="event.stopPropagation()">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                <span style="font-size:10.5px; font-weight:850; color:#1e3a8a;">\u{1F3AF} \u91CF\u5316\u901A\u5173\u6307\u6807 (\u6307\u6807\u540D / \u6307\u6807\u6570\u636E)</span>
-                <button type="button" onclick="addCardGoalMetricItem('exec-card-goal-metrics', event)" style="padding:1px 6px; font-size:9.5px; font-weight:800; background:#dbeafe; color:#1d4ed8; border:1px solid #93c5fd; border-radius:4px; cursor:pointer;">\u2795 \u65B0\u589E\u6307\u6807</button>
-              </div>
-              <div style="display:grid; grid-template-columns:1fr 1fr 20px; gap:4px; font-size:9.5px; font-weight:800; color:#64748b; padding:0 2px 2px;">
-                <span>\u6307\u6807\u540D</span>
-                <span>\u6307\u6807\u6570\u636E</span>
-                <span></span>
-              </div>
-              <div id="exec-card-goal-metrics" style="display:flex; flex-direction:column; gap:4px;">
-                <div class="card-goal-metric-item" style="display:grid; grid-template-columns:1fr 1fr 20px; align-items:center; gap:4px;">
-                  <input type="text" value="\u5355\u5143\u53E3\u7B97\u6B63\u786E\u7387" placeholder="\u6307\u6807\u540D" class="add-module-text-input goal-metric-name" style="width:100%; box-sizing:border-box; height:22px; font-size:10.5px; padding:1px 6px; color:#1e3a8a; font-weight:700;">
-                  <input type="text" value="\u2265 98%" placeholder="\u6307\u6807\u6570\u636E" class="add-module-text-input goal-metric-val" style="width:100%; box-sizing:border-box; height:22px; font-size:10.5px; padding:1px 6px; color:#15803d; font-weight:800;">
-                  <button type="button" onclick="removeCardGoalMetricItem(this, event)" style="width:20px; height:20px; border:1px solid #fca5a5; background:#fef2f2; color:#dc2626; border-radius:4px; font-size:10px; font-weight:900; cursor:pointer; line-height:1;">\u2715</button>
-                </div>
-                <div class="card-goal-metric-item" style="display:grid; grid-template-columns:1fr 1fr 20px; align-items:center; gap:4px;">
-                  <input type="text" value="\u8FDB\u9000\u4F4D\u5FC3\u7B97\u63D0\u5206" placeholder="\u6307\u6807\u540D" class="add-module-text-input goal-metric-name" style="width:100%; box-sizing:border-box; height:22px; font-size:10.5px; padding:1px 6px; color:#1e3a8a; font-weight:700;">
-                  <input type="text" value="Delta +15 \u5206" placeholder="\u6307\u6807\u6570\u636E" class="add-module-text-input goal-metric-val" style="width:100%; box-sizing:border-box; height:22px; font-size:10.5px; padding:1px 6px; color:#15803d; font-weight:800;">
-                  <button type="button" onclick="removeCardGoalMetricItem(this, event)" style="width:20px; height:20px; border:1px solid #fca5a5; background:#fef2f2; color:#dc2626; border-radius:4px; font-size:10px; font-weight:900; cursor:pointer; line-height:1;">\u2715</button>
-                </div>
-              </div>
-            </div>
-
-            <div style="background:#eff6ff; border:1px dashed #93c5fd; padding:6px 8px; border-radius:8px; font-size:10.5px; color:#1e40af;">
-              \u{1F4CB} \u9A8C\u6536\u6807\u51C6\uFF1A\u5B8C\u6210\u7834\u5341\u6CD5\u601D\u7EF4\u5B9E\u8BAD\u4E0E 3 \u6B21\u9650\u65F6\u6253\u5361\uFF0C\u9519\u9898\u7EA2\u7B14\u5F52\u56E0\u6E05\u96F6\u3002
-            </div>
-
-            <!-- \u671F\u671B\u5B8C\u6210\u622A\u6B62\u65F6\u95F4 (\u70B9\u51FB\u9009\u62E9\u65E5\u671F\u4E0E\u65F6\u95F4) -->
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:7px; padding:4px 8px; font-size:10.5px;" onclick="event.stopPropagation()">
-              <span style="font-weight:800; color:#0369a1; white-space:nowrap;">\u{1F4C5} \u671F\u671B\u5B8C\u6210\u622A\u6B62\u65F6\u95F4:</span>
-              <input type="datetime-local" id="goal-deadline-exec-card-goal" value="2026-11-15T20:00" onclick="if(this.showPicker) this.showPicker();" onchange="showIslandToast('\u{1F4C5} \u5DF2\u66F4\u65B0\u671F\u671B\u5B8C\u6210\u622A\u6B62\u65F6\u95F4\uFF1A' + this.value.replace('T', ' '))" style="border:1px solid #7dd3fc; border-radius:5px; padding:1px 5px; font-size:10px; font-weight:800; color:#0c4a6e; background:#fff; cursor:pointer;">
-            </div>
-
-            <!-- \u6267\u884C\u64CD\u4F5C\uFF1A\u4EA4\u4ED8\u7269\u63D0\u4EA4\uFF08\u4E0B\u62C9\u9009\u62E9\uFF1A\u62CD\u7167 / \u89C6\u9891 / \u6587\u5B57\u8BB0\u5F55\u63D0\u4EA4\uFF09 -->
-            <div style="background:#fffbeb; border:1px solid #fcd34d; border-radius:8px; padding:6px 8px; display:flex; flex-direction:column; gap:5px;" onclick="event.stopPropagation()">
-              <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
-                <span style="font-size:10.5px; font-weight:850; color:#92400e; white-space:nowrap;">\u{1F4E6} \u4EA4\u4ED8\u7269\u63D0\u4EA4:</span>
-                <select id="goal-deliverable-type-exec-card-goal" onchange="switchGoalDeliverableMode('exec-card-goal', this.value)" style="flex:1; height:22px; font-size:10px; font-weight:800; color:#92400e; background:#fff; border:1px solid #f59e0b; border-radius:5px; padding:0 4px; cursor:pointer;">
-                  <option value="photo" selected>\u{1F4F7} \u62CD\u7167\u63D0\u4EA4</option>
-                  <option value="video">\u{1F3A5} \u89C6\u9891\u63D0\u4EA4</option>
-                  <option value="text">\u270D\uFE0F \u6587\u5B57\u8BB0\u5F55\u63D0\u4EA4</option>
-                </select>
-              </div>
-              <div id="goal-media-box-exec-card-goal" onclick="triggerGoalDeliverableUpload('exec-card-goal', event)" style="background:#fff; border:1.5px dashed #f59e0b; border-radius:6px; padding:6px 8px; font-size:10px; color:#b45309; font-weight:800; cursor:pointer; text-align:center;">
-                \u{1F4F7} \u70B9\u51FB\u62CD\u7167\u6216\u4E0A\u4F20\u4EA4\u4ED8\u7269\u7167\u7247
-              </div>
-              <textarea id="goal-deliverable-text-exec-card-goal" class="add-module-text-input" placeholder="\u270D\uFE0F \u8F93\u5165\u4EA4\u4ED8\u7269\u6587\u5B57\u8BB0\u5F55..." style="display:none; width:100%; box-sizing:border-box; height:38px; font-size:10px; padding:3px 6px; resize:vertical; background:#fff;">\u5DF2\u5B8C\u621030\u9053\u8FDB\u9000\u4F4D\u6DF7\u5408\u53E3\u7B97\u6EE1\u5206\u901A\u5173\uFF0C\u9644\u7EA2\u7B14\u81EA\u67E5\u6EE1\u5206\u5377\u3002</textarea>
-            </div>
-
-            <!-- \u5E95\u90E8\u64CD\u4F5C\u680F\uFF1A\u6C89\u6DC0\u5230\u6210\u5C31\u9986 -->
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:6px; border-top:1px solid #f1e4d0; font-size:10.5px;">
-              <span style="color:#1d4ed8; font-size:10px; font-weight:800;">\u{1F449} \u70B9\u51FB\u5361\u7247\u8FDB\u5165\u6253\u5361\u9875\u9762</span>
-              <button type="button" id="btn-deposit-exec-card-goal" class="card-graphic-pill" style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#fff; border:1px solid #b45309; font-weight:850; padding:4px 10px; cursor:pointer; box-shadow:0 2px 6px rgba(217,119,6,0.25);" onclick="depositGoalToAchievement('exec-card-goal', event)">\u{1F3C6} \u8BB0\u5F55\u5230\u6210\u5C31\u9986</button>
-            </div>
-          </div>
+        <div class="exec-card-empty-placeholder" id="day-deck-empty-placeholder" style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:36px 20px; background:linear-gradient(135deg, rgba(255, 252, 243, 0.96), rgba(254, 243, 199, 0.94)); border:2px dashed #b8b68e; border-radius:24px; box-shadow:0 10px 28px rgba(0,0,0,0.15); width:460px; max-width:90%; margin:auto;">
+          <span style="font-size:42px; margin-bottom:10px;">\u{1F3DD}\uFE0F</span>
+          <h3 style="font-size:17px; font-weight:900; color:#60401f; margin:0 0 6px 0;">\u4ECA\u65E5\u6682\u65E0\u5F85\u529E\u4E8B\u9879</h3>
+          <p style="font-size:12px; color:#8c6b45; line-height:1.5; margin:0 0 16px 0;">\u70B9\u51FB\u4E0B\u65B9\u542F\u52A8\u53F0\u8FDB\u5165\u3010\u6821\u53F2\u9986\u3011\u3001\u3010\u6B66\u9053\u9986\u3011\u3001\u3010\u601D\u8FA8\u9986\u3011\u6216\u3010\u4FEE\u8EAB\u9601\u3011\u5EFA\u7ACB\u6210\u957F\u89C4\u5212\uFF0C\u6216\u70B9\u51FB\u4E0A\u65B9\u544A\u793A\u724C\u53D1\u5E03\u5BB6\u957F\u60AC\u8D4F\u5951\u7EA6\uFF0C\u4EFB\u52A1\u5C06\u81EA\u52A8\u540C\u6B65\u81F3\u4ECA\u65E5\u5F85\u529E\uFF01</p>
+          <button type="button" class="card-graphic-pill pill-timer" style="padding:6px 18px; font-size:12px; font-weight:900; cursor:pointer;" onclick="switchHomeGlobalView('planning')">\u{1F9ED} \u524D\u5F80\u89C4\u5212\u65B0\u8BFE\u9898</button>
         </div>
-
-        <!-- 2. \u26A1 \u653B\u575A\u5B9E\u8BAD\u5361 (card-drill \xB7 \u4E0E\u901A\u7528\u4E09\u7EA7\u8282\u70B9\u9875\u9762 #tcard-2 \u5185\u5BB9 1:1 \u4E00\u81F4) -->
-        <div class="exec-task-card tertiary-drill-card card-next" id="exec-card-drill" data-index="1" data-task-id="2" data-pavilion="drill" data-label="\u7834\u5341\u6CD5\u5FC3\u7B97\u6781\u9650\u5B9E\u8BAD" onclick="handleTaskCardClick(event, 'drill')" title="\u70B9\u51FB\u5361\u7247\u8FDB\u5165\u3010\u26A1 \u653B\u575A\u5B9E\u8BAD\u8282\u70B9\u5361\u3011\u4E13\u5C5E\u6253\u5361\u9875\u9762">
-          <div class="work-node-card-header">
-            <span class="work-node-badge" style="background:#fef3c7; color:#b45309; border:1px solid #fde68a;">\u26A1 \u653B\u575A\u5B9E\u8BAD</span>
-            <span class="work-node-title">\u7834\u5341\u6CD5\u5FC3\u7B97\u6781\u9650\u5B9E\u8BAD</span>
-            <span class="task-status-pill pending" id="status-text-exec-card-drill" style="font-size:10px; font-weight:800; color:#b45309;">\u{1F7E1} \u4ECA\u65E5\u5F85\u6253\u5361</span>
-          </div>
-          <div class="work-node-body" style="display:flex; flex-direction:column; gap:7px;">
-            <p style="font-weight:750; color:#4a3a2a; font-size:11.5px; margin:0;">\u3010\u6838\u5FC3\u653B\u575A\u8981\u9886\u301123 - 8 = 13 + (10 - 8) = 15\uFF0C\u5341\u4F4D\u501F\u4E00\u5F53\u5341\u3002</p>
-
-            <!-- \u8BA1\u5212\u4E13\u6CE8\u65F6\u957F\uFF08\u4ECE 5 \u5206\u949F\u8D77\u53EF\u9009\uFF09 -->
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; background:#fffbeb; border:1px dashed #fcd34d; padding:5px 8px; border-radius:8px; font-size:10.5px; color:#92400e;" onclick="event.stopPropagation()">
-              <span style="font-weight:800;">\u23F1\uFE0F \u8BA1\u5212\u4E13\u6CE8\u65F6\u957F:</span>
-              <select id="drill-duration-select-exec-card-drill" onchange="updateDrillCardDuration('exec-card-drill', this.value)" style="border:1px solid #f59e0b; border-radius:5px; padding:1px 6px; font-size:10.5px; font-weight:800; color:#92400e; background:#fff; cursor:pointer;">
-                <option value="5">5 \u5206\u949F (\u5FAE\u4E60\u60EF\u5FEB\u7EC3)</option>
-                <option value="10">10 \u5206\u949F (\u8F7B\u91CF\u4E13\u653B)</option>
-                <option value="15">15 \u5206\u949F (\u65E5\u5E38\u5FEB\u7EC3)</option>
-                <option value="20" selected>20 \u5206\u949F (\u6807\u51C6\u5B9E\u8BAD)</option>
-                <option value="25">25 \u5206\u949F (\u6DF1\u5EA6\u756A\u8304)</option>
-                <option value="30">30 \u5206\u949F (\u5F3A\u5316\u653B\u575A)</option>
-                <option value="45">45 \u5206\u949F (\u5168\u5957\u6A21\u62DF)</option>
-              </select>
-            </div>
-
-            <!-- \u56FE\u7247\u89C6\u9891\u8BF4\u660E\uFF08\u5355\u4E00\u4E0A\u4F20\u6846\uFF0C\u652F\u6301\u4E0A\u4F20\u56FE\u7247\u548C\u89C6\u9891 + \u8BF4\u660E\u8F93\u5165\uFF09 -->
-            <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px; padding:6px 8px; display:flex; flex-direction:column; gap:5px;" onclick="event.stopPropagation()">
-              <span style="font-size:10.5px; font-weight:850; color:#0369a1;">\u{1F3AC} \u56FE\u7247\u89C6\u9891\u8BF4\u660E</span>
-              <div id="drill-img-box-exec-card-drill" class="node-img-preview-box" onclick="triggerDrillCardImage('exec-card-drill', event)" style="margin:0; padding:7px 8px; background:#fff; border:1.5px dashed #38bdf8; border-radius:6px; cursor:pointer; text-align:center;">
-                <span style="font-size:10.5px; font-weight:800; color:#0284c7;">\u{1F4F7} / \u{1F3A5} \u70B9\u51FB\u4E0A\u4F20\u56FE\u7247\u6216\u89C6\u9891 (\u8FDB\u9000\u4F4D\u53E3\u7B97\u9898\u5361.png)</span>
-              </div>
-              <input type="text" id="drill-img-desc-exec-card-drill" class="add-module-text-input" value="\u8FDB\u9000\u4F4D\u53E3\u7B97\u9898\u5361 30 \u9898\uFF0C\u7EA2\u7B14\u5708\u51FA\u501F\u4F4D\u9000\u4F4D\u70B9" placeholder="\u270D\uFE0F \u8F93\u5165\u56FE\u7247\u6216\u89C6\u9891\u8BF4\u660E..." style="width:100%; box-sizing:border-box; height:22px; font-size:10px; padding:1px 6px; background:#fff; color:#0c4a6e; font-weight:700;">
-            </div>
-
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:6px; border-top:1px solid #f1e4d0; font-size:10.5px;">
-              <span id="drill-footer-dur-exec-card-drill">\u9884\u8BA1\u4E13\u6CE8\uFF1A\u23F1\uFE0F 20 \u5206\u949F</span>
-              <button type="button" class="card-graphic-pill pill-timer" onclick="openExecCardPopupView('drill'); event.stopPropagation();">\u{1F31F} \u7ACB\u5373\u6253\u5361</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 3. \u{1F33F} \u4E60\u60EF\u8DF5\u884C\u5361 (card-habit \xB7 \u4E0E\u901A\u7528\u4E09\u7EA7\u8282\u70B9\u9875\u9762 #tcard-3 \u5185\u5BB9 1:1 \u4E00\u81F4) -->
-        <div class="exec-task-card tertiary-habit-card card-far-next" id="exec-card-habit" data-index="2" data-task-id="3" data-pavilion="habit" data-label="\u6BCF\u65E5\u53E3\u7B97\u81EA\u5F8B\u9632\u5B88\u65E5\u8BFE" onclick="handleTaskCardClick(event, 'habit')" title="\u70B9\u51FB\u5361\u7247\u8FDB\u5165\u3010\u{1F33F} \u4E60\u60EF\u8DF5\u884C\u8282\u70B9\u5361\u3011\u4E13\u5C5E\u6253\u5361\u9875\u9762">
-          <div class="work-node-card-header">
-            <span class="work-node-badge" style="background:#ecfdf5; color:#047857; border:1px solid #a7f3d0;">\u{1F33F} \u4E60\u60EF\u8DF5\u884C</span>
-            <span class="work-node-title">\u6BCF\u65E5\u53E3\u7B97\u81EA\u5F8B\u9632\u5B88\u65E5\u8BFE</span>
-            <span id="status-text-exec-card-habit" class="task-status-pill pending" style="font-size:10px; font-weight:800; color:#047857;">\u65E5\u5E38\u81EA\u5F8B</span>
-          </div>
-          <div class="work-node-body" style="display:flex; flex-direction:column; gap:7px;">
-            <p style="font-weight:750; color:#14532d; font-size:11.5px; margin:0;">\u3010\u77E5\u884C\u5408\u4E00\u65E5\u8BFE\u3011\u6668\u95F4 15 \u5206\u949F\u72EC\u7ACB\u53E3\u7B97\u76F2\u5237\uFF0C\u606A\u5B88\u65E0\u5C4F\u5E55\u7EAF\u51C0\u65F6\u523B\u3002</p>
-            <!-- \u53EF\u81EA\u5B9A\u4E49\u65B0\u589E/\u5220\u9664\u7684\u591A\u9879\u8DF5\u884C\u9632\u5B88\u6E05\u5355 -->
-            <div style="background:#ecfdf5; border:1px dashed #6ee7b7; padding:6px 8px; border-radius:8px; font-size:10.5px; color:#065f46;" onclick="event.stopPropagation()">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                <span style="font-size:10.5px; font-weight:850; color:#065f46;">\u{1F6E1}\uFE0F \u8DF5\u884C\u9632\u5B88\u6E05\u5355 (\u53EF\u589E\u5220\u591A\u9879)</span>
-                <button type="button" onclick="addCardHabitChecklistItem('exec-card-habit-checklist', event)" style="padding:1px 6px; font-size:9.5px; font-weight:800; background:#d1fae5; color:#047857; border:1px solid #6ee7b7; border-radius:4px; cursor:pointer;">\u2795 \u65B0\u589E\u6E05\u5355\u9879</button>
-              </div>
-              <div id="exec-card-habit-checklist" style="display:flex; flex-direction:column; gap:4px;">
-                <div class="card-habit-checklist-item" style="display:grid; grid-template-columns:16px 1fr 20px; align-items:center; gap:4px;">
-                  <input type="checkbox" checked style="margin:0; accent-color:#059669; cursor:pointer;">
-                  <input type="text" value="1. \u72EC\u7ACB\u5BA1\u9898\u4E0D\u4F9D\u8D56\u8349\u7A3F" placeholder="\u8F93\u5165\u8DF5\u884C\u9632\u5B88\u6E05\u5355\u9879..." class="add-module-text-input habit-checklist-input" style="width:100%; box-sizing:border-box; height:22px; font-size:10.5px; padding:1px 6px; color:#065f46; font-weight:700; background:#fff;">
-                  <button type="button" onclick="removeCardHabitChecklistItem(this, event)" style="width:20px; height:20px; border:1px solid #fca5a5; background:#fef2f2; color:#dc2626; border-radius:4px; font-size:10px; font-weight:900; cursor:pointer; line-height:1;">\u2715</button>
-                </div>
-                <div class="card-habit-checklist-item" style="display:grid; grid-template-columns:16px 1fr 20px; align-items:center; gap:4px;">
-                  <input type="checkbox" checked style="margin:0; accent-color:#059669; cursor:pointer;">
-                  <input type="text" value="2. \u9519\u9898\u7ACB\u5373\u7EA2\u7B14\u6807\u9000\u4F4D\u70B9" placeholder="\u8F93\u5165\u8DF5\u884C\u9632\u5B88\u6E05\u5355\u9879..." class="add-module-text-input habit-checklist-input" style="width:100%; box-sizing:border-box; height:22px; font-size:10.5px; padding:1px 6px; color:#065f46; font-weight:700; background:#fff;">
-                  <button type="button" onclick="removeCardHabitChecklistItem(this, event)" style="width:20px; height:20px; border:1px solid #fca5a5; background:#fef2f2; color:#dc2626; border-radius:4px; font-size:10px; font-weight:900; cursor:pointer; line-height:1;">\u2715</button>
-                </div>
-                <div class="card-habit-checklist-item" style="display:grid; grid-template-columns:16px 1fr 20px; align-items:center; gap:4px;">
-                  <input type="checkbox" checked style="margin:0; accent-color:#059669; cursor:pointer;">
-                  <input type="text" value="3. \u505A\u6BD5\u81EA\u4E3B\u6574\u7406\u4E66\u684C" placeholder="\u8F93\u5165\u8DF5\u884C\u9632\u5B88\u6E05\u5355\u9879..." class="add-module-text-input habit-checklist-input" style="width:100%; box-sizing:border-box; height:22px; font-size:10.5px; padding:1px 6px; color:#065f46; font-weight:700; background:#fff;">
-                  <button type="button" onclick="removeCardHabitChecklistItem(this, event)" style="width:20px; height:20px; border:1px solid #fca5a5; background:#fef2f2; color:#dc2626; border-radius:4px; font-size:10px; font-weight:900; cursor:pointer; line-height:1;">\u2715</button>
-                </div>
-              </div>
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:6px; border-top:1px solid #f1e4d0; font-size:10.5px;">
-              <span>\u9884\u8BA1\u7528\u65F6\uFF1A\u23F1\uFE0F 15 \u5206\u949F</span>
-              <button type="button" class="card-graphic-pill pill-checkin" onclick="openExecCardPopupView('habit'); event.stopPropagation();">\u{1F33F} \u77E5\u884C\u6253\u5361</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 4. \u{1F4DD} \u8BC4\u4F30\u590D\u76D8\u5361 (card-reflection \xB7 \u4E0E\u901A\u7528\u4E09\u7EA7\u8282\u70B9\u9875\u9762 #tcard-4 \u5185\u5BB9 1:1 \u4E00\u81F4) -->
-        <div class="exec-task-card tertiary-reflection-card card-far-prev" id="exec-card-reflection" data-index="3" data-task-id="4" data-pavilion="reflection" data-label="\u53E3\u7B97\u9519\u56E0\u5F52\u56E0\u4E0E\u53CD\u601D\u4FBF\u7B7E" onclick="handleTaskCardClick(event, 'reflection')" title="\u70B9\u51FB\u5361\u7247\u8FDB\u5165\u3010\u{1F4DD} \u8BC4\u4F30\u590D\u76D8\u8282\u70B9\u5361\u3011\u4E13\u5C5E\u6253\u5361\u9875\u9762">
-          <div class="work-node-card-header">
-            <span class="work-node-badge" style="background:#f5f3ff; color:#7c3aed; border:1px solid #ddd6fe;">\u{1F4DD} \u8BC4\u4F30\u590D\u76D8</span>
-            <span class="work-node-title">\u53E3\u7B97\u9519\u56E0\u5F52\u56E0\u4E0E\u53CD\u601D\u4FBF\u7B7E</span>
-            <span id="status-text-exec-card-reflection" class="task-status-pill pending" style="font-size:10px; font-weight:800; color:#7c3aed;">\u5F85\u590D\u76D8</span>
-          </div>
-          <div class="work-node-body" style="display:flex; flex-direction:column; gap:7px;">
-            <div style="background:#faf5ff; border:1px solid #e9d5ff; border-radius:8px; padding:6px 8px; font-size:11px;" onclick="event.stopPropagation()">
-            <div style="font-weight:850; color:#6b21a8; margin-bottom:3px; font-size:10.5px;">\u{1F4DD} \u590D\u76D8\u8BF4\u660E (\u9519\u56E0\u5361\u70B9\u5206\u6790\u4E0E\u53CD\u601D\u5FC3\u5F97\u5408\u5E76\u533A)</div>
-            <textarea class="add-module-text-input" placeholder="\u8F93\u5165\u5931\u5206\u6839\u56E0\u3001\u601D\u7EF4\u5361\u70B9\u4E0E\u53CD\u601D\u5FC3\u5F97..." style="width:100%; box-sizing:border-box; height:42px; font-size:10.5px; padding:3px 6px; background:#fff; color:#581c87; resize:vertical;">\u4E2A\u4F4D\u6570 3 - 8 \u4E0D\u591F\u51CF\u5FD8\u8BB0\u6807\u9000\u4F4D\u501F\u4F4D\u70B9\uFF1B\u8FD0\u7B97\u6A21\u578B\u5316\u901F\u5EA6\u5927\u5E45\u63D0\u5347\uFF0C\u5BA1\u9898\u9700\u5148\u5708\u51FA\u8FD0\u7B97\u7B26\uFF01</textarea>
-          </div>
-            <!-- \u53EF\u81EA\u5B9A\u4E49\u65B0\u589E/\u5220\u9664\u7684\u63D0\u5347\u6E05\u5355 -->
-            <div style="background:#f5f3ff; border:1px dashed #c4b5fd; padding:6px 8px; border-radius:8px; font-size:10.5px; color:#5b21b6;" onclick="event.stopPropagation()">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                <span style="font-size:10.5px; font-weight:850; color:#5b21b6;">\u{1F680} \u63D0\u5347\u6E05\u5355 (\u53EF\u589E\u5220\u63D0\u5347\u9879)</span>
-                <button type="button" onclick="addCardReflectionImprovementItem('exec-card-reflection-improvements', event)" style="padding:1px 6px; font-size:9.5px; font-weight:800; background:#ede9fe; color:#6d28d9; border:1px solid #c4b5fd; border-radius:4px; cursor:pointer;">\u2795 \u65B0\u589E\u63D0\u5347\u9879</button>
-              </div>
-              <div id="exec-card-reflection-improvements" style="display:flex; flex-direction:column; gap:4px;">
-                <div class="card-reflection-improvement-item" style="display:grid; grid-template-columns:16px 1fr 20px; align-items:center; gap:4px;">
-                  <input type="checkbox" checked style="margin:0; accent-color:#7c3aed; cursor:pointer;">
-                  <input type="text" value="1. \u5BA1\u9898\u65F6\u5148\u7528\u7EA2\u7B14\u5708\u51FA\u52A0\u51CF\u8FD0\u7B97\u7B26\u53F7" placeholder="\u8F93\u5165\u63D0\u5347\u9879..." class="add-module-text-input reflection-improvement-input" style="width:100%; box-sizing:border-box; height:22px; font-size:10.5px; padding:1px 6px; color:#5b21b6; font-weight:700; background:#fff;">
-                  <button type="button" onclick="removeCardReflectionImprovementItem(this, event)" style="width:20px; height:20px; border:1px solid #fca5a5; background:#fef2f2; color:#dc2626; border-radius:4px; font-size:10px; font-weight:900; cursor:pointer; line-height:1;">\u2715</button>
-                </div>
-                <div class="card-reflection-improvement-item" style="display:grid; grid-template-columns:16px 1fr 20px; align-items:center; gap:4px;">
-                  <input type="checkbox" checked style="margin:0; accent-color:#7c3aed; cursor:pointer;">
-                  <input type="text" value="2. \u9047\u5230\u4E2A\u4F4D\u4E0D\u591F\u51CF\u7ACB\u5373\u6807\u51FA\u5341\u4F4D\u9000\u4F4D\u70B9" placeholder="\u8F93\u5165\u63D0\u5347\u9879..." class="add-module-text-input reflection-improvement-input" style="width:100%; box-sizing:border-box; height:22px; font-size:10.5px; padding:1px 6px; color:#5b21b6; font-weight:700; background:#fff;">
-                  <button type="button" onclick="removeCardReflectionImprovementItem(this, event)" style="width:20px; height:20px; border:1px solid #fca5a5; background:#fef2f2; color:#dc2626; border-radius:4px; font-size:10px; font-weight:900; cursor:pointer; line-height:1;">\u2715</button>
-                </div>
-              </div>
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-top:auto; padding-top:6px; border-top:1px solid #f1e4d0; font-size:10.5px;">
-              <button type="button" class="card-graphic-pill" style="background:#ede9fe; color:#6d28d9; border:1px solid #c4b5fd; font-weight:800; cursor:pointer;" onclick="deriveNodesFromReflectionCard('exec-card-reflection', event)">\u{1F331} \u6D3E\u751F\u5B9E\u8BAD\u8282\u70B9</button>
-              <button type="button" class="card-graphic-pill pill-reflection" onclick="openExecCardPopupView('reflection'); event.stopPropagation();">\u270D\uFE0F \u7B03\u884C\u590D\u76D8</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 5. \u2699\uFE0F \u81EA\u5B9A\u4E49\u914D\u7F6E\u5361 (card-custom \xB7 \u4E0E\u901A\u7528\u4E09\u7EA7\u8282\u70B9\u9875\u9762 #tcard-5 \u5185\u5BB9 1:1 \u4E00\u81F4) -->
-        <div class="exec-task-card tertiary-custom-card card-prev" id="exec-card-custom" data-index="4" data-task-id="5" data-pavilion="custom" data-label="\u822A\u5929\u79D1\u666E\u9986\u81EA\u4E3B\u7814\u5B66\u4E0E\u6C34\u706B\u7BAD\u5236\u4F5C" onclick="handleTaskCardClick(event, 'custom')" title="\u70B9\u51FB\u5361\u7247\u8FDB\u5165\u3010\u2699\uFE0F \u81EA\u5B9A\u4E49\u914D\u7F6E\u8282\u70B9\u5361\u3011\u4E13\u5C5E\u6253\u5361\u9875\u9762">
-          <div class="work-node-card-header">
-            <span class="work-node-badge" style="background:#f0fdf4; color:#15803d; border:1px solid #86efac;">\u2699\uFE0F \u81EA\u5B9A\u4E49\u914D\u7F6E</span>
-            <span class="work-node-title">\u822A\u5929\u79D1\u666E\u9986\u81EA\u4E3B\u7814\u5B66\u4E0E\u6C34\u706B\u7BAD\u5236\u4F5C</span>
-            <span id="status-text-exec-card-custom" class="task-status-pill pending" style="font-size:10px; font-weight:800; color:#15803d;">\u5F85\u6253\u5361</span>
-          </div>
-          <div class="work-node-body" style="display:flex; flex-direction:column; gap:7px;">
-            <div style="background:#f0fdf4; border:1px dashed #86efac; padding:6px 8px; border-radius:8px; font-size:10.5px; color:#14532d;" onclick="event.stopPropagation()">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                <span style="font-size:10.5px; font-weight:850; color:#14532d;">\u{1F4CB} \u81EA\u5B9A\u4E49\u52A8\u6001\u4E1A\u52A1\u5B57\u6BB5 (\u53EF\u589E\u5220)</span>
-                <button type="button" onclick="addCustomDynamicFieldRow('exec-card-custom-fields')" style="padding:1px 6px; font-size:9.5px; font-weight:800; background:#dcfce7; color:#15803d; border:1px solid #86efac; border-radius:4px; cursor:pointer;">\u2795 \u65B0\u589E\u5B57\u6BB5</button>
-              </div>
-              <!-- \u662F\u5426\u9700\u8981\u6253\u5361\u4E0E\u7269\u8BC1\u4EA4\u4ED8\u7C7B\u578B\u6570\u636E\u7EF4\u62A4 -->
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;" onclick="event.stopPropagation()">
-              <div style="display:flex; align-items:center; justify-content:space-between; gap:4px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:6px; padding:3px 6px; font-size:10px;">
-                <span style="font-weight:800; color:#166534; white-space:nowrap;">\u23F1\uFE0F \u6253\u5361\u9700\u6C42:</span>
-                <select id="custom-need-checkin-exec" style="border:1px solid #86efac; border-radius:4px; padding:1px 4px; font-size:9.5px; font-weight:800; color:#166534; background:#fff; cursor:pointer;">
-                  <option value="yes" selected>\u2705 \u9700\u8981\u6253\u5361</option>
-                  <option value="no">\u23F8\uFE0F \u4EC5\u4F5C\u8BB0\u5F55</option>
-                </select>
-              </div>
-              <div style="display:flex; align-items:center; justify-content:space-between; gap:4px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:6px; padding:3px 6px; font-size:10px;">
-                <span style="font-weight:800; color:#166534; white-space:nowrap;">\u{1F4E6} \u7269\u8BC1\u7C7B\u578B:</span>
-                <select id="custom-evidence-type-exec" style="border:1px solid #86efac; border-radius:4px; padding:1px 4px; font-size:9.5px; font-weight:800; color:#166534; background:#fff; cursor:pointer;">
-                  <option value="photo" selected>\u{1F4F7} \u62CD\u7167\u7269\u8BC1</option>
-                  <option value="video">\u{1F3A5} \u89C6\u9891\u8BB0\u5F55</option>
-                  <option value="text">\u270D\uFE0F \u6587\u672C\u8BF4\u660E</option>
-                  <option value="none">\u{1F6AB} \u65E0\u9700\u7269\u8BC1</option>
-                </select>
-              </div>
-            </div>
-            <div id="exec-card-custom-fields" style="display:flex; flex-direction:column; gap:4px;">
-                <div class="picker-custom-field-row" style="display:grid; grid-template-columns:72px 1fr 20px; align-items:center; gap:4px;">
-                  <input type="text" class="add-module-text-input picker-field-key" value="\u7814\u5B66\u6307\u5F15" style="height:22px; font-size:10px; font-weight:800; color:#166534; padding:1px 6px; background:#fff;">
-                  <input type="text" class="add-module-text-input picker-field-val" value="\u8BB0\u5F55\u957F\u5F81\u706B\u7BAD\u53C2\u6570\u4E0E\u63A8\u8FDB\u5242\u7279\u70B9" style="height:22px; font-size:10px; padding:1px 6px; background:#fff;">
-                  <button type="button" onclick="removePickerCustomDynamicField(this)" style="width:20px; height:20px; border:1px solid #fca5a5; background:#fef2f2; color:#dc2626; border-radius:4px; font-size:10px; font-weight:900; cursor:pointer; line-height:1;">\u2715</button>
-                </div>
-                <div class="picker-custom-field-row" style="display:grid; grid-template-columns:72px 1fr 20px; align-items:center; gap:4px;">
-                  <input type="text" class="add-module-text-input picker-field-key" value="\u5B89\u5168\u5B88\u5219" style="height:22px; font-size:10px; font-weight:800; color:#166534; padding:1px 6px; background:#fff;">
-                  <input type="text" class="add-module-text-input picker-field-val" value="\u6237\u5916\u8349\u576A\u52A0\u538B\u8BD5\u98DE\u5E76\u4F69\u6234\u62A4\u76EE\u955C" style="height:22px; font-size:10px; padding:1px 6px; background:#fff;">
-                  <button type="button" onclick="removePickerCustomDynamicField(this)" style="width:20px; height:20px; border:1px solid #fca5a5; background:#fef2f2; color:#dc2626; border-radius:4px; font-size:10px; font-weight:900; cursor:pointer; line-height:1;">\u2715</button>
-                </div>
-                <div class="picker-custom-field-row" style="display:grid; grid-template-columns:72px 1fr 20px; align-items:center; gap:4px;">
-                  <input type="text" class="add-module-text-input picker-field-key" value="\u6838\u5FC3\u4EA4\u4ED8" style="height:22px; font-size:10px; font-weight:800; color:#166534; padding:1px 6px; background:#fff;">
-                  <input type="text" class="add-module-text-input picker-field-val" value="\u5B8C\u6210\u6C34\u706B\u7BAD\u6A21\u578B\u7EC4\u88C5\u4E0E\u8BD5\u98DE\u62CD\u7167" style="height:22px; font-size:10px; padding:1px 6px; background:#fff;">
-                  <button type="button" onclick="removePickerCustomDynamicField(this)" style="width:20px; height:20px; border:1px solid #fca5a5; background:#fef2f2; color:#dc2626; border-radius:4px; font-size:10px; font-weight:900; cursor:pointer; line-height:1;">\u2715</button>
-                </div>
-              </div>
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:6px; border-top:1px solid #f1e4d0; font-size:10.5px;">
-              <span style="color:#15803d; font-weight:750;">\u4EA4\u4ED8\u7C7B\u578B\uFF1A\u{1F4F7} \u62CD\u7167\u7269\u8BC1</span>
-              <button type="button" class="card-graphic-pill pill-checkin" onclick="openExecCardPopupView('custom'); event.stopPropagation();">\u{1F31F} \u5B8C\u6210\u6253\u5361</button>
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
 
     <!-- \u5E95\u90E8\u8F6E\u64AD\u6ED1\u52A8\u70B9\u4E0E\u6307\u793A\u5BFC\u822A (\u4E0E 5 \u7C7B\u901A\u7528\u8282\u70B9\u6253\u5361\u5361\u7247\u4E00\u4E00\u5BF9\u5E94) -->
-    <div class="exec-carousel-pagination" id="exec-carousel-dots">
+    <div class="exec-carousel-pagination" id="exec-carousel-dots" style="display:none;">
       <div class="pagination-dot-pill active" onclick="goToDayCard(0)">
         <span class="dot-circle"></span>
         <span class="dot-text">\u{1F3AF} \u76EE\u6807\u5206\u89E3</span>
@@ -1110,7 +910,7 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
           <div class="exec-task-hero-info">
             <div class="exec-task-project-link" onclick="toggleExecPopupProjectNodesView()" title="\u70B9\u51FB\u5207\u6362\u81F3\u9879\u76EE\u6240\u6709\u8282\u70B9\u6570\u636E\u56FE\u8C31">
               <span>\u{1F3AF} \u5173\u8054\u89C4\u5212\u9879\u76EE\uFF1A</span>
-              <strong id="exec-task-project-name">\u300A\u5C0F\u5B66\u6570\u5B66\u53E3\u7B97\u8FBE\u6807\u4E0E\u9006\u5411\u601D\u7EF4\u8BAD\u7EC3\u300B</strong>
+              <strong id="exec-task-project-name">\u300A\u5168\u606F\u6210\u957F\u89C4\u5212\u8BFE\u9898\u300B</strong>
               <span style="font-size:11px; text-decoration:underline; margin-left:4px; opacity:0.85;">[\u70B9\u51FB\u5C55\u5F00\u8282\u70B9\u56FE\u8C31]</span>
             </div>
             <div class="exec-task-desc-line" id="exec-task-desc">\u653B\u575A\u8981\u9886\uFF1A\u9650\u65F6 20 \u5206\u949F\u5B8C\u6210 30 \u9053\u6DF7\u5408\u53E3\u7B97\u9898\uFF0C\u7EA2\u7B14\u5708\u51FA\u9519\u56E0\u5E76\u62CD\u7167\u5B58\u8BC1\u3002</div>
@@ -2432,8 +2232,8 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
               <div style="display:flex; align-items:center; gap:10px;">
                 <span style="background:#2563eb; color:#fff; font-size:11px; font-weight:900; padding:3px 10px; border-radius:8px;">\u{1F3AF} \u76EE\u6807\u5206\u89E3\u5361</span>
                 <div>
-                  <div style="font-size:14px; font-weight:900; color:#1e3a8a;">\u8FDB\u9000\u4F4D\u53E3\u7B97\u6EE1\u5206\u8FBE\u6807\u4E0E\u601D\u7EF4\u901A\u5173\u76EE\u6807</div>
-                  <div style="font-size:10.5px; color:#1d4ed8;">\u6240\u5C5E\u9879\u76EE\uFF1A\u300A\u5C0F\u5B66\u6570\u5B66\u53E3\u7B97\u8FBE\u6807\u4E0E\u9006\u5411\u601D\u7EF4\u8BAD\u7EC3\u300B \xB7 \u5DF2\u53BB\u9664\u8FBE\u6210\u52CB\u7AE0\u4E0E\u7ECF\u9A8C\u9879</div>
+                  <div style="font-size:14px; font-weight:900; color:#1e3a8a;">\u9636\u6BB5\u91CC\u7A0B\u7891\u4E0E\u91CF\u5316\u901A\u5173\u76EE\u6807</div>
+                  <div style="font-size:10.5px; color:#1d4ed8;">\u6240\u5C5E\u9879\u76EE\uFF1A\u300A\u5168\u606F\u6210\u957F\u89C4\u5212\u8BFE\u9898\u300B \xB7 \u76EE\u6807\u5206\u89E3\u4E0E\u91CF\u5316\u6307\u6807\u9A8C\u6536</div>
                 </div>
               </div>
               <span id="checkin-page-goal-status" style="background:#dbeafe; color:#1e40af; border:1px solid #93c5fd; font-size:11px; font-weight:900; padding:4px 12px; border-radius:20px;">\u{1F3AF} \u5F85\u4EA4\u4ED8\u6C89\u6DC0</span>
@@ -3560,6 +3360,28 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
        \u5BB6\u957F\u7F6E\u9876\u60AC\u8D4F\u6311\u6218\u5951\u7EA6\u4E66\u4E13\u5C5E\u62DF\u7269\u5F39\u7A97 (#bounty-modal-backdrop \xB7 \u4EB2\u5B50\u5FC3\u613F\u8363\u8A89\u5951\u7EA6 3.0)
        \u3010\u4E1A\u52A1\u95ED\u73AF\u3011\uFF1A\u5BB6\u957F\u53D1\u5E03\u65B0\u60AC\u8D4F \u2794 \u5B69\u5B50\u4E3B\u52A8\u63ED\u699C\u5E94\u6218 \u2794 \u5B9E\u8BAD\u7269\u8BC1\u7559\u75D5 \u2794 \u4EB2\u5B50\u6838\u9A8C\u5151\u73B0\u5FC3\u613F \u2794 \u540C\u6B65\u6210\u5C31\u9986\u4E0E\u6BCF\u65E5\u968F\u8BB0
        ========================================================================= -->
+<!-- ===================================================================== -->
+<!-- \u6BCF\u65E5\u968F\u8BB0\u3010\u5F71\u50CF\u7269\u8BC1\u5168\u5C4F\u67E5\u9605\u3011\u5F39\u7A97 (#note-media-preview-modal)          -->
+<!-- ===================================================================== -->
+<div id="note-media-preview-modal" style="display:none; position:fixed; inset:0; z-index:20000; background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:16px;">
+  <div style="background:#fff; width:92%; max-width:680px; max-height:90vh; border-radius:20px; border:2px solid #3b82f6; box-shadow:0 16px 48px rgba(0,0,0,0.45); display:flex; flex-direction:column; overflow:hidden; animation:zoomIn 0.22s cubic-bezier(0.16,1,0.3,1);">
+    <div style="background:linear-gradient(135deg, #1e3a8a, #2563eb); color:#fff; padding:14px 18px; display:flex; align-items:center; justify-content:space-between;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span id="note-preview-modal-icon" style="font-size:18px;">\u{1F4F7}</span>
+        <span id="note-preview-modal-title" style="font-size:15px; font-weight:900;">\u5F71\u50CF\u7269\u8BC1\u539F\u5377\u67E5\u9A8C</span>
+      </div>
+      <button onclick="closeNoteMediaPreviewModal()" style="background:rgba(255,255,255,0.2); border:none; color:#fff; width:28px; height:28px; border-radius:50%; font-size:14px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center;">\u2715</button>
+    </div>
+    <div id="note-preview-modal-body" style="padding:18px; overflow-y:auto; flex:1; display:flex; flex-direction:column; align-items:center; gap:12px;">
+      <!-- \u7531 JS \u586B\u5145\u7167\u7247\u6216\u89C6\u9891\u64AD\u653E\u5668 -->
+    </div>
+    <div style="background:#f8fafc; padding:12px 18px; border-top:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+      <span id="note-preview-modal-caption" style="font-size:12px; color:#64748b; font-weight:600;">\u5F71\u50CF\u7269\u8BC1\u8BF4\u660E</span>
+      <button onclick="closeNoteMediaPreviewModal()" class="note-submit-btn" style="height:32px; padding:0 18px; font-size:12px;">\u5173\u95ED\u9884\u89C8</button>
+    </div>
+  </div>
+</div>
+
   <div class="workbench-modal-backdrop" id="bounty-modal-backdrop" onclick="handleBountyBackdropClick(event)">
     <div class="workbench-window" style="max-width: 700px; height: auto; max-height: 92vh; border: 2.5px solid #d97706; box-shadow: 0 20px 50px rgba(120, 53, 15, 0.35);">
       <!-- \u5F39\u7A97\u9876\u63A7\u680F -->
@@ -3693,7 +3515,7 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
         <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 14px; display:flex; flex-direction:column; gap:8px;">
           <div style="display:flex; align-items:center; gap:8px;">
             <span style="font-size:11px; font-weight:800; color:#334155; white-space:nowrap;">\u{1F4AC} \u5BB6\u957F\u9A8C\u6536\u5BC4\u8BED\uFF1A</span>
-            <input id="bounty-parent-comment-input" type="text" value="\u6F14\u7B97\u6B65\u9AA4\u5DE5\u6574\u6E05\u6670\uFF0C\u7834\u5341\u6CD5\u638C\u63E1\u624E\u5B9E\uFF0C\u5468\u672B\u5982\u7EA6\u5E26\u4F60\u53BB\u79D1\u6280\u9986\u63A2\u7D22\uFF01" placeholder="\u8F93\u5165\u5BB6\u957F\u6838\u9A8C\u9F13\u52B1\u5BC4\u8BED..." style="flex:1; padding:5px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:11.5px; background:#fff; color:#1e293b;">
+            <input id="bounty-parent-comment-input" type="text" value="" placeholder="\u5BB6\u957F\u9F13\u52B1\u5BC4\u8BED..." placeholder="\u8F93\u5165\u5BB6\u957F\u6838\u9A8C\u9F13\u52B1\u5BC4\u8BED..." style="flex:1; padding:5px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:11.5px; background:#fff; color:#1e293b;">
           </div>
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
             <div style="display:flex; align-items:center; gap:10px;">
@@ -6611,49 +6433,49 @@ function bootPrototypeRuntime() {
   const EXEC_CHECKIN_PAGE_META = {
     goal: {
       badge: "\u{1F3AF} \u76EE\u6807\u5206\u89E3\u8282\u70B9\u5361",
-      title: "\u8FDB\u9000\u4F4D\u53E3\u7B97\u6EE1\u5206\u8FBE\u6807\u4E0E\u601D\u7EF4\u901A\u5173\u76EE\u6807",
+      title: "\u9636\u6BB5\u91CC\u7A0B\u7891\u4E0E\u91CF\u5316\u901A\u5173\u76EE\u6807",
       breadcrumb: "\u{1F3DD}\uFE0F \u6668\u66E6\u5C9B \u276F \u26A1 \u6267\u884C\u4E2D\u5FC3 \u276F \u{1F3AF} \u76EE\u6807\u5206\u89E3\u8282\u70B9\u5361\u6253\u5361\u9875\u9762",
-      projectName: "\u300A\u5C0F\u5B66\u6570\u5B66\u53E3\u7B97\u8FBE\u6807\u4E0E\u9006\u5411\u601D\u7EF4\u8BAD\u7EC3\u300B",
+      projectName: "\u300A\u5168\u606F\u6210\u957F\u89C4\u5212\u8BFE\u9898\u300B",
       hasPlanningProject: true,
       legacyKey: "study"
     },
     drill: {
       badge: "\u26A1 \u653B\u575A\u5B9E\u8BAD\u8282\u70B9\u5361",
-      title: "\u8FDB\u9000\u4F4D\u7834\u5341\u6CD5\u5FC3\u7B97\u6781\u9650\u653B\u575A\u5B9E\u8BAD",
+      title: "\u4E13\u9879\u6280\u80FD\u4E0E\u6838\u5FC3\u653B\u575A\u5B9E\u8BAD",
       breadcrumb: "\u{1F3DD}\uFE0F \u6668\u66E6\u5C9B \u276F \u26A1 \u6267\u884C\u4E2D\u5FC3 \u276F \u26A1 \u653B\u575A\u5B9E\u8BAD\u8282\u70B9\u5361\u6253\u5361\u9875\u9762",
-      projectName: "\u300A\u5C0F\u5B66\u6570\u5B66\u53E3\u7B97\u8FBE\u6807\u4E0E\u9006\u5411\u601D\u7EF4\u8BAD\u7EC3\u300B",
+      projectName: "\u300A\u5168\u606F\u6210\u957F\u89C4\u5212\u8BFE\u9898\u300B",
       hasPlanningProject: true,
       legacyKey: "dojo"
     },
     habit: {
       badge: "\u{1F33F} \u4E60\u60EF\u8DF5\u884C\u8282\u70B9\u5361",
-      title: "\u6BCF\u65E5\u53E3\u7B97\u81EA\u5F8B\u9632\u5B88\u4E0E\u56FD\u5B66\u6668\u8BFB\u77E5\u884C\u65E5\u8BFE",
+      title: "\u77E5\u884C\u5408\u4E00\u81EA\u5F8B\u9632\u5B88\u65E5\u8BFE",
       breadcrumb: "\u{1F3DD}\uFE0F \u6668\u66E6\u5C9B \u276F \u26A1 \u6267\u884C\u4E2D\u5FC3 \u276F \u{1F33F} \u4E60\u60EF\u8DF5\u884C\u8282\u70B9\u5361\u6253\u5361\u9875\u9762",
-      projectName: "\u300A\u77E5\u884C\u5408\u4E00\xB7\u541B\u5B50\u98CE\u9AA8\u767E\u65E5\u8DF5\u884C\u8BA1\u5212\u300B",
+      projectName: "\u300A\u77E5\u884C\u5408\u4E00\u8DF5\u884C\u8BA1\u5212\u300B",
       hasPlanningProject: true,
       legacyKey: "cultivation"
     },
     reflection: {
       badge: "\u{1F4DD} \u8BC4\u4F30\u590D\u76D8\u8282\u70B9\u5361",
-      title: "\u8FDB\u9000\u4F4D\u53E3\u7B97\u9519\u56E0\u5F52\u56E0\u4E0E\u9776\u5411\u63D0\u5347\u590D\u76D8\u5361",
+      title: "\u9519\u56E0\u5F52\u56E0\u4E0E\u9776\u5411\u63D0\u5347\u590D\u76D8\u5361",
       breadcrumb: "\u{1F3DD}\uFE0F \u6668\u66E6\u5C9B \u276F \u26A1 \u6267\u884C\u4E2D\u5FC3 \u276F \u{1F4DD} \u8BC4\u4F30\u590D\u76D8\u8282\u70B9\u5361\u6253\u5361\u9875\u9762",
-      projectName: "\u300A\u81EA\u6211\u8FDB\u5316 PDCA \u98DE\u8F6E\u4E0E\u5168\u606F\u751F\u547D\u5370\u8BB0\u5168\u4E66\u300B",
+      projectName: "\u300A\u81EA\u6211\u8FDB\u5316\u4E0E\u590D\u76D8\u53CD\u601D\u300B",
       hasPlanningProject: true,
       legacyKey: "review"
     },
     custom: {
       badge: "\u2699\uFE0F \u81EA\u5B9A\u4E49\u914D\u7F6E\u8282\u70B9\u5361",
-      title: "\u822A\u5929\u79D1\u666E\u9986\u81EA\u4E3B\u7814\u5B66\u4E0E\u6C34\u706B\u7BAD\u6A21\u578B\u5236\u4F5C",
+      title: "\u81EA\u4E3B\u5B9E\u8DF5\u63A2\u7A76\u9879\u76EE",
       breadcrumb: "\u{1F3DD}\uFE0F \u6668\u66E6\u5C9B \u276F \u26A1 \u6267\u884C\u4E2D\u5FC3 \u276F \u2699\uFE0F \u81EA\u5B9A\u4E49\u914D\u7F6E\u8282\u70B9\u5361\u6253\u5361\u9875\u9762",
-      projectName: "\u300A\u9752\u5C11\u513F\u8DE8\u5B66\u79D1\u79D1\u5B66\u63A2\u7A76\u4E0E\u81EA\u4E3B\u7814\u5B66\u5DE5\u7A0B\u300B",
+      projectName: "\u300A\u8DE8\u5B66\u79D1\u81EA\u4E3B\u63A2\u7A76\u5DE5\u7A0B\u300B",
       hasPlanningProject: true,
       legacyKey: "treasury"
     },
     text: {
       badge: "\u{1F4C4} \u7B80\u5355\u6587\u672C\u8282\u70B9\u5361",
-      title: "\u957F\u5F81\u8FD0\u8F7D\u706B\u7BAD\u8C31\u7CFB\u4E0E\u822A\u5929\u77E5\u8BC6\u5907\u5FD8",
+      title: "\u6838\u5FC3\u8981\u9886\u4E0E\u5907\u5FD8\u624B\u8BB0",
       breadcrumb: "\u{1F3DD}\uFE0F \u6668\u66E6\u5C9B \u276F \u26A1 \u6267\u884C\u4E2D\u5FC3 \u276F \u{1F4C4} \u7B80\u5355\u6587\u672C\u8282\u70B9\u67E5\u9605\u9875\u9762",
-      projectName: "\u300A\u9752\u5C11\u513F\u8DE8\u5B66\u79D1\u79D1\u5B66\u63A2\u7A76\u4E0E\u81EA\u4E3B\u7814\u5B66\u5DE5\u7A0B\u300B",
+      projectName: "\u300A\u81EA\u4E3B\u5B9E\u8DF5\u63A2\u7A76\u5DE5\u7A0B\u300B",
       hasPlanningProject: false,
       legacyKey: "note"
     }
@@ -7033,39 +6855,41 @@ function bootPrototypeRuntime() {
       btn.textContent = "\u25B6\uFE0F \u542F\u52A8\u4E13\u6CE8";
   }
   window.USER_PROFILE_STATE = {
-    streakDays: 18,
+    streakDays: 0,
     streakIncrementedToday: false,
-    completedTodayCount: 2,
-    totalTodayCount: 5,
-    baseFulfillmentRate: 96,
+    completedTodayCount: 0,
+    totalTodayCount: 0,
+    baseFulfillmentRate: 100,
     violationCount: 0,
     violationRecords: [],
     checkedTaskKeys: {}
   };
   function computeCurrentFulfillmentRate() {
-    const st = window.USER_PROFILE_STATE;
-    const bonus = Math.min(4, Math.max(0, st.completedTodayCount - 2) * 2);
-    const raw = Math.min(100, st.baseFulfillmentRate + bonus);
-    return Math.max(0, raw - (st.violationCount || 0) * 5);
+    const st = window.USER_PROFILE_STATE || { streakDays: 0, completedTodayCount: 0, totalTodayCount: 0, baseFulfillmentRate: 100, violationCount: 0 };
+    if (!st.totalTodayCount || st.totalTodayCount === 0) {
+      return Math.max(0, 100 - (st.violationCount || 0) * 5);
+    }
+    const pct = Math.round(st.completedTodayCount / st.totalTodayCount * 100);
+    return Math.max(0, Math.min(100, pct - (st.violationCount || 0) * 5));
   }
   function recalcAndRenderGlobalHUD() {
-    const st = window.USER_PROFILE_STATE;
+    const st = window.USER_PROFILE_STATE || { streakDays: 0, completedTodayCount: 0, totalTodayCount: 0, baseFulfillmentRate: 100, violationCount: 0 };
     const rate = computeCurrentFulfillmentRate();
     const streakEl = document.getElementById("hud-streak-count");
     if (streakEl)
-      streakEl.textContent = st.streakDays + "\u5929";
+      streakEl.textContent = "\u8FDE\u7EED " + (st.streakDays || 0) + " \u5929";
     const rateEl = document.getElementById("hud-rate-percent");
     if (rateEl) {
-      rateEl.textContent = rate + "%";
-      rateEl.style.color = st.violationCount > 0 ? "#dc2626" : "";
+      rateEl.textContent = "\u5C65\u7EA6 " + rate + "%";
+      rateEl.style.color = (st.violationCount || 0) > 0 ? "#dc2626" : "";
     }
     const statProg = document.getElementById("exec-stat-progress");
     if (statProg) {
-      statProg.textContent = st.completedTodayCount + "/" + st.totalTodayCount;
+      statProg.textContent = (st.completedTodayCount || 0) + "/" + (st.totalTodayCount || 0);
     }
     const pactBadge = document.getElementById("pact-current-rate-badge");
     if (pactBadge) {
-      pactBadge.textContent = "\u5F53\u524D\u7EFC\u5408\u5C65\u7EA6\u7387\uFF1A" + rate + "%\uFF08\u7D2F\u8BA1\u8FDD\u7EA6 " + st.violationCount + " \u6B21\uFF09";
+      pactBadge.textContent = "\u5F53\u524D\u7EFC\u5408\u5C65\u7EA6\u7387\uFF1A" + rate + "%\uFF08\u7D2F\u8BA1\u8FDD\u7EA6 " + (st.violationCount || 0) + " \u6B21\uFF09";
     }
   }
   function appendDailyAutoLog(logText, focusMinutes) {
@@ -7108,8 +6932,10 @@ function bootPrototypeRuntime() {
     if (!listEl || !Array.isArray(window.GANTT_PROJECTS))
       return;
     const activeProjs = window.GANTT_PROJECTS.filter((p) => !p.isArchived);
-    if (activeProjs.length === 0)
+    if (activeProjs.length === 0) {
+      listEl.innerHTML = `<div style="display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:10px 16px; color:#8c6b45; font-size:12px; font-weight:700;"><span>\u{1F331} \u6682\u65E0\u8FDB\u884C\u4E2D\u7684\u5B66\u671F\u89C4\u5212\u9879\u76EE</span><button type="button" class="card-graphic-pill pill-timer" onclick="switchMainSection('ws'); openAddProjectModal();" style="padding:2px 10px; font-size:11px; cursor:pointer;">\u2795 \u7ACB\u5373\u7ACB\u9879</button></div>`;
       return;
+    }
     const badgeColors = {
       "\u5B66\u4E1A\u653B\u575A": { bg: "#eff6ff", color: "#1d4ed8", bar: "#2563eb" },
       "\u5174\u8DA3\u7279\u957F": { bg: "#f0fdf4", color: "#15803d", bar: "#16a34a" },
@@ -7629,29 +7455,94 @@ function bootPrototypeRuntime() {
       }
     }
   }
-  window.BOUNTY_STATE = {
-    id: "BC-202611-MATH95",
-    title: "\u5C0F\u5B66\u6570\u5B66\u53E3\u7B97\u8FBE\u6807\u4E0E\u9006\u5411\u601D\u7EF4\u8BAD\u7EC3",
-    pavilionLabel: "\u{1F3EB} \u6821\u53F2\u9986 \xB7 \u5B66\u4E1A\u653B\u575A",
-    pavilionId: "study",
-    reward: "\u{1F39F}\uFE0F \u79D1\u6280\u9986\u63A2\u7D22\u95E8\u7968 + \u7814\u5B66\u65B0\u4E66",
-    days: 7,
-    criteria: "1. \u653B\u514B 30 \u9053\u8FDB\u9000\u4F4D\u53E3\u7B97\u9898\u5361\uFF0C\u9650\u65F6 20 \u5206\u949F\u756A\u8304\u5B9E\u8BAD\u949F\u7559\u75D5\uFF1B\n2. \u6F14\u7B97\u9898\u5361\u6E05\u6670\u62CD\u7167\u4E0A\u4F20\uFF0C\u7EA2\u7B14\u8BA2\u6B63\u501F\u4F4D\u6807\u8BB0\u4E0E\u51D1\u5341\u7834\u5341\u8FC7\u7A0B\u6E05\u6670\uFF1B\n3. \u5BB6\u957F\u6838\u9A8C\u7269\u8BC1\u5E76\u586B\u5199\u9F13\u52B1\u5BC4\u8BED\u76D6\u6233\uFF0C\u5FC3\u613F\u5951\u7EA6\u5373\u65F6\u5151\u73B0\u5E76\u8F7D\u5165\u6210\u5C31\u9986\u3002",
-    status: "accepted",
-    // 'published' | 'accepted' | 'redeemed'
-    evidenceUploaded: true,
-    evidenceName: "\u53E3\u7B9730\u9898\u5168\u5BF9\u7EA2\u7B14\u9A8C\u7B97\u624B\u7A3F.jpg",
-    parentComment: "\u6F14\u7B97\u6B65\u9AA4\u5DE5\u6574\u6E05\u6670\uFF0C\u7834\u5341\u6CD5\u638C\u63E1\u624E\u5B9E\uFF0C\u5468\u672B\u5982\u7EA6\u5E26\u4F60\u53BB\u79D1\u6280\u9986\u63A2\u7D22\uFF01",
-    vaultFile: "09_Bounties_\u60AC\u8D4F\u516C\u544A/bounty-2026-midterm-math.md"
-  };
+  window.BOUNTY_STATE = null;
   function renderBountyModalAndBillboard() {
     const b = window.BOUNTY_STATE;
-    if (!b)
-      return;
     const hTitle = document.getElementById("home-bounty-title");
     const hTimer = document.getElementById("home-bounty-timer");
     const hReward = document.getElementById("home-bounty-reward");
     const hCta = document.getElementById("home-bounty-cta");
+    const hAuthor = document.getElementById("home-bounty-author");
+    if (!b) {
+      if (hTitle)
+        hTitle.textContent = "\u6682\u65E0\u8FDB\u884C\u4E2D\u7684\u60AC\u8D4F\u5951\u7EA6";
+      if (hTimer)
+        hTimer.textContent = "\u23F1\uFE0F \u5F85\u5F20\u699C";
+      if (hReward)
+        hReward.textContent = "\u{1F381} \u70B9\u51FB\u53D1\u5E03\u4EB2\u5B50\u5FC3\u613F\u60AC\u8D4F";
+      if (hAuthor)
+        hAuthor.textContent = "\u{1F468}\u200D\u{1F469}\u200D\u{1F466} \u4EB2\u5B50\u5171\u5EFA";
+      if (hCta) {
+        hCta.textContent = "\u53BB\u53D1\u5E03 \u203A";
+        hCta.style.background = "#ffedd5";
+        hCta.style.color = "#c2410c";
+      }
+      const statusBadge2 = document.getElementById("bounty-modal-status-badge");
+      const contractNo2 = document.getElementById("bounty-modal-contract-no");
+      const mTitle2 = document.getElementById("bounty-modal-title");
+      const mMeta2 = document.getElementById("bounty-modal-meta");
+      const mReward2 = document.getElementById("bounty-modal-reward");
+      const mCriteria2 = document.getElementById("bounty-modal-criteria");
+      const s2Status2 = document.getElementById("bounty-stage2-status");
+      const s2Desc2 = document.getElementById("bounty-stage2-desc");
+      const s3Status2 = document.getElementById("bounty-stage3-status");
+      const stamp2 = document.getElementById("bounty-parent-stamp");
+      const childSign2 = document.getElementById("bounty-child-sign-pill");
+      const parentSign2 = document.getElementById("bounty-parent-sign-pill");
+      const acceptBtn12 = document.getElementById("bounty-action-accept-btn");
+      const acceptBtn22 = document.getElementById("bounty-footer-accept-btn");
+      const redeemBtn2 = document.getElementById("bounty-action-redeem-btn");
+      const formBox = document.getElementById("bounty-publish-form-box");
+      if (statusBadge2) {
+        statusBadge2.textContent = "\u26AA \u6682\u65E0\u751F\u6548\u60AC\u8D4F";
+        statusBadge2.style.background = "#64748b";
+      }
+      if (contractNo2)
+        contractNo2.textContent = "\u5951\u7EA6\u7F16\u53F7\uFF1A\u6682\u672A\u751F\u6210 \xB7 \u8BF7\u70B9\u51FB\u3010\u2795 \u5BB6\u957F\u53D1\u5E03\u65B0\u60AC\u8D4F\u3011\u7ACB\u7EA6\u5F20\u699C";
+      if (mTitle2)
+        mTitle2.textContent = "\u300A\u6682\u65E0\u8FDB\u884C\u4E2D\u7684\u60AC\u8D4F\u6311\u6218\u300B";
+      if (mMeta2)
+        mMeta2.textContent = "\u{1F3AF} \u5173\u8054\u89C4\u5212\uFF1A\u672A\u6307\u5B9A | \u{1F468}\u200D\u{1F469}\u200D\u{1F466} \u671F\u5F85\u5BB6\u957F\u53D1\u8D77\u7ACB\u7EA6";
+      if (mReward2)
+        mReward2.textContent = "\u{1F381} \u8FBE\u6210\u5FC3\u613F\u4F53\u9A8C\u5956\u52B1";
+      if (mCriteria2)
+        mCriteria2.innerHTML = "<strong>\u{1F4CB} \u5951\u7EA6\u9A8C\u6536\u6807\u51C6\uFF1A</strong><br>\u8BF7\u70B9\u51FB\u53F3\u4E0A\u89D2\u3010\u2795 \u5BB6\u957F\u53D1\u5E03\u65B0\u60AC\u8D4F\u3011\u586B\u5199\u6311\u6218\u9879\u76EE\u3001\u5FC3\u613F\u5956\u52B1\u4E0E\u9A8C\u6536\u6807\u51C6\u3002";
+      if (s2Status2) {
+        s2Status2.textContent = "\u26AA \u5F85\u5F20\u699C";
+        s2Status2.style.color = "#64748b";
+      }
+      if (s2Desc2)
+        s2Desc2.textContent = "\u7ACB\u7EA6\u5F20\u699C\u540E\uFF0C\u5B69\u5B50\u53EF\u70B9\u51FB\u3010\u63ED\u699C\u5E94\u6218\u3011\u540C\u6B65\u751F\u6210\u5F85\u529E\u5361\u7247\u3002";
+      if (s3Status2) {
+        s3Status2.textContent = "\u26AA \u672A\u5F00\u59CB";
+        s3Status2.style.color = "#64748b";
+      }
+      if (stamp2) {
+        stamp2.innerHTML = "\u26AA \u6682\u672A\u7B7E\u7F72\u7ACB\u7EA6";
+        stamp2.style.background = "#f8fafc";
+        stamp2.style.color = "#64748b";
+        stamp2.style.borderColor = "#cbd5e1";
+      }
+      if (childSign2) {
+        childSign2.textContent = "\u231B \u5F85\u7B7E\u7F72";
+        childSign2.style.background = "#f1f5f9";
+        childSign2.style.color = "#64748b";
+      }
+      if (parentSign2) {
+        parentSign2.textContent = "\u231B \u5F85\u53D1\u8D77";
+        parentSign2.style.background = "#f1f5f9";
+        parentSign2.style.color = "#64748b";
+      }
+      if (acceptBtn12)
+        acceptBtn12.style.display = "none";
+      if (acceptBtn22)
+        acceptBtn22.style.display = "none";
+      if (redeemBtn2)
+        redeemBtn2.style.display = "none";
+      if (formBox)
+        formBox.style.display = "flex";
+      return;
+    }
     if (hTitle)
       hTitle.textContent = b.title;
     if (hTimer)
@@ -8599,7 +8490,7 @@ function bootPrototypeRuntime() {
     const p = (window.GANTT_PROJECTS || []).find((item) => item.id === targetId);
     const leafEl = document.getElementById("tertiary-crumb-leaf");
     if (leafEl) {
-      leafEl.innerText = p ? "\u26A1 " + p.title : "\u26A1 \u53E3\u7B97\u8FDB\u9000\u4F4D\u4E13\u9879\u7A81\u7834";
+      leafEl.innerText = p ? "\u26A1 " + p.title : "\u26A1 \u653B\u575A\u8111\u56FE\u753B\u5E03";
     }
     switchMainSection("tertiary");
     initTertiaryWorkspace();
@@ -9967,9 +9858,24 @@ function bootPrototypeRuntime() {
   }
   function updateDayCarousel() {
     const allCards = document.querySelectorAll(".exec-card-deck .exec-task-card");
-    if (allCards.length > 0)
-      totalDayCards = allCards.length;
-    const cards = document.querySelectorAll(".exec-card-deck .exec-task-card");
+    const dotsWrap = document.getElementById("exec-carousel-dots");
+    const emptyPlaceholder = document.getElementById("day-deck-empty-placeholder");
+    if (allCards.length === 0) {
+      totalDayCards = 0;
+      currentDayCardIndex = 0;
+      if (dotsWrap)
+        dotsWrap.style.display = "none";
+      if (emptyPlaceholder)
+        emptyPlaceholder.style.display = "flex";
+      return;
+    }
+    if (emptyPlaceholder)
+      emptyPlaceholder.style.display = "none";
+    if (dotsWrap)
+      dotsWrap.style.display = "flex";
+    totalDayCards = allCards.length;
+    currentDayCardIndex = Math.max(0, Math.min(currentDayCardIndex, totalDayCards - 1));
+    const cards = allCards;
     const dots = document.querySelectorAll(".exec-carousel-pagination .pagination-dot-pill");
     cards.forEach((card, idx) => {
       card.classList.remove("card-active", "card-prev", "card-next", "card-far-prev", "card-far-next");
@@ -9995,10 +9901,14 @@ function bootPrototypeRuntime() {
     });
   }
   function nextDayCard() {
+    if (totalDayCards <= 0)
+      return;
     currentDayCardIndex = (currentDayCardIndex + 1) % totalDayCards;
     updateDayCarousel();
   }
   function prevDayCard() {
+    if (totalDayCards <= 0)
+      return;
     currentDayCardIndex = (currentDayCardIndex - 1 + totalDayCards) % totalDayCards;
     updateDayCarousel();
   }
@@ -10124,271 +10034,13 @@ function bootPrototypeRuntime() {
   window.currentWeekOffset = 0;
   window.currentWeekFilter = "all";
   const WEEK_BOARD_DATA = [
-    {
-      dayIndex: 0,
-      dayName: "\u5468\u4E00",
-      dateStr: "10/26",
-      tasks: [
-        {
-          id: "w-task-1",
-          pavilion: "\u6821\u53F2\u9986",
-          pavilionBadge: "\u{1F3EB} \u6821\u53F2\u9986 \xB7 \u5B66\u79D1\u653B\u575A",
-          title: "\u5C0F\u5B66\u6570\u5B66\u8FDB\u9000\u4F4D\u53E3\u7B97\u767E\u9898\u8FBE\u6807",
-          status: "done",
-          duration: "25 \u5206\u949F",
-          time: "16:30 ~ 16:55",
-          instruction: "\u9650\u65F6 25 \u5206\u949F\uFF0C\u5B8C\u6210 30 \u9053\u51D1\u5341\u6CD5\u53E3\u7B97\u5927\u9898\uFF0C\u7EA2\u7B14\u6807\u51FA\u6613\u9519\u5F52\u56E0\u5E76\u62CD\u7167\u5B58\u8BC1\u3002",
-          evidence: "\u2713 \u5DF2\u4E0A\u4F20\u9A8C\u7B97\u8349\u7A3F\u7EB8\u624B\u7A3F 1 \u5F20\uFF08\u542B\u7EA2\u7B14\u5F52\u56E0\u661F\u6807\uFF09\n\u2713 \u756A\u8304\u949F\u5B9E\u6D4B\uFF1A\u4E13\u6CE8\u65F6\u957F 25 \u5206 12 \u79D2",
-          reflection: "\u201C\u505A\u7B2C 3 \u9898\u65F6\u53D1\u73B0\u4E86\u8FDB\u4F4D\u7684\u8FDB\u6570\u5FD8\u8BB0\u52A0\u4E0A\u7684\u5C0F\u6BDB\u75C5\uFF0C\u6807\u4E86\u7EA2\u661F\uFF0C\u4E0B\u6B21\u5148\u770B\u8FDB\u4F4D\u3002\u201D"
-        },
-        {
-          id: "w-task-2",
-          pavilion: "\u4FEE\u8EAB\u9601",
-          pavilionBadge: "\u{1FA9E} \u4FEE\u8EAB\u9601 \xB7 \u5FB7\u80B2\u54C1\u683C",
-          title: "\u300A\u5927\u5B66\u300B\u5B9A\u672C\u77E5\u6B62\u5B9A\u9759\u6668\u8BFB\u80CC\u8BF5",
-          status: "done",
-          duration: "15 \u5206\u949F",
-          time: "07:10 ~ 07:25",
-          instruction: "\u5927\u58F0\u6668\u8BFB\u300A\u5927\u5B66\u300B\u5F00\u7BC7\uFF0C\u9010\u5B57\u9010\u53E5\u5BF9\u7167\u8BD1\u6587\uFF0C\u7406\u89E3\u201C\u77E5\u6B62\u800C\u540E\u6709\u5B9A\u201D\u3002",
-          evidence: "\u2713 \u6668\u8BFB\u5F55\u97F3\u5DF2\u5B58\u6863\uFF08\u957F\u8F88\u89C1\u8BC1\u5DF2\u76D6\u5370\uFF09",
-          reflection: "\u201C\u5FC3\u4E2D\u6709\u6B62\u5883\uFF0C\u505A\u4E8B\u5C31\u4E0D\u4F1A\u614C\u614C\u5F20\u5F20\uFF0C\u5B66\u4E60\u65F6\u5FC3\u9759\u81EA\u7136\u4E13\u6CE8\u3002\u201D"
-        },
-        {
-          id: "w-task-3",
-          pavilion: "\u6B66\u9053\u9986",
-          pavilionBadge: "\u{1F3F8} \u6B66\u9053\u9986 \xB7 \u4F53\u80B2\u4F53\u80FD",
-          title: "\u540E\u573A\u51FB\u7403300\u6B21\u6838\u5FC3\u808C\u8089\u8BB0\u5FC6\u6325\u62CD",
-          status: "done",
-          duration: "30 \u5206\u949F",
-          time: "17:30 ~ 18:00",
-          instruction: "\u5B9A\u70B9\u6325\u62CD\u51FB\u7403 300 \u6B21\uFF0C\u4FDD\u6301\u91CD\u5FC3\u524D\u503E\uFF0C\u8BB0\u5F55\u5FC3\u7387\u4E0E\u75B2\u52B3\u5EA6\u3002",
-          evidence: "\u2713 \u624B\u73AF\u5B9E\u6D4B\u6570\u636E\uFF1A\u5FC3\u7387\u5CF0\u503C 152 bpm\uFF0C\u6D88\u8017 210 kcal",
-          reflection: "\u201C\u6325\u5230\u7B2C 200 \u6B21\u65F6\u624B\u9178\uFF0C\u575A\u6301\u5B8C\u6210\u6700\u540E 100 \u6B21\uFF0C\u4F53\u80FD\u7A81\u7834\u611F\u5F88\u5F3A\u3002\u201D"
-        }
-      ]
-    },
-    {
-      dayIndex: 1,
-      dayName: "\u5468\u4E8C",
-      dateStr: "10/27",
-      tasks: [
-        {
-          id: "w-task-4",
-          pavilion: "\u601D\u8FA8\u9986",
-          pavilionBadge: "\u{1F9E0} \u601D\u8FA8\u9986 \xB7 \u54F2\u5B66\u6279\u5224",
-          title: "\u4EB2\u5B50\u6B63\u4E49\u8BBA\u8FA9\u8BBA\u521D\u63A2\u4E0E\u53CD\u9A73\u63A8\u6F14",
-          status: "done",
-          duration: "35 \u5206\u949F",
-          time: "19:40 ~ 20:15",
-          instruction: "\u56F4\u7ED5\u201C\u89C4\u5219\u516C\u5E73\u4E0E\u4E2A\u6848\u5173\u6000\u201D\u4E0E\u7236\u6BCD\u5F00\u5C55 15 \u5206\u949F\u684C\u9762\u601D\u8FA8\u3002",
-          evidence: "\u2713 \u8BB0\u5F55\u53CC\u5411\u601D\u8FA8\u5361\u7247 1 \u5F20\uFF0C\u8BC6\u522B\u51FA 2 \u5904\u4EE5\u504F\u6982\u5168\u903B\u8F91\u6F0F\u6D1E",
-          reflection: "\u201C\u5B66\u4F1A\u4E86\u53CD\u9A73\u5BF9\u65B9\u4E4B\u524D\u5148\u590D\u8FF0\u5BF9\u65B9\u7684\u8BBA\u70B9\uFF0C\u6C9F\u901A\u66F4\u8BB2\u9053\u7406\u4E86\u3002\u201D"
-        },
-        {
-          id: "w-task-5",
-          pavilion: "\u6821\u53F2\u9986",
-          pavilionBadge: "\u{1F3EB} \u6821\u53F2\u9986 \xB7 \u5B66\u79D1\u653B\u575A",
-          title: "\u5E73\u9762\u51E0\u4F55\u5468\u957F\u9762\u79EF\u6613\u9519\u9898\u6E05\u96F6",
-          status: "done",
-          duration: "20 \u5206\u949F",
-          time: "17:00 ~ 17:20",
-          instruction: "\u7EA2\u7B14\u91CD\u6784 2 \u9053\u51E0\u4F55\u8F85\u52A9\u7EBF\uFF0C\u5199\u51FA\u5272\u8865\u6CD5\u63A8\u5BFC\u5168\u8FC7\u7A0B\u3002",
-          evidence: "\u2713 \u9519\u9898\u672C\u7EA2\u7B14\u56FE\u89E3\u7167\u7247\u5DF2\u4E0A\u4F20",
-          reflection: "\u201C\u957F\u65B9\u5F62\u5272\u8865\u6210\u4E09\u89D2\u5F62\u540E\uFF0C\u5E95\u548C\u9AD8\u4E00\u4E00\u5BF9\u5E94\u5C31\u4E0D\u4F1A\u7B97\u9519\u4E86\u3002\u201D"
-        }
-      ]
-    },
-    {
-      dayIndex: 2,
-      dayName: "\u5468\u4E09",
-      dateStr: "10/28",
-      tasks: [
-        {
-          id: "w-task-6",
-          pavilion: "\u85CF\u91D1\u5C4B",
-          pavilionBadge: "\u{1F4B0} \u85CF\u91D1\u5C4B \xB7 \u8D22\u5546\u81EA\u63A7",
-          title: "\u96F6\u7528\u91D1\u56DB\u7EF4\u8D44\u91D1\u7F50\u5B9A\u6295\u5B58\u84C4",
-          status: "done",
-          duration: "10 \u5206\u949F",
-          time: "18:10 ~ 18:20",
-          instruction: "\u672C\u5468\u53D1\u653E\u7684 100 \u5143\u96F6\u82B1\u94B1\u6309 4:3:2:1 \u5206\u6D41\u8FDB\u68A6\u60F3\u7F50\u3001\u751F\u606F\u7F50\u7B49\u3002",
-          evidence: "\u2713 \u53F0\u8D26\u660E\u7EC6\u5DF2\u8BB0\u5F55\uFF08\u6536\u652F\u6D41\u6C34\u5DF2\u5F52\u6863\uFF09",
-          reflection: "\u201C\u770B\u5230\u68A6\u60F3\u7F50\u79EF\u6512\u5230 1400 \u5143\uFF0C\u79BB\u663E\u5FAE\u955C\u8D8A\u6765\u8D8A\u8FD1\u4E86\uFF0C\u5F88\u6709\u6210\u5C31\u611F\u3002\u201D"
-        },
-        {
-          id: "w-task-7",
-          pavilion: "\u4FEE\u8EAB\u9601",
-          pavilionBadge: "\u{1FA9E} \u4FEE\u8EAB\u9601 \xB7 \u5FB7\u80B2\u54C1\u683C",
-          title: "\u4EB2\u5B50\u7ACB\u5BAA\u516C\u7EA6\u66AE\u7701\u81EA\u7701\u9632\u5B88",
-          status: "done",
-          duration: "15 \u5206\u949F",
-          time: "21:00 ~ 21:15",
-          instruction: "\u5BF9\u7167\u56DB\u5927\u7EA2\u7EBF\u81EA\u7701\u4ECA\u65E5\u8A00\u884C\uFF0C\u606A\u5B88\u77E5\u6B62\u6212\u5F8B\uFF0C\u96F6\u7834\u6212\u3002",
-          evidence: "\u2713 \u8BDA\u4FE1\u9632\u5B88 0 \u7834\u6212\uFF0C\u54C1\u683C\u79EF\u5206 +5",
-          reflection: "\u201C\u4E0B\u5348\u9762\u5BF9\u6E38\u620F\u8BF1\u60D1\u65F6\u514B\u5236\u4F4F\u4E86\uFF0C\u5148\u5B8C\u6210\u4E86\u4ECA\u5929\u7684\u529F\u8BFE\uFF0C\u611F\u5230\u5B89\u5FC3\u3002\u201D"
-        }
-      ]
-    },
-    {
-      dayIndex: 3,
-      dayName: "\u5468\u56DB",
-      dateStr: "10/29",
-      tasks: [
-        {
-          id: "w-task-8",
-          pavilion: "\u6821\u53F2\u9986",
-          pavilionBadge: "\u{1F3EB} \u6821\u53F2\u9986 \xB7 \u5B66\u79D1\u653B\u575A",
-          title: "\u82F1\u8BED\u539F\u7248\u79D1\u666E\u7ED8\u672C\u8BF5\u8BFB\u5F55\u97F3",
-          status: "done",
-          duration: "25 \u5206\u949F",
-          time: "07:20 ~ 07:45",
-          instruction: "\u5B8C\u6210 4 \u9875\u5927\u81EA\u7136\u79D1\u666E\u7ED8\u672C\u4F34\u8BFB\uFF0C\u6A21\u4EFF\u8BED\u97F3\u8BED\u8C03\u5E76\u5F55\u97F3\u3002",
-          evidence: "\u2713 \u539F\u58F0\u97F3\u9891 2 \u5206 40 \u79D2\u5DF2\u4E0A\u4F20\u5E76\u8F6C\u6587\u5B57\u5B58\u8BC1",
-          reflection: "\u201C\u53D1\u97F3\u66F4\u81EA\u4FE1\u4E86\uFF0C\u751F\u8BCD\u901A\u8FC7\u4E0A\u4E0B\u6587\u731C\u51FA\u4E86\u5927\u81F4\u542B\u4E49\u3002\u201D"
-        },
-        {
-          id: "w-task-9",
-          pavilion: "\u6B66\u9053\u9986",
-          pavilionBadge: "\u{1F3F8} \u6B66\u9053\u9986 \xB7 \u4F53\u80B2\u4F53\u80FD",
-          title: "\u654F\u6377\u68AF\u6B65\u4F10\u4E0E\u7075\u654F\u7206\u53D1\u529B\u5B9E\u8BAD",
-          status: "done",
-          duration: "30 \u5206\u949F",
-          time: "17:15 ~ 17:45",
-          instruction: "\u5B8C\u6210 5 \u7EC4\u5341\u5B57\u4EA4\u53C9\u8DF3\u4E0E\u9AD8\u62AC\u817F\uFF0C\u8BA1\u65F6\u8BEF\u5DEE\u63A7\u5236\u5728 5% \u4EE5\u5185\u3002",
-          evidence: "\u2713 \u8BAD\u7EC3\u8BA1\u65F6\u65E5\u5FD7\u5DF2\u540C\u6B65",
-          reflection: "\u201C\u811A\u6B65\u8F7B\u76C8\u4E86\u5F88\u591A\uFF0C\u542F\u52A8\u901F\u5EA6\u660E\u663E\u6BD4\u4E0A\u5468\u5FEB\u3002\u201D"
-        }
-      ]
-    },
-    {
-      dayIndex: 4,
-      dayName: "\u5468\u4E94",
-      dateStr: "10/30",
-      tasks: [
-        {
-          id: "w-task-10",
-          pavilion: "\u85CF\u91D1\u5C4B",
-          pavilionBadge: "\u{1F4B0} \u85CF\u91D1\u5C4B \xB7 \u8D22\u5546\u81EA\u63A7",
-          title: "\u6587\u5177\u652F\u51FA\u8BB0\u8D26\u4E0E\u51B2\u52A8\u6D88\u8D39\u81EA\u63A7",
-          status: "done",
-          duration: "10 \u5206\u949F",
-          time: "17:50 ~ 18:00",
-          instruction: "\u8D2D\u4E70\u9519\u9898\u6D3B\u9875\u672C\u4E0E\u7EA2\u7B14\u652F\u51FA 18.5 \u5143\uFF0C\u8BB0\u5165\u53F0\u8D26\u5E76\u6838\u5BF9\u5C0F\u7968\u3002",
-          evidence: "\u2713 \u53D1\u7968\u5C0F\u7968\u7167\u7247\u5DF2\u62CD\u7167\u5B58\u8BC1",
-          reflection: "\u201C\u4E70\u4E1C\u897F\u524D\u95EE\u4E86\u81EA\u5DF1\u4E09\u904D\u662F\u4E0D\u662F\u5FC5\u987B\u7684\uFF0C\u514B\u5236\u4E86\u4E70\u76F2\u76D2\u7684\u51B2\u52A8\u3002\u201D"
-        },
-        {
-          id: "w-task-11",
-          pavilion: "\u6BCF\u65E5\u968F\u8BB0",
-          pavilionBadge: "\u{1F4D6} \u6BCF\u65E5\u968F\u8BB0 \xB7 \u751F\u547D\u5168\u4E66",
-          title: "\u5C11\u5E74\u5FC3\u6D41\u66AE\u7701\u53CD\u601D\u624B\u8BB0\u4E66\u5199",
-          status: "done",
-          duration: "20 \u5206\u949F",
-          time: "21:30 ~ 21:50",
-          instruction: "\u5199\u4E0B\u4E00\u5468\u751F\u6D3B\u611F\u609F\uFF0C\u63D0\u70BC\u201C\u5B9A\u529B\u751F\u6167\u201D\u7684\u5207\u5B9E\u529B\u91CF\u3002",
-          evidence: "\u2713 \u66AE\u7701\u65E5\u5FD7 1 \u7BC7\u5DF2\u5F52\u6863\u5165\u751F\u547D\u5168\u4E66\u7011\u5E03\u6D41",
-          reflection: "\u201C\u590D\u76D8\u4E0D\u4EC5\u662F\u770B\u5B8C\u6210\u4E86\u4EC0\u4E48\uFF0C\u66F4\u662F\u770B\u81EA\u5DF1\u5FC3\u6001\u7684\u53D8\u5316\u3002\u201D"
-        }
-      ]
-    },
-    {
-      dayIndex: 5,
-      dayName: "\u5468\u516D (\u4ECA\u65E5)",
-      dateStr: "10/31",
-      tasks: [
-        {
-          id: "w-task-12",
-          pavilion: "\u6821\u53F2\u9986",
-          pavilionBadge: "\u{1F3EB} \u6821\u53F2\u9986 \xB7 \u5B66\u79D1\u653B\u575A",
-          title: "\u8FDB\u9000\u4F4D\u53E3\u7B97\u8FBE\u6807\u7EC8\u6781\u5927\u653B\u575A",
-          status: "done",
-          duration: "25 \u5206\u949F",
-          time: "16:30 ~ 16:55",
-          instruction: "\u9650\u65F6 25 \u5206\u949F\uFF0C\u5B8C\u6210 3 \u9053\u8FDB\u9000\u4F4D\u53E3\u7B97\u96BE\u5173\uFF0C\u62CD\u7167\u4E0A\u4F20\u8349\u7A3F\u7EB8\u539F\u4EF6\u3002",
-          evidence: "\u2713 \u5DF2\u4E0A\u4F20\u624B\u7A3F\u6F14\u7B97\u6CD5\u5219\u7167\u7247 1 \u5F20\uFF08\u542B\u7EA2\u7B14\u8BA2\u6B63\u5361\u70B9\uFF09\n\u2713 \u756A\u8304\u949F\u5B9E\u6D4B\uFF1A\u4E13\u6CE8\u65F6\u957F 25 \u5206 14 \u79D2",
-          reflection: "\u201C\u4ECA\u5929\u505A\u7B2C 3 \u9898\u65F6\u53D1\u73B0\u4E86\u501F\u4F4D\u6807\u8BB0\u7684\u5C0F\u6BDB\u75C5\uFF0C\u7528\u7EA2\u7B14\u5728\u8349\u7A3F\u672C\u4E0A\u6807\u4E86\u4E2A\u5927\u661F\u661F\u3002\u201D"
-        },
-        {
-          id: "w-task-13",
-          pavilion: "\u6B66\u9053\u9986",
-          pavilionBadge: "\u{1F3F8} \u6B66\u9053\u9986 \xB7 \u4F53\u80B2\u4F53\u80FD",
-          title: "\u7FBD\u6BDB\u7403\u6740\u7403300\u6B21\u8010\u529B\u7A81\u7834",
-          status: "done",
-          duration: "40 \u5206\u949F",
-          time: "10:00 ~ 10:40",
-          instruction: "\u7A81\u7834\u624B\u81C2\u9178\u75DB\u6781\u9650\uFF0C\u4F53\u4F1A\u808C\u8089\u8010\u529B\u4E0E\u610F\u5FD7\u529B\u534F\u540C\u3002",
-          evidence: "\u2713 \u5B9E\u6D4B\u5B8C\u6210 300 \u6B21\u51FB\u7403\uFF0C\u6709\u6548\u5FC3\u7387\u6301\u7EED 28 \u5206\u949F",
-          reflection: "\u201C\u771F\u6B63\u4F53\u4F1A\u5230\u4E86\u5B9A\u529B\u751F\u6167\uFF0C\u8EAB\u4F53\u518D\u7D2F\u5FC3\u91CC\u4E5F\u80FD\u6C89\u4F4F\u6C14\u3002\u201D"
-        },
-        {
-          id: "w-task-14",
-          pavilion: "\u601D\u8FA8\u9986",
-          pavilionBadge: "\u{1F9E0} \u601D\u8FA8\u9986 \xB7 \u54F2\u5B66\u6279\u5224",
-          title: "\u8FA9\u8BBA\u590D\u76D8\u624B\u8BB0\u4E0E\u5E03\u9C81\u59C6\u8BC4\u4EF7\u9636\u68AF",
-          status: "pending",
-          duration: "25 \u5206\u949F",
-          time: "19:30 ~ 19:55",
-          instruction: "\u5C06\u672C\u5468\u8BA8\u8BBA\u7684\u8BBA\u9898\u6574\u7406\u6210\u91D1\u5B57\u5854\u56FE\uFF0C\u68B3\u7406\u903B\u8F91\u8BC1\u636E\u94FE\u3002",
-          evidence: "\u5F85\u5B8C\u6210\u6253\u5361\u540E\u4E0A\u4F20\u601D\u7EF4\u5BFC\u56FE",
-          reflection: "\u5F85\u586B\u5199"
-        },
-        {
-          id: "w-task-15",
-          pavilion: "\u6BCF\u65E5\u968F\u8BB0",
-          pavilionBadge: "\u{1F4D6} \u6BCF\u65E5\u968F\u8BB0 \xB7 \u751F\u547D\u5168\u4E66",
-          title: "1\u5206\u949F\u5FC3\u6D41\u601D\u8FA8\u53CD\u601D\u77ED\u7247\u5F55\u5236",
-          status: "pending",
-          duration: "15 \u5206\u949F",
-          time: "21:15 ~ 21:30",
-          instruction: "\u7761\u524D\u5F55\u5236 60 \u79D2\u9AD8\u6E05\u77ED\u7247\uFF0C\u5206\u4EAB\u4ECA\u5929\u653B\u514B\u96BE\u9898\u7684\u5FC3\u8DEF\u5386\u7A0B\u3002",
-          evidence: "\u5F85\u5F55\u5236\u4E0A\u4F20\u5F71\u50CF\u7269\u8BC1",
-          reflection: "\u5F85\u586B\u5199"
-        }
-      ]
-    },
-    {
-      dayIndex: 6,
-      dayName: "\u5468\u65E5",
-      dateStr: "11/01",
-      tasks: [
-        {
-          id: "w-task-16",
-          pavilion: "\u6821\u53F2\u9986",
-          pavilionBadge: "\u{1F3EB} \u6821\u53F2\u9986 \xB7 \u5B66\u79D1\u653B\u575A",
-          title: "\u672C\u5468\u9519\u9898100%\u6E05\u96F6\u5168\u666F\u5927\u590D\u76D8",
-          status: "pending",
-          duration: "30 \u5206\u949F",
-          time: "09:30 ~ 10:00",
-          instruction: "\u5C06\u672C\u5468\u6240\u6709\u7EA2\u7B14\u6807\u8BB0\u9519\u9898\u8FDB\u884C\u4E8C\u6B21\u65E0\u63D0\u793A\u76F2\u6D4B\uFF0C\u786E\u4FDD\u5B8C\u5168\u638C\u63E1\u3002",
-          evidence: "\u5F85\u5B8C\u6210\u6253\u5361\u5E76\u7531\u5BB6\u957F\u76D6\u7AE0",
-          reflection: "\u5F85\u590D\u76D8"
-        },
-        {
-          id: "w-task-17",
-          pavilion: "\u4FEE\u8EAB\u9601",
-          pavilionBadge: "\u{1FA9E} \u4FEE\u8EAB\u9601 \xB7 \u5FB7\u80B2\u54C1\u683C",
-          title: "\u4EBA\u751F\u5E95\u7EBF\u6811\u4E03\u65E5\u4FEE\u517B\u7ED3\u6676\u4EEA\u5F0F",
-          status: "pending",
-          duration: "20 \u5206\u949F",
-          time: "16:00 ~ 16:20",
-          instruction: "\u603B\u7ED3\u4E00\u5468\u8A00\u884C\u81EA\u7701\u9632\u5B88\u6210\u679C\uFF0C\u4E3A\u5E95\u7EBF\u6811\u70B9\u4EAE\u65B0\u7684\u54C1\u683C\u7ED3\u6676\u3002",
-          evidence: "\u5F85\u4EEA\u5F0F\u8FBE\u6210\u540E\u81EA\u52A8\u7ED3\u6676",
-          reflection: "\u5F85\u603B\u7ED3"
-        },
-        {
-          id: "w-task-18",
-          pavilion: "\u6267\u884C\u4E2D\u5FC3",
-          pavilionBadge: "\u26A1 \u6267\u884C\u4E2D\u5FC3 \xB7 \u89C4\u5212\u590D\u76D8",
-          title: "\u4E0B\u5468\u5B66\u4E60\u653B\u575A\u7518\u7279\u56FE\u6C99\u76D8\u63A8\u6F14",
-          status: "pending",
-          duration: "25 \u5206\u949F",
-          time: "19:00 ~ 19:25",
-          instruction: "\u5728\u7518\u7279\u56FE\u89C4\u5212\u6C99\u76D8\u4E2D\u62C6\u89E3\u65B0\u4E00\u5468\u4EFB\u52A1\u8282\u594F\uFF0C\u9884\u8BBE\u91CD\u70B9\u653B\u575A\u65E5\u3002",
-          evidence: "\u5F85\u751F\u6210\u4E0B\u5468\u89C4\u5212\u91CC\u7A0B\u7891",
-          reflection: "\u5F85\u89C4\u5212"
-        }
-      ]
-    }
+    { dayIndex: 0, dayName: "\u5468\u4E00", dateStr: "10/26", tasks: [] },
+    { dayIndex: 1, dayName: "\u5468\u4E8C", dateStr: "10/27", tasks: [] },
+    { dayIndex: 2, dayName: "\u5468\u4E09", dateStr: "10/28", tasks: [] },
+    { dayIndex: 3, dayName: "\u5468\u56DB", dateStr: "10/29", tasks: [] },
+    { dayIndex: 4, dayName: "\u5468\u4E94", dateStr: "10/30", tasks: [] },
+    { dayIndex: 5, dayName: "\u5468\u516D (\u4ECA\u65E5)", dateStr: "10/31", isToday: true, tasks: [] },
+    { dayIndex: 6, dayName: "\u5468\u65E5", dateStr: "11/01", tasks: [] }
   ];
   function changeWeek(delta) {
     window.currentWeekOffset += delta;
@@ -10863,19 +10515,11 @@ function bootPrototypeRuntime() {
     }
   }
   window.TREASURY_STATE = {
-    totalBalance: 3280,
-    totalIncome: 4200,
-    totalExpense: 920,
+    totalBalance: 0,
+    totalIncome: 0,
+    totalExpense: 0,
     currentRecordType: "income",
-    // 'income' | 'expense'
-    ledger: [
-      { id: "TX-20261026-001", time: "2026-10-26 10:15", type: "income", category: "\u96F6\u82B1\u94B1", amount: 100, balanceAfter: 3280, note: "\u6BCF\u5468\u81EA\u4E3B\u751F\u6D3B\u96F6\u7528\u91D1\u5E38\u89C4\u53D1\u653E\u5B58\u5165", proof: "\u{1F4F7} \u96F6\u7528\u91D1\u53D1\u653E\u8BB0\u5F55" },
-      { id: "TX-20261025-002", time: "2026-10-25 16:30", type: "expense", category: "\u5B66\u79D1\u6587\u5177", amount: -42, balanceAfter: 3180, note: "\u8D2D\u4E70\u5B66\u79D1\u653B\u575A\u6587\u5177\u4E0E\u9519\u9898\u4FBF\u7B7E\u672C", proof: "\u{1F9FE} \u65B0\u534E\u4E66\u5E97\u6536\u94F6\u5C0F\u7968\u5DF2\u6838\u9A8C" },
-      { id: "TX-20261020-003", time: "2026-10-20 18:00", type: "expense", category: "\u5B5D\u4EB2\u793C", amount: -58, balanceAfter: 3222, note: "\u91CD\u9633\u8282\u5B5D\u4EB2\u793C\uFF1A\u4E3A\u5976\u5976\u9009\u8D2D\u517B\u751F\u6842\u82B1\u8336\u793C\u76D2", proof: "\u{1F381} \u793C\u76D2\u5B9E\u7269\u7167\u7247" },
-      { id: "TX-20261018-004", time: "2026-10-18 09:30", type: "income", category: "\u52B3\u52A8\u5956\u52B1", amount: 100, balanceAfter: 3280, note: "\u5BB6\u5EAD\u516C\u5171\u536B\u751F\u81EA\u4E3B\u6E05\u6D01\u52B3\u52A8\u6240\u5F97", proof: "\u{1F4F7} \u52B3\u52A8\u6210\u679C\u5B9E\u62CD" },
-      { id: "TX-20261015-005", time: "2026-10-15 20:00", type: "expense", category: "\u8BFE\u5916\u4E66\u7C4D", amount: -65, balanceAfter: 3180, note: "\u8D2D\u4E70\u5929\u6587\u5B66\u5165\u95E8\u4E0E\u661F\u56FE\u89C2\u6D4B\u624B\u518C", proof: "\u{1F9FE} \u8D2D\u4E66\u53D1\u7968" },
-      { id: "TX-20261011-006", time: "2026-10-11 11:20", type: "income", category: "\u96F6\u82B1\u94B1", amount: 100, balanceAfter: 3245, note: "\u671F\u521D\u96F6\u7528\u91D1\u53D1\u653E\u5B58\u5165", proof: "\u{1F4F7} \u5B58\u94B1\u888B\u5B9E\u62CD" }
-    ]
+    ledger: []
   };
   function switchTreasuryRecordType(type) {
     window.TREASURY_STATE.currentRecordType = type;
@@ -11051,9 +10695,9 @@ function bootPrototypeRuntime() {
   }
   function renderTreasurySpecializedWorkspace() {
     const state = window.TREASURY_STATE || {
-      totalBalance: 3280,
-      totalIncome: 4200,
-      totalExpense: 920,
+      totalBalance: 0,
+      totalIncome: 0,
+      totalExpense: 0,
       ledger: []
     };
     const isIncome = state.currentRecordType !== "expense";
@@ -11336,127 +10980,8 @@ function bootPrototypeRuntime() {
   }
   window.ACHIEVEMENT_STATE = {
     currentTab: "cultivation",
-    // 'cultivation' | 'accidental' | 'all'
-    // 1. 养成类成就：各模块项目执行完成后沉淀的结果，不可手动新增，只可在目标卡片点击记录到成就馆，按项目类型分组按时间线展示
-    cultivationItems: [
-      {
-        id: "ACH-CULT-20261025-001",
-        date: "2026-10-25",
-        title: "\u300A\u5927\u5B66\u300B\u5B9A\u672C\u77E5\u884C\u5408\u4E00\u7ED3\u4E1A\u901A\u5173\u7AE0",
-        icon: "\u{1F4DC}",
-        projectType: "cultivation",
-        projectTypeLabel: "\u4FEE\u8EAB\u9601 \xB7 \u5FB7\u80B2\u54C1\u683C\u7814\u8BFB",
-        projectName: "\u300A\u5927\u5B66\u300B\u4FEE\u8EAB\u7ACB\u4EBA\u4E8C\u5341\u65E5\u7814\u4E60\u8BA1\u5212",
-        metrics: [
-          { name: "\u7ECF\u5178\u9010\u53E5\u9ED8\u5199\u4E0E\u8BF5\u8BFB\u6B63\u786E\u7387", target: "\u226595%", actual: "98% (\u8FBE\u6807)" },
-          { name: "\u8A00\u884C\u5408\u4E00\u81EA\u5F8B\u9632\u5B88\u5929\u6570", target: "20\u5929", actual: "20\u5929 (\u6EE1\u8D2F)" }
-        ],
-        proof: "\u{1F399}\uFE0F \u6668\u8BFB\u539F\u58F0\u97F3\u9891\u4E0E\u81EA\u5F8B\u8DF5\u884C\u624B\u8BB0\u5B58\u8BC1\u5DF2\u5F52\u6863",
-        issuer: "\u4FEE\u8EAB\u9601\u95EE\u9053\u5E08\u957F \xB7 \u89C1\u8BC1",
-        desc: "\u4FEE\u8EAB\u9601\u77E5\u884C\u5408\u4E00\u6C89\u6DC0 \xB7 \u5B8C\u6210\u300A\u5927\u5B66\u300B\u65E5\u8BF5\u4E0E\u81EA\u5F8B\u8DF5\u884C20\u5929\uFF0C\u8A00\u884C\u5408\u4E00\uFF0C\u7ECF\u53D7\u4F4F\u8BF1\u60D1\u8003\u9A8C\u3002"
-      },
-      {
-        id: "ACH-CULT-20261020-002",
-        date: "2026-10-20",
-        title: "\u6570\u5B66\u53E3\u7B97\u767E\u9898\u8FDB\u9636\u653B\u575A\u901A\u5173\u7AE0",
-        icon: "\u{1F4D0}",
-        projectType: "study",
-        projectTypeLabel: "\u6821\u53F2\u9986 \xB7 \u5B66\u79D1\u5B66\u4E1A\u653B\u575A",
-        projectName: "100\u4EE5\u5185\u6DF7\u5408\u8FDB\u9000\u4F4D\u53E3\u7B97\u901F\u5EA6\u4E0E\u6B63\u786E\u7387\u653B\u575A",
-        metrics: [
-          { name: "30\u9898\u8FDB\u9000\u4F4D\u6DF7\u5408\u53E3\u7B97\u6B63\u786E\u7387", target: "100%", actual: "100% (\u6EE1\u5206)" },
-          { name: "\u5168\u5377\u9650\u65F6\u5B8C\u6210\u901F\u5EA6", target: "\u22645\u5206\u949F", actual: "4\u520615\u79D2" }
-        ],
-        proof: "\u{1F4C4} \u8003\u5377\u539F\u9898\u5168\u7EA2\u7B14\u8BA2\u6B63\u65E0\u9057\u6F0F\u8349\u7A3F\u5DF2\u5F52\u6863",
-        issuer: "\u6821\u53F2\u9986\u5B66\u79D1\u6559\u7814\u7EC4 \xB7 \u5BA1\u9A8C",
-        desc: "\u6821\u53F2\u9986\u5B66\u79D1\u5B66\u4E1A\u6C89\u6DC0 \xB7 \u72EC\u7ACB\u5B8C\u621030\u9053\u8FDB\u9000\u4F4D\u53E3\u7B97\u5168\u5BF9\uFF0C\u7834\u9664\u754F\u96BE\u5FC3\u7406\uFF0C\u8FBE\u5230\u5353\u8D8A\u6807\u51C6\u3002"
-      },
-      {
-        id: "ACH-CULT-20261014-003",
-        date: "2026-10-14",
-        title: "\u5C11\u513F\u8DF3\u7EF3\u5355\u6447\u8FDE\u8DF3\u7A81\u7834200\u6B21\u52CB\u7AE0",
-        icon: "\u{1F94B}",
-        projectType: "dojo",
-        projectTypeLabel: "\u6B66\u9053\u9986 \xB7 \u5174\u8DA3\u4F53\u80FD\u7ADE\u6280",
-        projectName: "\u8DF3\u7EF3\u8010\u529B\u4E0E\u7206\u53D1\u529B\u4E13\u9879\u4F53\u9002\u80FD\u7A81\u7834",
-        metrics: [
-          { name: "\u5355\u6447\u4E0D\u95F4\u65AD\u8FDE\u8DF3\u6B21\u6570", target: "\u2265200\u6B21", actual: "220\u6B21" },
-          { name: "\u5FC3\u7387\u6062\u590D\u65F6\u957F", target: "\u22643\u5206\u949F", actual: "2\u520620\u79D2" }
-        ],
-        proof: "\u{1F3AC} \u8FDE\u8DF3\u5B9E\u51B5\u5207\u7247\u89C6\u9891\u4E0E\u5FC3\u7387\u8BB0\u5F55\u5DF2\u5F52\u6863",
-        issuer: "\u6B66\u9053\u9986\u6559\u7EC3\u7EC4 \xB7 \u5BA1\u9A8C",
-        desc: "\u6B66\u9053\u9986\u4F53\u9002\u80FD\u6C89\u6DC0 \xB7 \u7A81\u7834\u4F53\u80FD\u4E0E\u8282\u594F\u74F6\u9888\uFF0C\u5B9E\u73B0\u8FDE\u8DF3 220 \u6B21\u4E0D\u7ECA\u7EF3\uFF0C\u610F\u5FD7\u987D\u5F3A\u3002"
-      },
-      {
-        id: "ACH-CULT-20261010-004",
-        date: "2026-10-10",
-        title: "\u5C11\u513F\u8D22\u5546\u81EA\u5F8B\u50A8\u84C4\u4E0E\u8BB0\u8D26\u901A\u5173\u7AE0",
-        icon: "\u{1F4B0}",
-        projectType: "treasury",
-        projectTypeLabel: "\u85CF\u91D1\u5C4B \xB7 \u5C11\u513F\u8D22\u5546\u50A8\u84C4",
-        projectName: "\u9996\u671F\u96F6\u7528\u91D1\u5408\u7406\u89C4\u5212\u4E0E\u50A8\u84C4\u5951\u7EA6",
-        metrics: [
-          { name: "\u50A8\u84C4\u5C65\u7EA6\u7387", target: "\u226580%", actual: "85%" },
-          { name: "\u6BCF\u65E5\u8BB0\u8D26\u51C6\u786E\u7387", target: "100%", actual: "100%" }
-        ],
-        proof: "\u{1F4DC} \u96F6\u7528\u91D1\u6536\u652F\u53F0\u8D26\u539F\u4EF6\u4E0E\u7ED3\u4F59\u6838\u9A8C",
-        issuer: "\u5C11\u513F\u8D22\u5546\u7406\u4E8B\u4F1A \xB7 \u89C1\u8BC1",
-        desc: "\u85CF\u91D1\u5C4B\u8D22\u5546\u6C89\u6DC0 \xB7 \u8FDE\u7EED30\u5929\u65E0\u9057\u6F0F\u8BB0\u8D26\uFF0C\u62B5\u5236\u51B2\u52A8\u6D88\u8D39\uFF0C\u8FBE\u6210\u9996\u7B14\u68A6\u60F3\u57FA\u91D1\u50A8\u84C4\u3002"
-      }
-    ],
-    // 2. 偶然成就：生活学习过程中的偶然成就，可手动新增，记录成就类别、成就图片、成就内容、成就描述等数据，在成就馆中以成就类别分组按照时间线展示
-    accidentalItems: [
-      {
-        id: "ACH-ACC-20261024-001",
-        date: "2026-10-24",
-        category: "arts",
-        categoryLabel: "\u{1F3A8} \u827A\u672F\u624D\u534E",
-        title: "\u5168\u56FD\u5C11\u513F\u4E66\u753B\u521B\u4F5C\u5927\u8D5B\u7279\u7B49\u91D1\u5956",
-        image: "\u{1F5BC}\uFE0F \u300A\u6668\u66E6\u7834\u6653\u82CD\u5CE6\u56FE\u300B\u6C34\u58A8\u753B\u53C2\u8D5B\u4F5C\u54C1\u539F\u4EF6\u5B9E\u62CD\u7167",
-        desc: "\u72EC\u7ACB\u521B\u4F5C\u6C34\u58A8\u56FD\u753B\u4F5C\u54C1\u300A\u6668\u66E6\u7834\u6653\u82CD\u5CE6\u56FE\u300B\uFF0C\u5386\u65F6\u4E24\u5468\u6253\u78E8\u6784\u56FE\u4E0E\u8BBE\u8272\uFF0C\u5728\u5168\u56FD\u6570\u5343\u4EFD\u53C2\u8D5B\u4F5C\u54C1\u4E2D\u8131\u9896\u800C\u51FA\uFF0C\u8363\u83B7\u5C11\u513F\u7EC4\u7279\u7B49\u91D1\u5956\u3002",
-        issuer: "\u5168\u56FD\u9752\u5C11\u513F\u4E66\u753B\u827A\u672F\u6559\u80B2\u8054\u5408\u4F1A"
-      },
-      {
-        id: "ACH-ACC-20261022-002",
-        date: "2026-10-22",
-        category: "life",
-        categoryLabel: "\u{1F373} \u751F\u6D3B\u81EA\u7ACB",
-        title: "\u7B2C\u4E00\u6B21\u72EC\u7ACB\u4E3A\u5168\u5BB6\u4EBA\u505A\u756A\u8304\u7092\u86CB\u665A\u9910",
-        image: "\u{1F373} \u70ED\u6C14\u817E\u817E\u7684\u756A\u8304\u7092\u86CB\u51FA\u9505\u5B9E\u62CD\u7167\u4E0E\u6574\u6D01\u53A8\u623F\u5408\u5F71",
-        desc: "\u7238\u7238\u5988\u5988\u52A0\u73ED\u665A\u5F52\uFF0C\u81EA\u5DF1\u4E3B\u52A8\u7CFB\u4E0A\u56F4\u88D9\uFF0C\u6D17\u756A\u8304\u3001\u6253\u9E21\u86CB\u3001\u70ED\u6CB9\u7FFB\u7092\uFF0C\u4E0D\u4EC5\u505A\u51FA\u4E86\u53EF\u53E3\u7684\u756A\u8304\u7092\u86CB\uFF0C\u8FD8\u628A\u7076\u53F0\u548C\u7897\u7B77\u6536\u62FE\u5F97\u5E72\u5E72\u51C0\u51C0\u3002",
-        issuer: "\u5168\u5BB6\u4EBA\u6E29\u99A8\u89C1\u8BC1"
-      },
-      {
-        id: "ACH-ACC-20261015-003",
-        date: "2026-10-15",
-        category: "discovery",
-        categoryLabel: "\u{1F52D} \u79D1\u5B66\u63A2\u7D22",
-        title: "\u72EC\u7ACB\u52A8\u624B\u5236\u4F5C\u6298\u5C04\u5F0F\u5929\u6587\u671B\u8FDC\u955C\u89C2\u6D4B\u6708\u5751",
-        image: "\u{1F52D} \u81EA\u5236\u51F8\u900F\u955C\u786C\u7EB8\u7B52\u671B\u8FDC\u955C\u4E0E\u6E05\u6670\u6708\u7403\u73AF\u5F62\u5C71\u76EE\u955C\u5B9E\u62CD",
-        desc: "\u7528\u5E9F\u5F03\u725B\u76AE\u7EB8\u7B52\u3001\u51F8\u900F\u955C\u7247\u548C\u76EE\u955C\u7EC4\u4EF6\uFF0C\u81EA\u5DF1\u6D4B\u7B97\u7126\u8DDD\u5E76\u8C03\u8BD5\u6210\u529F\uFF0C\u665A\u4E0A\u5728\u9633\u53F0\u6E05\u6670\u770B\u5230\u4E86\u6708\u7403\u7B2C\u8C37\u73AF\u5F62\u5C71\uFF0C\u6FC0\u53D1\u8D77\u5BF9\u5B87\u5B99\u7684\u65E0\u9650\u597D\u5947\u3002",
-        issuer: "\u5B66\u6821\u521B\u5BA2\u79D1\u6280\u8282\u6307\u5BFC\u6559\u5E08"
-      },
-      {
-        id: "ACH-ACC-20261005-004",
-        date: "2026-10-05",
-        category: "social",
-        categoryLabel: "\u{1F91D} \u5584\u610F\u5173\u6000",
-        title: "\u793E\u533A\u56FE\u4E66\u4E49\u5356\u4E49\u5DE5\u4E0E\u7ED9\u517B\u8001\u9662\u8001\u4EBA\u8BFB\u62A5",
-        image: "\u{1F4D6} \u793E\u533A\u4E49\u5356\u6350\u8D60\u8BC1\u4E66\u4E0E\u517B\u8001\u9662\u8BFB\u4E66\u5B9E\u62CD\u7167\u7247",
-        desc: "\u56FD\u5E86\u5047\u671F\u4E3B\u52A8\u628A\u770B\u8FC7\u768420\u672C\u5C11\u513F\u7ED8\u672C\u6574\u7406\u4E49\u5356\uFF0C\u5C06\u6240\u5F97\u7231\u5FC3\u6B3E\u5168\u90E8\u6350\u8D60\u7ED9\u5C71\u533A\u5C0F\u5B66\uFF0C\u5E76\u53BB\u517B\u8001\u9662\u7ED9\u4E09\u4F4D\u89C6\u529B\u4E0D\u597D\u7684\u8001\u7237\u7237\u6717\u8BFB\u62A5\u7EB8\u534A\u5C0F\u65F6\u3002",
-        issuer: "\u7EFF\u6D32\u793E\u533A\u5C45\u59D4\u4F1A\u5FD7\u613F\u8005\u670D\u52A1\u7AD9"
-      },
-      {
-        id: "ACH-ACC-20260928-005",
-        date: "2026-09-28",
-        category: "honor",
-        categoryLabel: "\u{1F3C6} \u610F\u5916\u8363\u8A89",
-        title: "\u5E02\u9752\u5C11\u5E74\u7FBD\u6BDB\u7403\u590F\u5B63\u9080\u8BF7\u8D5B\u4E34\u573A\u9006\u8F6C\u6458\u94F6",
-        image: "\u{1F3F8} \u94F6\u724C\u5956\u7AE0\u4E0E\u9881\u5956\u53F0\u9886\u5956\u9AD8\u6E05\u7559\u5F71\u7167\u7247",
-        desc: "\u7ECF\u5386\u534A\u51B3\u8D5B\u51B3\u80DC\u5C40 18:20 \u6FD2\u4E34\u8D5B\u70B9\u7684\u6781\u9650\u9006\u5883\uFF0C\u987D\u5F3A\u9632\u5B88\u8FDE\u6551\u4E24\u4E2A\u8D5B\u70B9\u53CD\u8D85\u9006\u8F6C\uFF0C\u6458\u5F97\u7537\u5355\u7EC4\u4E9A\u519B\u5956\u724C\u3002",
-        issuer: "\u5E02\u9752\u5C11\u5E74\u7FBD\u6BDB\u7403\u534F\u4F1A"
-      }
-    ]
+    cultivationItems: [],
+    accidentalItems: []
   };
   function renderAchieveSpecializedWorkspace() {
     const cultItems = window.ACHIEVEMENT_STATE.cultivationItems || [];
@@ -11741,72 +11266,17 @@ function bootPrototypeRuntime() {
   window.NOTE_STATE = {
     currentMood: "\u2600\uFE0F \u4E13\u6CE8\u5145\u5B9E",
     currentEnergy: 4,
-    todayFocusMinutes: 60,
+    todayFocusMinutes: 0,
     journalText: "",
-    todayAutoLogs: [
-      { time: "16:55", text: "\u23F1\uFE0F \u3010\u6821\u53F2\u9986\u3011\u5B8C\u6210 1 \u4E2A\u756A\u8304\u949F\u4E13\u6CE8\u9650\u65F6\u53E3\u7B97 (25\u5206\u949F)\uFF0C100\u4EE5\u5185\u8FDB\u9000\u4F4D\u8FD0\u7B97\u6E05\u96F6\u9519\u9898 3 \u9053\uFF0C\u7EA2\u7B14\u9A8C\u7B97\u624B\u7A3F\u5DF2\u5F52\u6863\u3002" },
-      { time: "07:35", text: "\u{1FA9E} \u3010\u4FEE\u8EAB\u9601\u3011\u7814\u8BFB\u300A\u5927\u5B66\u300B\u77E5\u6B62\u800C\u540E\u6709\u5B9A\u7AE0\u8282\uFF0C\u5B8C\u6210\u6668\u8BFB\u8BF5\u8BFB\u6253\u5361\uFF0C\u77E5\u884C\u5408\u4E00\u8DF5\u884C\u9632\u5B88\u6E05\u5355 100% \u5C65\u7EA6\u3002" },
-      { time: "10:40", text: "\u{1F3F8} \u3010\u6B66\u9053\u9986\u3011\u7FBD\u6BDB\u7403\u540E\u573A\u6740\u7403 300 \u6B21\u4E13\u9879\u51FB\u7403\u6325\u62CD\u8BAD\u7EC3\uFF0C\u6709\u6548\u4E13\u6CE8 35 \u5206\u949F\uFF0C\u7A81\u7834\u624B\u81C2\u9178\u75DB\u6781\u9650\u3002" },
-      { time: "18:05", text: "\u{1F4B0} \u3010\u85CF\u91D1\u5C4B\u3011\u8BB0\u5E38\u89C4\u96F6\u7528\u91D1\u53D1\u653E\u6536\u5165 +\xA550.00\uFF0C\u65B0\u534E\u4E66\u5E97\u8D2D\u4E70\u9519\u9898\u6D3B\u9875\u672C -\xA518.50\uFF0C\u7ED3\u4F59\u8D26\u5B9E\u76F8\u7B26\u3002" }
-    ],
-    mediaList: [
-      {
-        id: "m-photo-1",
-        type: "image",
-        name: "\u9519\u9898\u7EA2\u7B14\u8BA2\u6B63\u624B\u7A3F\u539F\u5377.png",
-        caption: "100\u4EE5\u5185\u9000\u4F4D\u51CF\u6CD5\u9519\u56E0\u5F52\u56E0\u4E0E\u4E8C\u6B21\u9A8C\u7B97",
-        time: "17:40",
-        demoIcon: "\u{1F4D0}",
-        previewContent: "\u3010\u6570\u5B66\u9519\u9898\u624B\u7A3F\u8BA2\u6B63\u3011\n\u9898\u53F7: 18 - 9 = 9 (\u501F\u4F4D\u6807\u8BB0\u5DF2\u7EA2\u7B14\u5708\u51FA)\n\u5F52\u56E0: \u4E2A\u4F4D\u4E0D\u591F\u51CF\u672A\u501F\u5341\uFF0C\u4E8C\u6B21\u6F14\u7B97\u6838\u51C6\u65E0\u8BEF\u3002"
-      },
-      {
-        id: "m-video-1",
-        type: "video",
-        name: "1\u5206\u949F\u7761\u524D\u5FC3\u6D41\u601D\u8FA8\u53CD\u601D\u77ED\u7247.mp4",
-        caption: "\u4ECA\u65E5\u9762\u5BF9\u5361\u70B9\u65F6\u7684\u5FC3\u6027\u78E8\u783A\u590D\u76D8\u624B\u8BB0",
-        time: "21:15",
-        duration: "01:05",
-        demoIcon: "\u{1F3AC}",
-        previewContent: "\u3010\u5FC3\u6D41\u53CD\u601D\u89C6\u9891\u5F55\u50CF\u3011\n\u5F55\u5236\u65F6\u957F: 01:05 \xB7 \u9AD8\u6E05 1080P\n\u6838\u5FC3\u611F\u609F: \u9762\u5BF9\u7E41\u91CD\u53E3\u7B97\u65F6\u4E00\u5EA6\u60F3\u653E\u5F03\uFF0C\u901A\u8FC7\u6DF1\u547C\u5438\u91CD\u62FE\u5B9A\u529B\u3002"
-      }
-    ],
-    historyEntries: [
-      {
-        id: "entry-20261031",
-        date: "2026-10-31",
-        mood: "\u2600\uFE0F \u4E13\u6CE8\u5145\u5B9E",
-        energy: 5,
-        text: "\u4ECA\u5929\u5728\u6821\u53F2\u9986\u653B\u514B\u4E86\u8FDB\u9000\u4F4D\u53E3\u7B97\u96BE\u5173\uFF0C\u7EA2\u7B14\u91CD\u505A\u6E05\u96F6\u4E86\u5168\u90E83\u9053\u9519\u9898\uFF1B\u6B66\u9053\u9986\u540E\u573A\u51FB\u7403300\u6B21\u7A81\u7834\u4E86\u624B\u81C2\u9178\u75DB\u6781\u9650\uFF0C\u4F53\u4F1A\u5230\u201C\u5B9A\u529B\u751F\u6167\u201D\u7684\u5207\u5B9E\u529B\u91CF\u3002",
-        autoLogs: [
-          "\u23F1\uFE0F \u6821\u53F2\u9986\uFF1A\u5B8C\u6210 1 \u4E2A\u756A\u8304\u949F\u4E13\u6CE8\u53E3\u7B97 (25\u5206\u949F)\uFF0C\u6E05\u96F6\u9519\u9898 3 \u9053",
-          "\u{1FA9E} \u4FEE\u8EAB\u9601\uFF1A\u300A\u5927\u5B66\u300B\u683C\u7269\u81F4\u77E5\u4E0E\u6668\u8BFB\u6253\u5361\u5B8C\u6BD5\uFF0C\u7ACB\u5BAA\u5FC3\u6027\u7A33\u56FA",
-          "\u{1F3F8} \u5174\u8DA3\u5C4B\uFF1A\u540E\u573A\u6740\u7403 300 \u6B21\u6325\u62CD\u7279\u8BAD\uFF0C\u6709\u6548\u4F53\u80FD\u6D88\u8017 280 kcal"
-        ],
-        media: [
-          { id: "h-1", type: "image", name: "\u9519\u9898\u7EA2\u7B14\u8BA2\u6B63\u624B\u7A3F\u539F\u5377.png", caption: "\u8FDB\u9000\u4F4D\u9A8C\u7B97\u539F\u7A3F", time: "17:40" },
-          { id: "h-2", type: "video", name: "1\u5206\u949F\u7761\u524D\u5FC3\u6D41\u601D\u8FA8\u53CD\u601D\u77ED\u7247.mp4", caption: "\u81EA\u5F8B\u5FC3\u6027\u590D\u76D8", duration: "01:05", time: "21:15" }
-        ]
-      },
-      {
-        id: "entry-20261030",
-        date: "2026-10-30",
-        mood: "\u{1F308} \u987F\u609F\u7A81\u7834",
-        energy: 4,
-        text: "\u665A\u4E0A\u548C\u7238\u7238\u8BA8\u8BBA\u4E86\u96F6\u82B1\u94B1\u8BB0\u8D26\uFF0C\u660E\u767D\u4E86\u201C\u91CF\u5165\u4E3A\u51FA\u201D\u4E0D\u4EC5\u662F\u94B1\u7684\u95EE\u9898\uFF0C\u66F4\u662F\u5BF9\u81EA\u5DF1\u751F\u6D3B\u79E9\u5E8F\u7684\u638C\u63A7\u3002\u5199\u5B8C\u65E5\u8BB0\u611F\u5230\u5185\u5FC3\u975E\u5E38\u5E73\u9759\u3002",
-        autoLogs: [
-          "\u{1F4B0} \u85CF\u91D1\u5C4B\uFF1A\u8BB0\u4E00\u7B14\u96F6\u7528\u91D1\u652F\u51FA -\xA518.50 (\u8D2D\u4E70\u9519\u9898\u6D3B\u9875\u672C\u4E0E\u7EA2\u7B14)",
-          "\u{1F9E0} \u8BA4\u77E5\u53F0\uFF1A\u4EB2\u5B50\u601D\u8FA8\u63A2\u8BA8\u91D1\u94B1\u89C2\uFF0C\u8FBE\u6210\u81EA\u5F8B\u5951\u7EA6\u5171\u8BC6"
-        ],
-        media: [
-          { id: "h-3", type: "image", name: "\u65B0\u534E\u4E66\u5E97\u8D2D\u4E66\u53D1\u7968\u51ED\u636E.png", caption: "\u6587\u5177\u5C0F\u7968\u7269\u8BC1", time: "19:20" }
-        ]
-      }
-    ]
+    todayAutoLogs: [],
+    mediaList: [],
+    historyEntries: []
   };
   function renderNoteSpecializedWorkspace() {
     const state = window.NOTE_STATE;
     const curEnergy = state.currentEnergy || 4;
-    const autoLogsHtml = (state.todayAutoLogs || []).map((item, idx) => {
+    const autoLogsList = state.todayAutoLogs || [];
+    const autoLogsHtml = autoLogsList.length > 0 ? autoLogsList.map((item, idx) => {
       const txt = typeof item === "string" ? item : item.text;
       const tm = typeof item === "object" && item.time ? item.time : "\u4ECA\u65E5";
       const isMoney = txt.includes("\u85CF\u91D1\u5C4B") || txt.includes("\xA5");
@@ -11816,7 +11286,7 @@ function bootPrototypeRuntime() {
       const bl = isMoney ? "#d97706" : isSport ? "#2563eb" : "#16a34a";
       const col = isMoney ? "#92400e" : isSport ? "#1d4ed8" : "#166534";
       return '<div style="background:' + bg + "; border:1.2px solid " + bd + "; border-left:3.5px solid " + bl + '; padding:10px 12px; border-radius:10px; font-size:11.5px;"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;"><span style="font-weight:900; color:' + col + ';">\u81EA\u52A8\u5F52\u96C6 #' + (idx + 1) + '</span><span style="font-size:10px; color:#64748b; font-weight:700;">\u{1F552} ' + tm + '</span></div><div style="color:' + col + '; line-height:1.45;">' + txt + "</div></div>";
-    }).join("");
+    }).join("") : '<div style="grid-column:1 / -1; padding:20px; text-align:center; color:#94a3b8; font-size:12px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:10px;">\u4ECA\u65E5\u6682\u65E0\u81EA\u52A8\u6C47\u96C6\u7684\u6253\u5361\u6216\u6D41\u6C34\uFF0C\u5B8C\u6210\u5404\u6A21\u5757\u4EFB\u52A1\u540E\u5C06\u81EA\u52A8\u5728\u6B64\u7559\u75D5 \u23F1\uFE0F</div>';
     let starsHtml = "";
     for (let s = 1; s <= 5; s++) {
       const active = s <= curEnergy;
@@ -12124,68 +11594,7 @@ function bootPrototypeRuntime() {
   let currentGanttCategory = "all";
   let currentGanttStatus = "all";
   let selectedNewProjCategory = "\u5B66\u4E1A\u653B\u575A";
-  window.GANTT_PROJECTS = [
-    {
-      id: "p1",
-      pavilion: "study",
-      category: "\u5B66\u4E1A\u653B\u575A",
-      title: "\u5C0F\u5B66\u6570\u5B66\u53E3\u7B97\u8FBE\u6807\u4E0E\u9006\u5411\u601D\u7EF4\u8BAD\u7EC3",
-      desc: "\u6BCF\u65E5\u9650\u65F620\u5206\u949F\u5B8C\u621030\u9053\u6DF7\u5408\u8FDB\u9000\u4F4D\u53E3\u7B97\u9898\uFF0C\u7EA2\u7B14\u5708\u51FA\u9519\u56E0\u5F52\u56E0\u8BA2\u6B63\uFF0C\u5468\u65E5\u4E0E\u5BB6\u957F\u8FDB\u884C\u601D\u7EF4\u4F8B\u9898\u62C6\u89E3\u3002",
-      startDate: "2026-10-22",
-      endDate: "2026-11-04",
-      completedDays: ["2026-10-22", "2026-10-23", "2026-10-24", "2026-10-25", "2026-10-26", "2026-10-27"],
-      isArchived: false
-    },
-    {
-      id: "p2",
-      pavilion: "dojo",
-      category: "\u5174\u8DA3\u7279\u957F",
-      title: "\u5C11\u513F\u8DF3\u7EF3\u8FDE\u8DF3\u7A81\u7834\u4E0E\u534F\u8C03\u6027\u8BAD\u7EC3",
-      desc: "\u6311\u6218\u53CC\u811A\u5355\u6447\u8FDE\u8DF3\u8FBE300\u6B21\u4E0D\u7ECA\u7EF3\uFF0C\u6BCF\u7EC4100\u6B21\u51713\u7EC4\uFF0C\u95F4\u6B4745\u79D2\uFF0C\u7A81\u7834\u4F53\u80FD\u74F6\u9888\u5E76\u7531\u5BB6\u957F\u89C1\u8BC1\u76D6\u7AE0\u3002",
-      startDate: "2026-10-20",
-      endDate: "2026-11-08",
-      completedDays: ["2026-10-20", "2026-10-21", "2026-10-23", "2026-10-25", "2026-10-26", "2026-10-27"],
-      isArchived: false
-    },
-    {
-      id: "p3",
-      pavilion: "cultivation",
-      category: "\u4FEE\u8EAB\u7ACB\u5BAA",
-      title: "\u300A\u5927\u5B66\u300B\u7ECF\u5178\u6668\u8BFB\u4E0E\u77E5\u884C\u5408\u4E00\u8DF5\u884C\u8BA1\u5212",
-      desc: "\u6BCF\u65E5\u6668\u8BFB\u6717\u8BF5\u300A\u5927\u5B66\u300B\u300A\u8BBA\u8BED\u300B\u540D\u53E5\u4E09\u904D\u5E76\u5F55\u97F3\u5B58\u8BC1\uFF0C\u7ED3\u5408\u751F\u6D3B\u5B9E\u9645\u8DF5\u884C\u5B5D\u4EB2\u4E0E\u614E\u72EC\uFF0C\u7ED3\u4E1A\u6C89\u6DC0\u81F3\u6210\u5C31\u9986\u3002",
-      startDate: "2026-10-22",
-      endDate: "2026-11-10",
-      completedDays: ["2026-10-22", "2026-10-24", "2026-10-26", "2026-10-27"],
-      isArchived: false
-    },
-    {
-      id: "p4",
-      pavilion: "cognition",
-      category: "\u8BA4\u77E5\u601D\u8FA8",
-      title: "\u5C11\u513F\u591A\u5143\u601D\u7EF4\u4E0E\u4EB2\u5B50\u8BAE\u9898\u601D\u8FA8\u8BAD\u7EC3",
-      desc: "\u4EB2\u5B50\u6BCF\u5468\u5F00\u5C55\u4E00\u6B21\u751F\u6D3B\u8BAE\u9898\u601D\u8FA8\u63A2\u8BA8\uFF0C\u5206\u522B\u9648\u8FF0\u6B63\u53CD\u89C2\u70B9\u5E76\u68B3\u7406\u903B\u8F91\u8BC1\u636E\u94FE\uFF0C\u6C89\u6DC0\u601D\u8FA8\u590D\u76D8\u5361\u3002",
-      startDate: "2026-10-08",
-      endDate: "2026-10-25",
-      completedDays: Array.from({ length: 18 }, (_, i) => {
-        const d = new Date(2026, 9, 8 + i);
-        const m = String(d.getMonth() + 1).padStart(2, "0");
-        const day = String(d.getDate()).padStart(2, "0");
-        return "2026-" + m + "-" + day;
-      }),
-      isArchived: false
-    },
-    {
-      id: "p5",
-      pavilion: "study",
-      category: "\u5B66\u4E1A\u653B\u575A",
-      title: "\u5C11\u513F\u6C49\u5B57\u89C4\u8303\u4E66\u5199\u4E0E\u770B\u56FE\u5199\u8BDD\u653B\u575A",
-      desc: "\u6BCF\u65E5\u89C4\u8303\u4E66\u5199 8 \u4E2A\u751F\u5B57\u5E76\u6CE8\u610F\u7B14\u987A\uFF0C\u89C2\u5BDF\u4E00\u5E45\u751F\u6D3B\u573A\u666F\u63D2\u56FE\u5199\u51FA 3 \u53E5\u5B8C\u6574\u901A\u987A\u7684\u89C2\u5BDF\u65E5\u8BB0\u3002",
-      startDate: "2026-10-15",
-      endDate: "2026-11-10",
-      completedDays: ["2026-10-15", "2026-10-16", "2026-10-18", "2026-10-20", "2026-10-22", "2026-10-24"],
-      isArchived: false
-    }
-  ];
+  window.GANTT_PROJECTS = [];
   function computeProjectProgressAndStatus(p) {
     const totalDays = Math.max(1, diffGanttDays(p.startDate, p.endDate) + 1);
     const completedCount = p.completedDays && Array.isArray(p.completedDays) ? p.completedDays.length : 0;
@@ -12640,6 +12049,12 @@ function bootPrototypeRuntime() {
     const dur = parseInt(cfg.duration, 10) || 20;
     const pavMeta = typeof PAVILION_META !== "undefined" && PAVILION_META[pavId] ? PAVILION_META[pavId] : { name: "\u6267\u884C\u4EFB\u52A1", icon: "\u26A1" };
     const newIdx = deck.querySelectorAll(".exec-task-card").length;
+    const placeholder = document.getElementById("day-deck-empty-placeholder");
+    if (placeholder)
+      placeholder.style.display = "none";
+    const dotsWrapEl = document.getElementById("exec-carousel-dots");
+    if (dotsWrapEl)
+      dotsWrapEl.style.display = "flex";
     const cardEl = document.createElement("div");
     cardEl.className = "exec-task-card tertiary-drill-card card-far-next";
     cardEl.id = "exec-sync-" + taskId;

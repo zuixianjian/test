@@ -179,6 +179,87 @@ export class VaultStorageAdapter {
     if (savedBounty && win.BOUNTY_STATE) {
       Object.assign(win.BOUNTY_STATE, savedBounty);
     }
+
+    // 彻底清除所有历史遗留的假测试数据
+    this.purgeLegacyDemoData(win);
+  }
+
+  /**
+   * 清除开发与原型阶段预置的假数据，确保用户环境纯净
+   */
+  private purgeLegacyDemoData(win: any): void {
+    if (!win) return;
+
+    // 1. 清除假甘特项目
+    if (Array.isArray(win.GANTT_PROJECTS)) {
+      const demoTitles = [
+        "小学数学口算达标与逆向思维训练",
+        "少儿跳绳连跳突破与协调性训练",
+        "《大学》经典晨读与知行合一践行计划",
+        "少儿多元思维与亲子议题思辨训练",
+        "少儿汉字规范书写与看图写话攻坚",
+      ];
+      const filtered = win.GANTT_PROJECTS.filter((p: any) => {
+        if (!p) return false;
+        if (["p1", "p2", "p3", "p4", "p5"].includes(p.id)) return false;
+        if (p.title && demoTitles.some((t) => p.title.includes(t))) return false;
+        return true;
+      });
+      win.GANTT_PROJECTS.splice(0, win.GANTT_PROJECTS.length, ...filtered);
+    }
+
+    // 2. 清除假藏金屋台账
+    if (win.TREASURY_STATE) {
+      if (Array.isArray(win.TREASURY_STATE.ledger)) {
+        win.TREASURY_STATE.ledger = win.TREASURY_STATE.ledger.filter((item: any) => {
+          if (!item || !item.id) return false;
+          return !item.id.startsWith("TX-202610");
+        });
+      }
+      if (win.TREASURY_STATE.totalBalance === 3280 && win.TREASURY_STATE.totalIncome === 4200) {
+        win.TREASURY_STATE.totalBalance = 0;
+        win.TREASURY_STATE.totalIncome = 0;
+        win.TREASURY_STATE.totalExpense = 0;
+      }
+    }
+
+    // 3. 清除假成就数据
+    if (win.ACHIEVEMENT_STATE) {
+      if (Array.isArray(win.ACHIEVEMENT_STATE.cultivationItems)) {
+        win.ACHIEVEMENT_STATE.cultivationItems = win.ACHIEVEMENT_STATE.cultivationItems.filter(
+          (item: any) => item && item.id && !item.id.startsWith("ACH-CULT-202610")
+        );
+      }
+      if (Array.isArray(win.ACHIEVEMENT_STATE.accidentalItems)) {
+        win.ACHIEVEMENT_STATE.accidentalItems = win.ACHIEVEMENT_STATE.accidentalItems.filter(
+          (item: any) => item && item.id && !item.id.startsWith("ACH-ACC-202610")
+        );
+      }
+    }
+
+    // 4. 清除假悬赏契约
+    if (win.BOUNTY_STATE && win.BOUNTY_STATE.id === "BC-202611-MATH95") {
+      win.BOUNTY_STATE = null;
+    }
+
+    // 5. 清除假周看板待办
+    if (Array.isArray(win.WEEK_BOARD_DATA)) {
+      win.WEEK_BOARD_DATA.forEach((col: any) => {
+        if (Array.isArray(col.tasks)) {
+          col.tasks = col.tasks.filter((t: any) => t && t.id && !t.id.startsWith("w-task-"));
+        }
+      });
+    }
+
+    // 6. 清除假 HUD 连胜与履约统计
+    if (win.USER_PROFILE_STATE) {
+      if (win.USER_PROFILE_STATE.streakDays === 18 && win.USER_PROFILE_STATE.baseFulfillmentRate === 96) {
+        win.USER_PROFILE_STATE.streakDays = 0;
+        win.USER_PROFILE_STATE.baseFulfillmentRate = 100;
+        win.USER_PROFILE_STATE.completedTodayCount = 0;
+        win.USER_PROFILE_STATE.totalTodayCount = 0;
+      }
+    }
   }
 
   /**

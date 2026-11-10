@@ -1,26 +1,3 @@
-
-<!-- ===================================================================== -->
-<!-- 每日随记【影像物证全屏查阅】弹窗 (#note-media-preview-modal)          -->
-<!-- ===================================================================== -->
-<div id="note-media-preview-modal" style="display:none; position:fixed; inset:0; z-index:20000; background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:16px;">
-  <div style="background:#fff; width:92%; max-width:680px; max-height:90vh; border-radius:20px; border:2px solid #3b82f6; box-shadow:0 16px 48px rgba(0,0,0,0.45); display:flex; flex-direction:column; overflow:hidden; animation:zoomIn 0.22s cubic-bezier(0.16,1,0.3,1);">
-    <div style="background:linear-gradient(135deg, #1e3a8a, #2563eb); color:#fff; padding:14px 18px; display:flex; align-items:center; justify-content:space-between;">
-      <div style="display:flex; align-items:center; gap:8px;">
-        <span id="note-preview-modal-icon" style="font-size:18px;">📷</span>
-        <span id="note-preview-modal-title" style="font-size:15px; font-weight:900;">影像物证原卷查验</span>
-      </div>
-      <button onclick="closeNoteMediaPreviewModal()" style="background:rgba(255,255,255,0.2); border:none; color:#fff; width:28px; height:28px; border-radius:50%; font-size:14px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
-    </div>
-    <div id="note-preview-modal-body" style="padding:18px; overflow-y:auto; flex:1; display:flex; flex-direction:column; align-items:center; gap:12px;">
-      <!-- 由 JS 填充照片或视频播放器 -->
-    </div>
-    <div style="background:#f8fafc; padding:12px 18px; border-top:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
-      <span id="note-preview-modal-caption" style="font-size:12px; color:#64748b; font-weight:600;">影像物证说明</span>
-      <button onclick="closeNoteMediaPreviewModal()" class="note-submit-btn" style="height:32px; padding:0 18px; font-size:12px;">关闭预览</button>
-    </div>
-  </div>
-</div>
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -4496,7 +4473,7 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
   top: 66px; /* 紧随顶部 HUD (height: 48px + 10px = 58px) 下方，留出 8px 呼吸间距 */
   left: 0;
   right: 0;
-  bottom: 76px; /* 留出底部发射器高度 */
+  bottom: 96px !important; /* 留出底部发射器高度 */
   display: flex;
   flex-direction: column;
   background: transparent !important;
@@ -5225,7 +5202,7 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
   top: 74px !important; /* 单行操作栏 56px + 8px = 64px，留出 10px 呼吸间隙彻底避免遮挡 */
   left: 0;
   right: 0;
-  bottom: 76px;
+  bottom: 96px !important;
   display: flex;
   flex-direction: column;
   background: transparent !important;
@@ -5269,7 +5246,7 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
   top: 74px !important;
   left: 0 !important;
   right: 0 !important;
-  bottom: 84px !important; /* 确保底部避开小岛发射器 (launcher 高度约 54px + bottom 14px = 68px) */
+  bottom: 96px !important; /* 确保底部避开小岛发射器 (launcher 高度约 54px + bottom 14px = 68px) */
   display: flex;
   flex-direction: column !important;
   background: transparent !important; /* 彻底去除黄色，沿用原版绿色海岛背景 */
@@ -6110,8 +6087,7 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 
 /* 左列：项目目录与基本信息清单 (580px 宽，各列间距充裕绝不遮挡) */
 .gantt-table-col {
-  width: 580px;
-  min-width: 580px;
+  width: 630px; min-width: 630px;
   border-right: 2px solid rgba(140, 107, 69, 0.25);
   display: flex;
   flex-direction: column;
@@ -6136,7 +6112,7 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 .col-head-title { flex: 1; min-width: 0; padding: 0 10px; }
 .col-head-dates { width: 98px; flex-shrink: 0; text-align: center; }
 .col-head-status { width: 78px; flex-shrink: 0; text-align: center; }
-.col-head-ops { width: 116px; flex-shrink: 0; text-align: center; }
+.col-head-ops { width: 165px; flex-shrink: 0; text-align: center; }
 
 .gantt-table-rows {
   flex: 1;
@@ -6163,7 +6139,7 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 .col-cell-title { flex: 1; min-width: 0; padding: 0 10px; }
 .col-cell-dates { width: 98px; flex-shrink: 0; text-align: center; }
 .col-cell-status { width: 78px; flex-shrink: 0; text-align: center; display: flex; align-items: center; justify-content: center; }
-.col-cell-ops { width: 116px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.col-cell-ops { width: 165px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; gap: 6px; }
 
 .gantt-cat-tag {
   display: inline-flex;
@@ -6245,6 +6221,14 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 
 /* 操作列仅规划与归档两个精细按键 (尺寸适中绝不遮盖左侧状态) */
 .gantt-op-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 26px !important;
+  padding: 0 6px !important;
+  font-size: 11px !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
   padding: 4px 7px;
   border-radius: 6px;
   border: 1.2px solid rgba(140, 107, 69, 0.3);
@@ -11762,11 +11746,11 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
             <div class="hud-stats-row">
               <div class="hud-stat-item streak" title="连续自律打卡天数">
                 <span>🔥</span>
-                <span id="hud-streak-count">连续 18 天</span>
+                <span id="hud-streak-count">连续 0 天</span>
               </div>
               <div class="hud-stat-item rate" onclick="openFamilyPactModal(true)" style="cursor:pointer;" title="本周综合自律契约履约率 · 点击调阅《亲子立宪公约》或执行违约裁决">
                 <span>📈</span>
-                <span id="hud-rate-percent">履约 98%</span>
+                <span id="hud-rate-percent">履约 100%</span>
               </div>
             </div>
           </div>
@@ -11824,20 +11808,20 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
           <div class="bounty-content-col">
             <div class="bounty-header-line">
               <span class="bounty-tag" id="home-bounty-tag">置顶悬赏</span>
-              <span class="bounty-title-text" id="home-bounty-title">小学口算进退位专项突破</span>
-              <span class="bounty-timer-pill" id="home-bounty-timer">⏱️ 7天内有效</span>
+              <span class="bounty-title-text" id="home-bounty-title">暂无进行中的悬赏契约</span>
+              <span class="bounty-timer-pill" id="home-bounty-timer">⏱️ 等待张榜</span>
             </div>
             <div class="bounty-reward-line">
-              <span class="bounty-gold-highlight" id="home-bounty-reward">🎁 科技馆探索门票</span>
-              <span class="bounty-author-tag" id="home-bounty-author">👨 爸爸发布</span>
-              <span class="bounty-cta-hint" id="home-bounty-cta">已应战 · 去交付 ›</span>
+              <span class="bounty-gold-highlight" id="home-bounty-reward">🎁 点击可发布新契约</span>
+              <span class="bounty-author-tag" id="home-bounty-author">👨‍👩‍👦 亲子公约</span>
+              <span class="bounty-cta-hint" id="home-bounty-cta">去发布 ›</span>
             </div>
           </div>
         </div>
 
         <div class="topbar-stat-pill" title="今日待办达成进度">
           <span class="stat-pill-label">达成:</span>
-          <span class="stat-pill-val gold" id="exec-stat-progress">2/5</span>
+          <span class="stat-pill-val gold" id="exec-stat-progress">0/0</span>
         </div>
       </div>
     </div>
@@ -11853,43 +11837,9 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
        ========================================================================= -->
   <div id="island-goal-cards-dock" class="island-goal-cards-dock">
     <div id="island-goal-cards-list" class="island-goal-cards-list">
-      <!-- 目标卡 1 -->
-      <div class="island-goal-item-card" onclick="enterSecondaryWorkspace(&apos;study&apos;, &apos;gantt&apos;)" title="点击直达【校史馆】甘特总览规划">
-        <div class="goal-card-top-row">
-          <span class="goal-card-pav-tag" style="background:#eff6ff; color:#1d4ed8;">📐 校史馆 · 学业</span>
-          <span class="goal-card-pct-badge" style="color:#10b981;">70% (14/20天)</span>
-        </div>
-        <div class="goal-card-title">🎯 《口算达标与逆向思维通关》</div>
-        <div class="goal-card-bottom-row">
-          <span class="goal-card-desc-text">100以内加减准确率98%以上</span>
-          <div class="goal-card-progress-track"><div class="goal-card-progress-bar" style="width:70%; background:#10b981;"></div></div>
-        </div>
-      </div>
-
-      <!-- 目标卡 2 -->
-      <div class="island-goal-item-card" onclick="enterSecondaryWorkspace(&apos;dojo&apos;, &apos;gantt&apos;)" title="点击直达【武道馆】甘特总览规划">
-        <div class="goal-card-top-row">
-          <span class="goal-card-pav-tag" style="background:#fef3c7; color:#b45309;">🥋 武道馆 · 特长</span>
-          <span class="goal-card-pct-badge" style="color:#10b981;">80% (16/20天)</span>
-        </div>
-        <div class="goal-card-title">🎯 《少儿跳绳连跳突破强化》</div>
-        <div class="goal-card-bottom-row">
-          <span class="goal-card-desc-text">连续单摇300次不绊绳达标</span>
-          <div class="goal-card-progress-track"><div class="goal-card-progress-bar" style="width:80%; background:#10b981;"></div></div>
-        </div>
-      </div>
-
-      <!-- 目标卡 3 -->
-      <div class="island-goal-item-card" onclick="enterSecondaryWorkspace(&apos;cultivation&apos;, &apos;gantt&apos;)" title="点击直达【修身阁】甘特总览规划">
-        <div class="goal-card-top-row">
-          <span class="goal-card-pav-tag" style="background:#f0fdf4; color:#15803d;">📜 修身阁 · 品格</span>
-          <span class="goal-card-pct-badge" style="color:#f59e0b;">50% (10/20天)</span>
-        </div>
-        <div class="goal-card-title">🎯 《国学经典晨读知行合一》</div>
-        <div class="goal-card-bottom-row">
-          <span class="goal-card-desc-text">晨诵《大学》践行孝亲慎独</span>
-          <div class="goal-card-progress-track"><div class="goal-card-progress-bar" style="width:50%; background:#f59e0b;"></div></div>
-        </div>
+      <div style="display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:10px 16px; color:#8c6b45; font-size:12px; font-weight:700;">
+        <span>🌱 暂无进行中的学期规划项目</span>
+        <button type="button" class="card-graphic-pill pill-timer" onclick="switchMainSection('ws'); openAddProjectModal();" style="padding:2px 10px; font-size:11px; cursor:pointer;">➕ 立即立项</button>
       </div>
     </div>
   </div>
@@ -11909,254 +11859,17 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
     <!-- 3D 舞台容器 -->
     <div class="exec-carousel-stage" id="exec-carousel-stage">
             <div class="exec-card-deck" id="day-card-deck">
-
-        <!-- 1. 🎯 目标分解卡 (card-goal · 与通用三级节点页面 #tcard-1 内容 1:1 一致) -->
-        <div class="exec-task-card tertiary-goal-card card-active" id="exec-card-goal" data-index="0" data-task-id="1" data-pavilion="goal" data-label="口算达标与思维通关目标" onclick="handleTaskCardClick(event, 'goal')" title="点击卡片进入【🎯 目标分解节点卡】专属打卡页面">
-          <div class="work-node-card-header">
-            <span class="work-node-badge" style="background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe;">🎯 目标分解</span>
-            <span class="work-node-title">口算达标与思维通关目标</span>
-            <span class="task-status-pill pending" id="status-text-exec-card-goal" style="font-size:10px; font-weight:800; color:#1d4ed8;">阶段里程碑</span>
-          </div>
-          <div class="work-node-body" style="display:flex; flex-direction:column; gap:7px;">
-            <!-- 可自定义新增/删除的多个量化通关指标 (两列：指标名 + 指标数据) -->
-            <div style="background:#f8fafc; border:1px solid #bfdbfe; border-radius:8px; padding:6px 8px;" onclick="event.stopPropagation()">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                <span style="font-size:10.5px; font-weight:850; color:#1e3a8a;">🎯 量化通关指标 (指标名 / 指标数据)</span>
-                <button type="button" onclick="addCardGoalMetricItem('exec-card-goal-metrics', event)" style="padding:1px 6px; font-size:9.5px; font-weight:800; background:#dbeafe; color:#1d4ed8; border:1px solid #93c5fd; border-radius:4px; cursor:pointer;">➕ 新增指标</button>
-              </div>
-              <div style="display:grid; grid-template-columns:1fr 1fr 20px; gap:4px; font-size:9.5px; font-weight:800; color:#64748b; padding:0 2px 2px;">
-                <span>指标名</span>
-                <span>指标数据</span>
-                <span></span>
-              </div>
-              <div id="exec-card-goal-metrics" style="display:flex; flex-direction:column; gap:4px;">
-                <div class="card-goal-metric-item" style="display:grid; grid-template-columns:1fr 1fr 20px; align-items:center; gap:4px;">
-                  <input type="text" value="单元口算正确率" placeholder="指标名" class="add-module-text-input goal-metric-name" style="width:100%; box-sizing:border-box; height:22px; font-size:10.5px; padding:1px 6px; color:#1e3a8a; font-weight:700;">
-                  <input type="text" value="≥ 98%" placeholder="指标数据" class="add-module-text-input goal-metric-val" style="width:100%; box-sizing:border-box; height:22px; font-size:10.5px; padding:1px 6px; color:#15803d; font-weight:800;">
-                  <button type="button" onclick="removeCardGoalMetricItem(this, event)" style="width:20px; height:20px; border:1px solid #fca5a5; background:#fef2f2; color:#dc2626; border-radius:4px; font-size:10px; font-weight:900; cursor:pointer; line-height:1;">✕</button>
-                </div>
-                <div class="card-goal-metric-item" style="display:grid; grid-template-columns:1fr 1fr 20px; align-items:center; gap:4px;">
-                  <input type="text" value="进退位心算提分" placeholder="指标名" class="add-module-text-input goal-metric-name" style="width:100%; box-sizing:border-box; height:22px; font-size:10.5px; padding:1px 6px; color:#1e3a8a; font-weight:700;">
-                  <input type="text" value="Delta +15 分" placeholder="指标数据" class="add-module-text-input goal-metric-val" style="width:100%; box-sizing:border-box; height:22px; font-size:10.5px; padding:1px 6px; color:#15803d; font-weight:800;">
-                  <button type="button" onclick="removeCardGoalMetricItem(this, event)" style="width:20px; height:20px; border:1px solid #fca5a5; background:#fef2f2; color:#dc2626; border-radius:4px; font-size:10px; font-weight:900; cursor:pointer; line-height:1;">✕</button>
-                </div>
-              </div>
-            </div>
-
-            <div style="background:#eff6ff; border:1px dashed #93c5fd; padding:6px 8px; border-radius:8px; font-size:10.5px; color:#1e40af;">
-              📋 验收标准：完成破十法思维实训与 3 次限时打卡，错题红笔归因清零。
-            </div>
-
-            <!-- 期望完成截止时间 (点击选择日期与时间) -->
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:7px; padding:4px 8px; font-size:10.5px;" onclick="event.stopPropagation()">
-              <span style="font-weight:800; color:#0369a1; white-space:nowrap;">📅 期望完成截止时间:</span>
-              <input type="datetime-local" id="goal-deadline-exec-card-goal" value="2026-11-15T20:00" onclick="if(this.showPicker) this.showPicker();" onchange="showIslandToast('📅 已更新期望完成截止时间：' + this.value.replace('T', ' '))" style="border:1px solid #7dd3fc; border-radius:5px; padding:1px 5px; font-size:10px; font-weight:800; color:#0c4a6e; background:#fff; cursor:pointer;">
-            </div>
-
-            <!-- 执行操作：交付物提交（下拉选择：拍照 / 视频 / 文字记录提交） -->
-            <div style="background:#fffbeb; border:1px solid #fcd34d; border-radius:8px; padding:6px 8px; display:flex; flex-direction:column; gap:5px;" onclick="event.stopPropagation()">
-              <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
-                <span style="font-size:10.5px; font-weight:850; color:#92400e; white-space:nowrap;">📦 交付物提交:</span>
-                <select id="goal-deliverable-type-exec-card-goal" onchange="switchGoalDeliverableMode('exec-card-goal', this.value)" style="flex:1; height:22px; font-size:10px; font-weight:800; color:#92400e; background:#fff; border:1px solid #f59e0b; border-radius:5px; padding:0 4px; cursor:pointer;">
-                  <option value="photo" selected>📷 拍照提交</option>
-                  <option value="video">🎥 视频提交</option>
-                  <option value="text">✍️ 文字记录提交</option>
-                </select>
-              </div>
-              <div id="goal-media-box-exec-card-goal" onclick="triggerGoalDeliverableUpload('exec-card-goal', event)" style="background:#fff; border:1.5px dashed #f59e0b; border-radius:6px; padding:6px 8px; font-size:10px; color:#b45309; font-weight:800; cursor:pointer; text-align:center;">
-                📷 点击拍照或上传交付物照片
-              </div>
-              <textarea id="goal-deliverable-text-exec-card-goal" class="add-module-text-input" placeholder="✍️ 输入交付物文字记录..." style="display:none; width:100%; box-sizing:border-box; height:38px; font-size:10px; padding:3px 6px; resize:vertical; background:#fff;">已完成30道进退位混合口算满分通关，附红笔自查满分卷。</textarea>
-            </div>
-
-            <!-- 底部操作栏：沉淀到成就馆 -->
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:6px; border-top:1px solid #f1e4d0; font-size:10.5px;">
-              <span style="color:#1d4ed8; font-size:10px; font-weight:800;">👉 点击卡片进入打卡页面</span>
-              <button type="button" id="btn-deposit-exec-card-goal" class="card-graphic-pill" style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#fff; border:1px solid #b45309; font-weight:850; padding:4px 10px; cursor:pointer; box-shadow:0 2px 6px rgba(217,119,6,0.25);" onclick="depositGoalToAchievement('exec-card-goal', event)">🏆 记录到成就馆</button>
-            </div>
-          </div>
+        <div class="exec-card-empty-placeholder" id="day-deck-empty-placeholder" style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:36px 20px; background:linear-gradient(135deg, rgba(255, 252, 243, 0.96), rgba(254, 243, 199, 0.94)); border:2px dashed #b8b68e; border-radius:24px; box-shadow:0 10px 28px rgba(0,0,0,0.15); width:460px; max-width:90%; margin:auto;">
+          <span style="font-size:42px; margin-bottom:10px;">🏝️</span>
+          <h3 style="font-size:17px; font-weight:900; color:#60401f; margin:0 0 6px 0;">今日暂无待办事项</h3>
+          <p style="font-size:12px; color:#8c6b45; line-height:1.5; margin:0 0 16px 0;">点击下方启动台进入【校史馆】、【武道馆】、【思辨馆】或【修身阁】建立成长规划，或点击上方告示牌发布家长悬赏契约，任务将自动同步至今日待办！</p>
+          <button type="button" class="card-graphic-pill pill-timer" style="padding:6px 18px; font-size:12px; font-weight:900; cursor:pointer;" onclick="switchHomeGlobalView('planning')">🧭 前往规划新课题</button>
         </div>
-
-        <!-- 2. ⚡ 攻坚实训卡 (card-drill · 与通用三级节点页面 #tcard-2 内容 1:1 一致) -->
-        <div class="exec-task-card tertiary-drill-card card-next" id="exec-card-drill" data-index="1" data-task-id="2" data-pavilion="drill" data-label="破十法心算极限实训" onclick="handleTaskCardClick(event, 'drill')" title="点击卡片进入【⚡ 攻坚实训节点卡】专属打卡页面">
-          <div class="work-node-card-header">
-            <span class="work-node-badge" style="background:#fef3c7; color:#b45309; border:1px solid #fde68a;">⚡ 攻坚实训</span>
-            <span class="work-node-title">破十法心算极限实训</span>
-            <span class="task-status-pill pending" id="status-text-exec-card-drill" style="font-size:10px; font-weight:800; color:#b45309;">🟡 今日待打卡</span>
-          </div>
-          <div class="work-node-body" style="display:flex; flex-direction:column; gap:7px;">
-            <p style="font-weight:750; color:#4a3a2a; font-size:11.5px; margin:0;">【核心攻坚要领】23 - 8 = 13 + (10 - 8) = 15，十位借一当十。</p>
-
-            <!-- 计划专注时长（从 5 分钟起可选） -->
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; background:#fffbeb; border:1px dashed #fcd34d; padding:5px 8px; border-radius:8px; font-size:10.5px; color:#92400e;" onclick="event.stopPropagation()">
-              <span style="font-weight:800;">⏱️ 计划专注时长:</span>
-              <select id="drill-duration-select-exec-card-drill" onchange="updateDrillCardDuration('exec-card-drill', this.value)" style="border:1px solid #f59e0b; border-radius:5px; padding:1px 6px; font-size:10.5px; font-weight:800; color:#92400e; background:#fff; cursor:pointer;">
-                <option value="5">5 分钟 (微习惯快练)</option>
-                <option value="10">10 分钟 (轻量专攻)</option>
-                <option value="15">15 分钟 (日常快练)</option>
-                <option value="20" selected>20 分钟 (标准实训)</option>
-                <option value="25">25 分钟 (深度番茄)</option>
-                <option value="30">30 分钟 (强化攻坚)</option>
-                <option value="45">45 分钟 (全套模拟)</option>
-              </select>
-            </div>
-
-            <!-- 图片视频说明（单一上传框，支持上传图片和视频 + 说明输入） -->
-            <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px; padding:6px 8px; display:flex; flex-direction:column; gap:5px;" onclick="event.stopPropagation()">
-              <span style="font-size:10.5px; font-weight:850; color:#0369a1;">🎬 图片视频说明</span>
-              <div id="drill-img-box-exec-card-drill" class="node-img-preview-box" onclick="triggerDrillCardImage('exec-card-drill', event)" style="margin:0; padding:7px 8px; background:#fff; border:1.5px dashed #38bdf8; border-radius:6px; cursor:pointer; text-align:center;">
-                <span style="font-size:10.5px; font-weight:800; color:#0284c7;">📷 / 🎥 点击上传图片或视频 (进退位口算题卡.png)</span>
-              </div>
-              <input type="text" id="drill-img-desc-exec-card-drill" class="add-module-text-input" value="进退位口算题卡 30 题，红笔圈出借位退位点" placeholder="✍️ 输入图片或视频说明..." style="width:100%; box-sizing:border-box; height:22px; font-size:10px; padding:1px 6px; background:#fff; color:#0c4a6e; font-weight:700;">
-            </div>
-
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:6px; border-top:1px solid #f1e4d0; font-size:10.5px;">
-              <span id="drill-footer-dur-exec-card-drill">预计专注：⏱️ 20 分钟</span>
-              <button type="button" class="card-graphic-pill pill-timer" onclick="openExecCardPopupView('drill'); event.stopPropagation();">🌟 立即打卡</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 3. 🌿 习惯践行卡 (card-habit · 与通用三级节点页面 #tcard-3 内容 1:1 一致) -->
-        <div class="exec-task-card tertiary-habit-card card-far-next" id="exec-card-habit" data-index="2" data-task-id="3" data-pavilion="habit" data-label="每日口算自律防守日课" onclick="handleTaskCardClick(event, 'habit')" title="点击卡片进入【🌿 习惯践行节点卡】专属打卡页面">
-          <div class="work-node-card-header">
-            <span class="work-node-badge" style="background:#ecfdf5; color:#047857; border:1px solid #a7f3d0;">🌿 习惯践行</span>
-            <span class="work-node-title">每日口算自律防守日课</span>
-            <span id="status-text-exec-card-habit" class="task-status-pill pending" style="font-size:10px; font-weight:800; color:#047857;">日常自律</span>
-          </div>
-          <div class="work-node-body" style="display:flex; flex-direction:column; gap:7px;">
-            <p style="font-weight:750; color:#14532d; font-size:11.5px; margin:0;">【知行合一日课】晨间 15 分钟独立口算盲刷，恪守无屏幕纯净时刻。</p>
-            <!-- 可自定义新增/删除的多项践行防守清单 -->
-            <div style="background:#ecfdf5; border:1px dashed #6ee7b7; padding:6px 8px; border-radius:8px; font-size:10.5px; color:#065f46;" onclick="event.stopPropagation()">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                <span style="font-size:10.5px; font-weight:850; color:#065f46;">🛡️ 践行防守清单 (可增删多项)</span>
-                <button type="button" onclick="addCardHabitChecklistItem('exec-card-habit-checklist', event)" style="padding:1px 6px; font-size:9.5px; font-weight:800; background:#d1fae5; color:#047857; border:1px solid #6ee7b7; border-radius:4px; cursor:pointer;">➕ 新增清单项</button>
-              </div>
-              <div id="exec-card-habit-checklist" style="display:flex; flex-direction:column; gap:4px;">
-                <div class="card-habit-checklist-item" style="display:grid; grid-template-columns:16px 1fr 20px; align-items:center; gap:4px;">
-                  <input type="checkbox" checked style="margin:0; accent-color:#059669; cursor:pointer;">
-                  <input type="text" value="1. 独立审题不依赖草稿" placeholder="输入践行防守清单项..." class="add-module-text-input habit-checklist-input" style="width:100%; box-sizing:border-box; height:22px; font-size:10.5px; padding:1px 6px; color:#065f46; font-weight:700; background:#fff;">
-                  <button type="button" onclick="removeCardHabitChecklistItem(this, event)" style="width:20px; height:20px; border:1px solid #fca5a5; background:#fef2f2; color:#dc2626; border-radius:4px; font-size:10px; font-weight:900; cursor:pointer; line-height:1;">✕</button>
-                </div>
-                <div class="card-habit-checklist-item" style="display:grid; grid-template-columns:16px 1fr 20px; align-items:center; gap:4px;">
-                  <input type="checkbox" checked style="margin:0; accent-color:#059669; cursor:pointer;">
-                  <input type="text" value="2. 错题立即红笔标退位点" placeholder="输入践行防守清单项..." class="add-module-text-input habit-checklist-input" style="width:100%; box-sizing:border-box; height:22px; font-size:10.5px; padding:1px 6px; color:#065f46; font-weight:700; background:#fff;">
-                  <button type="button" onclick="removeCardHabitChecklistItem(this, event)" style="width:20px; height:20px; border:1px solid #fca5a5; background:#fef2f2; color:#dc2626; border-radius:4px; font-size:10px; font-weight:900; cursor:pointer; line-height:1;">✕</button>
-                </div>
-                <div class="card-habit-checklist-item" style="display:grid; grid-template-columns:16px 1fr 20px; align-items:center; gap:4px;">
-                  <input type="checkbox" checked style="margin:0; accent-color:#059669; cursor:pointer;">
-                  <input type="text" value="3. 做毕自主整理书桌" placeholder="输入践行防守清单项..." class="add-module-text-input habit-checklist-input" style="width:100%; box-sizing:border-box; height:22px; font-size:10.5px; padding:1px 6px; color:#065f46; font-weight:700; background:#fff;">
-                  <button type="button" onclick="removeCardHabitChecklistItem(this, event)" style="width:20px; height:20px; border:1px solid #fca5a5; background:#fef2f2; color:#dc2626; border-radius:4px; font-size:10px; font-weight:900; cursor:pointer; line-height:1;">✕</button>
-                </div>
-              </div>
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:6px; border-top:1px solid #f1e4d0; font-size:10.5px;">
-              <span>预计用时：⏱️ 15 分钟</span>
-              <button type="button" class="card-graphic-pill pill-checkin" onclick="openExecCardPopupView('habit'); event.stopPropagation();">🌿 知行打卡</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 4. 📝 评估复盘卡 (card-reflection · 与通用三级节点页面 #tcard-4 内容 1:1 一致) -->
-        <div class="exec-task-card tertiary-reflection-card card-far-prev" id="exec-card-reflection" data-index="3" data-task-id="4" data-pavilion="reflection" data-label="口算错因归因与反思便签" onclick="handleTaskCardClick(event, 'reflection')" title="点击卡片进入【📝 评估复盘节点卡】专属打卡页面">
-          <div class="work-node-card-header">
-            <span class="work-node-badge" style="background:#f5f3ff; color:#7c3aed; border:1px solid #ddd6fe;">📝 评估复盘</span>
-            <span class="work-node-title">口算错因归因与反思便签</span>
-            <span id="status-text-exec-card-reflection" class="task-status-pill pending" style="font-size:10px; font-weight:800; color:#7c3aed;">待复盘</span>
-          </div>
-          <div class="work-node-body" style="display:flex; flex-direction:column; gap:7px;">
-            <div style="background:#faf5ff; border:1px solid #e9d5ff; border-radius:8px; padding:6px 8px; font-size:11px;" onclick="event.stopPropagation()">
-            <div style="font-weight:850; color:#6b21a8; margin-bottom:3px; font-size:10.5px;">📝 复盘说明 (错因卡点分析与反思心得合并区)</div>
-            <textarea class="add-module-text-input" placeholder="输入失分根因、思维卡点与反思心得..." style="width:100%; box-sizing:border-box; height:42px; font-size:10.5px; padding:3px 6px; background:#fff; color:#581c87; resize:vertical;">个位数 3 - 8 不够减忘记标退位借位点；运算模型化速度大幅提升，审题需先圈出运算符！</textarea>
-          </div>
-            <!-- 可自定义新增/删除的提升清单 -->
-            <div style="background:#f5f3ff; border:1px dashed #c4b5fd; padding:6px 8px; border-radius:8px; font-size:10.5px; color:#5b21b6;" onclick="event.stopPropagation()">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                <span style="font-size:10.5px; font-weight:850; color:#5b21b6;">🚀 提升清单 (可增删提升项)</span>
-                <button type="button" onclick="addCardReflectionImprovementItem('exec-card-reflection-improvements', event)" style="padding:1px 6px; font-size:9.5px; font-weight:800; background:#ede9fe; color:#6d28d9; border:1px solid #c4b5fd; border-radius:4px; cursor:pointer;">➕ 新增提升项</button>
-              </div>
-              <div id="exec-card-reflection-improvements" style="display:flex; flex-direction:column; gap:4px;">
-                <div class="card-reflection-improvement-item" style="display:grid; grid-template-columns:16px 1fr 20px; align-items:center; gap:4px;">
-                  <input type="checkbox" checked style="margin:0; accent-color:#7c3aed; cursor:pointer;">
-                  <input type="text" value="1. 审题时先用红笔圈出加减运算符号" placeholder="输入提升项..." class="add-module-text-input reflection-improvement-input" style="width:100%; box-sizing:border-box; height:22px; font-size:10.5px; padding:1px 6px; color:#5b21b6; font-weight:700; background:#fff;">
-                  <button type="button" onclick="removeCardReflectionImprovementItem(this, event)" style="width:20px; height:20px; border:1px solid #fca5a5; background:#fef2f2; color:#dc2626; border-radius:4px; font-size:10px; font-weight:900; cursor:pointer; line-height:1;">✕</button>
-                </div>
-                <div class="card-reflection-improvement-item" style="display:grid; grid-template-columns:16px 1fr 20px; align-items:center; gap:4px;">
-                  <input type="checkbox" checked style="margin:0; accent-color:#7c3aed; cursor:pointer;">
-                  <input type="text" value="2. 遇到个位不够减立即标出十位退位点" placeholder="输入提升项..." class="add-module-text-input reflection-improvement-input" style="width:100%; box-sizing:border-box; height:22px; font-size:10.5px; padding:1px 6px; color:#5b21b6; font-weight:700; background:#fff;">
-                  <button type="button" onclick="removeCardReflectionImprovementItem(this, event)" style="width:20px; height:20px; border:1px solid #fca5a5; background:#fef2f2; color:#dc2626; border-radius:4px; font-size:10px; font-weight:900; cursor:pointer; line-height:1;">✕</button>
-                </div>
-              </div>
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-top:auto; padding-top:6px; border-top:1px solid #f1e4d0; font-size:10.5px;">
-              <button type="button" class="card-graphic-pill" style="background:#ede9fe; color:#6d28d9; border:1px solid #c4b5fd; font-weight:800; cursor:pointer;" onclick="deriveNodesFromReflectionCard('exec-card-reflection', event)">🌱 派生实训节点</button>
-              <button type="button" class="card-graphic-pill pill-reflection" onclick="openExecCardPopupView('reflection'); event.stopPropagation();">✍️ 笃行复盘</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 5. ⚙️ 自定义配置卡 (card-custom · 与通用三级节点页面 #tcard-5 内容 1:1 一致) -->
-        <div class="exec-task-card tertiary-custom-card card-prev" id="exec-card-custom" data-index="4" data-task-id="5" data-pavilion="custom" data-label="航天科普馆自主研学与水火箭制作" onclick="handleTaskCardClick(event, 'custom')" title="点击卡片进入【⚙️ 自定义配置节点卡】专属打卡页面">
-          <div class="work-node-card-header">
-            <span class="work-node-badge" style="background:#f0fdf4; color:#15803d; border:1px solid #86efac;">⚙️ 自定义配置</span>
-            <span class="work-node-title">航天科普馆自主研学与水火箭制作</span>
-            <span id="status-text-exec-card-custom" class="task-status-pill pending" style="font-size:10px; font-weight:800; color:#15803d;">待打卡</span>
-          </div>
-          <div class="work-node-body" style="display:flex; flex-direction:column; gap:7px;">
-            <div style="background:#f0fdf4; border:1px dashed #86efac; padding:6px 8px; border-radius:8px; font-size:10.5px; color:#14532d;" onclick="event.stopPropagation()">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                <span style="font-size:10.5px; font-weight:850; color:#14532d;">📋 自定义动态业务字段 (可增删)</span>
-                <button type="button" onclick="addCustomDynamicFieldRow('exec-card-custom-fields')" style="padding:1px 6px; font-size:9.5px; font-weight:800; background:#dcfce7; color:#15803d; border:1px solid #86efac; border-radius:4px; cursor:pointer;">➕ 新增字段</button>
-              </div>
-              <!-- 是否需要打卡与物证交付类型数据维护 -->
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;" onclick="event.stopPropagation()">
-              <div style="display:flex; align-items:center; justify-content:space-between; gap:4px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:6px; padding:3px 6px; font-size:10px;">
-                <span style="font-weight:800; color:#166534; white-space:nowrap;">⏱️ 打卡需求:</span>
-                <select id="custom-need-checkin-exec" style="border:1px solid #86efac; border-radius:4px; padding:1px 4px; font-size:9.5px; font-weight:800; color:#166534; background:#fff; cursor:pointer;">
-                  <option value="yes" selected>✅ 需要打卡</option>
-                  <option value="no">⏸️ 仅作记录</option>
-                </select>
-              </div>
-              <div style="display:flex; align-items:center; justify-content:space-between; gap:4px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:6px; padding:3px 6px; font-size:10px;">
-                <span style="font-weight:800; color:#166534; white-space:nowrap;">📦 物证类型:</span>
-                <select id="custom-evidence-type-exec" style="border:1px solid #86efac; border-radius:4px; padding:1px 4px; font-size:9.5px; font-weight:800; color:#166534; background:#fff; cursor:pointer;">
-                  <option value="photo" selected>📷 拍照物证</option>
-                  <option value="video">🎥 视频记录</option>
-                  <option value="text">✍️ 文本说明</option>
-                  <option value="none">🚫 无需物证</option>
-                </select>
-              </div>
-            </div>
-            <div id="exec-card-custom-fields" style="display:flex; flex-direction:column; gap:4px;">
-                <div class="picker-custom-field-row" style="display:grid; grid-template-columns:72px 1fr 20px; align-items:center; gap:4px;">
-                  <input type="text" class="add-module-text-input picker-field-key" value="研学指引" style="height:22px; font-size:10px; font-weight:800; color:#166534; padding:1px 6px; background:#fff;">
-                  <input type="text" class="add-module-text-input picker-field-val" value="记录长征火箭参数与推进剂特点" style="height:22px; font-size:10px; padding:1px 6px; background:#fff;">
-                  <button type="button" onclick="removePickerCustomDynamicField(this)" style="width:20px; height:20px; border:1px solid #fca5a5; background:#fef2f2; color:#dc2626; border-radius:4px; font-size:10px; font-weight:900; cursor:pointer; line-height:1;">✕</button>
-                </div>
-                <div class="picker-custom-field-row" style="display:grid; grid-template-columns:72px 1fr 20px; align-items:center; gap:4px;">
-                  <input type="text" class="add-module-text-input picker-field-key" value="安全守则" style="height:22px; font-size:10px; font-weight:800; color:#166534; padding:1px 6px; background:#fff;">
-                  <input type="text" class="add-module-text-input picker-field-val" value="户外草坪加压试飞并佩戴护目镜" style="height:22px; font-size:10px; padding:1px 6px; background:#fff;">
-                  <button type="button" onclick="removePickerCustomDynamicField(this)" style="width:20px; height:20px; border:1px solid #fca5a5; background:#fef2f2; color:#dc2626; border-radius:4px; font-size:10px; font-weight:900; cursor:pointer; line-height:1;">✕</button>
-                </div>
-                <div class="picker-custom-field-row" style="display:grid; grid-template-columns:72px 1fr 20px; align-items:center; gap:4px;">
-                  <input type="text" class="add-module-text-input picker-field-key" value="核心交付" style="height:22px; font-size:10px; font-weight:800; color:#166534; padding:1px 6px; background:#fff;">
-                  <input type="text" class="add-module-text-input picker-field-val" value="完成水火箭模型组装与试飞拍照" style="height:22px; font-size:10px; padding:1px 6px; background:#fff;">
-                  <button type="button" onclick="removePickerCustomDynamicField(this)" style="width:20px; height:20px; border:1px solid #fca5a5; background:#fef2f2; color:#dc2626; border-radius:4px; font-size:10px; font-weight:900; cursor:pointer; line-height:1;">✕</button>
-                </div>
-              </div>
-            </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:6px; border-top:1px solid #f1e4d0; font-size:10.5px;">
-              <span style="color:#15803d; font-weight:750;">交付类型：📷 拍照物证</span>
-              <button type="button" class="card-graphic-pill pill-checkin" onclick="openExecCardPopupView('custom'); event.stopPropagation();">🌟 完成打卡</button>
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
 
     <!-- 底部轮播滑动点与指示导航 (与 5 类通用节点打卡卡片一一对应) -->
-    <div class="exec-carousel-pagination" id="exec-carousel-dots">
+    <div class="exec-carousel-pagination" id="exec-carousel-dots" style="display:none;">
       <div class="pagination-dot-pill active" onclick="goToDayCard(0)">
         <span class="dot-circle"></span>
         <span class="dot-text">🎯 目标分解</span>
@@ -12360,7 +12073,7 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
           <div class="exec-task-hero-info">
             <div class="exec-task-project-link" onclick="toggleExecPopupProjectNodesView()" title="点击切换至项目所有节点数据图谱">
               <span>🎯 关联规划项目：</span>
-              <strong id="exec-task-project-name">《小学数学口算达标与逆向思维训练》</strong>
+              <strong id="exec-task-project-name">《全息成长规划课题》</strong>
               <span style="font-size:11px; text-decoration:underline; margin-left:4px; opacity:0.85;">[点击展开节点图谱]</span>
             </div>
             <div class="exec-task-desc-line" id="exec-task-desc">攻坚要领：限时 20 分钟完成 30 道混合口算题，红笔圈出错因并拍照存证。</div>
@@ -13682,8 +13395,8 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
               <div style="display:flex; align-items:center; gap:10px;">
                 <span style="background:#2563eb; color:#fff; font-size:11px; font-weight:900; padding:3px 10px; border-radius:8px;">🎯 目标分解卡</span>
                 <div>
-                  <div style="font-size:14px; font-weight:900; color:#1e3a8a;">进退位口算满分达标与思维通关目标</div>
-                  <div style="font-size:10.5px; color:#1d4ed8;">所属项目：《小学数学口算达标与逆向思维训练》 · 已去除达成勋章与经验项</div>
+                  <div style="font-size:14px; font-weight:900; color:#1e3a8a;">阶段里程碑与量化通关目标</div>
+                  <div style="font-size:10.5px; color:#1d4ed8;">所属项目：《全息成长规划课题》 · 目标分解与量化指标验收</div>
                 </div>
               </div>
               <span id="checkin-page-goal-status" style="background:#dbeafe; color:#1e40af; border:1px solid #93c5fd; font-size:11px; font-weight:900; padding:4px 12px; border-radius:20px;">🎯 待交付沉淀</span>
@@ -14810,6 +14523,28 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
        家长置顶悬赏挑战契约书专属拟物弹窗 (#bounty-modal-backdrop · 亲子心愿荣誉契约 3.0)
        【业务闭环】：家长发布新悬赏 ➔ 孩子主动揭榜应战 ➔ 实训物证留痕 ➔ 亲子核验兑现心愿 ➔ 同步成就馆与每日随记
        ========================================================================= -->
+<!-- ===================================================================== -->
+<!-- 每日随记【影像物证全屏查阅】弹窗 (#note-media-preview-modal)          -->
+<!-- ===================================================================== -->
+<div id="note-media-preview-modal" style="display:none; position:fixed; inset:0; z-index:20000; background:rgba(15, 23, 42, 0.85); backdrop-filter:blur(8px); align-items:center; justify-content:center; padding:16px;">
+  <div style="background:#fff; width:92%; max-width:680px; max-height:90vh; border-radius:20px; border:2px solid #3b82f6; box-shadow:0 16px 48px rgba(0,0,0,0.45); display:flex; flex-direction:column; overflow:hidden; animation:zoomIn 0.22s cubic-bezier(0.16,1,0.3,1);">
+    <div style="background:linear-gradient(135deg, #1e3a8a, #2563eb); color:#fff; padding:14px 18px; display:flex; align-items:center; justify-content:space-between;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span id="note-preview-modal-icon" style="font-size:18px;">📷</span>
+        <span id="note-preview-modal-title" style="font-size:15px; font-weight:900;">影像物证原卷查验</span>
+      </div>
+      <button onclick="closeNoteMediaPreviewModal()" style="background:rgba(255,255,255,0.2); border:none; color:#fff; width:28px; height:28px; border-radius:50%; font-size:14px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
+    </div>
+    <div id="note-preview-modal-body" style="padding:18px; overflow-y:auto; flex:1; display:flex; flex-direction:column; align-items:center; gap:12px;">
+      <!-- 由 JS 填充照片或视频播放器 -->
+    </div>
+    <div style="background:#f8fafc; padding:12px 18px; border-top:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center;">
+      <span id="note-preview-modal-caption" style="font-size:12px; color:#64748b; font-weight:600;">影像物证说明</span>
+      <button onclick="closeNoteMediaPreviewModal()" class="note-submit-btn" style="height:32px; padding:0 18px; font-size:12px;">关闭预览</button>
+    </div>
+  </div>
+</div>
+
   <div class="workbench-modal-backdrop" id="bounty-modal-backdrop" onclick="handleBountyBackdropClick(event)">
     <div class="workbench-window" style="max-width: 700px; height: auto; max-height: 92vh; border: 2.5px solid #d97706; box-shadow: 0 20px 50px rgba(120, 53, 15, 0.35);">
       <!-- 弹窗顶控栏 -->
@@ -14943,7 +14678,7 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
         <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 14px; display:flex; flex-direction:column; gap:8px;">
           <div style="display:flex; align-items:center; gap:8px;">
             <span style="font-size:11px; font-weight:800; color:#334155; white-space:nowrap;">💬 家长验收寄语：</span>
-            <input id="bounty-parent-comment-input" type="text" value="演算步骤工整清晰，破十法掌握扎实，周末如约带你去科技馆探索！" placeholder="输入家长核验鼓励寄语..." style="flex:1; padding:5px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:11.5px; background:#fff; color:#1e293b;">
+            <input id="bounty-parent-comment-input" type="text" value="" placeholder="家长鼓励寄语..." placeholder="输入家长核验鼓励寄语..." style="flex:1; padding:5px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:11.5px; background:#fff; color:#1e293b;">
           </div>
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
             <div style="display:flex; align-items:center; gap:10px;">
@@ -16908,49 +16643,49 @@ function normalizeExecCheckinType(id) {
 const EXEC_CHECKIN_PAGE_META = {
   goal: {
     badge: '🎯 目标分解节点卡',
-    title: '进退位口算满分达标与思维通关目标',
+    title: '阶段里程碑与量化通关目标',
     breadcrumb: '🏝️ 晨曦岛 ❯ ⚡ 执行中心 ❯ 🎯 目标分解节点卡打卡页面',
-    projectName: '《小学数学口算达标与逆向思维训练》',
+    projectName: '《全息成长规划课题》',
     hasPlanningProject: true,
     legacyKey: 'study'
   },
   drill: {
     badge: '⚡ 攻坚实训节点卡',
-    title: '进退位破十法心算极限攻坚实训',
+    title: '专项技能与核心攻坚实训',
     breadcrumb: '🏝️ 晨曦岛 ❯ ⚡ 执行中心 ❯ ⚡ 攻坚实训节点卡打卡页面',
-    projectName: '《小学数学口算达标与逆向思维训练》',
+    projectName: '《全息成长规划课题》',
     hasPlanningProject: true,
     legacyKey: 'dojo'
   },
   habit: {
     badge: '🌿 习惯践行节点卡',
-    title: '每日口算自律防守与国学晨读知行日课',
+    title: '知行合一自律防守日课',
     breadcrumb: '🏝️ 晨曦岛 ❯ ⚡ 执行中心 ❯ 🌿 习惯践行节点卡打卡页面',
-    projectName: '《知行合一·君子风骨百日践行计划》',
+    projectName: '《知行合一践行计划》',
     hasPlanningProject: true,
     legacyKey: 'cultivation'
   },
   reflection: {
     badge: '📝 评估复盘节点卡',
-    title: '进退位口算错因归因与靶向提升复盘卡',
+    title: '错因归因与靶向提升复盘卡',
     breadcrumb: '🏝️ 晨曦岛 ❯ ⚡ 执行中心 ❯ 📝 评估复盘节点卡打卡页面',
-    projectName: '《自我进化 PDCA 飞轮与全息生命印记全书》',
+    projectName: '《自我进化与复盘反思》',
     hasPlanningProject: true,
     legacyKey: 'review'
   },
   custom: {
     badge: '⚙️ 自定义配置节点卡',
-    title: '航天科普馆自主研学与水火箭模型制作',
+    title: '自主实践探究项目',
     breadcrumb: '🏝️ 晨曦岛 ❯ ⚡ 执行中心 ❯ ⚙️ 自定义配置节点卡打卡页面',
-    projectName: '《青少儿跨学科科学探究与自主研学工程》',
+    projectName: '《跨学科自主探究工程》',
     hasPlanningProject: true,
     legacyKey: 'treasury'
   },
   text: {
     badge: '📄 简单文本节点卡',
-    title: '长征运载火箭谱系与航天知识备忘',
+    title: '核心要领与备忘手记',
     breadcrumb: '🏝️ 晨曦岛 ❯ ⚡ 执行中心 ❯ 📄 简单文本节点查阅页面',
-    projectName: '《青少儿跨学科科学探究与自主研学工程》',
+    projectName: '《自主实践探究工程》',
     hasPlanningProject: false,
     legacyKey: 'note'
   }
@@ -17376,40 +17111,42 @@ function resetExecPopupTimer() {
 // 全域状态闭环中枢 (HUD 连胜/履约率 · 核心学期目标条 · 每日随记流水 · 甘特进度回写)
 // =========================================================================
 window.USER_PROFILE_STATE = {
-  streakDays: 18,
+  streakDays: 0,
   streakIncrementedToday: false,
-  completedTodayCount: 2,
-  totalTodayCount: 5,
-  baseFulfillmentRate: 96,
+  completedTodayCount: 0,
+  totalTodayCount: 0,
+  baseFulfillmentRate: 100,
   violationCount: 0,
   violationRecords: [],
   checkedTaskKeys: {}
 };
 
 function computeCurrentFulfillmentRate() {
-  const st = window.USER_PROFILE_STATE;
-  const bonus = Math.min(4, Math.max(0, st.completedTodayCount - 2) * 2);
-  const raw = Math.min(100, st.baseFulfillmentRate + bonus);
-  return Math.max(0, raw - (st.violationCount || 0) * 5);
+  const st = window.USER_PROFILE_STATE || { streakDays: 0, completedTodayCount: 0, totalTodayCount: 0, baseFulfillmentRate: 100, violationCount: 0 };
+  if (!st.totalTodayCount || st.totalTodayCount === 0) {
+    return Math.max(0, 100 - (st.violationCount || 0) * 5);
+  }
+  const pct = Math.round((st.completedTodayCount / st.totalTodayCount) * 100);
+  return Math.max(0, Math.min(100, pct - (st.violationCount || 0) * 5));
 }
 
 function recalcAndRenderGlobalHUD() {
-  const st = window.USER_PROFILE_STATE;
+  const st = window.USER_PROFILE_STATE || { streakDays: 0, completedTodayCount: 0, totalTodayCount: 0, baseFulfillmentRate: 100, violationCount: 0 };
   const rate = computeCurrentFulfillmentRate();
   const streakEl = document.getElementById('hud-streak-count');
-  if (streakEl) streakEl.textContent = st.streakDays + '天';
+  if (streakEl) streakEl.textContent = '连续 ' + (st.streakDays || 0) + ' 天';
   const rateEl = document.getElementById('hud-rate-percent');
   if (rateEl) {
-    rateEl.textContent = rate + '%';
-    rateEl.style.color = st.violationCount > 0 ? '#dc2626' : '';
+    rateEl.textContent = '履约 ' + rate + '%';
+    rateEl.style.color = (st.violationCount || 0) > 0 ? '#dc2626' : '';
   }
   const statProg = document.getElementById('exec-stat-progress');
   if (statProg) {
-    statProg.textContent = st.completedTodayCount + '/' + st.totalTodayCount;
+    statProg.textContent = (st.completedTodayCount || 0) + '/' + (st.totalTodayCount || 0);
   }
   const pactBadge = document.getElementById('pact-current-rate-badge');
   if (pactBadge) {
-    pactBadge.textContent = '当前综合履约率：' + rate + '%（累计违约 ' + st.violationCount + ' 次）';
+    pactBadge.textContent = '当前综合履约率：' + rate + '%（累计违约 ' + (st.violationCount || 0) + ' 次）';
   }
 }
 
@@ -17451,7 +17188,10 @@ function renderHomeSemesterGoalsBanner() {
   const listEl = document.getElementById('island-goal-cards-list');
   if (!listEl || !Array.isArray(window.GANTT_PROJECTS)) return;
   const activeProjs = window.GANTT_PROJECTS.filter(p => !p.isArchived);
-  if (activeProjs.length === 0) return;
+  if (activeProjs.length === 0) {
+    listEl.innerHTML = '<div style="display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:10px 16px; color:#8c6b45; font-size:12px; font-weight:700;"><span>🌱 暂无进行中的学期规划项目</span><button type="button" class="card-graphic-pill pill-timer" onclick="switchMainSection(\'ws\'); openAddProjectModal();" style="padding:2px 10px; font-size:11px; cursor:pointer;">➕ 立即立项</button></div>';
+    return;
+  }
 
   const badgeColors = {
     '学业攻坚': { bg: '#eff6ff', color: '#1d4ed8', bar: '#2563eb' },
@@ -18039,30 +17779,63 @@ function updatePavilionBadges(mode) {
 // =========================================================================
 // 家长置顶悬赏契约全生命周期控制器 (发布 ➔ 孩子揭榜应战 ➔ 上传物证 ➔ 验收兑现入成就馆与随记)
 // =========================================================================
-window.BOUNTY_STATE = {
-  id: 'BC-202611-MATH95',
-  title: '小学数学口算达标与逆向思维训练',
-  pavilionLabel: '🏫 校史馆 · 学业攻坚',
-  pavilionId: 'study',
-  reward: '🎟️ 科技馆探索门票 + 研学新书',
-  days: 7,
-  criteria: '1. 攻克 30 道进退位口算题卡，限时 20 分钟番茄实训钟留痕；\n2. 演算题卡清晰拍照上传，红笔订正借位标记与凑十破十过程清晰；\n3. 家长核验物证并填写鼓励寄语盖戳，心愿契约即时兑现并载入成就馆。',
-  status: 'accepted', // 'published' | 'accepted' | 'redeemed'
-  evidenceUploaded: true,
-  evidenceName: '口算30题全对红笔验算手稿.jpg',
-  parentComment: '演算步骤工整清晰，破十法掌握扎实，周末如约带你去科技馆探索！',
-  vaultFile: '09_Bounties_悬赏公告/bounty-2026-midterm-math.md'
-};
+window.BOUNTY_STATE = null;
 
 function renderBountyModalAndBillboard() {
   const b = window.BOUNTY_STATE;
-  if (!b) return;
-
-  // 1. 同步顶栏告示牌
   const hTitle = document.getElementById('home-bounty-title');
   const hTimer = document.getElementById('home-bounty-timer');
   const hReward = document.getElementById('home-bounty-reward');
   const hCta = document.getElementById('home-bounty-cta');
+  const hAuthor = document.getElementById('home-bounty-author');
+
+  if (!b) {
+    if (hTitle) hTitle.textContent = '暂无进行中的悬赏契约';
+    if (hTimer) hTimer.textContent = '⏱️ 待张榜';
+    if (hReward) hReward.textContent = '🎁 点击发布亲子心愿悬赏';
+    if (hAuthor) hAuthor.textContent = '👨‍👩‍👦 亲子共建';
+    if (hCta) {
+      hCta.textContent = '去发布 ›';
+      hCta.style.background = '#ffedd5';
+      hCta.style.color = '#c2410c';
+    }
+    const statusBadge = document.getElementById('bounty-modal-status-badge');
+    const contractNo = document.getElementById('bounty-modal-contract-no');
+    const mTitle = document.getElementById('bounty-modal-title');
+    const mMeta = document.getElementById('bounty-modal-meta');
+    const mReward = document.getElementById('bounty-modal-reward');
+    const mCriteria = document.getElementById('bounty-modal-criteria');
+    const s2Status = document.getElementById('bounty-stage2-status');
+    const s2Desc = document.getElementById('bounty-stage2-desc');
+    const s3Status = document.getElementById('bounty-stage3-status');
+    const stamp = document.getElementById('bounty-parent-stamp');
+    const childSign = document.getElementById('bounty-child-sign-pill');
+    const parentSign = document.getElementById('bounty-parent-sign-pill');
+    const acceptBtn1 = document.getElementById('bounty-action-accept-btn');
+    const acceptBtn2 = document.getElementById('bounty-footer-accept-btn');
+    const redeemBtn = document.getElementById('bounty-action-redeem-btn');
+    const formBox = document.getElementById('bounty-publish-form-box');
+
+    if (statusBadge) { statusBadge.textContent = '⚪ 暂无生效悬赏'; statusBadge.style.background = '#64748b'; }
+    if (contractNo) contractNo.textContent = '契约编号：暂未生成 · 请点击【➕ 家长发布新悬赏】立约张榜';
+    if (mTitle) mTitle.textContent = '《暂无进行中的悬赏挑战》';
+    if (mMeta) mMeta.textContent = '🎯 关联规划：未指定 | 👨‍👩‍👦 期待家长发起立约';
+    if (mReward) mReward.textContent = '🎁 达成心愿体验奖励';
+    if (mCriteria) mCriteria.innerHTML = '<strong>📋 契约验收标准：</strong><br>请点击右上角【➕ 家长发布新悬赏】填写挑战项目、心愿奖励与验收标准。';
+    if (s2Status) { s2Status.textContent = '⚪ 待张榜'; s2Status.style.color = '#64748b'; }
+    if (s2Desc) s2Desc.textContent = '立约张榜后，孩子可点击【揭榜应战】同步生成待办卡片。';
+    if (s3Status) { s3Status.textContent = '⚪ 未开始'; s3Status.style.color = '#64748b'; }
+    if (stamp) { stamp.innerHTML = '⚪ 暂未签署立约'; stamp.style.background = '#f8fafc'; stamp.style.color = '#64748b'; stamp.style.borderColor = '#cbd5e1'; }
+    if (childSign) { childSign.textContent = '⌛ 待签署'; childSign.style.background = '#f1f5f9'; childSign.style.color = '#64748b'; }
+    if (parentSign) { parentSign.textContent = '⌛ 待发起'; parentSign.style.background = '#f1f5f9'; parentSign.style.color = '#64748b'; }
+    if (acceptBtn1) acceptBtn1.style.display = 'none';
+    if (acceptBtn2) acceptBtn2.style.display = 'none';
+    if (redeemBtn) redeemBtn.style.display = 'none';
+    if (formBox) formBox.style.display = 'flex';
+    return;
+  }
+
+  // 1. 同步顶栏告示牌
   if (hTitle) hTitle.textContent = b.title;
   if (hTimer) hTimer.textContent = '⏱️ ' + b.days + '天期';
   if (hReward) hReward.textContent = b.reward;
@@ -19027,7 +18800,7 @@ function enterTertiaryWorkspace(projId) {
   const p = (window.GANTT_PROJECTS || []).find(item => item.id === targetId);
   const leafEl = document.getElementById('tertiary-crumb-leaf');
   if (leafEl) {
-    leafEl.innerText = p ? ('⚡ ' + p.title) : '⚡ 口算进退位专项突破';
+    leafEl.innerText = p ? ('⚡ ' + p.title) : '⚡ 攻坚脑图画布';
   }
   switchMainSection('tertiary');
   initTertiaryWorkspace();
@@ -20701,8 +20474,21 @@ function switchExecSubView(view) {
 
 function updateDayCarousel() {
   const allCards = document.querySelectorAll('.exec-card-deck .exec-task-card');
-  if (allCards.length > 0) totalDayCards = allCards.length;
-  const cards = document.querySelectorAll('.exec-card-deck .exec-task-card');
+  const dotsWrap = document.getElementById('exec-carousel-dots');
+  const emptyPlaceholder = document.getElementById('day-deck-empty-placeholder');
+
+  if (allCards.length === 0) {
+    totalDayCards = 0;
+    currentDayCardIndex = 0;
+    if (dotsWrap) dotsWrap.style.display = 'none';
+    if (emptyPlaceholder) emptyPlaceholder.style.display = 'flex';
+    return;
+  }
+  if (emptyPlaceholder) emptyPlaceholder.style.display = 'none';
+  if (dotsWrap) dotsWrap.style.display = 'flex';
+  totalDayCards = allCards.length;
+  currentDayCardIndex = Math.max(0, Math.min(currentDayCardIndex, totalDayCards - 1));
+  const cards = allCards;
   const dots = document.querySelectorAll('.exec-carousel-pagination .pagination-dot-pill');
 
   cards.forEach((card, idx) => {
@@ -20730,11 +20516,13 @@ function updateDayCarousel() {
 }
 
 function nextDayCard() {
+  if (totalDayCards <= 0) return;
   currentDayCardIndex = (currentDayCardIndex + 1) % totalDayCards;
   updateDayCarousel();
 }
 
 function prevDayCard() {
+  if (totalDayCards <= 0) return;
   currentDayCardIndex = (currentDayCardIndex - 1 + totalDayCards) % totalDayCards;
   updateDayCarousel();
 }
@@ -20886,271 +20674,13 @@ window.currentWeekOffset = 0;
 window.currentWeekFilter = 'all';
 
 const WEEK_BOARD_DATA = [
-  {
-    dayIndex: 0,
-    dayName: '周一',
-    dateStr: '10/26',
-    tasks: [
-      {
-        id: 'w-task-1',
-        pavilion: '校史馆',
-        pavilionBadge: '🏫 校史馆 · 学科攻坚',
-        title: '小学数学进退位口算百题达标',
-        status: 'done',
-        duration: '25 分钟',
-        time: '16:30 ~ 16:55',
-        instruction: '限时 25 分钟，完成 30 道凑十法口算大题，红笔标出易错归因并拍照存证。',
-        evidence: '✓ 已上传验算草稿纸手稿 1 张（含红笔归因星标）\n✓ 番茄钟实测：专注时长 25 分 12 秒',
-        reflection: '“做第 3 题时发现了进位的进数忘记加上的小毛病，标了红星，下次先看进位。”'
-      },
-      {
-        id: 'w-task-2',
-        pavilion: '修身阁',
-        pavilionBadge: '🪞 修身阁 · 德育品格',
-        title: '《大学》定本知止定静晨读背诵',
-        status: 'done',
-        duration: '15 分钟',
-        time: '07:10 ~ 07:25',
-        instruction: '大声晨读《大学》开篇，逐字逐句对照译文，理解“知止而后有定”。',
-        evidence: '✓ 晨读录音已存档（长辈见证已盖印）',
-        reflection: '“心中有止境，做事就不会慌慌张张，学习时心静自然专注。”'
-      },
-      {
-        id: 'w-task-3',
-        pavilion: '武道馆',
-        pavilionBadge: '🏸 武道馆 · 体育体能',
-        title: '后场击球300次核心肌肉记忆挥拍',
-        status: 'done',
-        duration: '30 分钟',
-        time: '17:30 ~ 18:00',
-        instruction: '定点挥拍击球 300 次，保持重心前倾，记录心率与疲劳度。',
-        evidence: '✓ 手环实测数据：心率峰值 152 bpm，消耗 210 kcal',
-        reflection: '“挥到第 200 次时手酸，坚持完成最后 100 次，体能突破感很强。”'
-      }
-    ]
-  },
-  {
-    dayIndex: 1,
-    dayName: '周二',
-    dateStr: '10/27',
-    tasks: [
-      {
-        id: 'w-task-4',
-        pavilion: '思辨馆',
-        pavilionBadge: '🧠 思辨馆 · 哲学批判',
-        title: '亲子正义论辩论初探与反驳推演',
-        status: 'done',
-        duration: '35 分钟',
-        time: '19:40 ~ 20:15',
-        instruction: '围绕“规则公平与个案关怀”与父母开展 15 分钟桌面思辨。',
-        evidence: '✓ 记录双向思辨卡片 1 张，识别出 2 处以偏概全逻辑漏洞',
-        reflection: '“学会了反驳对方之前先复述对方的论点，沟通更讲道理了。”'
-      },
-      {
-        id: 'w-task-5',
-        pavilion: '校史馆',
-        pavilionBadge: '🏫 校史馆 · 学科攻坚',
-        title: '平面几何周长面积易错题清零',
-        status: 'done',
-        duration: '20 分钟',
-        time: '17:00 ~ 17:20',
-        instruction: '红笔重构 2 道几何辅助线，写出割补法推导全过程。',
-        evidence: '✓ 错题本红笔图解照片已上传',
-        reflection: '“长方形割补成三角形后，底和高一一对应就不会算错了。”'
-      }
-    ]
-  },
-  {
-    dayIndex: 2,
-    dayName: '周三',
-    dateStr: '10/28',
-    tasks: [
-      {
-        id: 'w-task-6',
-        pavilion: '藏金屋',
-        pavilionBadge: '💰 藏金屋 · 财商自控',
-        title: '零用金四维资金罐定投存蓄',
-        status: 'done',
-        duration: '10 分钟',
-        time: '18:10 ~ 18:20',
-        instruction: '本周发放的 100 元零花钱按 4:3:2:1 分流进梦想罐、生息罐等。',
-        evidence: '✓ 台账明细已记录（收支流水已归档）',
-        reflection: '“看到梦想罐积攒到 1400 元，离显微镜越来越近了，很有成就感。”'
-      },
-      {
-        id: 'w-task-7',
-        pavilion: '修身阁',
-        pavilionBadge: '🪞 修身阁 · 德育品格',
-        title: '亲子立宪公约暮省自省防守',
-        status: 'done',
-        duration: '15 分钟',
-        time: '21:00 ~ 21:15',
-        instruction: '对照四大红线自省今日言行，恪守知止戒律，零破戒。',
-        evidence: '✓ 诚信防守 0 破戒，品格积分 +5',
-        reflection: '“下午面对游戏诱惑时克制住了，先完成了今天的功课，感到安心。”'
-      }
-    ]
-  },
-  {
-    dayIndex: 3,
-    dayName: '周四',
-    dateStr: '10/29',
-    tasks: [
-      {
-        id: 'w-task-8',
-        pavilion: '校史馆',
-        pavilionBadge: '🏫 校史馆 · 学科攻坚',
-        title: '英语原版科普绘本诵读录音',
-        status: 'done',
-        duration: '25 分钟',
-        time: '07:20 ~ 07:45',
-        instruction: '完成 4 页大自然科普绘本伴读，模仿语音语调并录音。',
-        evidence: '✓ 原声音频 2 分 40 秒已上传并转文字存证',
-        reflection: '“发音更自信了，生词通过上下文猜出了大致含义。”'
-      },
-      {
-        id: 'w-task-9',
-        pavilion: '武道馆',
-        pavilionBadge: '🏸 武道馆 · 体育体能',
-        title: '敏捷梯步伐与灵敏爆发力实训',
-        status: 'done',
-        duration: '30 分钟',
-        time: '17:15 ~ 17:45',
-        instruction: '完成 5 组十字交叉跳与高抬腿，计时误差控制在 5% 以内。',
-        evidence: '✓ 训练计时日志已同步',
-        reflection: '“脚步轻盈了很多，启动速度明显比上周快。”'
-      }
-    ]
-  },
-  {
-    dayIndex: 4,
-    dayName: '周五',
-    dateStr: '10/30',
-    tasks: [
-      {
-        id: 'w-task-10',
-        pavilion: '藏金屋',
-        pavilionBadge: '💰 藏金屋 · 财商自控',
-        title: '文具支出记账与冲动消费自控',
-        status: 'done',
-        duration: '10 分钟',
-        time: '17:50 ~ 18:00',
-        instruction: '购买错题活页本与红笔支出 18.5 元，记入台账并核对小票。',
-        evidence: '✓ 发票小票照片已拍照存证',
-        reflection: '“买东西前问了自己三遍是不是必须的，克制了买盲盒的冲动。”'
-      },
-      {
-        id: 'w-task-11',
-        pavilion: '每日随记',
-        pavilionBadge: '📖 每日随记 · 生命全书',
-        title: '少年心流暮省反思手记书写',
-        status: 'done',
-        duration: '20 分钟',
-        time: '21:30 ~ 21:50',
-        instruction: '写下一周生活感悟，提炼“定力生慧”的切实力量。',
-        evidence: '✓ 暮省日志 1 篇已归档入生命全书瀑布流',
-        reflection: '“复盘不仅是看完成了什么，更是看自己心态的变化。”'
-      }
-    ]
-  },
-  {
-    dayIndex: 5,
-    dayName: '周六 (今日)',
-    dateStr: '10/31',
-    tasks: [
-      {
-        id: 'w-task-12',
-        pavilion: '校史馆',
-        pavilionBadge: '🏫 校史馆 · 学科攻坚',
-        title: '进退位口算达标终极大攻坚',
-        status: 'done',
-        duration: '25 分钟',
-        time: '16:30 ~ 16:55',
-        instruction: '限时 25 分钟，完成 3 道进退位口算难关，拍照上传草稿纸原件。',
-        evidence: '✓ 已上传手稿演算法则照片 1 张（含红笔订正卡点）\n✓ 番茄钟实测：专注时长 25 分 14 秒',
-        reflection: '“今天做第 3 题时发现了借位标记的小毛病，用红笔在草稿本上标了个大星星。”'
-      },
-      {
-        id: 'w-task-13',
-        pavilion: '武道馆',
-        pavilionBadge: '🏸 武道馆 · 体育体能',
-        title: '羽毛球杀球300次耐力突破',
-        status: 'done',
-        duration: '40 分钟',
-        time: '10:00 ~ 10:40',
-        instruction: '突破手臂酸痛极限，体会肌肉耐力与意志力协同。',
-        evidence: '✓ 实测完成 300 次击球，有效心率持续 28 分钟',
-        reflection: '“真正体会到了定力生慧，身体再累心里也能沉住气。”'
-      },
-      {
-        id: 'w-task-14',
-        pavilion: '思辨馆',
-        pavilionBadge: '🧠 思辨馆 · 哲学批判',
-        title: '辩论复盘手记与布鲁姆评价阶梯',
-        status: 'pending',
-        duration: '25 分钟',
-        time: '19:30 ~ 19:55',
-        instruction: '将本周讨论的论题整理成金字塔图，梳理逻辑证据链。',
-        evidence: '待完成打卡后上传思维导图',
-        reflection: '待填写'
-      },
-      {
-        id: 'w-task-15',
-        pavilion: '每日随记',
-        pavilionBadge: '📖 每日随记 · 生命全书',
-        title: '1分钟心流思辨反思短片录制',
-        status: 'pending',
-        duration: '15 分钟',
-        time: '21:15 ~ 21:30',
-        instruction: '睡前录制 60 秒高清短片，分享今天攻克难题的心路历程。',
-        evidence: '待录制上传影像物证',
-        reflection: '待填写'
-      }
-    ]
-  },
-  {
-    dayIndex: 6,
-    dayName: '周日',
-    dateStr: '11/01',
-    tasks: [
-      {
-        id: 'w-task-16',
-        pavilion: '校史馆',
-        pavilionBadge: '🏫 校史馆 · 学科攻坚',
-        title: '本周错题100%清零全景大复盘',
-        status: 'pending',
-        duration: '30 分钟',
-        time: '09:30 ~ 10:00',
-        instruction: '将本周所有红笔标记错题进行二次无提示盲测，确保完全掌握。',
-        evidence: '待完成打卡并由家长盖章',
-        reflection: '待复盘'
-      },
-      {
-        id: 'w-task-17',
-        pavilion: '修身阁',
-        pavilionBadge: '🪞 修身阁 · 德育品格',
-        title: '人生底线树七日修养结晶仪式',
-        status: 'pending',
-        duration: '20 分钟',
-        time: '16:00 ~ 16:20',
-        instruction: '总结一周言行自省防守成果，为底线树点亮新的品格结晶。',
-        evidence: '待仪式达成后自动结晶',
-        reflection: '待总结'
-      },
-      {
-        id: 'w-task-18',
-        pavilion: '执行中心',
-        pavilionBadge: '⚡ 执行中心 · 规划复盘',
-        title: '下周学习攻坚甘特图沙盘推演',
-        status: 'pending',
-        duration: '25 分钟',
-        time: '19:00 ~ 19:25',
-        instruction: '在甘特图规划沙盘中拆解新一周任务节奏，预设重点攻坚日。',
-        evidence: '待生成下周规划里程碑',
-        reflection: '待规划'
-      }
-    ]
-  }
+  { dayIndex: 0, dayName: '周一', dateStr: '10/26', tasks: [] },
+  { dayIndex: 1, dayName: '周二', dateStr: '10/27', tasks: [] },
+  { dayIndex: 2, dayName: '周三', dateStr: '10/28', tasks: [] },
+  { dayIndex: 3, dayName: '周四', dateStr: '10/29', tasks: [] },
+  { dayIndex: 4, dayName: '周五', dateStr: '10/30', tasks: [] },
+  { dayIndex: 5, dayName: '周六 (今日)', dateStr: '10/31', isToday: true, tasks: [] },
+  { dayIndex: 6, dayName: '周日', dateStr: '11/01', tasks: [] }
 ];
 
 function changeWeek(delta) {
@@ -21699,18 +21229,11 @@ function locateDaxueItemFromModal(itemId) {
 }
 // ==================== 藏金屋独立财商实践核心数据模型与交互控制器 (收支记录) ====================
 window.TREASURY_STATE = {
-  totalBalance: 3280.00,
-  totalIncome: 4200.00,
-  totalExpense: 920.00,
-  currentRecordType: 'income', // 'income' | 'expense'
-  ledger: [
-    { id: 'TX-20261026-001', time: '2026-10-26 10:15', type: 'income', category: '零花钱', amount: 100.00, balanceAfter: 3280.00, note: '每周自主生活零用金常规发放存入', proof: '📷 零用金发放记录' },
-    { id: 'TX-20261025-002', time: '2026-10-25 16:30', type: 'expense', category: '学科文具', amount: -42.00, balanceAfter: 3180.00, note: '购买学科攻坚文具与错题便签本', proof: '🧾 新华书店收银小票已核验' },
-    { id: 'TX-20261020-003', time: '2026-10-20 18:00', type: 'expense', category: '孝亲礼', amount: -58.00, balanceAfter: 3222.00, note: '重阳节孝亲礼：为奶奶选购养生桂花茶礼盒', proof: '🎁 礼盒实物照片' },
-    { id: 'TX-20261018-004', time: '2026-10-18 09:30', type: 'income', category: '劳动奖励', amount: 100.00, balanceAfter: 3280.00, note: '家庭公共卫生自主清洁劳动所得', proof: '📷 劳动成果实拍' },
-    { id: 'TX-20261015-005', time: '2026-10-15 20:00', type: 'expense', category: '课外书籍', amount: -65.00, balanceAfter: 3180.00, note: '购买天文学入门与星图观测手册', proof: '🧾 购书发票' },
-    { id: 'TX-20261011-006', time: '2026-10-11 11:20', type: 'income', category: '零花钱', amount: 100.00, balanceAfter: 3245.00, note: '期初零用金发放存入', proof: '📷 存钱袋实拍' }
-  ]
+  totalBalance: 0.00,
+  totalIncome: 0.00,
+  totalExpense: 0.00,
+  currentRecordType: 'income',
+  ledger: []
 };
 
 function switchTreasuryRecordType(type) {
@@ -21924,9 +21447,9 @@ function recordLiveTreasuryExpense() {
 
 function renderTreasurySpecializedWorkspace() {
   const state = window.TREASURY_STATE || {
-    totalBalance: 3280.00,
-    totalIncome: 4200.00,
-    totalExpense: 920.00,
+    totalBalance: 0.00,
+    totalIncome: 0.00,
+    totalExpense: 0.00,
     ledger: []
   };
 
@@ -22566,127 +22089,9 @@ function showDaxueEightPhilosophy() {
 
 
 window.ACHIEVEMENT_STATE = {
-  currentTab: 'cultivation', // 'cultivation' | 'accidental' | 'all'
-  // 1. 养成类成就：各模块项目执行完成后沉淀的结果，不可手动新增，只可在目标卡片点击记录到成就馆，按项目类型分组按时间线展示
-  cultivationItems: [
-    {
-      id: 'ACH-CULT-20261025-001',
-      date: '2026-10-25',
-      title: '《大学》定本知行合一结业通关章',
-      icon: '📜',
-      projectType: 'cultivation',
-      projectTypeLabel: '修身阁 · 德育品格研读',
-      projectName: '《大学》修身立人二十日研习计划',
-      metrics: [
-        { name: '经典逐句默写与诵读正确率', target: '≥95%', actual: '98% (达标)' },
-        { name: '言行合一自律防守天数', target: '20天', actual: '20天 (满贯)' }
-      ],
-      proof: '🎙️ 晨读原声音频与自律践行手记存证已归档',
-      issuer: '修身阁问道师长 · 见证',
-      desc: '修身阁知行合一沉淀 · 完成《大学》日诵与自律践行20天，言行合一，经受住诱惑考验。'
-    },
-    {
-      id: 'ACH-CULT-20261020-002',
-      date: '2026-10-20',
-      title: '数学口算百题进阶攻坚通关章',
-      icon: '📐',
-      projectType: 'study',
-      projectTypeLabel: '校史馆 · 学科学业攻坚',
-      projectName: '100以内混合进退位口算速度与正确率攻坚',
-      metrics: [
-        { name: '30题进退位混合口算正确率', target: '100%', actual: '100% (满分)' },
-        { name: '全卷限时完成速度', target: '≤5分钟', actual: '4分15秒' }
-      ],
-      proof: '📄 考卷原题全红笔订正无遗漏草稿已归档',
-      issuer: '校史馆学科教研组 · 审验',
-      desc: '校史馆学科学业沉淀 · 独立完成30道进退位口算全对，破除畏难心理，达到卓越标准。'
-    },
-    {
-      id: 'ACH-CULT-20261014-003',
-      date: '2026-10-14',
-      title: '少儿跳绳单摇连跳突破200次勋章',
-      icon: '🥋',
-      projectType: 'dojo',
-      projectTypeLabel: '武道馆 · 兴趣体能竞技',
-      projectName: '跳绳耐力与爆发力专项体适能突破',
-      metrics: [
-        { name: '单摇不间断连跳次数', target: '≥200次', actual: '220次' },
-        { name: '心率恢复时长', target: '≤3分钟', actual: '2分20秒' }
-      ],
-      proof: '🎬 连跳实况切片视频与心率记录已归档',
-      issuer: '武道馆教练组 · 审验',
-      desc: '武道馆体适能沉淀 · 突破体能与节奏瓶颈，实现连跳 220 次不绊绳，意志顽强。'
-    },
-    {
-      id: 'ACH-CULT-20261010-004',
-      date: '2026-10-10',
-      title: '少儿财商自律储蓄与记账通关章',
-      icon: '💰',
-      projectType: 'treasury',
-      projectTypeLabel: '藏金屋 · 少儿财商储蓄',
-      projectName: '首期零用金合理规划与储蓄契约',
-      metrics: [
-        { name: '储蓄履约率', target: '≥80%', actual: '85%' },
-        { name: '每日记账准确率', target: '100%', actual: '100%' }
-      ],
-      proof: '📜 零用金收支台账原件与结余核验',
-      issuer: '少儿财商理事会 · 见证',
-      desc: '藏金屋财商沉淀 · 连续30天无遗漏记账，抵制冲动消费，达成首笔梦想基金储蓄。'
-    }
-  ],
-  // 2. 偶然成就：生活学习过程中的偶然成就，可手动新增，记录成就类别、成就图片、成就内容、成就描述等数据，在成就馆中以成就类别分组按照时间线展示
-  accidentalItems: [
-    {
-      id: 'ACH-ACC-20261024-001',
-      date: '2026-10-24',
-      category: 'arts',
-      categoryLabel: '🎨 艺术才华',
-      title: '全国少儿书画创作大赛特等金奖',
-      image: '🖼️ 《晨曦破晓苍峦图》水墨画参赛作品原件实拍照',
-      desc: '独立创作水墨国画作品《晨曦破晓苍峦图》，历时两周打磨构图与设色，在全国数千份参赛作品中脱颖而出，荣获少儿组特等金奖。',
-      issuer: '全国青少儿书画艺术教育联合会'
-    },
-    {
-      id: 'ACH-ACC-20261022-002',
-      date: '2026-10-22',
-      category: 'life',
-      categoryLabel: '🍳 生活自立',
-      title: '第一次独立为全家人做番茄炒蛋晚餐',
-      image: '🍳 热气腾腾的番茄炒蛋出锅实拍照与整洁厨房合影',
-      desc: '爸爸妈妈加班晚归，自己主动系上围裙，洗番茄、打鸡蛋、热油翻炒，不仅做出了可口的番茄炒蛋，还把灶台和碗筷收拾得干干净净。',
-      issuer: '全家人温馨见证'
-    },
-    {
-      id: 'ACH-ACC-20261015-003',
-      date: '2026-10-15',
-      category: 'discovery',
-      categoryLabel: '🔭 科学探索',
-      title: '独立动手制作折射式天文望远镜观测月坑',
-      image: '🔭 自制凸透镜硬纸筒望远镜与清晰月球环形山目镜实拍',
-      desc: '用废弃牛皮纸筒、凸透镜片和目镜组件，自己测算焦距并调试成功，晚上在阳台清晰看到了月球第谷环形山，激发起对宇宙的无限好奇。',
-      issuer: '学校创客科技节指导教师'
-    },
-    {
-      id: 'ACH-ACC-20261005-004',
-      date: '2026-10-05',
-      category: 'social',
-      categoryLabel: '🤝 善意关怀',
-      title: '社区图书义卖义工与给养老院老人读报',
-      image: '📖 社区义卖捐赠证书与养老院读书实拍照片',
-      desc: '国庆假期主动把看过的20本少儿绘本整理义卖，将所得爱心款全部捐赠给山区小学，并去养老院给三位视力不好的老爷爷朗读报纸半小时。',
-      issuer: '绿洲社区居委会志愿者服务站'
-    },
-    {
-      id: 'ACH-ACC-20260928-005',
-      date: '2026-09-28',
-      category: 'honor',
-      categoryLabel: '🏆 意外荣誉',
-      title: '市青少年羽毛球夏季邀请赛临场逆转摘银',
-      image: '🏸 银牌奖章与颁奖台领奖高清留影照片',
-      desc: '经历半决赛决胜局 18:20 濒临赛点的极限逆境，顽强防守连救两个赛点反超逆转，摘得男单组亚军奖牌。',
-      issuer: '市青少年羽毛球协会'
-    }
-  ]
+  currentTab: 'cultivation',
+  cultivationItems: [],
+  accidentalItems: []
 };
 
 // 渲染成就馆全景专属工作区
@@ -23367,73 +22772,18 @@ function renderCognitionSpecializedWorkspace() {
 window.NOTE_STATE = {
   currentMood: '☀️ 专注充实',
   currentEnergy: 4,
-  todayFocusMinutes: 60,
+  todayFocusMinutes: 0,
   journalText: '',
-  todayAutoLogs: [
-    { time: '16:55', text: '⏱️ 【校史馆】完成 1 个番茄钟专注限时口算 (25分钟)，100以内进退位运算清零错题 3 道，红笔验算手稿已归档。' },
-    { time: '07:35', text: '🪞 【修身阁】研读《大学》知止而后有定章节，完成晨读诵读打卡，知行合一践行防守清单 100% 履约。' },
-    { time: '10:40', text: '🏸 【武道馆】羽毛球后场杀球 300 次专项击球挥拍训练，有效专注 35 分钟，突破手臂酸痛极限。' },
-    { time: '18:05', text: '💰 【藏金屋】记常规零用金发放收入 +¥50.00，新华书店购买错题活页本 -¥18.50，结余账实相符。' }
-  ],
-  mediaList: [
-    {
-      id: 'm-photo-1',
-      type: 'image',
-      name: '错题红笔订正手稿原卷.png',
-      caption: '100以内退位减法错因归因与二次验算',
-      time: '17:40',
-      demoIcon: '📐',
-      previewContent: '【数学错题手稿订正】\n题号: 18 - 9 = 9 (借位标记已红笔圈出)\n归因: 个位不够减未借十，二次演算核准无误。'
-    },
-    {
-      id: 'm-video-1',
-      type: 'video',
-      name: '1分钟睡前心流思辨反思短片.mp4',
-      caption: '今日面对卡点时的心性磨砺复盘手记',
-      time: '21:15',
-      duration: '01:05',
-      demoIcon: '🎬',
-      previewContent: '【心流反思视频录像】\n录制时长: 01:05 · 高清 1080P\n核心感悟: 面对繁重口算时一度想放弃，通过深呼吸重拾定力。'
-    }
-  ],
-  historyEntries: [
-    {
-      id: 'entry-20261031',
-      date: '2026-10-31',
-      mood: '☀️ 专注充实',
-      energy: 5,
-      text: '今天在校史馆攻克了进退位口算难关，红笔重做清零了全部3道错题；武道馆后场击球300次突破了手臂酸痛极限，体会到“定力生慧”的切实力量。',
-      autoLogs: [
-        '⏱️ 校史馆：完成 1 个番茄钟专注口算 (25分钟)，清零错题 3 道',
-        '🪞 修身阁：《大学》格物致知与晨读打卡完毕，立宪心性稳固',
-        '🏸 兴趣屋：后场杀球 300 次挥拍特训，有效体能消耗 280 kcal'
-      ],
-      media: [
-        { id: 'h-1', type: 'image', name: '错题红笔订正手稿原卷.png', caption: '进退位验算原稿', time: '17:40' },
-        { id: 'h-2', type: 'video', name: '1分钟睡前心流思辨反思短片.mp4', caption: '自律心性复盘', duration: '01:05', time: '21:15' }
-      ]
-    },
-    {
-      id: 'entry-20261030',
-      date: '2026-10-30',
-      mood: '🌈 顿悟突破',
-      energy: 4,
-      text: '晚上和爸爸讨论了零花钱记账，明白了“量入为出”不仅是钱的问题，更是对自己生活秩序的掌控。写完日记感到内心非常平静。',
-      autoLogs: [
-        '💰 藏金屋：记一笔零用金支出 -¥18.50 (购买错题活页本与红笔)',
-        '🧠 认知台：亲子思辨探讨金钱观，达成自律契约共识'
-      ],
-      media: [
-        { id: 'h-3', type: 'image', name: '新华书店购书发票凭据.png', caption: '文具小票物证', time: '19:20' }
-      ]
-    }
-  ]
+  todayAutoLogs: [],
+  mediaList: [],
+  historyEntries: []
 };
 
 function renderNoteSpecializedWorkspace() {
   const state = window.NOTE_STATE;
   const curEnergy = state.currentEnergy || 4;
-  const autoLogsHtml = (state.todayAutoLogs || []).map((item, idx) => {
+  const autoLogsList = state.todayAutoLogs || [];
+  const autoLogsHtml = autoLogsList.length > 0 ? autoLogsList.map((item, idx) => {
     const txt = typeof item === 'string' ? item : item.text;
     const tm = (typeof item === 'object' && item.time) ? item.time : '今日';
     const isMoney = txt.includes('藏金屋') || txt.includes('¥');
@@ -23449,7 +22799,7 @@ function renderNoteSpecializedWorkspace() {
       '</div>' +
       '<div style="color:' + col + '; line-height:1.45;">' + txt + '</div>' +
     '</div>';
-  }).join('');
+  }).join('') : '<div style="grid-column:1 / -1; padding:20px; text-align:center; color:#94a3b8; font-size:12px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:10px;">今日暂无自动汇集的打卡或流水，完成各模块任务后将自动在此留痕 ⏱️</div>';
 
   let starsHtml = '';
   for (let s = 1; s <= 5; s++) {
@@ -24003,68 +23353,7 @@ let currentGanttCategory = 'all';
 let currentGanttStatus = 'all';
 let selectedNewProjCategory = '学业攻坚';
 
-window.GANTT_PROJECTS = [
-  {
-    id: 'p1',
-    pavilion: 'study',
-    category: '学业攻坚',
-    title: '小学数学口算达标与逆向思维训练',
-    desc: '每日限时20分钟完成30道混合进退位口算题，红笔圈出错因归因订正，周日与家长进行思维例题拆解。',
-    startDate: '2026-10-22',
-    endDate: '2026-11-04',
-    completedDays: ['2026-10-22', '2026-10-23', '2026-10-24', '2026-10-25', '2026-10-26', '2026-10-27'],
-    isArchived: false
-  },
-  {
-    id: 'p2',
-    pavilion: 'dojo',
-    category: '兴趣特长',
-    title: '少儿跳绳连跳突破与协调性训练',
-    desc: '挑战双脚单摇连跳达300次不绊绳，每组100次共3组，间歇45秒，突破体能瓶颈并由家长见证盖章。',
-    startDate: '2026-10-20',
-    endDate: '2026-11-08',
-    completedDays: ['2026-10-20', '2026-10-21', '2026-10-23', '2026-10-25', '2026-10-26', '2026-10-27'],
-    isArchived: false
-  },
-  {
-    id: 'p3',
-    pavilion: 'cultivation',
-    category: '修身立宪',
-    title: '《大学》经典晨读与知行合一践行计划',
-    desc: '每日晨读朗诵《大学》《论语》名句三遍并录音存证，结合生活实际践行孝亲与慎独，结业沉淀至成就馆。',
-    startDate: '2026-10-22',
-    endDate: '2026-11-10',
-    completedDays: ['2026-10-22', '2026-10-24', '2026-10-26', '2026-10-27'],
-    isArchived: false
-  },
-  {
-    id: 'p4',
-    pavilion: 'cognition',
-    category: '认知思辨',
-    title: '少儿多元思维与亲子议题思辨训练',
-    desc: '亲子每周开展一次生活议题思辨探讨，分别陈述正反观点并梳理逻辑证据链，沉淀思辨复盘卡。',
-    startDate: '2026-10-08',
-    endDate: '2026-10-25',
-    completedDays: Array.from({length: 18}, (_, i) => {
-      const d = new Date(2026, 9, 8 + i);
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return '2026-' + m + '-' + day;
-    }),
-    isArchived: false
-  },
-  {
-    id: 'p5',
-    pavilion: 'study',
-    category: '学业攻坚',
-    title: '少儿汉字规范书写与看图写话攻坚',
-    desc: '每日规范书写 8 个生字并注意笔顺，观察一幅生活场景插图写出 3 句完整通顺的观察日记。',
-    startDate: '2026-10-15',
-    endDate: '2026-11-10',
-    completedDays: ['2026-10-15', '2026-10-16', '2026-10-18', '2026-10-20', '2026-10-22', '2026-10-24'],
-    isArchived: false
-  }
-];
+window.GANTT_PROJECTS = [];
 
 function computeProjectProgressAndStatus(p) {
   const totalDays = Math.max(1, diffGanttDays(p.startDate, p.endDate) + 1);
@@ -24613,6 +23902,11 @@ function syncNewNodeToHomeExecution(taskCfg) {
   const pavMeta = (typeof PAVILION_META !== 'undefined' && PAVILION_META[pavId]) ? PAVILION_META[pavId] : { name: '执行任务', icon: '⚡' };
 
   const newIdx = deck.querySelectorAll('.exec-task-card').length;
+  const placeholder = document.getElementById('day-deck-empty-placeholder');
+  if (placeholder) placeholder.style.display = 'none';
+  const dotsWrapEl = document.getElementById('exec-carousel-dots');
+  if (dotsWrapEl) dotsWrapEl.style.display = 'flex';
+
   const cardEl = document.createElement('div');
   cardEl.className = 'exec-task-card tertiary-drill-card card-far-next';
   cardEl.id = 'exec-sync-' + taskId;

@@ -75,14 +75,27 @@ const obsidianHostCss = `/* ====================================================
   font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* Strip design prototype showcase header, 11-module gallery mode, and simulated iPad bezel chrome inside Obsidian */
+/* Strip design prototype showcase header and simulated iPad bezel chrome inside Obsidian */
 .youth-island-plugin-root .global-header,
-.youth-island-plugin-root #gallery-stage-view,
 .youth-island-plugin-root .ipad-home-indicator,
 .youth-island-obsidian-view-root .global-header,
-.youth-island-obsidian-view-root #gallery-stage-view,
 .youth-island-obsidian-view-root .ipad-home-indicator {
   display: none !important;
+}
+
+/* Ensure checkin stage view fills viewport in Obsidian */
+.youth-island-plugin-root #gallery-stage-view,
+.youth-island-obsidian-view-root #gallery-stage-view {
+  width: 100% !important;
+  height: 100% !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 1000 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  background: #182018 !important;
+  padding: 16px !important;
+  box-sizing: border-box !important;
 }
 
 .youth-island-plugin-root #main-viewport,
@@ -137,6 +150,142 @@ body.youth-island-tablet-fullscreen .workspace-tab-header-container,
 body.youth-island-tablet-fullscreen .titlebar {
   display: none !important;
 }
+
+/* Obsidian Mobile Theme Reset & Isolation (Prevents theme bleeding and button deformation) */
+.youth-island-plugin-root button,
+.youth-island-obsidian-view-root button {
+  font-family: inherit;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+/* 1. 小岛底部发射台按键几何尺寸与布局强制锁定 */
+.youth-island-plugin-root .a-my-island-plugin-launcher-button,
+.youth-island-obsidian-view-root .a-my-island-plugin-launcher-button {
+  display: grid !important;
+  flex: 0 0 68px !important;
+  width: 68px !important;
+  min-width: 68px !important;
+  max-width: 68px !important;
+  height: 66px !important;
+  min-height: 66px !important;
+  max-height: 66px !important;
+  grid-template-rows: 36px 16px !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: 3px !important;
+  padding: 6px 6px 5px !important;
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+}
+
+.youth-island-plugin-root .a-my-island-plugin-launcher-icon,
+.youth-island-obsidian-view-root .a-my-island-plugin-launcher-icon {
+  display: grid !important;
+  width: 34px !important;
+  height: 34px !important;
+  place-items: center !important;
+  font-size: 24px !important;
+  line-height: 1 !important;
+  flex-shrink: 0 !important;
+}
+
+.youth-island-plugin-root .a-my-island-plugin-launcher-icon > svg,
+.youth-island-obsidian-view-root .a-my-island-plugin-launcher-icon > svg {
+  display: block !important;
+  width: 32px !important;
+  height: 32px !important;
+  flex-shrink: 0 !important;
+}
+
+.youth-island-plugin-root .a-my-island-plugin-launcher-label,
+.youth-island-obsidian-view-root .a-my-island-plugin-launcher-label {
+  display: block !important;
+  max-width: 58px !important;
+  overflow: hidden !important;
+  color: #60401f !important;
+  font-size: 11px !important;
+  font-weight: 850 !important;
+  line-height: 1.15 !important;
+  text-align: center !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+}
+
+/* 2. 顶栏操作工具键防变形 */
+.youth-island-plugin-root .a-my-island-graph-tool,
+.youth-island-obsidian-view-root .a-my-island-graph-tool {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+}
+
+/* 3. 树操作与甘特图操作按钮 */
+.youth-island-plugin-root .tree-action-btn,
+.youth-island-obsidian-view-root .tree-action-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+}
+
+.youth-island-plugin-root .gantt-op-btn,
+.youth-island-obsidian-view-root .gantt-op-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+  height: 26px !important;
+  padding: 0 6px !important;
+  font-size: 11px !important;
+  white-space: nowrap !important;
+}
+
+.youth-island-plugin-root .card-graphic-pill,
+.youth-island-obsidian-view-root .card-graphic-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+  border-radius: 20px !important;
+  white-space: nowrap !important;
+}
+
+/* 4. 输入框、多选框与下拉选择框隔离 */
+.youth-island-plugin-root input,
+.youth-island-plugin-root select,
+.youth-island-plugin-root textarea,
+.youth-island-obsidian-view-root input,
+.youth-island-obsidian-view-root select,
+.youth-island-obsidian-view-root textarea {
+  box-sizing: border-box !important;
+  font-family: inherit !important;
+}
+
+.youth-island-plugin-root input[type="checkbox"],
+.youth-island-obsidian-view-root input[type="checkbox"] {
+  appearance: checkbox !important;
+  -webkit-appearance: checkbox !important;
+  width: 16px !important;
+  height: 16px !important;
+  margin: 0 !important;
+  flex-shrink: 0 !important;
+  cursor: pointer !important;
+}
+
+/* 5. 确保执行中心避让发射台，不产生按钮遮挡 */
+.youth-island-plugin-root .island-exec-center-container,
+.youth-island-obsidian-view-root .island-exec-center-container {
+  bottom: 96px !important;
+}
+
 
 `;
 

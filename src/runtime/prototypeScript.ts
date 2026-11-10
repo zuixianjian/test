@@ -1940,49 +1940,49 @@ function normalizeExecCheckinType(id) {
 const EXEC_CHECKIN_PAGE_META = {
   goal: {
     badge: '🎯 目标分解节点卡',
-    title: '进退位口算满分达标与思维通关目标',
+    title: '阶段里程碑与量化通关目标',
     breadcrumb: '🏝️ 晨曦岛 ❯ ⚡ 执行中心 ❯ 🎯 目标分解节点卡打卡页面',
-    projectName: '《小学数学口算达标与逆向思维训练》',
+    projectName: '《全息成长规划课题》',
     hasPlanningProject: true,
     legacyKey: 'study'
   },
   drill: {
     badge: '⚡ 攻坚实训节点卡',
-    title: '进退位破十法心算极限攻坚实训',
+    title: '专项技能与核心攻坚实训',
     breadcrumb: '🏝️ 晨曦岛 ❯ ⚡ 执行中心 ❯ ⚡ 攻坚实训节点卡打卡页面',
-    projectName: '《小学数学口算达标与逆向思维训练》',
+    projectName: '《全息成长规划课题》',
     hasPlanningProject: true,
     legacyKey: 'dojo'
   },
   habit: {
     badge: '🌿 习惯践行节点卡',
-    title: '每日口算自律防守与国学晨读知行日课',
+    title: '知行合一自律防守日课',
     breadcrumb: '🏝️ 晨曦岛 ❯ ⚡ 执行中心 ❯ 🌿 习惯践行节点卡打卡页面',
-    projectName: '《知行合一·君子风骨百日践行计划》',
+    projectName: '《知行合一践行计划》',
     hasPlanningProject: true,
     legacyKey: 'cultivation'
   },
   reflection: {
     badge: '📝 评估复盘节点卡',
-    title: '进退位口算错因归因与靶向提升复盘卡',
+    title: '错因归因与靶向提升复盘卡',
     breadcrumb: '🏝️ 晨曦岛 ❯ ⚡ 执行中心 ❯ 📝 评估复盘节点卡打卡页面',
-    projectName: '《自我进化 PDCA 飞轮与全息生命印记全书》',
+    projectName: '《自我进化与复盘反思》',
     hasPlanningProject: true,
     legacyKey: 'review'
   },
   custom: {
     badge: '⚙️ 自定义配置节点卡',
-    title: '航天科普馆自主研学与水火箭模型制作',
+    title: '自主实践探究项目',
     breadcrumb: '🏝️ 晨曦岛 ❯ ⚡ 执行中心 ❯ ⚙️ 自定义配置节点卡打卡页面',
-    projectName: '《青少儿跨学科科学探究与自主研学工程》',
+    projectName: '《跨学科自主探究工程》',
     hasPlanningProject: true,
     legacyKey: 'treasury'
   },
   text: {
     badge: '📄 简单文本节点卡',
-    title: '长征运载火箭谱系与航天知识备忘',
+    title: '核心要领与备忘手记',
     breadcrumb: '🏝️ 晨曦岛 ❯ ⚡ 执行中心 ❯ 📄 简单文本节点查阅页面',
-    projectName: '《青少儿跨学科科学探究与自主研学工程》',
+    projectName: '《自主实践探究工程》',
     hasPlanningProject: false,
     legacyKey: 'note'
   }
@@ -2408,40 +2408,42 @@ function resetExecPopupTimer() {
 // 全域状态闭环中枢 (HUD 连胜/履约率 · 核心学期目标条 · 每日随记流水 · 甘特进度回写)
 // =========================================================================
 window.USER_PROFILE_STATE = {
-  streakDays: 18,
+  streakDays: 0,
   streakIncrementedToday: false,
-  completedTodayCount: 2,
-  totalTodayCount: 5,
-  baseFulfillmentRate: 96,
+  completedTodayCount: 0,
+  totalTodayCount: 0,
+  baseFulfillmentRate: 100,
   violationCount: 0,
   violationRecords: [],
   checkedTaskKeys: {}
 };
 
 function computeCurrentFulfillmentRate() {
-  const st = window.USER_PROFILE_STATE;
-  const bonus = Math.min(4, Math.max(0, st.completedTodayCount - 2) * 2);
-  const raw = Math.min(100, st.baseFulfillmentRate + bonus);
-  return Math.max(0, raw - (st.violationCount || 0) * 5);
+  const st = window.USER_PROFILE_STATE || { streakDays: 0, completedTodayCount: 0, totalTodayCount: 0, baseFulfillmentRate: 100, violationCount: 0 };
+  if (!st.totalTodayCount || st.totalTodayCount === 0) {
+    return Math.max(0, 100 - (st.violationCount || 0) * 5);
+  }
+  const pct = Math.round((st.completedTodayCount / st.totalTodayCount) * 100);
+  return Math.max(0, Math.min(100, pct - (st.violationCount || 0) * 5));
 }
 
 function recalcAndRenderGlobalHUD() {
-  const st = window.USER_PROFILE_STATE;
+  const st = window.USER_PROFILE_STATE || { streakDays: 0, completedTodayCount: 0, totalTodayCount: 0, baseFulfillmentRate: 100, violationCount: 0 };
   const rate = computeCurrentFulfillmentRate();
   const streakEl = document.getElementById('hud-streak-count');
-  if (streakEl) streakEl.textContent = st.streakDays + '天';
+  if (streakEl) streakEl.textContent = '连续 ' + (st.streakDays || 0) + ' 天';
   const rateEl = document.getElementById('hud-rate-percent');
   if (rateEl) {
-    rateEl.textContent = rate + '%';
-    rateEl.style.color = st.violationCount > 0 ? '#dc2626' : '';
+    rateEl.textContent = '履约 ' + rate + '%';
+    rateEl.style.color = (st.violationCount || 0) > 0 ? '#dc2626' : '';
   }
   const statProg = document.getElementById('exec-stat-progress');
   if (statProg) {
-    statProg.textContent = st.completedTodayCount + '/' + st.totalTodayCount;
+    statProg.textContent = (st.completedTodayCount || 0) + '/' + (st.totalTodayCount || 0);
   }
   const pactBadge = document.getElementById('pact-current-rate-badge');
   if (pactBadge) {
-    pactBadge.textContent = '当前综合履约率：' + rate + '%（累计违约 ' + st.violationCount + ' 次）';
+    pactBadge.textContent = '当前综合履约率：' + rate + '%（累计违约 ' + (st.violationCount || 0) + ' 次）';
   }
 }
 
@@ -2483,7 +2485,10 @@ function renderHomeSemesterGoalsBanner() {
   const listEl = document.getElementById('island-goal-cards-list');
   if (!listEl || !Array.isArray(window.GANTT_PROJECTS)) return;
   const activeProjs = window.GANTT_PROJECTS.filter(p => !p.isArchived);
-  if (activeProjs.length === 0) return;
+  if (activeProjs.length === 0) {
+    listEl.innerHTML = '<div style="display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:10px 16px; color:#8c6b45; font-size:12px; font-weight:700;"><span>🌱 暂无进行中的学期规划项目</span><button type="button" class="card-graphic-pill pill-timer" onclick="switchMainSection(\'ws\'); openAddProjectModal();" style="padding:2px 10px; font-size:11px; cursor:pointer;">➕ 立即立项</button></div>';
+    return;
+  }
 
   const badgeColors = {
     '学业攻坚': { bg: '#eff6ff', color: '#1d4ed8', bar: '#2563eb' },
@@ -3071,30 +3076,63 @@ function updatePavilionBadges(mode) {
 // =========================================================================
 // 家长置顶悬赏契约全生命周期控制器 (发布 ➔ 孩子揭榜应战 ➔ 上传物证 ➔ 验收兑现入成就馆与随记)
 // =========================================================================
-window.BOUNTY_STATE = {
-  id: 'BC-202611-MATH95',
-  title: '小学数学口算达标与逆向思维训练',
-  pavilionLabel: '🏫 校史馆 · 学业攻坚',
-  pavilionId: 'study',
-  reward: '🎟️ 科技馆探索门票 + 研学新书',
-  days: 7,
-  criteria: '1. 攻克 30 道进退位口算题卡，限时 20 分钟番茄实训钟留痕；\n2. 演算题卡清晰拍照上传，红笔订正借位标记与凑十破十过程清晰；\n3. 家长核验物证并填写鼓励寄语盖戳，心愿契约即时兑现并载入成就馆。',
-  status: 'accepted', // 'published' | 'accepted' | 'redeemed'
-  evidenceUploaded: true,
-  evidenceName: '口算30题全对红笔验算手稿.jpg',
-  parentComment: '演算步骤工整清晰，破十法掌握扎实，周末如约带你去科技馆探索！',
-  vaultFile: '09_Bounties_悬赏公告/bounty-2026-midterm-math.md'
-};
+window.BOUNTY_STATE = null;
 
 function renderBountyModalAndBillboard() {
   const b = window.BOUNTY_STATE;
-  if (!b) return;
-
-  // 1. 同步顶栏告示牌
   const hTitle = document.getElementById('home-bounty-title');
   const hTimer = document.getElementById('home-bounty-timer');
   const hReward = document.getElementById('home-bounty-reward');
   const hCta = document.getElementById('home-bounty-cta');
+  const hAuthor = document.getElementById('home-bounty-author');
+
+  if (!b) {
+    if (hTitle) hTitle.textContent = '暂无进行中的悬赏契约';
+    if (hTimer) hTimer.textContent = '⏱️ 待张榜';
+    if (hReward) hReward.textContent = '🎁 点击发布亲子心愿悬赏';
+    if (hAuthor) hAuthor.textContent = '👨‍👩‍👦 亲子共建';
+    if (hCta) {
+      hCta.textContent = '去发布 ›';
+      hCta.style.background = '#ffedd5';
+      hCta.style.color = '#c2410c';
+    }
+    const statusBadge = document.getElementById('bounty-modal-status-badge');
+    const contractNo = document.getElementById('bounty-modal-contract-no');
+    const mTitle = document.getElementById('bounty-modal-title');
+    const mMeta = document.getElementById('bounty-modal-meta');
+    const mReward = document.getElementById('bounty-modal-reward');
+    const mCriteria = document.getElementById('bounty-modal-criteria');
+    const s2Status = document.getElementById('bounty-stage2-status');
+    const s2Desc = document.getElementById('bounty-stage2-desc');
+    const s3Status = document.getElementById('bounty-stage3-status');
+    const stamp = document.getElementById('bounty-parent-stamp');
+    const childSign = document.getElementById('bounty-child-sign-pill');
+    const parentSign = document.getElementById('bounty-parent-sign-pill');
+    const acceptBtn1 = document.getElementById('bounty-action-accept-btn');
+    const acceptBtn2 = document.getElementById('bounty-footer-accept-btn');
+    const redeemBtn = document.getElementById('bounty-action-redeem-btn');
+    const formBox = document.getElementById('bounty-publish-form-box');
+
+    if (statusBadge) { statusBadge.textContent = '⚪ 暂无生效悬赏'; statusBadge.style.background = '#64748b'; }
+    if (contractNo) contractNo.textContent = '契约编号：暂未生成 · 请点击【➕ 家长发布新悬赏】立约张榜';
+    if (mTitle) mTitle.textContent = '《暂无进行中的悬赏挑战》';
+    if (mMeta) mMeta.textContent = '🎯 关联规划：未指定 | 👨‍👩‍👦 期待家长发起立约';
+    if (mReward) mReward.textContent = '🎁 达成心愿体验奖励';
+    if (mCriteria) mCriteria.innerHTML = '<strong>📋 契约验收标准：</strong><br>请点击右上角【➕ 家长发布新悬赏】填写挑战项目、心愿奖励与验收标准。';
+    if (s2Status) { s2Status.textContent = '⚪ 待张榜'; s2Status.style.color = '#64748b'; }
+    if (s2Desc) s2Desc.textContent = '立约张榜后，孩子可点击【揭榜应战】同步生成待办卡片。';
+    if (s3Status) { s3Status.textContent = '⚪ 未开始'; s3Status.style.color = '#64748b'; }
+    if (stamp) { stamp.innerHTML = '⚪ 暂未签署立约'; stamp.style.background = '#f8fafc'; stamp.style.color = '#64748b'; stamp.style.borderColor = '#cbd5e1'; }
+    if (childSign) { childSign.textContent = '⌛ 待签署'; childSign.style.background = '#f1f5f9'; childSign.style.color = '#64748b'; }
+    if (parentSign) { parentSign.textContent = '⌛ 待发起'; parentSign.style.background = '#f1f5f9'; parentSign.style.color = '#64748b'; }
+    if (acceptBtn1) acceptBtn1.style.display = 'none';
+    if (acceptBtn2) acceptBtn2.style.display = 'none';
+    if (redeemBtn) redeemBtn.style.display = 'none';
+    if (formBox) formBox.style.display = 'flex';
+    return;
+  }
+
+  // 1. 同步顶栏告示牌
   if (hTitle) hTitle.textContent = b.title;
   if (hTimer) hTimer.textContent = '⏱️ ' + b.days + '天期';
   if (hReward) hReward.textContent = b.reward;
@@ -4059,7 +4097,7 @@ function enterTertiaryWorkspace(projId) {
   const p = (window.GANTT_PROJECTS || []).find(item => item.id === targetId);
   const leafEl = document.getElementById('tertiary-crumb-leaf');
   if (leafEl) {
-    leafEl.innerText = p ? ('⚡ ' + p.title) : '⚡ 口算进退位专项突破';
+    leafEl.innerText = p ? ('⚡ ' + p.title) : '⚡ 攻坚脑图画布';
   }
   switchMainSection('tertiary');
   initTertiaryWorkspace();
@@ -5733,8 +5771,21 @@ function switchExecSubView(view) {
 
 function updateDayCarousel() {
   const allCards = document.querySelectorAll('.exec-card-deck .exec-task-card');
-  if (allCards.length > 0) totalDayCards = allCards.length;
-  const cards = document.querySelectorAll('.exec-card-deck .exec-task-card');
+  const dotsWrap = document.getElementById('exec-carousel-dots');
+  const emptyPlaceholder = document.getElementById('day-deck-empty-placeholder');
+
+  if (allCards.length === 0) {
+    totalDayCards = 0;
+    currentDayCardIndex = 0;
+    if (dotsWrap) dotsWrap.style.display = 'none';
+    if (emptyPlaceholder) emptyPlaceholder.style.display = 'flex';
+    return;
+  }
+  if (emptyPlaceholder) emptyPlaceholder.style.display = 'none';
+  if (dotsWrap) dotsWrap.style.display = 'flex';
+  totalDayCards = allCards.length;
+  currentDayCardIndex = Math.max(0, Math.min(currentDayCardIndex, totalDayCards - 1));
+  const cards = allCards;
   const dots = document.querySelectorAll('.exec-carousel-pagination .pagination-dot-pill');
 
   cards.forEach((card, idx) => {
@@ -5762,11 +5813,13 @@ function updateDayCarousel() {
 }
 
 function nextDayCard() {
+  if (totalDayCards <= 0) return;
   currentDayCardIndex = (currentDayCardIndex + 1) % totalDayCards;
   updateDayCarousel();
 }
 
 function prevDayCard() {
+  if (totalDayCards <= 0) return;
   currentDayCardIndex = (currentDayCardIndex - 1 + totalDayCards) % totalDayCards;
   updateDayCarousel();
 }
@@ -5918,271 +5971,13 @@ window.currentWeekOffset = 0;
 window.currentWeekFilter = 'all';
 
 const WEEK_BOARD_DATA = [
-  {
-    dayIndex: 0,
-    dayName: '周一',
-    dateStr: '10/26',
-    tasks: [
-      {
-        id: 'w-task-1',
-        pavilion: '校史馆',
-        pavilionBadge: '🏫 校史馆 · 学科攻坚',
-        title: '小学数学进退位口算百题达标',
-        status: 'done',
-        duration: '25 分钟',
-        time: '16:30 ~ 16:55',
-        instruction: '限时 25 分钟，完成 30 道凑十法口算大题，红笔标出易错归因并拍照存证。',
-        evidence: '✓ 已上传验算草稿纸手稿 1 张（含红笔归因星标）\n✓ 番茄钟实测：专注时长 25 分 12 秒',
-        reflection: '“做第 3 题时发现了进位的进数忘记加上的小毛病，标了红星，下次先看进位。”'
-      },
-      {
-        id: 'w-task-2',
-        pavilion: '修身阁',
-        pavilionBadge: '🪞 修身阁 · 德育品格',
-        title: '《大学》定本知止定静晨读背诵',
-        status: 'done',
-        duration: '15 分钟',
-        time: '07:10 ~ 07:25',
-        instruction: '大声晨读《大学》开篇，逐字逐句对照译文，理解“知止而后有定”。',
-        evidence: '✓ 晨读录音已存档（长辈见证已盖印）',
-        reflection: '“心中有止境，做事就不会慌慌张张，学习时心静自然专注。”'
-      },
-      {
-        id: 'w-task-3',
-        pavilion: '武道馆',
-        pavilionBadge: '🏸 武道馆 · 体育体能',
-        title: '后场击球300次核心肌肉记忆挥拍',
-        status: 'done',
-        duration: '30 分钟',
-        time: '17:30 ~ 18:00',
-        instruction: '定点挥拍击球 300 次，保持重心前倾，记录心率与疲劳度。',
-        evidence: '✓ 手环实测数据：心率峰值 152 bpm，消耗 210 kcal',
-        reflection: '“挥到第 200 次时手酸，坚持完成最后 100 次，体能突破感很强。”'
-      }
-    ]
-  },
-  {
-    dayIndex: 1,
-    dayName: '周二',
-    dateStr: '10/27',
-    tasks: [
-      {
-        id: 'w-task-4',
-        pavilion: '思辨馆',
-        pavilionBadge: '🧠 思辨馆 · 哲学批判',
-        title: '亲子正义论辩论初探与反驳推演',
-        status: 'done',
-        duration: '35 分钟',
-        time: '19:40 ~ 20:15',
-        instruction: '围绕“规则公平与个案关怀”与父母开展 15 分钟桌面思辨。',
-        evidence: '✓ 记录双向思辨卡片 1 张，识别出 2 处以偏概全逻辑漏洞',
-        reflection: '“学会了反驳对方之前先复述对方的论点，沟通更讲道理了。”'
-      },
-      {
-        id: 'w-task-5',
-        pavilion: '校史馆',
-        pavilionBadge: '🏫 校史馆 · 学科攻坚',
-        title: '平面几何周长面积易错题清零',
-        status: 'done',
-        duration: '20 分钟',
-        time: '17:00 ~ 17:20',
-        instruction: '红笔重构 2 道几何辅助线，写出割补法推导全过程。',
-        evidence: '✓ 错题本红笔图解照片已上传',
-        reflection: '“长方形割补成三角形后，底和高一一对应就不会算错了。”'
-      }
-    ]
-  },
-  {
-    dayIndex: 2,
-    dayName: '周三',
-    dateStr: '10/28',
-    tasks: [
-      {
-        id: 'w-task-6',
-        pavilion: '藏金屋',
-        pavilionBadge: '💰 藏金屋 · 财商自控',
-        title: '零用金四维资金罐定投存蓄',
-        status: 'done',
-        duration: '10 分钟',
-        time: '18:10 ~ 18:20',
-        instruction: '本周发放的 100 元零花钱按 4:3:2:1 分流进梦想罐、生息罐等。',
-        evidence: '✓ 台账明细已记录（收支流水已归档）',
-        reflection: '“看到梦想罐积攒到 1400 元，离显微镜越来越近了，很有成就感。”'
-      },
-      {
-        id: 'w-task-7',
-        pavilion: '修身阁',
-        pavilionBadge: '🪞 修身阁 · 德育品格',
-        title: '亲子立宪公约暮省自省防守',
-        status: 'done',
-        duration: '15 分钟',
-        time: '21:00 ~ 21:15',
-        instruction: '对照四大红线自省今日言行，恪守知止戒律，零破戒。',
-        evidence: '✓ 诚信防守 0 破戒，品格积分 +5',
-        reflection: '“下午面对游戏诱惑时克制住了，先完成了今天的功课，感到安心。”'
-      }
-    ]
-  },
-  {
-    dayIndex: 3,
-    dayName: '周四',
-    dateStr: '10/29',
-    tasks: [
-      {
-        id: 'w-task-8',
-        pavilion: '校史馆',
-        pavilionBadge: '🏫 校史馆 · 学科攻坚',
-        title: '英语原版科普绘本诵读录音',
-        status: 'done',
-        duration: '25 分钟',
-        time: '07:20 ~ 07:45',
-        instruction: '完成 4 页大自然科普绘本伴读，模仿语音语调并录音。',
-        evidence: '✓ 原声音频 2 分 40 秒已上传并转文字存证',
-        reflection: '“发音更自信了，生词通过上下文猜出了大致含义。”'
-      },
-      {
-        id: 'w-task-9',
-        pavilion: '武道馆',
-        pavilionBadge: '🏸 武道馆 · 体育体能',
-        title: '敏捷梯步伐与灵敏爆发力实训',
-        status: 'done',
-        duration: '30 分钟',
-        time: '17:15 ~ 17:45',
-        instruction: '完成 5 组十字交叉跳与高抬腿，计时误差控制在 5% 以内。',
-        evidence: '✓ 训练计时日志已同步',
-        reflection: '“脚步轻盈了很多，启动速度明显比上周快。”'
-      }
-    ]
-  },
-  {
-    dayIndex: 4,
-    dayName: '周五',
-    dateStr: '10/30',
-    tasks: [
-      {
-        id: 'w-task-10',
-        pavilion: '藏金屋',
-        pavilionBadge: '💰 藏金屋 · 财商自控',
-        title: '文具支出记账与冲动消费自控',
-        status: 'done',
-        duration: '10 分钟',
-        time: '17:50 ~ 18:00',
-        instruction: '购买错题活页本与红笔支出 18.5 元，记入台账并核对小票。',
-        evidence: '✓ 发票小票照片已拍照存证',
-        reflection: '“买东西前问了自己三遍是不是必须的，克制了买盲盒的冲动。”'
-      },
-      {
-        id: 'w-task-11',
-        pavilion: '每日随记',
-        pavilionBadge: '📖 每日随记 · 生命全书',
-        title: '少年心流暮省反思手记书写',
-        status: 'done',
-        duration: '20 分钟',
-        time: '21:30 ~ 21:50',
-        instruction: '写下一周生活感悟，提炼“定力生慧”的切实力量。',
-        evidence: '✓ 暮省日志 1 篇已归档入生命全书瀑布流',
-        reflection: '“复盘不仅是看完成了什么，更是看自己心态的变化。”'
-      }
-    ]
-  },
-  {
-    dayIndex: 5,
-    dayName: '周六 (今日)',
-    dateStr: '10/31',
-    tasks: [
-      {
-        id: 'w-task-12',
-        pavilion: '校史馆',
-        pavilionBadge: '🏫 校史馆 · 学科攻坚',
-        title: '进退位口算达标终极大攻坚',
-        status: 'done',
-        duration: '25 分钟',
-        time: '16:30 ~ 16:55',
-        instruction: '限时 25 分钟，完成 3 道进退位口算难关，拍照上传草稿纸原件。',
-        evidence: '✓ 已上传手稿演算法则照片 1 张（含红笔订正卡点）\n✓ 番茄钟实测：专注时长 25 分 14 秒',
-        reflection: '“今天做第 3 题时发现了借位标记的小毛病，用红笔在草稿本上标了个大星星。”'
-      },
-      {
-        id: 'w-task-13',
-        pavilion: '武道馆',
-        pavilionBadge: '🏸 武道馆 · 体育体能',
-        title: '羽毛球杀球300次耐力突破',
-        status: 'done',
-        duration: '40 分钟',
-        time: '10:00 ~ 10:40',
-        instruction: '突破手臂酸痛极限，体会肌肉耐力与意志力协同。',
-        evidence: '✓ 实测完成 300 次击球，有效心率持续 28 分钟',
-        reflection: '“真正体会到了定力生慧，身体再累心里也能沉住气。”'
-      },
-      {
-        id: 'w-task-14',
-        pavilion: '思辨馆',
-        pavilionBadge: '🧠 思辨馆 · 哲学批判',
-        title: '辩论复盘手记与布鲁姆评价阶梯',
-        status: 'pending',
-        duration: '25 分钟',
-        time: '19:30 ~ 19:55',
-        instruction: '将本周讨论的论题整理成金字塔图，梳理逻辑证据链。',
-        evidence: '待完成打卡后上传思维导图',
-        reflection: '待填写'
-      },
-      {
-        id: 'w-task-15',
-        pavilion: '每日随记',
-        pavilionBadge: '📖 每日随记 · 生命全书',
-        title: '1分钟心流思辨反思短片录制',
-        status: 'pending',
-        duration: '15 分钟',
-        time: '21:15 ~ 21:30',
-        instruction: '睡前录制 60 秒高清短片，分享今天攻克难题的心路历程。',
-        evidence: '待录制上传影像物证',
-        reflection: '待填写'
-      }
-    ]
-  },
-  {
-    dayIndex: 6,
-    dayName: '周日',
-    dateStr: '11/01',
-    tasks: [
-      {
-        id: 'w-task-16',
-        pavilion: '校史馆',
-        pavilionBadge: '🏫 校史馆 · 学科攻坚',
-        title: '本周错题100%清零全景大复盘',
-        status: 'pending',
-        duration: '30 分钟',
-        time: '09:30 ~ 10:00',
-        instruction: '将本周所有红笔标记错题进行二次无提示盲测，确保完全掌握。',
-        evidence: '待完成打卡并由家长盖章',
-        reflection: '待复盘'
-      },
-      {
-        id: 'w-task-17',
-        pavilion: '修身阁',
-        pavilionBadge: '🪞 修身阁 · 德育品格',
-        title: '人生底线树七日修养结晶仪式',
-        status: 'pending',
-        duration: '20 分钟',
-        time: '16:00 ~ 16:20',
-        instruction: '总结一周言行自省防守成果，为底线树点亮新的品格结晶。',
-        evidence: '待仪式达成后自动结晶',
-        reflection: '待总结'
-      },
-      {
-        id: 'w-task-18',
-        pavilion: '执行中心',
-        pavilionBadge: '⚡ 执行中心 · 规划复盘',
-        title: '下周学习攻坚甘特图沙盘推演',
-        status: 'pending',
-        duration: '25 分钟',
-        time: '19:00 ~ 19:25',
-        instruction: '在甘特图规划沙盘中拆解新一周任务节奏，预设重点攻坚日。',
-        evidence: '待生成下周规划里程碑',
-        reflection: '待规划'
-      }
-    ]
-  }
+  { dayIndex: 0, dayName: '周一', dateStr: '10/26', tasks: [] },
+  { dayIndex: 1, dayName: '周二', dateStr: '10/27', tasks: [] },
+  { dayIndex: 2, dayName: '周三', dateStr: '10/28', tasks: [] },
+  { dayIndex: 3, dayName: '周四', dateStr: '10/29', tasks: [] },
+  { dayIndex: 4, dayName: '周五', dateStr: '10/30', tasks: [] },
+  { dayIndex: 5, dayName: '周六 (今日)', dateStr: '10/31', isToday: true, tasks: [] },
+  { dayIndex: 6, dayName: '周日', dateStr: '11/01', tasks: [] }
 ];
 
 function changeWeek(delta) {
@@ -6731,18 +6526,11 @@ function locateDaxueItemFromModal(itemId) {
 }
 // ==================== 藏金屋独立财商实践核心数据模型与交互控制器 (收支记录) ====================
 window.TREASURY_STATE = {
-  totalBalance: 3280.00,
-  totalIncome: 4200.00,
-  totalExpense: 920.00,
-  currentRecordType: 'income', // 'income' | 'expense'
-  ledger: [
-    { id: 'TX-20261026-001', time: '2026-10-26 10:15', type: 'income', category: '零花钱', amount: 100.00, balanceAfter: 3280.00, note: '每周自主生活零用金常规发放存入', proof: '📷 零用金发放记录' },
-    { id: 'TX-20261025-002', time: '2026-10-25 16:30', type: 'expense', category: '学科文具', amount: -42.00, balanceAfter: 3180.00, note: '购买学科攻坚文具与错题便签本', proof: '🧾 新华书店收银小票已核验' },
-    { id: 'TX-20261020-003', time: '2026-10-20 18:00', type: 'expense', category: '孝亲礼', amount: -58.00, balanceAfter: 3222.00, note: '重阳节孝亲礼：为奶奶选购养生桂花茶礼盒', proof: '🎁 礼盒实物照片' },
-    { id: 'TX-20261018-004', time: '2026-10-18 09:30', type: 'income', category: '劳动奖励', amount: 100.00, balanceAfter: 3280.00, note: '家庭公共卫生自主清洁劳动所得', proof: '📷 劳动成果实拍' },
-    { id: 'TX-20261015-005', time: '2026-10-15 20:00', type: 'expense', category: '课外书籍', amount: -65.00, balanceAfter: 3180.00, note: '购买天文学入门与星图观测手册', proof: '🧾 购书发票' },
-    { id: 'TX-20261011-006', time: '2026-10-11 11:20', type: 'income', category: '零花钱', amount: 100.00, balanceAfter: 3245.00, note: '期初零用金发放存入', proof: '📷 存钱袋实拍' }
-  ]
+  totalBalance: 0.00,
+  totalIncome: 0.00,
+  totalExpense: 0.00,
+  currentRecordType: 'income',
+  ledger: []
 };
 
 function switchTreasuryRecordType(type) {
@@ -6956,9 +6744,9 @@ function recordLiveTreasuryExpense() {
 
 function renderTreasurySpecializedWorkspace() {
   const state = window.TREASURY_STATE || {
-    totalBalance: 3280.00,
-    totalIncome: 4200.00,
-    totalExpense: 920.00,
+    totalBalance: 0.00,
+    totalIncome: 0.00,
+    totalExpense: 0.00,
     ledger: []
   };
 
@@ -7598,127 +7386,9 @@ function showDaxueEightPhilosophy() {
 
 
 window.ACHIEVEMENT_STATE = {
-  currentTab: 'cultivation', // 'cultivation' | 'accidental' | 'all'
-  // 1. 养成类成就：各模块项目执行完成后沉淀的结果，不可手动新增，只可在目标卡片点击记录到成就馆，按项目类型分组按时间线展示
-  cultivationItems: [
-    {
-      id: 'ACH-CULT-20261025-001',
-      date: '2026-10-25',
-      title: '《大学》定本知行合一结业通关章',
-      icon: '📜',
-      projectType: 'cultivation',
-      projectTypeLabel: '修身阁 · 德育品格研读',
-      projectName: '《大学》修身立人二十日研习计划',
-      metrics: [
-        { name: '经典逐句默写与诵读正确率', target: '≥95%', actual: '98% (达标)' },
-        { name: '言行合一自律防守天数', target: '20天', actual: '20天 (满贯)' }
-      ],
-      proof: '🎙️ 晨读原声音频与自律践行手记存证已归档',
-      issuer: '修身阁问道师长 · 见证',
-      desc: '修身阁知行合一沉淀 · 完成《大学》日诵与自律践行20天，言行合一，经受住诱惑考验。'
-    },
-    {
-      id: 'ACH-CULT-20261020-002',
-      date: '2026-10-20',
-      title: '数学口算百题进阶攻坚通关章',
-      icon: '📐',
-      projectType: 'study',
-      projectTypeLabel: '校史馆 · 学科学业攻坚',
-      projectName: '100以内混合进退位口算速度与正确率攻坚',
-      metrics: [
-        { name: '30题进退位混合口算正确率', target: '100%', actual: '100% (满分)' },
-        { name: '全卷限时完成速度', target: '≤5分钟', actual: '4分15秒' }
-      ],
-      proof: '📄 考卷原题全红笔订正无遗漏草稿已归档',
-      issuer: '校史馆学科教研组 · 审验',
-      desc: '校史馆学科学业沉淀 · 独立完成30道进退位口算全对，破除畏难心理，达到卓越标准。'
-    },
-    {
-      id: 'ACH-CULT-20261014-003',
-      date: '2026-10-14',
-      title: '少儿跳绳单摇连跳突破200次勋章',
-      icon: '🥋',
-      projectType: 'dojo',
-      projectTypeLabel: '武道馆 · 兴趣体能竞技',
-      projectName: '跳绳耐力与爆发力专项体适能突破',
-      metrics: [
-        { name: '单摇不间断连跳次数', target: '≥200次', actual: '220次' },
-        { name: '心率恢复时长', target: '≤3分钟', actual: '2分20秒' }
-      ],
-      proof: '🎬 连跳实况切片视频与心率记录已归档',
-      issuer: '武道馆教练组 · 审验',
-      desc: '武道馆体适能沉淀 · 突破体能与节奏瓶颈，实现连跳 220 次不绊绳，意志顽强。'
-    },
-    {
-      id: 'ACH-CULT-20261010-004',
-      date: '2026-10-10',
-      title: '少儿财商自律储蓄与记账通关章',
-      icon: '💰',
-      projectType: 'treasury',
-      projectTypeLabel: '藏金屋 · 少儿财商储蓄',
-      projectName: '首期零用金合理规划与储蓄契约',
-      metrics: [
-        { name: '储蓄履约率', target: '≥80%', actual: '85%' },
-        { name: '每日记账准确率', target: '100%', actual: '100%' }
-      ],
-      proof: '📜 零用金收支台账原件与结余核验',
-      issuer: '少儿财商理事会 · 见证',
-      desc: '藏金屋财商沉淀 · 连续30天无遗漏记账，抵制冲动消费，达成首笔梦想基金储蓄。'
-    }
-  ],
-  // 2. 偶然成就：生活学习过程中的偶然成就，可手动新增，记录成就类别、成就图片、成就内容、成就描述等数据，在成就馆中以成就类别分组按照时间线展示
-  accidentalItems: [
-    {
-      id: 'ACH-ACC-20261024-001',
-      date: '2026-10-24',
-      category: 'arts',
-      categoryLabel: '🎨 艺术才华',
-      title: '全国少儿书画创作大赛特等金奖',
-      image: '🖼️ 《晨曦破晓苍峦图》水墨画参赛作品原件实拍照',
-      desc: '独立创作水墨国画作品《晨曦破晓苍峦图》，历时两周打磨构图与设色，在全国数千份参赛作品中脱颖而出，荣获少儿组特等金奖。',
-      issuer: '全国青少儿书画艺术教育联合会'
-    },
-    {
-      id: 'ACH-ACC-20261022-002',
-      date: '2026-10-22',
-      category: 'life',
-      categoryLabel: '🍳 生活自立',
-      title: '第一次独立为全家人做番茄炒蛋晚餐',
-      image: '🍳 热气腾腾的番茄炒蛋出锅实拍照与整洁厨房合影',
-      desc: '爸爸妈妈加班晚归，自己主动系上围裙，洗番茄、打鸡蛋、热油翻炒，不仅做出了可口的番茄炒蛋，还把灶台和碗筷收拾得干干净净。',
-      issuer: '全家人温馨见证'
-    },
-    {
-      id: 'ACH-ACC-20261015-003',
-      date: '2026-10-15',
-      category: 'discovery',
-      categoryLabel: '🔭 科学探索',
-      title: '独立动手制作折射式天文望远镜观测月坑',
-      image: '🔭 自制凸透镜硬纸筒望远镜与清晰月球环形山目镜实拍',
-      desc: '用废弃牛皮纸筒、凸透镜片和目镜组件，自己测算焦距并调试成功，晚上在阳台清晰看到了月球第谷环形山，激发起对宇宙的无限好奇。',
-      issuer: '学校创客科技节指导教师'
-    },
-    {
-      id: 'ACH-ACC-20261005-004',
-      date: '2026-10-05',
-      category: 'social',
-      categoryLabel: '🤝 善意关怀',
-      title: '社区图书义卖义工与给养老院老人读报',
-      image: '📖 社区义卖捐赠证书与养老院读书实拍照片',
-      desc: '国庆假期主动把看过的20本少儿绘本整理义卖，将所得爱心款全部捐赠给山区小学，并去养老院给三位视力不好的老爷爷朗读报纸半小时。',
-      issuer: '绿洲社区居委会志愿者服务站'
-    },
-    {
-      id: 'ACH-ACC-20260928-005',
-      date: '2026-09-28',
-      category: 'honor',
-      categoryLabel: '🏆 意外荣誉',
-      title: '市青少年羽毛球夏季邀请赛临场逆转摘银',
-      image: '🏸 银牌奖章与颁奖台领奖高清留影照片',
-      desc: '经历半决赛决胜局 18:20 濒临赛点的极限逆境，顽强防守连救两个赛点反超逆转，摘得男单组亚军奖牌。',
-      issuer: '市青少年羽毛球协会'
-    }
-  ]
+  currentTab: 'cultivation',
+  cultivationItems: [],
+  accidentalItems: []
 };
 
 // 渲染成就馆全景专属工作区
@@ -8399,73 +8069,18 @@ function renderCognitionSpecializedWorkspace() {
 window.NOTE_STATE = {
   currentMood: '☀️ 专注充实',
   currentEnergy: 4,
-  todayFocusMinutes: 60,
+  todayFocusMinutes: 0,
   journalText: '',
-  todayAutoLogs: [
-    { time: '16:55', text: '⏱️ 【校史馆】完成 1 个番茄钟专注限时口算 (25分钟)，100以内进退位运算清零错题 3 道，红笔验算手稿已归档。' },
-    { time: '07:35', text: '🪞 【修身阁】研读《大学》知止而后有定章节，完成晨读诵读打卡，知行合一践行防守清单 100% 履约。' },
-    { time: '10:40', text: '🏸 【武道馆】羽毛球后场杀球 300 次专项击球挥拍训练，有效专注 35 分钟，突破手臂酸痛极限。' },
-    { time: '18:05', text: '💰 【藏金屋】记常规零用金发放收入 +¥50.00，新华书店购买错题活页本 -¥18.50，结余账实相符。' }
-  ],
-  mediaList: [
-    {
-      id: 'm-photo-1',
-      type: 'image',
-      name: '错题红笔订正手稿原卷.png',
-      caption: '100以内退位减法错因归因与二次验算',
-      time: '17:40',
-      demoIcon: '📐',
-      previewContent: '【数学错题手稿订正】\n题号: 18 - 9 = 9 (借位标记已红笔圈出)\n归因: 个位不够减未借十，二次演算核准无误。'
-    },
-    {
-      id: 'm-video-1',
-      type: 'video',
-      name: '1分钟睡前心流思辨反思短片.mp4',
-      caption: '今日面对卡点时的心性磨砺复盘手记',
-      time: '21:15',
-      duration: '01:05',
-      demoIcon: '🎬',
-      previewContent: '【心流反思视频录像】\n录制时长: 01:05 · 高清 1080P\n核心感悟: 面对繁重口算时一度想放弃，通过深呼吸重拾定力。'
-    }
-  ],
-  historyEntries: [
-    {
-      id: 'entry-20261031',
-      date: '2026-10-31',
-      mood: '☀️ 专注充实',
-      energy: 5,
-      text: '今天在校史馆攻克了进退位口算难关，红笔重做清零了全部3道错题；武道馆后场击球300次突破了手臂酸痛极限，体会到“定力生慧”的切实力量。',
-      autoLogs: [
-        '⏱️ 校史馆：完成 1 个番茄钟专注口算 (25分钟)，清零错题 3 道',
-        '🪞 修身阁：《大学》格物致知与晨读打卡完毕，立宪心性稳固',
-        '🏸 兴趣屋：后场杀球 300 次挥拍特训，有效体能消耗 280 kcal'
-      ],
-      media: [
-        { id: 'h-1', type: 'image', name: '错题红笔订正手稿原卷.png', caption: '进退位验算原稿', time: '17:40' },
-        { id: 'h-2', type: 'video', name: '1分钟睡前心流思辨反思短片.mp4', caption: '自律心性复盘', duration: '01:05', time: '21:15' }
-      ]
-    },
-    {
-      id: 'entry-20261030',
-      date: '2026-10-30',
-      mood: '🌈 顿悟突破',
-      energy: 4,
-      text: '晚上和爸爸讨论了零花钱记账，明白了“量入为出”不仅是钱的问题，更是对自己生活秩序的掌控。写完日记感到内心非常平静。',
-      autoLogs: [
-        '💰 藏金屋：记一笔零用金支出 -¥18.50 (购买错题活页本与红笔)',
-        '🧠 认知台：亲子思辨探讨金钱观，达成自律契约共识'
-      ],
-      media: [
-        { id: 'h-3', type: 'image', name: '新华书店购书发票凭据.png', caption: '文具小票物证', time: '19:20' }
-      ]
-    }
-  ]
+  todayAutoLogs: [],
+  mediaList: [],
+  historyEntries: []
 };
 
 function renderNoteSpecializedWorkspace() {
   const state = window.NOTE_STATE;
   const curEnergy = state.currentEnergy || 4;
-  const autoLogsHtml = (state.todayAutoLogs || []).map((item, idx) => {
+  const autoLogsList = state.todayAutoLogs || [];
+  const autoLogsHtml = autoLogsList.length > 0 ? autoLogsList.map((item, idx) => {
     const txt = typeof item === 'string' ? item : item.text;
     const tm = (typeof item === 'object' && item.time) ? item.time : '今日';
     const isMoney = txt.includes('藏金屋') || txt.includes('¥');
@@ -8481,7 +8096,7 @@ function renderNoteSpecializedWorkspace() {
       '</div>' +
       '<div style="color:' + col + '; line-height:1.45;">' + txt + '</div>' +
     '</div>';
-  }).join('');
+  }).join('') : '<div style="grid-column:1 / -1; padding:20px; text-align:center; color:#94a3b8; font-size:12px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:10px;">今日暂无自动汇集的打卡或流水，完成各模块任务后将自动在此留痕 ⏱️</div>';
 
   let starsHtml = '';
   for (let s = 1; s <= 5; s++) {
@@ -9035,68 +8650,7 @@ let currentGanttCategory = 'all';
 let currentGanttStatus = 'all';
 let selectedNewProjCategory = '学业攻坚';
 
-window.GANTT_PROJECTS = [
-  {
-    id: 'p1',
-    pavilion: 'study',
-    category: '学业攻坚',
-    title: '小学数学口算达标与逆向思维训练',
-    desc: '每日限时20分钟完成30道混合进退位口算题，红笔圈出错因归因订正，周日与家长进行思维例题拆解。',
-    startDate: '2026-10-22',
-    endDate: '2026-11-04',
-    completedDays: ['2026-10-22', '2026-10-23', '2026-10-24', '2026-10-25', '2026-10-26', '2026-10-27'],
-    isArchived: false
-  },
-  {
-    id: 'p2',
-    pavilion: 'dojo',
-    category: '兴趣特长',
-    title: '少儿跳绳连跳突破与协调性训练',
-    desc: '挑战双脚单摇连跳达300次不绊绳，每组100次共3组，间歇45秒，突破体能瓶颈并由家长见证盖章。',
-    startDate: '2026-10-20',
-    endDate: '2026-11-08',
-    completedDays: ['2026-10-20', '2026-10-21', '2026-10-23', '2026-10-25', '2026-10-26', '2026-10-27'],
-    isArchived: false
-  },
-  {
-    id: 'p3',
-    pavilion: 'cultivation',
-    category: '修身立宪',
-    title: '《大学》经典晨读与知行合一践行计划',
-    desc: '每日晨读朗诵《大学》《论语》名句三遍并录音存证，结合生活实际践行孝亲与慎独，结业沉淀至成就馆。',
-    startDate: '2026-10-22',
-    endDate: '2026-11-10',
-    completedDays: ['2026-10-22', '2026-10-24', '2026-10-26', '2026-10-27'],
-    isArchived: false
-  },
-  {
-    id: 'p4',
-    pavilion: 'cognition',
-    category: '认知思辨',
-    title: '少儿多元思维与亲子议题思辨训练',
-    desc: '亲子每周开展一次生活议题思辨探讨，分别陈述正反观点并梳理逻辑证据链，沉淀思辨复盘卡。',
-    startDate: '2026-10-08',
-    endDate: '2026-10-25',
-    completedDays: Array.from({length: 18}, (_, i) => {
-      const d = new Date(2026, 9, 8 + i);
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return '2026-' + m + '-' + day;
-    }),
-    isArchived: false
-  },
-  {
-    id: 'p5',
-    pavilion: 'study',
-    category: '学业攻坚',
-    title: '少儿汉字规范书写与看图写话攻坚',
-    desc: '每日规范书写 8 个生字并注意笔顺，观察一幅生活场景插图写出 3 句完整通顺的观察日记。',
-    startDate: '2026-10-15',
-    endDate: '2026-11-10',
-    completedDays: ['2026-10-15', '2026-10-16', '2026-10-18', '2026-10-20', '2026-10-22', '2026-10-24'],
-    isArchived: false
-  }
-];
+window.GANTT_PROJECTS = [];
 
 function computeProjectProgressAndStatus(p) {
   const totalDays = Math.max(1, diffGanttDays(p.startDate, p.endDate) + 1);
@@ -9645,6 +9199,11 @@ function syncNewNodeToHomeExecution(taskCfg) {
   const pavMeta = (typeof PAVILION_META !== 'undefined' && PAVILION_META[pavId]) ? PAVILION_META[pavId] : { name: '执行任务', icon: '⚡' };
 
   const newIdx = deck.querySelectorAll('.exec-task-card').length;
+  const placeholder = document.getElementById('day-deck-empty-placeholder');
+  if (placeholder) placeholder.style.display = 'none';
+  const dotsWrapEl = document.getElementById('exec-carousel-dots');
+  if (dotsWrapEl) dotsWrapEl.style.display = 'flex';
+
   const cardEl = document.createElement('div');
   cardEl.className = 'exec-task-card tertiary-drill-card card-far-next';
   cardEl.id = 'exec-sync-' + taskId;
