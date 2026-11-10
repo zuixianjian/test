@@ -11938,3 +11938,62 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
   display: none !important;
 }
 
+
+/* ==========================================================================
+   终身岛民 1:1 工作图谱视口运动加速与触摸手势引擎 (仿照 a-my-island 极致性能规范)
+   ========================================================================== */
+#tertiary-workspace-view.is-viewport-moving .tertiary-card {
+  contain: layout paint style !important;
+  will-change: transform !important;
+  box-shadow: none !important;
+  transition: none !important;
+}
+
+#tertiary-workspace-view.is-viewport-moving #tertiary-edge-labels-layer {
+  visibility: hidden !important;
+}
+
+.tertiary-canvas-stage {
+  position: absolute !important;
+  top: 74px !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: calc(100% - 74px) !important;
+  overflow: hidden !important;
+  touch-action: none !important;
+  user-select: none !important;
+  cursor: grab !important;
+  background:
+    radial-gradient(circle, rgba(160, 110, 60, 0.12) 1.5px, transparent 1.5px),
+    linear-gradient(135deg, #fdfbf7 0%, #f5efe6 100%) !important;
+  background-size: 28px 28px, 100% 100% !important;
+}
+
+.tertiary-canvas-stage.is-dragging-canvas {
+  cursor: grabbing !important;
+}
+
+.tertiary-canvas-world {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 4800px !important;
+  height: 3600px !important;
+  transform-origin: 0 0 !important;
+  will-change: transform !important;
+}
+
+.tertiary-card {
+  touch-action: none !important;
+  user-select: none !important;
+  cursor: grab !important;
+}
+
+.tertiary-card.is-card-dragging {
+  cursor: grabbing !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.22) !important;
+  z-index: 50 !important;
+}
+
