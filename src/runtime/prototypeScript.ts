@@ -53,7 +53,8 @@ let islandMinimapEventsBound = false;
 function applyIslandTransform() {
   const canvasWorld = document.getElementById('island-world-canvas');
   if (canvasWorld) {
-    canvasWorld.style.transform = 'translate(' + islandPanX + 'px, ' + islandPanY + 'px) scale(' + islandZoom + ')';
+    canvasWorld.style.transformOrigin = '0 0';
+    canvasWorld.style.transform = 'translate3d(' + islandPanX + 'px, ' + islandPanY + 'px, 0) scale(' + islandZoom + ')';
   }
   updateIslandMinimap();
 }
@@ -187,6 +188,7 @@ function initIslandMinimapEvents() {
     islandPanX = stageW / 2 - targetX * islandZoom;
     islandPanY = stageH / 2 - targetY * islandZoom;
     applyIslandTransform();
+    if (typeof bindPavilionNodesClickGuards === 'function') bindPavilionNodesClickGuards();
   });
 
   // 鼠标/触控拖拽视口框实时平移画布
@@ -212,6 +214,7 @@ function initIslandMinimapEvents() {
       islandPanX = initialPanX - deltaCanvasX * islandZoom;
       islandPanY = initialPanY - deltaCanvasY * islandZoom;
       applyIslandTransform();
+    if (typeof bindPavilionNodesClickGuards === 'function') bindPavilionNodesClickGuards();
     };
 
     const onPointerUp = (ev) => {
@@ -313,14 +316,17 @@ function fitHomeCanvasView() {
 // 聚焦节点 (放大至当前高亮节点)
 function focusHomeActiveNode() {
   const targetId = 'node-' + activeSelectedPavilion;
-  const el = document.getElementById(targetId);
-  if (el) {
+  const el = document.getElementById(targetId) || document.getElementById(activeSelectedPavilion);
+  const stage = document.getElementById('island-canvas-stage');
+  if (el && stage) {
     islandZoom = 1.45;
-    const rect = el.getBoundingClientRect();
-    const stage = document.getElementById('island-canvas-stage').getBoundingClientRect();
-    islandPanX = (stage.width / 2) - (el.offsetLeft + 50);
-    islandPanY = (stage.height / 2) - (el.offsetTop + 50);
+    const sRect = stage.getBoundingClientRect();
+    const nodeCenterX = el.offsetLeft + (el.offsetWidth || 104) / 2;
+    const nodeCenterY = el.offsetTop + (el.offsetHeight || 100) / 2;
+    islandPanX = (sRect.width / 2) - nodeCenterX * islandZoom;
+    islandPanY = (sRect.height / 2) - nodeCenterY * islandZoom;
     applyIslandTransform();
+    if (typeof bindPavilionNodesClickGuards === 'function') bindPavilionNodesClickGuards();
     showIslandToast('🎯 已聚焦放大到当前核心攻坚功能馆');
   }
 }
@@ -328,12 +334,16 @@ function focusHomeActiveNode() {
 // 居中节点
 function centerHomeActiveNode() {
   const targetId = 'node-' + activeSelectedPavilion;
-  const el = document.getElementById(targetId);
-  if (el) {
-    const stage = document.getElementById('island-canvas-stage').getBoundingClientRect();
-    islandPanX = (stage.width / 2) - (el.offsetLeft + 50);
-    islandPanY = (stage.height / 2) - (el.offsetTop + 50);
+  const el = document.getElementById(targetId) || document.getElementById(activeSelectedPavilion);
+  const stage = document.getElementById('island-canvas-stage');
+  if (el && stage) {
+    const sRect = stage.getBoundingClientRect();
+    const nodeCenterX = el.offsetLeft + (el.offsetWidth || 104) / 2;
+    const nodeCenterY = el.offsetTop + (el.offsetHeight || 100) / 2;
+    islandPanX = (sRect.width / 2) - nodeCenterX * islandZoom;
+    islandPanY = (sRect.height / 2) - nodeCenterY * islandZoom;
     applyIslandTransform();
+    if (typeof bindPavilionNodesClickGuards === 'function') bindPavilionNodesClickGuards();
     showIslandToast('⊙ 已将选中功能馆平移至视口中央');
   }
 }
@@ -531,6 +541,10 @@ function addHomeCustomNodePrompt() {
 
 // 模块点击进入核心函数 (支持四大核心规划场馆 + 自定义规划场馆 + 免规划功能模块无缝路由)
 function handlePavilionClick(pavilionId) {
+  if (window._islandNodeDragMoved) {
+    window._islandNodeDragMoved = false;
+    return;
+  }
   activeSelectedPavilion = pavilionId;
   document.querySelectorAll('.pavilion-node').forEach(n => n.classList.remove('is-selected'));
   const el = document.getElementById('node-' + pavilionId) || document.getElementById(pavilionId);
@@ -542,145 +556,344 @@ function handlePavilionClick(pavilionId) {
   enterSecondaryWorkspace(pavilionId, targetSubView);
 }
 
-// 初始化节点自由拖拽与画布缩放平移交互
+// ==========================================================================
+// 终身岛民 1:1 规划视图动力学手势引擎 (对标三级脑图 / a-my-island 自由缩放漫游与节点拖拽)
+// ==========================================================================
+let islandPinchStartDist = 0;
+let islandPinchStartZoom = 1.0;
+let islandPinchPivotWorldX = 0;
+let islandPinchPivotWorldY = 0;
+let isIslandPinching = false;
+let isIslandPanning = false;
+
+let islandTouchPanStartX = 0;
+let islandTouchPanStartY = 0;
+let islandTouchPanInitialPanX = 0;
+let islandTouchPanInitialPanY = 0;
+
+let activeTouchDragPavilionNode = null;
+let nodeTouchDragStartX = 0;
+let nodeTouchDragStartY = 0;
+let nodeTouchInitLeft = 0;
+let nodeTouchInitTop = 0;
+let nodeTouchHasMoved = false;
+
+let activePointerDragNode = null;
+let isPointerPanning = false;
+let pointerPanStartX = 0;
+let pointerPanStartY = 0;
+let pointerPanInitialPanX = 0;
+let pointerPanInitialPanY = 0;
+let nodePointerDragStartX = 0;
+let nodePointerDragStartY = 0;
+let nodePointerInitLeft = 0;
+let nodePointerInitTop = 0;
+let nodePointerHasMoved = false;
+
+window._islandNodeDragMoved = false;
+
 function initCanvasPanZoomAndDrag() {
   const stage = document.getElementById('island-canvas-stage');
-  if (!stage) return;
+  const canvasWorld = document.getElementById('island-world-canvas');
+  if (!stage || !canvasWorld) return;
 
-  // 1. 鼠标滚轮缩放
+  // 确保世界容器 transform-origin 为 0 0 且硬件加速
+  canvasWorld.style.transformOrigin = '0 0';
+
+  if (stage._islandGestureEngineBound) {
+    bindPavilionNodesClickGuards();
+    return;
+  }
+  stage._islandGestureEngineBound = true;
+
+  // -------------------------------------------------------------
+  // A. 鼠标滚轮自由无级缩放 (以鼠标光标所在点为缩放中心)
+  // -------------------------------------------------------------
   stage.addEventListener('wheel', (e) => {
+    if (typeof currentGlobalView !== 'undefined' && currentGlobalView !== 'plan') return;
     e.preventDefault();
-    const factor = e.deltaY < 0 ? 1.08 : 0.92;
-    islandZoom = Math.min(2.5, Math.max(0.4, islandZoom * factor));
+    const rect = stage.getBoundingClientRect();
+    const cursorStageX = e.clientX - rect.left;
+    const cursorStageY = e.clientY - rect.top;
+    const oldZoom = islandZoom || 1.0;
+    const factor = e.deltaY < 0 ? 1.12 : 0.88;
+    const newZoom = Math.min(3.0, Math.max(0.35, oldZoom * factor));
+    const worldX = (cursorStageX - islandPanX) / oldZoom;
+    const worldY = (cursorStageY - islandPanY) / oldZoom;
+    islandZoom = newZoom;
+    islandPanX = cursorStageX - worldX * newZoom;
+    islandPanY = cursorStageY - worldY * newZoom;
     applyIslandTransform();
+    if (typeof bindPavilionNodesClickGuards === 'function') bindPavilionNodesClickGuards();
   }, { passive: false });
 
-  // 2. 画布背景鼠标拖拽平移
-  let isPanning = false;
-  let startX = 0;
-  let startY = 0;
+  // -------------------------------------------------------------
+  // B. 移动平板 (iPad/Android) 原生触控引擎: 双指捏合自由缩放 + 单指漫游抓手 + 节点触控拖拽
+  // -------------------------------------------------------------
+  stage.addEventListener('touchstart', (e) => {
+    if (typeof currentGlobalView !== 'undefined' && currentGlobalView !== 'plan') return;
+    // 关键：阻断向全局冒泡，防止触发 Obsidian 侧边栏抽屉手势
+    e.stopPropagation();
 
-  stage.addEventListener('mousedown', (e) => {
-    if (e.target.closest('.pavilion-node') || 
-        e.target.closest('.island-exec-center-container') ||
-        e.target.closest('#island-execution-center') ||
-        e.target.closest('.exec-task-card') ||
-        e.target.closest('.a-my-island-plugin-launcher') || 
-        e.target.closest('.a-my-island-graph-toolbar') || 
-        e.target.closest('.hud-profile-container') || 
-        e.target.closest('.parent-bounty-billboard') || 
-        e.target.closest('.a-my-island-island-settings-panel') || 
-        e.target.closest('.a-my-island-work-minimap')) {
+    // 1. 双指触控 -> 启动双指自由捏合无级缩放
+    if (e.touches.length === 2) {
+      isIslandPinching = true;
+      isIslandPanning = false;
+      if (activeTouchDragPavilionNode) {
+        activeTouchDragPavilionNode.classList.remove('is-node-dragging');
+        activeTouchDragPavilionNode = null;
+      }
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      islandPinchStartDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      islandPinchStartZoom = islandZoom || 1.0;
+
+      const rect = stage.getBoundingClientRect();
+      const midStageX = (t1.clientX + t2.clientX) / 2 - rect.left;
+      const midStageY = (t1.clientY + t2.clientY) / 2 - rect.top;
+      islandPinchPivotWorldX = (midStageX - islandPanX) / islandPinchStartZoom;
+      islandPinchPivotWorldY = (midStageY - islandPanY) / islandPinchStartZoom;
       return;
     }
-    isPanning = true;
-    startX = e.clientX - islandPanX;
-    startY = e.clientY - islandPanY;
-    stage.classList.add('is-canvas-dragging');
-  });
 
-  window.addEventListener('mousemove', (e) => {
-    if (!isPanning) return;
-    islandPanX = e.clientX - startX;
-    islandPanY = e.clientY - startY;
-    applyIslandTransform();
-  });
-
-  window.addEventListener('mouseup', () => {
-    if (isPanning) {
-      isPanning = false;
-      stage.classList.remove('is-canvas-dragging');
-    }
-  });
-
-  // 3. 移动平板 (iPad) 触控手势支持：单指平移 + 双指捏合缩放
-  let pinchStartDist = null;
-  let pinchStartZoom = 1;
-
-  stage.addEventListener('touchstart', (e) => {
+    // 2. 单指触控 -> 检查触控点命中目标
     if (e.touches.length === 1) {
-      if (e.target.closest('.pavilion-node') || 
-          e.target.closest('.island-exec-center-container') ||
-          e.target.closest('#island-execution-center') ||
-          e.target.closest('.exec-task-card') ||
-          e.target.closest('.a-my-island-plugin-launcher') || 
-          e.target.closest('.a-my-island-graph-toolbar')) return;
-      isPanning = true;
-      startX = e.touches[0].clientX - islandPanX;
-      startY = e.touches[0].clientY - islandPanY;
-    } else if (e.touches.length === 2) {
-      isPanning = false;
-      pinchStartDist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      pinchStartZoom = islandZoom;
+      const touch = e.touches[0];
+      const node = e.target.closest('.pavilion-node');
+      const isInteractive = !!e.target.closest('button, input, select, textarea, .a-my-island-plugin-launcher, .a-my-island-graph-toolbar, .a-my-island-work-navigation-dock, .hud-profile-container, .parent-bounty-billboard, .a-my-island-island-settings-panel');
+
+      if (node) {
+        // 单指触控功能馆卡片 -> 准备自由拖拽
+        activeTouchDragPavilionNode = node;
+        nodeTouchHasMoved = false;
+        nodeTouchDragStartX = touch.clientX;
+        nodeTouchDragStartY = touch.clientY;
+        nodeTouchInitLeft = node.offsetLeft;
+        nodeTouchInitTop = node.offsetTop;
+        node.classList.add('is-node-dragging');
+        return;
+      }
+
+      if (!isInteractive) {
+        // 单指触控空白海岛背景 -> 启动画布漫游平移
+        isIslandPanning = true;
+        isIslandPinching = false;
+        islandTouchPanStartX = touch.clientX;
+        islandTouchPanStartY = touch.clientY;
+        islandTouchPanInitialPanX = islandPanX;
+        islandTouchPanInitialPanY = islandPanY;
+        stage.classList.add('is-canvas-dragging');
+      }
     }
-  }, { passive: true });
+  }, { passive: false });
 
   stage.addEventListener('touchmove', (e) => {
-    if (isPanning && e.touches.length === 1) {
-      islandPanX = e.touches[0].clientX - startX;
-      islandPanY = e.touches[0].clientY - startY;
-      applyIslandTransform();
-    } else if (e.touches.length === 2 && pinchStartDist) {
-      const currentDist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      islandZoom = Math.min(2.5, Math.max(0.4, pinchStartZoom * (currentDist / pinchStartDist)));
-      applyIslandTransform();
-    }
-  }, { passive: true });
+    if (typeof currentGlobalView !== 'undefined' && currentGlobalView !== 'plan') return;
+    e.stopPropagation();
+    if (e.cancelable) e.preventDefault();
 
-  stage.addEventListener('touchend', () => {
-    isPanning = false;
-    pinchStartDist = null;
+    // 1. 处理双指无级自由缩放 (Pinch-to-zoom)
+    if (isIslandPinching && e.touches.length >= 2) {
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const currentDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      if (islandPinchStartDist > 0) {
+        const factor = currentDist / islandPinchStartDist;
+        const newZoom = Math.min(3.0, Math.max(0.35, islandPinchStartZoom * factor));
+        const rect = stage.getBoundingClientRect();
+        const currentMidStageX = (t1.clientX + t2.clientX) / 2 - rect.left;
+        const currentMidStageY = (t1.clientY + t2.clientY) / 2 - rect.top;
+        islandZoom = newZoom;
+        islandPanX = currentMidStageX - islandPinchPivotWorldX * newZoom;
+        islandPanY = currentMidStageY - islandPinchPivotWorldY * newZoom;
+        applyIslandTransform();
+    if (typeof bindPavilionNodesClickGuards === 'function') bindPavilionNodesClickGuards();
+      }
+      return;
+    }
+
+    // 2. 处理单指节点拖拽
+    if (activeTouchDragPavilionNode && e.touches.length === 1) {
+      const touch = e.touches[0];
+      const dx = (touch.clientX - nodeTouchDragStartX) / islandZoom;
+      const dy = (touch.clientY - nodeTouchDragStartY) / islandZoom;
+      if (!nodeTouchHasMoved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
+        nodeTouchHasMoved = true;
+        activeTouchDragPavilionNode._dragMoved = true;
+        window._islandNodeDragMoved = true;
+      }
+      if (nodeTouchHasMoved) {
+        activeTouchDragPavilionNode.style.left = (nodeTouchInitLeft + dx) + 'px';
+        activeTouchDragPavilionNode.style.top = (nodeTouchInitTop + dy) + 'px';
+        updateIslandMinimap();
+      }
+      return;
+    }
+
+    // 3. 处理单指画布自由漫游平移
+    if (isIslandPanning && e.touches.length === 1) {
+      const touch = e.touches[0];
+      const dx = touch.clientX - islandTouchPanStartX;
+      const dy = touch.clientY - islandTouchPanStartY;
+      islandPanX = islandTouchPanInitialPanX + dx;
+      islandPanY = islandTouchPanInitialPanY + dy;
+      applyIslandTransform();
+    if (typeof bindPavilionNodesClickGuards === 'function') bindPavilionNodesClickGuards();
+      return;
+    }
+  }, { passive: false });
+
+  const onIslandTouchEnd = (e) => {
+    e.stopPropagation();
+    if (e.touches.length < 2 && isIslandPinching) {
+      isIslandPinching = false;
+    }
+    if (e.touches.length === 0) {
+      isIslandPanning = false;
+      stage.classList.remove('is-canvas-dragging');
+    }
+    if (activeTouchDragPavilionNode) {
+      const node = activeTouchDragPavilionNode;
+      activeTouchDragPavilionNode = null;
+      node.classList.remove('is-node-dragging');
+      if (nodeTouchHasMoved) {
+        node._dragMoved = true;
+        window._islandNodeDragMoved = true;
+        setTimeout(() => {
+          node._dragMoved = false;
+          window._islandNodeDragMoved = false;
+        }, 220);
+      }
+    }
+  };
+  stage.addEventListener('touchend', onIslandTouchEnd, { passive: false });
+  stage.addEventListener('touchcancel', onIslandTouchEnd, { passive: false });
+
+  // -------------------------------------------------------------
+  // C. Pointer 事件处理桌面鼠标与手写笔 (精准抓取与实时漫游)
+  // -------------------------------------------------------------
+  stage.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'touch') return; // 触屏手势已由 TouchEvent 引擎精准承接
+    if (typeof currentGlobalView !== 'undefined' && currentGlobalView !== 'plan') return;
+    if (e.target.closest('.a-my-island-work-navigation-dock')) return;
+
+    const isInteractive = !!e.target.closest('button, input, select, textarea, .a-my-island-plugin-launcher, .a-my-island-graph-toolbar, .hud-profile-container, .parent-bounty-billboard, .a-my-island-island-settings-panel');
+    if (isInteractive) return;
+
+    const node = e.target.closest('.pavilion-node');
+    if (node) {
+      activePointerDragNode = node;
+      nodePointerHasMoved = false;
+      nodePointerDragStartX = e.clientX;
+      nodePointerDragStartY = e.clientY;
+      nodePointerInitLeft = node.offsetLeft;
+      nodePointerInitTop = node.offsetTop;
+      node.classList.add('is-node-dragging');
+      try { node.setPointerCapture(e.pointerId); } catch (_) {}
+      return;
+    }
+
+    // 鼠标点击空白背景平移
+    isPointerPanning = true;
+    pointerPanStartX = e.clientX;
+    pointerPanStartY = e.clientY;
+    pointerPanInitialPanX = islandPanX;
+    pointerPanInitialPanY = islandPanY;
+    stage.classList.add('is-canvas-dragging');
+    try { stage.setPointerCapture(e.pointerId); } catch (_) {}
   });
 
-  // 4. 为所有 9 大功能馆节点赋予自由拖拽能力
+  stage.addEventListener('pointermove', (e) => {
+    if (e.pointerType === 'touch') return;
+    if (typeof currentGlobalView !== 'undefined' && currentGlobalView !== 'plan') return;
+
+    if (activePointerDragNode) {
+      const dx = (e.clientX - nodePointerDragStartX) / islandZoom;
+      const dy = (e.clientY - nodePointerDragStartY) / islandZoom;
+      if (!nodePointerHasMoved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
+        nodePointerHasMoved = true;
+        activePointerDragNode._dragMoved = true;
+        window._islandNodeDragMoved = true;
+      }
+      if (nodePointerHasMoved) {
+        activePointerDragNode.style.left = (nodePointerInitLeft + dx) + 'px';
+        activePointerDragNode.style.top = (nodePointerInitTop + dy) + 'px';
+        updateIslandMinimap();
+      }
+      return;
+    }
+
+    if (isPointerPanning) {
+      const dx = e.clientX - pointerPanStartX;
+      const dy = e.clientY - pointerPanStartY;
+      islandPanX = pointerPanInitialPanX + dx;
+      islandPanY = pointerPanInitialPanY + dy;
+      applyIslandTransform();
+    if (typeof bindPavilionNodesClickGuards === 'function') bindPavilionNodesClickGuards();
+      return;
+    }
+  });
+
+  const onPointerUp = (e) => {
+    if (e.pointerType === 'touch') return;
+    if (activePointerDragNode) {
+      const node = activePointerDragNode;
+      activePointerDragNode = null;
+      try { node.releasePointerCapture(e.pointerId); } catch (_) {}
+      node.classList.remove('is-node-dragging');
+      if (nodePointerHasMoved) {
+        node._dragMoved = true;
+        window._islandNodeDragMoved = true;
+        setTimeout(() => {
+          node._dragMoved = false;
+          window._islandNodeDragMoved = false;
+        }, 220);
+      }
+    }
+    if (isPointerPanning) {
+      isPointerPanning = false;
+      try { stage.releasePointerCapture(e.pointerId); } catch (_) {}
+      stage.classList.remove('is-canvas-dragging');
+    }
+  };
+  stage.addEventListener('pointerup', onPointerUp);
+  stage.addEventListener('pointercancel', onPointerUp);
+
+  // -------------------------------------------------------------
+  // D. 捕获阶段防御：严防节点拖拽结束误触发 handlePavilionClick 路由
+  // -------------------------------------------------------------
+  stage.addEventListener('click', (e) => {
+    if (window._islandNodeDragMoved) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      window._islandNodeDragMoved = false;
+      return false;
+    }
+  }, true);
+
+  bindPavilionNodesClickGuards();
+}
+
+function bindPavilionNodesClickGuards() {
   document.querySelectorAll('.pavilion-node').forEach(node => {
-    initNodeDragging(node);
+    if (node._clickGuardBound) return;
+    node._clickGuardBound = true;
+    node.addEventListener('click', (e) => {
+      if (node._dragMoved || window._islandNodeDragMoved) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        node._dragMoved = false;
+        window._islandNodeDragMoved = false;
+        return false;
+      }
+    }, true);
   });
 }
 
 function initNodeDragging(node) {
-  let isDraggingNode = false;
-  let dragStartX = 0;
-  let dragStartY = 0;
-  let initLeft = 0;
-  let initTop = 0;
-  let hasMoved = false;
-
-  node.addEventListener('mousedown', (e) => {
-    e.stopPropagation();
-    isDraggingNode = true;
-    hasMoved = false;
-    dragStartX = e.clientX;
-    dragStartY = e.clientY;
-    initLeft = node.offsetLeft;
-    initTop = node.offsetTop;
-    node.classList.add('is-node-dragging');
-  });
-
-  window.addEventListener('mousemove', (e) => {
-    if (!isDraggingNode) return;
-    const dx = (e.clientX - dragStartX) / islandZoom;
-    const dy = (e.clientY - dragStartY) / islandZoom;
-    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) {
-      hasMoved = true;
-      node.style.left = (initLeft + dx) + 'px';
-      node.style.top = (initTop + dy) + 'px';
-
-    }
-  });
-
-  window.addEventListener('mouseup', () => {
-    if (isDraggingNode) {
-      isDraggingNode = false;
-      node.classList.remove('is-node-dragging');
-    }
-  });
+  bindPavilionNodesClickGuards();
 }
 
 function updateTwinPathLine() {
@@ -747,6 +960,7 @@ function switchHomeGlobalView(mode) {
       navDock.style.setProperty('display', 'flex', 'important');
     }
     applyIslandTransform();
+    if (typeof bindPavilionNodesClickGuards === 'function') bindPavilionNodesClickGuards();
     showIslandToast('🧭 规划视图：进入四大核心规划场馆自由漫游沙盘（支持动态扩展新场馆）');
   }
 }
@@ -11431,6 +11645,7 @@ function recordTreeTestDemo() {
   if (typeof addHomeCustomNodePrompt === "function") (window as any).addHomeCustomNodePrompt = addHomeCustomNodePrompt;
   if (typeof handlePavilionClick === "function") (window as any).handlePavilionClick = handlePavilionClick;
   if (typeof initCanvasPanZoomAndDrag === "function") (window as any).initCanvasPanZoomAndDrag = initCanvasPanZoomAndDrag;
+  if (typeof bindPavilionNodesClickGuards === "function") (window as any).bindPavilionNodesClickGuards = bindPavilionNodesClickGuards;
   if (typeof initNodeDragging === "function") (window as any).initNodeDragging = initNodeDragging;
   if (typeof updateTwinPathLine === "function") (window as any).updateTwinPathLine = updateTwinPathLine;
   if (typeof switchHomeGlobalView === "function") (window as any).switchHomeGlobalView = switchHomeGlobalView;

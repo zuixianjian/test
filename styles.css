@@ -670,7 +670,7 @@ body {
   pointer-events: auto !important;
   user-select: none;
   -webkit-user-select: none;
-  touch-action: manipulation;
+  touch-action: none;
   transition: transform 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28);
 }
 
@@ -2822,8 +2822,11 @@ body.is-immersive .immersive-exit-pill {
   inset: 0;
   width: 100%;
   height: 100%;
-  transform-origin: center center;
+  transform-origin: 0 0 !important;
   will-change: transform;
+  touch-action: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
 }
 
 /* 首页下方小岛发射器：全部采用小岛设置按钮样式，按类别一行展示 */
@@ -2866,6 +2869,7 @@ body.is-immersive .immersive-exit-pill {
   z-index: 99 !important;
   transform: scale(1.1) !important;
   filter: drop-shadow(0 12px 24px rgba(0,0,0,0.4)) !important;
+  transition: none !important;
 }
 
 
@@ -6079,7 +6083,7 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
   pointer-events: auto !important;
   user-select: none !important;
   -webkit-user-select: none !important;
-  touch-action: manipulation !important;
+  touch-action: none !important;
   transition: transform 0.2s cubic-bezier(0.18, 0.89, 0.32, 1.28), border-color 0.2s, box-shadow 0.2s !important;
   box-sizing: border-box !important;
   backdrop-filter: blur(8px) !important;
