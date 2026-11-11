@@ -25,7 +25,7 @@ let isArchiveDrawerOpen = false;
 let currentParticleMode = 'gold'; // 'gold' | 'leaves' | 'petals' | 'rain'
 let isInTabletFrame = true;
 window.isBrowseMode = true; // 默认开启浏览模式（移动平板最佳触控体验：单击直达）
-let islandControlsExpanded = true;
+let islandControlsExpanded = false;
 let activeOriginalPanel = null;
 let activeSelectedPavilion = 'study';
 
@@ -576,7 +576,8 @@ function toggleIslandControlsGroup() {
   const toggleButtons = [
     document.getElementById('launcher-btn-bg'),
     document.getElementById('launcher-btn-char'),
-    document.getElementById('launcher-btn-env')
+    document.getElementById('launcher-btn-env'),
+    document.getElementById('launcher-btn-immersive')
   ];
 
   if (btnSettings) {
@@ -588,6 +589,7 @@ function toggleIslandControlsGroup() {
     if (btn) btn.classList.toggle('is-island-control-hidden', !islandControlsExpanded);
   });
 }
+
 
 function openOriginalSettingsPanel(type) {
   if (activeOriginalPanel === type) {
@@ -911,6 +913,15 @@ function toggleImmersiveMode() {
     showIslandToast('已退出沉浸模式，恢复全能操作界面。');
   }
 }
+
+
+window.toggleObsidianSplit = function(side) {
+  if (typeof window.__toggleObsidianSidebar === 'function') {
+    window.__toggleObsidianSidebar(side);
+  } else {
+    showIslandToast((side === 'left' ? '📂 左侧边栏' : '📑 右侧边栏') + '切换（在 Obsidian 原生插件环境中生效）');
+  }
+};
 
 function showIslandToast(msg) {
   let toast = document.getElementById('island-quick-toast');

@@ -218,8 +218,9 @@ body {
 .ipad-home-indicator {
   position: absolute;
   bottom: 6px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 16px;
+  right: auto;
+  transform: none;
   width: 130px;
   height: 4.5px;
   background: rgba(255, 255, 255, 0.65);
@@ -328,8 +329,9 @@ body {
 .parent-bounty-billboard {
   position: absolute;
   top: 14px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 16px;
+  right: auto;
+  transform: none;
   z-index: 30;
   background: linear-gradient(155deg, #fffef4 0%, #fffbea 58%, #fef3c7 100%);
   border: 2.5px solid var(--gold-border);
@@ -502,8 +504,9 @@ body {
 .island-bottom-dock {
   position: absolute;
   bottom: 22px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 16px;
+  right: auto;
+  transform: none;
   z-index: 30;
   background: linear-gradient(155deg, rgba(255, 254, 244, 0.96) 0%, rgba(244, 237, 213, 0.96) 100%);
   backdrop-filter: blur(12px);
@@ -595,8 +598,9 @@ body {
 .a-my-island-work-breadcrumb {
   position: absolute;
   top: 86px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 16px;
+  right: auto;
+  transform: none;
   z-index: 50;
   padding: 5px 16px;
   border: 2px solid rgba(255, 255, 255, 0.85);
@@ -875,8 +879,9 @@ body.is-immersive .a-my-island-work-minimap {
 .immersive-exit-pill {
   position: fixed;
   top: 14px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 16px;
+  right: auto;
+  transform: none;
   background: rgba(30, 42, 30, 0.9);
   border: 1.5px solid #6ee7b7;
   color: #d1fae5;
@@ -1542,49 +1547,57 @@ body.is-immersive .immersive-exit-pill {
    1:1 终身岛民小岛设置发射器 (.a-my-island-plugin-launcher) 与原版设置弹窗体系
    ========================================================================== */
 
-/* 1. 左下角小岛发射器容器 */
+/* 1. 小岛发射器容器 (居中自适应，安全边距保障绝不溢出) */
 .a-my-island-plugin-launcher {
   position: absolute;
-  bottom: 18px;
-  left: 18px;
+  bottom: 14px;
+  left: 16px;
+  right: auto;
+  transform: none;
   z-index: 10003;
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 8px;
-  padding: 4px 6px;
+  justify-content: center;
+  gap: 5px;
+  padding: 4px 10px;
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   border: 0;
   background: transparent;
-  max-width: calc(100% - 36px);
+  width: max-content;
+  max-width: calc(100% - 24px);
+  box-sizing: border-box;
   scrollbar-width: none;
+  touch-action: pan-x;
 }
 
 .a-my-island-plugin-launcher::-webkit-scrollbar {
   display: none;
 }
 
-/* 发射器按钮 (3D 触觉质感，温润原木渐变与双重投影) */
+/* 发射器按钮 (3D 触觉质感，自适应紧凑尺寸) */
 .a-my-island-plugin-launcher-button {
   position: relative;
   display: grid;
-  flex: 0 0 68px;
-  min-width: 68px;
-  min-height: 66px;
-  grid-template-rows: 36px 16px;
+  flex: 0 1 56px;
+  min-width: 50px;
+  max-width: 62px;
+  min-height: 56px;
+  height: 56px;
+  grid-template-rows: 28px 14px;
   place-items: center;
   align-content: center;
-  gap: 3px;
-  padding: 6px 6px 5px;
+  gap: 1px;
+  padding: 3px 4px 2px;
   border: 1.5px solid #b8b68e;
-  border-radius: 16px;
+  border-radius: 13px;
   background: linear-gradient(155deg, #fffef4 0%, #fffbea 58%, #f4edd5 100%);
   color: #60401f;
   box-shadow:
-    0 4px 0 rgb(105 103 68 / 18%),
-    0 7px 11px rgb(53 82 64 / 20%),
+    0 3px 0 rgb(105 103 68 / 18%),
+    0 5px 9px rgb(53 82 64 / 20%),
     inset 0 1px 0 rgb(255 255 255 / 92%);
   cursor: pointer;
   transform: translateY(0);
@@ -1595,21 +1608,22 @@ body.is-immersive .immersive-exit-pill {
     background 140ms ease;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
 }
 
 .a-my-island-plugin-launcher-button:hover {
   transform: translateY(-2px);
   box-shadow:
-    0 6px 0 rgb(105 103 68 / 22%),
-    0 9px 14px rgb(53 82 64 / 25%),
+    0 5px 0 rgb(105 103 68 / 22%),
+    0 7px 12px rgb(53 82 64 / 25%),
     inset 0 1px 0 rgb(255 255 255 / 96%);
 }
 
 .a-my-island-plugin-launcher-button:active {
   transform: translateY(2px);
   box-shadow:
-    0 2px 0 rgb(105 103 68 / 18%),
-    0 4px 6px rgb(53 82 64 / 15%),
+    0 1.5px 0 rgb(105 103 68 / 18%),
+    0 3px 5px rgb(53 82 64 / 15%),
     inset 0 1px 0 rgb(255 255 255 / 80%);
 }
 
@@ -1619,32 +1633,32 @@ body.is-immersive .immersive-exit-pill {
   box-shadow:
     0 2px 0 rgb(192 84 38 / 36%),
     0 0 0 3px rgb(255 148 91 / 30%),
-    0 7px 14px rgb(181 82 42 / 30%),
+    0 6px 12px rgb(181 82 42 / 30%),
     inset 0 2px 0 rgb(255 255 255 / 80%) !important;
 }
 
 .a-my-island-plugin-launcher-icon {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 26px;
+  height: 26px;
   place-items: center;
-  font-size: 24px;
+  font-size: 20px;
   line-height: 1;
   filter: drop-shadow(0 2px 1px rgb(82 52 24 / 22%));
 }
 
 .a-my-island-plugin-launcher-icon > svg {
   display: block;
-  width: 32px;
-  height: 32px;
+  width: 26px;
+  height: 26px;
 }
 
 .a-my-island-plugin-launcher-label {
   display: block;
-  max-width: 58px;
+  max-width: 54px;
   overflow: hidden;
   color: #60401f;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 850;
   line-height: 1.15;
   text-align: center;
@@ -1656,8 +1670,8 @@ body.is-immersive .immersive-exit-pill {
   flex: 0 0 2px;
   align-self: center;
   width: 2px;
-  height: 48px;
-  margin: 0 2px;
+  height: 40px;
+  margin: 0 1px;
   border-radius: 999px;
   background: rgb(255 248 218 / 78%);
   box-shadow:
@@ -1667,6 +1681,98 @@ body.is-immersive .immersive-exit-pill {
 
 .is-island-control-hidden {
   display: none !important;
+}
+
+/* 小屏幕与窄屏下发射器紧凑自适应 */
+@media (max-width: 860px) {
+  .a-my-island-plugin-launcher {
+    left: 8px;
+    right: 8px;
+    transform: none;
+    justify-content: flex-start;
+    max-width: calc(100% - 16px);
+    padding: 3px 6px;
+    gap: 4px;
+  }
+  .a-my-island-plugin-launcher-button {
+    flex: 0 0 50px;
+    min-width: 50px;
+    max-width: 50px;
+    height: 52px;
+    min-height: 52px;
+    grid-template-rows: 24px 13px;
+  }
+  .a-my-island-plugin-launcher-icon {
+    width: 22px;
+    height: 22px;
+    font-size: 17px;
+  }
+  .a-my-island-plugin-launcher-icon > svg {
+    width: 22px;
+    height: 22px;
+  }
+  .a-my-island-plugin-launcher-label {
+    font-size: 9px;
+    max-width: 48px;
+  }
+}
+
+/* Obsidian 左右侧边栏开关按钮 3D 浮雕质感 */
+.topbar-obsidian-split-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  min-height: 38px;
+  padding: 0;
+  border: 1.5px solid #b8b68e;
+  border-radius: 11px;
+  background: linear-gradient(155deg, #fffef4 0%, #fffbea 58%, #f4edd5 100%);
+  color: #60401f;
+  box-shadow:
+    0 2.5px 0 rgb(105 103 68 / 20%),
+    0 4px 7px rgb(53 82 64 / 16%),
+    inset 0 1px 0 rgb(255 255 255 / 95%);
+  cursor: pointer;
+  transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease, color 140ms ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.topbar-obsidian-split-btn:hover {
+  border-color: #ff945b;
+  color: #b45309;
+  transform: translateY(-1px);
+  box-shadow:
+    0 3px 0 rgb(220 112 60 / 25%),
+    0 5px 9px rgb(53 82 64 / 20%),
+    inset 0 1px 0 rgb(255 255 255 / 95%);
+}
+
+.topbar-obsidian-split-btn:active {
+  transform: translateY(1.5px);
+  box-shadow:
+    0 1px 0 rgb(105 103 68 / 18%),
+    0 2px 4px rgb(53 82 64 / 15%),
+    inset 0 1px 0 rgb(255 255 255 / 80%);
+}
+
+/* 强制阻断画布与根容器滑动穿透 */
+.youth-island-plugin-root,
+.youth-island-obsidian-view-root,
+#tertiary-mindmap-stage,
+.tertiary-canvas-viewport,
+.tertiary-canvas-world,
+#island-canvas-stage,
+#exec-carousel-stage {
+  touch-action: none !important;
+  overscroll-behavior: none !important;
+  -webkit-user-drag: none !important;
 }
 
 /* 2. 终身岛民 6 大设置弹窗通用样式基底 */
@@ -2299,8 +2405,9 @@ body.is-immersive .immersive-exit-pill {
 #home-top-graph-toolbar {
   position: absolute;
   top: 14px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 16px;
+  right: auto;
+  transform: none;
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -3339,8 +3446,9 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 .exec-carousel-pagination {
   position: absolute;
   bottom: 12px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 16px;
+  right: auto;
+  transform: none;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -4196,8 +4304,9 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 .planning-view-mode-bar {
   position: absolute;
   top: 74px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 16px;
+  right: auto;
+  transform: none;
   background: rgba(13, 148, 136, 0.95);
   color: #ffffff;
   border: 1.5px solid #99f6e4;
@@ -4447,8 +4556,9 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 #home-top-graph-toolbar {
   position: absolute;
   top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 16px;
+  right: auto;
+  transform: none;
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -6683,8 +6793,9 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 .a-my-island-work-view-settings-panel,\n.tertiary-dropdown-panel {
   position: absolute;
   top: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
+  left: 16px;
+  right: auto;
+  transform: none;
   z-index: 10005;
   display: none;
   flex-direction: column;
@@ -11769,46 +11880,87 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 
 
 /* ==========================================================================
-   平板适配补丁：底部发射台自适应、周看板铺满、周月全屏层级
+   平板适配补丁：底部发射台紧凑全显、安全边距自适应 (彻底杜绝按钮跑出屏幕)
    ========================================================================== */
 .a-my-island-plugin-launcher {
-  left: 8px !important;
-  right: 8px !important;
+  position: absolute !important;
+  bottom: 14px !important;
+  left: 16px !important;
+  right: auto !important;
+  transform: none !important;
   width: auto !important;
-  max-width: none !important;
-  justify-content: center !important;
-  gap: 4px !important;
-  padding: 5px 6px !important;
+  max-width: calc(100% - 32px) !important;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 5px !important;
+  padding: 4px 6px !important;
   overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: none !important;
+  box-sizing: border-box !important;
+  touch-action: pan-x !important;
+  z-index: 10003 !important;
+}
+
+.a-my-island-plugin-launcher::-webkit-scrollbar {
+  display: none !important;
+}
+
+.a-my-island-plugin-launcher .a-my-island-plugin-launcher-button {
+  position: relative !important;
+  display: grid !important;
+  flex: 0 0 56px !important;
+  width: 56px !important;
+  min-width: 50px !important;
+  max-width: 58px !important;
+  height: 56px !important;
+  min-height: 56px !important;
+  max-height: 56px !important;
+  grid-template-rows: 28px 14px !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: 1px !important;
+  padding: 3px 2px 2px !important;
+  border: 1.5px solid #b8b68e !important;
+  border-radius: 12px !important;
   box-sizing: border-box !important;
 }
-.a-my-island-plugin-launcher .a-my-island-plugin-launcher-button {
-  flex: 1 1 0 !important;
-  width: auto !important;
-  min-width: 40px !important;
-  max-width: 68px !important;
-  height: 60px !important;
-  min-height: 60px !important;
-  max-height: 60px !important;
-  padding: 4px 2px 3px !important;
-  grid-template-rows: 28px 14px !important;
-  gap: 2px !important;
-}
+
 .a-my-island-plugin-launcher .a-my-island-plugin-launcher-icon {
-  width: 28px !important;
-  height: 28px !important;
-  font-size: 20px !important;
-}
-.a-my-island-plugin-launcher .a-my-island-plugin-launcher-icon > svg {
+  display: grid !important;
   width: 26px !important;
   height: 26px !important;
+  place-items: center !important;
+  font-size: 20px !important;
+  line-height: 1 !important;
 }
+
+.a-my-island-plugin-launcher .a-my-island-plugin-launcher-icon > svg {
+  display: block !important;
+  width: 24px !important;
+  height: 24px !important;
+}
+
 .a-my-island-plugin-launcher .a-my-island-plugin-launcher-label {
-  max-width: 100% !important;
+  display: block !important;
+  max-width: 52px !important;
+  overflow: hidden !important;
+  color: #60401f !important;
   font-size: 10px !important;
-  letter-spacing: -0.3px !important;
+  font-weight: 850 !important;
+  line-height: 1.15 !important;
+  text-align: center !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  letter-spacing: -0.2px !important;
 }
+
 .a-my-island-plugin-launcher .a-my-island-plugin-launcher-separator {
+  flex: 0 0 2px !important;
+  width: 2px !important;
   height: 38px !important;
   margin: 0 1px !important;
 }
@@ -11935,6 +12087,10 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
     <div class="island-top-unified-bar" id="home-unified-topbar">
       <!-- 1. 左侧：HUD 岛民成长档案名片 -->
       <div class="topbar-left-zone">
+      <button type="button" class="topbar-obsidian-split-btn btn-split-left" onclick="toggleObsidianSplit('left')" title="打开/折叠 Obsidian 左侧边栏" aria-label="切换左侧边栏">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+      </button>
+      
         <div class="hud-profile-container">
           <div class="hud-avatar-box" onclick="openOriginalSettingsPanel(&apos;char&apos;)" title="点击进行角色设置">
             <span id="hud-avatar-emoji">👦</span>
@@ -12024,6 +12180,10 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
           <span class="stat-pill-label">达成:</span>
           <span class="stat-pill-val gold" id="exec-stat-progress">0/0</span>
         </div>
+      
+        <button type="button" class="topbar-obsidian-split-btn btn-split-right" onclick="toggleObsidianSplit('right')" title="打开/折叠 Obsidian 右侧边栏" aria-label="切换右侧边栏">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+      </button>
       </div>
     </div>
 
@@ -12463,120 +12623,105 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
   <div class="a-my-island-plugin-launcher" id="home-island-launcher">
     <!-- 类别 1: 双主视口切换 -->
     <button class="a-my-island-plugin-launcher-button is-active" id="launcher-view-exec" onclick="switchHomeGlobalView(&apos;exec&apos;)" title="切换为深度执行视图">
-      <span class="a-my-island-plugin-launcher-icon" style="font-size:22px;">⚡</span>
+      <span class="a-my-island-plugin-launcher-icon">⚡</span>
       <span class="a-my-island-plugin-launcher-label">执行视图</span>
     </button>
     <button class="a-my-island-plugin-launcher-button" id="launcher-view-plan" onclick="switchHomeGlobalView(&apos;plan&apos;)" title="切换为宏观规划视图">
-      <span class="a-my-island-plugin-launcher-icon" style="font-size:22px;">🧭</span>
+      <span class="a-my-island-plugin-launcher-icon">🧭</span>
       <span class="a-my-island-plugin-launcher-label">规划视图</span>
     </button>
-
 
     <!-- 类别分割线 1 -->
     <div class="a-my-island-plugin-launcher-separator" aria-hidden="true"></div>
 
-    <!-- 类别 2: 免规划直达功能模块与问道工具 (藏金屋 / 个人行为规范 / 每日随记 / 成就馆 / 古籍问道 · 底部同排展示) -->
+    <!-- 类别 2: 免规划直达功能模块与问道工具 -->
     <button class="a-my-island-plugin-launcher-button is-bottom-module" id="launcher-btn-treasury" onclick="enterSecondaryWorkspace('treasury', 'specialized')" title="进入藏金屋 (免规划·少儿独立零用金收支台账)">
-      <span class="a-my-island-plugin-launcher-icon" style="font-size:22px;">💰</span>
+      <span class="a-my-island-plugin-launcher-icon">💰</span>
       <span class="a-my-island-plugin-launcher-label">藏金屋</span>
     </button>
-    <button class="a-my-island-plugin-launcher-button is-bottom-module" id="launcher-btn-tree" onclick="enterSecondaryWorkspace('tree', 'specialized')" title="查看已确定的个人行为规范 (纯查阅·古籍立宪法典长卷)" style="min-width:76px; flex:0 0 76px;">
-      <span class="a-my-island-plugin-launcher-icon" style="font-size:22px;">📜</span>
-      <span class="a-my-island-plugin-launcher-label" style="font-size:9.5px; max-width:72px; letter-spacing:-0.2px;">个人行为规范</span>
+    <button class="a-my-island-plugin-launcher-button is-bottom-module" id="launcher-btn-tree" onclick="enterSecondaryWorkspace('tree', 'specialized')" title="查看已确定的个人行为规范 (纯查阅·古籍立宪法典长卷)">
+      <span class="a-my-island-plugin-launcher-icon">📜</span>
+      <span class="a-my-island-plugin-launcher-label">行为规范</span>
     </button>
     <button class="a-my-island-plugin-launcher-button is-bottom-module" id="launcher-btn-note" onclick="enterSecondaryWorkspace('note', 'specialized')" title="书写与查阅每日随记 (免规划·客观真实流水+心流日记)">
-      <span class="a-my-island-plugin-launcher-icon" style="font-size:22px;">📝</span>
+      <span class="a-my-island-plugin-launcher-icon">📝</span>
       <span class="a-my-island-plugin-launcher-label">每日随记</span>
     </button>
     <button class="a-my-island-plugin-launcher-button is-bottom-module" id="launcher-btn-achieve" onclick="enterSecondaryWorkspace('achieve', 'specialized')" title="调阅成就馆 (免规划·双轨荣誉殿堂)">
-      <span class="a-my-island-plugin-launcher-icon" style="font-size:22px;">🏆</span>
+      <span class="a-my-island-plugin-launcher-icon">🏆</span>
       <span class="a-my-island-plugin-launcher-label">成就馆</span>
     </button>
     <button class="a-my-island-plugin-launcher-button is-bottom-module" id="launcher-btn-inquiry" onclick="openInquiryModal()" title="打开少年修身问道池 (记录成长困惑 · 选惑派生修身规划)">
-      <span class="a-my-island-plugin-launcher-icon" style="font-size:22px;">❓</span>
+      <span class="a-my-island-plugin-launcher-icon">❓</span>
       <span class="a-my-island-plugin-launcher-label">古籍问道</span>
     </button>
 
     <!-- 类别分割线 2 -->
     <div class="a-my-island-plugin-launcher-separator" aria-hidden="true"></div>
 
-    <!-- 类别 3: 小岛核心系统设置中心 -->
-    <button class="a-my-island-plugin-launcher-button is-island-controls is-active" id="launcher-btn-settings" onclick="toggleIslandControlsGroup()" title="展开或收起小岛设置">
-      <span class="a-my-island-plugin-launcher-icon">
-  <svg viewBox="0 0 64 64" aria-hidden="true">
-    <path d="M27 8h10l2 7 6 3 7-2 5 9-5 5v7l5 5-5 9-7-2-6 3-2 7H27l-2-7-6-3-7 2-5-9 5-5v-7l-5-5 5-9 7 2 6-3 2-7Z" fill="#f3b85c" stroke="#75481f" stroke-width="4" stroke-linejoin="round"/>
-    <circle cx="32" cy="33" r="11" fill="#d9efad" stroke="#75481f" stroke-width="4"/>
-    <circle cx="32" cy="33" r="4" fill="#71ad64"/>
-  </svg>
-</span>
-      <span class="a-my-island-plugin-launcher-label">小岛设置</span>
+    <!-- 类别 3: 快捷工具与悬赏 -->
+    <button class="a-my-island-plugin-launcher-button" id="launcher-btn-pomo" onclick="launchQuickFocusTimer()" title="快速进入专注计时（攻坚实训打卡页）">
+      <span class="a-my-island-plugin-launcher-icon">⏱️</span>
+      <span class="a-my-island-plugin-launcher-label">专注秒表</span>
     </button>
-
-    
-
-    <button class="a-my-island-plugin-launcher-button is-background-settings" id="launcher-btn-bg" onclick="openOriginalSettingsPanel(&apos;bg&apos;)" title="场景背景壁纸设置">
-      <span class="a-my-island-plugin-launcher-icon">
-  <svg viewBox="0 0 64 64" aria-hidden="true">
-    <rect x="7" y="10" width="50" height="43" rx="9" fill="#dff2cf" stroke="#75481f" stroke-width="4"/>
-    <circle cx="44" cy="23" r="7" fill="#f6c85f" stroke="#75481f" stroke-width="3"/>
-    <path d="M12 47 25 32l8 9 7-7 12 13Z" fill="#72b77c" stroke="#75481f" stroke-width="3" stroke-linejoin="round"/>
-  </svg>
-</span>
-      <span class="a-my-island-plugin-launcher-label">背景设置</span>
-    </button>
-
-    <button class="a-my-island-plugin-launcher-button is-character-settings" id="launcher-btn-char" onclick="openOriginalSettingsPanel(&apos;char&apos;)" title="角色形象与互动设置">
-      <span class="a-my-island-plugin-launcher-icon">
-  <svg viewBox="0 0 64 64" aria-hidden="true">
-    <circle cx="32" cy="22" r="11" fill="#ffd0ae" stroke="#75481f" stroke-width="4"/>
-    <path d="M18 54c1-13 7-19 14-19s13 6 14 19Z" fill="#72b77c" stroke="#75481f" stroke-width="4" stroke-linejoin="round"/>
-    <path d="M20 20c1-10 7-15 14-15 8 0 14 6 14 15-5-2-9-5-12-9-4 5-9 8-16 9Z" fill="#9b5938" stroke="#75481f" stroke-width="3" stroke-linejoin="round"/>
-    <circle cx="28" cy="23" r="1.8" fill="#75481f"/><circle cx="37" cy="23" r="1.8" fill="#75481f"/>
-  </svg>
-</span>
-      <span class="a-my-island-plugin-launcher-label">角色设置</span>
-    </button>
-
-    <button class="a-my-island-plugin-launcher-button is-environment-settings" id="launcher-btn-env" onclick="openOriginalSettingsPanel('env')" title="环境微粒设置（落叶 / 花瓣 / 萤火 / 细雨）">
-      <span class="a-my-island-plugin-launcher-icon" style="font-size:22px;">🍃</span>
-      <span class="a-my-island-plugin-launcher-label">环境微粒</span>
-    </button>
-
-    
-
-    
-
-    <!-- 类别分割线 2 -->
-    <div class="a-my-island-plugin-launcher-separator" aria-hidden="true"></div>
-
-    <!-- 类别 3: 模式与专注控制 -->
-    
-
-    <button class="a-my-island-plugin-launcher-button is-immersive-settings" id="launcher-btn-immersive" onclick="openOriginalSettingsPanel(&apos;immersive&apos;)" title="沉浸模式设置">
-      <span class="a-my-island-plugin-launcher-icon">
-  <svg viewBox="0 0 48 48" aria-hidden="true">
-    <path d="M8 18V10a2 2 0 0 1 2-2h8M30 8h8a2 2 0 0 1 2 2v8M40 30v8a2 2 0 0 1-2 2h-8M18 40h-8a2 2 0 0 1-2-2v-8" fill="none" stroke="#73502d" stroke-width="3.2" stroke-linecap="round"/>
-    <path d="M24 14c8 2 11 8 8 14-3 6-10 7-16 5 0-8 2-15 8-19Z" fill="#9fd071" stroke="#73502d" stroke-width="2.5" stroke-linejoin="round"/>
-    <path d="M17 34c5-5 9-9 14-14" fill="none" stroke="#73502d" stroke-width="2.5" stroke-linecap="round"/>
-  </svg>
-</span>
-      <span class="a-my-island-plugin-launcher-label">沉浸模式</span>
+    <button class="a-my-island-plugin-launcher-button" id="launcher-btn-bounty" onclick="openBountyModal()" title="调阅置顶家长悬赏令">
+      <span class="a-my-island-plugin-launcher-icon">📜</span>
+      <span class="a-my-island-plugin-launcher-label">悬赏契约</span>
     </button>
 
     <!-- 类别分割线 3 -->
     <div class="a-my-island-plugin-launcher-separator" aria-hidden="true"></div>
 
-    <!-- 类别 4: 快捷动作与悬赏 -->
-
-
-    <button class="a-my-island-plugin-launcher-button" id="launcher-btn-pomo" onclick="launchQuickFocusTimer()" title="快速进入专注计时（攻坚实训打卡页）">
-      <span class="a-my-island-plugin-launcher-icon" style="font-size:22px;">⏱️</span>
-      <span class="a-my-island-plugin-launcher-label">专注秒表</span>
+    <!-- 类别 4: 小岛系统设置中心 (点击展开/折叠 4 大专属系统设置面板) -->
+    <button class="a-my-island-plugin-launcher-button is-island-controls" id="launcher-btn-settings" onclick="toggleIslandControlsGroup()" title="展开或收起小岛设置" aria-expanded="false">
+      <span class="a-my-island-plugin-launcher-icon">
+        <svg viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M27 8h10l2 7 6 3 7-2 5 9-5 5v7l5 5-5 9-7-2-6 3-2 7H27l-2-7-6-3-7 2-5-9 5-5v-7l-5-5 5-9 7 2 6-3 2-7Z" fill="#f3b85c" stroke="#75481f" stroke-width="4" stroke-linejoin="round"/>
+          <circle cx="32" cy="33" r="11" fill="#d9efad" stroke="#75481f" stroke-width="4"/>
+          <circle cx="32" cy="33" r="4" fill="#71ad64"/>
+        </svg>
+      </span>
+      <span class="a-my-island-plugin-launcher-label">小岛设置</span>
     </button>
 
-    <button class="a-my-island-plugin-launcher-button" id="launcher-btn-bounty" onclick="openBountyModal()" title="调阅置顶家长悬赏令">
-      <span class="a-my-island-plugin-launcher-icon" style="font-size:22px;">📜</span>
-      <span class="a-my-island-plugin-launcher-label">悬赏契约</span>
+    <!-- 附属子设置按钮 (默认收纳隐藏，点击小岛设置展开) -->
+    <button class="a-my-island-plugin-launcher-button is-background-settings is-island-control-hidden" id="launcher-btn-bg" onclick="openOriginalSettingsPanel(&apos;bg&apos;)" title="场景背景壁纸设置">
+      <span class="a-my-island-plugin-launcher-icon">
+        <svg viewBox="0 0 64 64" aria-hidden="true">
+          <rect x="7" y="10" width="50" height="43" rx="9" fill="#dff2cf" stroke="#75481f" stroke-width="4"/>
+          <circle cx="44" cy="23" r="7" fill="#f6c85f" stroke="#75481f" stroke-width="3"/>
+          <path d="M12 47 25 32l8 9 7-7 12 13Z" fill="#72b77c" stroke="#75481f" stroke-width="3" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <span class="a-my-island-plugin-launcher-label">背景设置</span>
+    </button>
+
+    <button class="a-my-island-plugin-launcher-button is-character-settings is-island-control-hidden" id="launcher-btn-char" onclick="openOriginalSettingsPanel(&apos;char&apos;)" title="角色形象与互动设置">
+      <span class="a-my-island-plugin-launcher-icon">
+        <svg viewBox="0 0 64 64" aria-hidden="true">
+          <circle cx="32" cy="22" r="11" fill="#ffd0ae" stroke="#75481f" stroke-width="4"/>
+          <path d="M18 54c1-13 7-19 14-19s13 6 14 19Z" fill="#72b77c" stroke="#75481f" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M20 20c1-10 7-15 14-15 8 0 14 6 14 15-5-2-9-5-12-9-4 5-9 8-16 9Z" fill="#9b5938" stroke="#75481f" stroke-width="3" stroke-linejoin="round"/>
+          <circle cx="28" cy="23" r="1.8" fill="#75481f"/><circle cx="37" cy="23" r="1.8" fill="#75481f"/>
+        </svg>
+      </span>
+      <span class="a-my-island-plugin-launcher-label">角色设置</span>
+    </button>
+
+    <button class="a-my-island-plugin-launcher-button is-environment-settings is-island-control-hidden" id="launcher-btn-env" onclick="openOriginalSettingsPanel('env')" title="环境微粒设置（落叶 / 花瓣 / 萤火 / 细雨）">
+      <span class="a-my-island-plugin-launcher-icon">🍃</span>
+      <span class="a-my-island-plugin-launcher-label">环境微粒</span>
+    </button>
+
+    <button class="a-my-island-plugin-launcher-button is-immersive-settings is-island-control-hidden" id="launcher-btn-immersive" onclick="openOriginalSettingsPanel(&apos;immersive&apos;)" title="沉浸模式设置">
+      <span class="a-my-island-plugin-launcher-icon">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <path d="M8 18V10a2 2 0 0 1 2-2h8M30 8h8a2 2 0 0 1 2 2v8M40 30v8a2 2 0 0 1-2 2h-8M18 40h-8a2 2 0 0 1-2-2v-8" fill="none" stroke="#73502d" stroke-width="3.2" stroke-linecap="round"/>
+          <path d="M24 14c8 2 11 8 8 14-3 6-10 7-16 5 0-8 2-15 8-19Z" fill="#9fd071" stroke="#73502d" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M17 34c5-5 9-9 14-14" fill="none" stroke="#73502d" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <span class="a-my-island-plugin-launcher-label">沉浸模式</span>
     </button>
   </div>
 
@@ -12824,6 +12969,10 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
   <div class="island-top-unified-bar ws-top-unified-bar" id="ws-unified-topbar">
     <!-- 1. 左侧：HUD 档案区 + 导航返回键 + 场馆标识徽章 (单行融合，与首页执行视图保持1:1视觉规范) -->
     <div class="topbar-left-zone">
+      <button type="button" class="topbar-obsidian-split-btn btn-split-left" onclick="toggleObsidianSplit('left')" title="打开/折叠 Obsidian 左侧边栏" aria-label="切换左侧边栏">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+      </button>
+      
       <button class="ws-nav-back-btn" onclick="exitSecondaryWorkspace()" title="返回海岛大世界规划沙盘">
         <span style="font-size:14px;">◀️</span>
         <span>返回大厅</span>
@@ -12874,6 +13023,9 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
         <span class="stat-pill-label">进行中:</span>
         <span class="stat-pill-val gold" id="ws-top-active-count">2 个</span>
       </div>
+      <button type="button" class="topbar-obsidian-split-btn btn-split-right" onclick="toggleObsidianSplit('right')" title="打开/折叠 Obsidian 右侧边栏" aria-label="切换右侧边栏">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+      </button>
     </div>
   </div>
 
@@ -13066,6 +13218,10 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
   <div class="island-top-unified-bar ws-top-unified-bar tertiary-top-unified-bar" id="tertiary-unified-topbar">
     <!-- 1. 左侧：主返回键 + 个人成长档案 HUD (含项目标识微徽章) -->
     <div class="topbar-left-zone">
+      <button type="button" class="topbar-obsidian-split-btn btn-split-left" onclick="toggleObsidianSplit('left')" title="打开/折叠 Obsidian 左侧边栏" aria-label="切换左侧边栏">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+      </button>
+      
       <button class="ws-nav-back-btn" onclick="exitTertiaryWorkspace()" title="返回上一级通用甘特工作台">
         <span style="font-size:14px;">◀️</span>
         <span>返回甘特</span>
@@ -13177,6 +13333,9 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
         <span class="stat-pill-label">节点数:</span>
         <span class="stat-pill-val gold" id="tertiary-stat-node-count">6 个</span>
       </div>
+      <button type="button" class="topbar-obsidian-split-btn btn-split-right" onclick="toggleObsidianSplit('right')" title="打开/折叠 Obsidian 右侧边栏" aria-label="切换右侧边栏">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+      </button>
     </div>
   </div>
 
@@ -14947,7 +15106,7 @@ let isArchiveDrawerOpen = false;
 let currentParticleMode = 'gold'; // 'gold' | 'leaves' | 'petals' | 'rain'
 let isInTabletFrame = true;
 window.isBrowseMode = true; // 默认开启浏览模式（移动平板最佳触控体验：单击直达）
-let islandControlsExpanded = true;
+let islandControlsExpanded = false;
 let activeOriginalPanel = null;
 let activeSelectedPavilion = 'study';
 
@@ -15498,7 +15657,8 @@ function toggleIslandControlsGroup() {
   const toggleButtons = [
     document.getElementById('launcher-btn-bg'),
     document.getElementById('launcher-btn-char'),
-    document.getElementById('launcher-btn-env')
+    document.getElementById('launcher-btn-env'),
+    document.getElementById('launcher-btn-immersive')
   ];
 
   if (btnSettings) {
@@ -15510,6 +15670,7 @@ function toggleIslandControlsGroup() {
     if (btn) btn.classList.toggle('is-island-control-hidden', !islandControlsExpanded);
   });
 }
+
 
 function openOriginalSettingsPanel(type) {
   if (activeOriginalPanel === type) {
@@ -15833,6 +15994,15 @@ function toggleImmersiveMode() {
     showIslandToast('已退出沉浸模式，恢复全能操作界面。');
   }
 }
+
+
+window.toggleObsidianSplit = function(side) {
+  if (typeof window.__toggleObsidianSidebar === 'function') {
+    window.__toggleObsidianSidebar(side);
+  } else {
+    showIslandToast((side === 'left' ? '📂 左侧边栏' : '📑 右侧边栏') + '切换（在 Obsidian 原生插件环境中生效）');
+  }
+};
 
 function showIslandToast(msg) {
   let toast = document.getElementById('island-quick-toast');

@@ -798,6 +798,10 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
     <div class="island-top-unified-bar" id="home-unified-topbar">
       <!-- 1. \u5DE6\u4FA7\uFF1AHUD \u5C9B\u6C11\u6210\u957F\u6863\u6848\u540D\u7247 -->
       <div class="topbar-left-zone">
+      <button type="button" class="topbar-obsidian-split-btn btn-split-left" onclick="toggleObsidianSplit('left')" title="\u6253\u5F00/\u6298\u53E0 Obsidian \u5DE6\u4FA7\u8FB9\u680F" aria-label="\u5207\u6362\u5DE6\u4FA7\u8FB9\u680F">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+      </button>
+      
         <div class="hud-profile-container">
           <div class="hud-avatar-box" onclick="openOriginalSettingsPanel(&apos;char&apos;)" title="\u70B9\u51FB\u8FDB\u884C\u89D2\u8272\u8BBE\u7F6E">
             <span id="hud-avatar-emoji">\u{1F466}</span>
@@ -887,6 +891,10 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
           <span class="stat-pill-label">\u8FBE\u6210:</span>
           <span class="stat-pill-val gold" id="exec-stat-progress">0/0</span>
         </div>
+      
+        <button type="button" class="topbar-obsidian-split-btn btn-split-right" onclick="toggleObsidianSplit('right')" title="\u6253\u5F00/\u6298\u53E0 Obsidian \u53F3\u4FA7\u8FB9\u680F" aria-label="\u5207\u6362\u53F3\u4FA7\u8FB9\u680F">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+      </button>
       </div>
     </div>
 
@@ -1326,120 +1334,105 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
   <div class="a-my-island-plugin-launcher" id="home-island-launcher">
     <!-- \u7C7B\u522B 1: \u53CC\u4E3B\u89C6\u53E3\u5207\u6362 -->
     <button class="a-my-island-plugin-launcher-button is-active" id="launcher-view-exec" onclick="switchHomeGlobalView(&apos;exec&apos;)" title="\u5207\u6362\u4E3A\u6DF1\u5EA6\u6267\u884C\u89C6\u56FE">
-      <span class="a-my-island-plugin-launcher-icon" style="font-size:22px;">\u26A1</span>
+      <span class="a-my-island-plugin-launcher-icon">\u26A1</span>
       <span class="a-my-island-plugin-launcher-label">\u6267\u884C\u89C6\u56FE</span>
     </button>
     <button class="a-my-island-plugin-launcher-button" id="launcher-view-plan" onclick="switchHomeGlobalView(&apos;plan&apos;)" title="\u5207\u6362\u4E3A\u5B8F\u89C2\u89C4\u5212\u89C6\u56FE">
-      <span class="a-my-island-plugin-launcher-icon" style="font-size:22px;">\u{1F9ED}</span>
+      <span class="a-my-island-plugin-launcher-icon">\u{1F9ED}</span>
       <span class="a-my-island-plugin-launcher-label">\u89C4\u5212\u89C6\u56FE</span>
     </button>
-
 
     <!-- \u7C7B\u522B\u5206\u5272\u7EBF 1 -->
     <div class="a-my-island-plugin-launcher-separator" aria-hidden="true"></div>
 
-    <!-- \u7C7B\u522B 2: \u514D\u89C4\u5212\u76F4\u8FBE\u529F\u80FD\u6A21\u5757\u4E0E\u95EE\u9053\u5DE5\u5177 (\u85CF\u91D1\u5C4B / \u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303 / \u6BCF\u65E5\u968F\u8BB0 / \u6210\u5C31\u9986 / \u53E4\u7C4D\u95EE\u9053 \xB7 \u5E95\u90E8\u540C\u6392\u5C55\u793A) -->
+    <!-- \u7C7B\u522B 2: \u514D\u89C4\u5212\u76F4\u8FBE\u529F\u80FD\u6A21\u5757\u4E0E\u95EE\u9053\u5DE5\u5177 -->
     <button class="a-my-island-plugin-launcher-button is-bottom-module" id="launcher-btn-treasury" onclick="enterSecondaryWorkspace('treasury', 'specialized')" title="\u8FDB\u5165\u85CF\u91D1\u5C4B (\u514D\u89C4\u5212\xB7\u5C11\u513F\u72EC\u7ACB\u96F6\u7528\u91D1\u6536\u652F\u53F0\u8D26)">
-      <span class="a-my-island-plugin-launcher-icon" style="font-size:22px;">\u{1F4B0}</span>
+      <span class="a-my-island-plugin-launcher-icon">\u{1F4B0}</span>
       <span class="a-my-island-plugin-launcher-label">\u85CF\u91D1\u5C4B</span>
     </button>
-    <button class="a-my-island-plugin-launcher-button is-bottom-module" id="launcher-btn-tree" onclick="enterSecondaryWorkspace('tree', 'specialized')" title="\u67E5\u770B\u5DF2\u786E\u5B9A\u7684\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303 (\u7EAF\u67E5\u9605\xB7\u53E4\u7C4D\u7ACB\u5BAA\u6CD5\u5178\u957F\u5377)" style="min-width:76px; flex:0 0 76px;">
-      <span class="a-my-island-plugin-launcher-icon" style="font-size:22px;">\u{1F4DC}</span>
-      <span class="a-my-island-plugin-launcher-label" style="font-size:9.5px; max-width:72px; letter-spacing:-0.2px;">\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303</span>
+    <button class="a-my-island-plugin-launcher-button is-bottom-module" id="launcher-btn-tree" onclick="enterSecondaryWorkspace('tree', 'specialized')" title="\u67E5\u770B\u5DF2\u786E\u5B9A\u7684\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303 (\u7EAF\u67E5\u9605\xB7\u53E4\u7C4D\u7ACB\u5BAA\u6CD5\u5178\u957F\u5377)">
+      <span class="a-my-island-plugin-launcher-icon">\u{1F4DC}</span>
+      <span class="a-my-island-plugin-launcher-label">\u884C\u4E3A\u89C4\u8303</span>
     </button>
     <button class="a-my-island-plugin-launcher-button is-bottom-module" id="launcher-btn-note" onclick="enterSecondaryWorkspace('note', 'specialized')" title="\u4E66\u5199\u4E0E\u67E5\u9605\u6BCF\u65E5\u968F\u8BB0 (\u514D\u89C4\u5212\xB7\u5BA2\u89C2\u771F\u5B9E\u6D41\u6C34+\u5FC3\u6D41\u65E5\u8BB0)">
-      <span class="a-my-island-plugin-launcher-icon" style="font-size:22px;">\u{1F4DD}</span>
+      <span class="a-my-island-plugin-launcher-icon">\u{1F4DD}</span>
       <span class="a-my-island-plugin-launcher-label">\u6BCF\u65E5\u968F\u8BB0</span>
     </button>
     <button class="a-my-island-plugin-launcher-button is-bottom-module" id="launcher-btn-achieve" onclick="enterSecondaryWorkspace('achieve', 'specialized')" title="\u8C03\u9605\u6210\u5C31\u9986 (\u514D\u89C4\u5212\xB7\u53CC\u8F68\u8363\u8A89\u6BBF\u5802)">
-      <span class="a-my-island-plugin-launcher-icon" style="font-size:22px;">\u{1F3C6}</span>
+      <span class="a-my-island-plugin-launcher-icon">\u{1F3C6}</span>
       <span class="a-my-island-plugin-launcher-label">\u6210\u5C31\u9986</span>
     </button>
     <button class="a-my-island-plugin-launcher-button is-bottom-module" id="launcher-btn-inquiry" onclick="openInquiryModal()" title="\u6253\u5F00\u5C11\u5E74\u4FEE\u8EAB\u95EE\u9053\u6C60 (\u8BB0\u5F55\u6210\u957F\u56F0\u60D1 \xB7 \u9009\u60D1\u6D3E\u751F\u4FEE\u8EAB\u89C4\u5212)">
-      <span class="a-my-island-plugin-launcher-icon" style="font-size:22px;">\u2753</span>
+      <span class="a-my-island-plugin-launcher-icon">\u2753</span>
       <span class="a-my-island-plugin-launcher-label">\u53E4\u7C4D\u95EE\u9053</span>
     </button>
 
     <!-- \u7C7B\u522B\u5206\u5272\u7EBF 2 -->
     <div class="a-my-island-plugin-launcher-separator" aria-hidden="true"></div>
 
-    <!-- \u7C7B\u522B 3: \u5C0F\u5C9B\u6838\u5FC3\u7CFB\u7EDF\u8BBE\u7F6E\u4E2D\u5FC3 -->
-    <button class="a-my-island-plugin-launcher-button is-island-controls is-active" id="launcher-btn-settings" onclick="toggleIslandControlsGroup()" title="\u5C55\u5F00\u6216\u6536\u8D77\u5C0F\u5C9B\u8BBE\u7F6E">
-      <span class="a-my-island-plugin-launcher-icon">
-  <svg viewBox="0 0 64 64" aria-hidden="true">
-    <path d="M27 8h10l2 7 6 3 7-2 5 9-5 5v7l5 5-5 9-7-2-6 3-2 7H27l-2-7-6-3-7 2-5-9 5-5v-7l-5-5 5-9 7 2 6-3 2-7Z" fill="#f3b85c" stroke="#75481f" stroke-width="4" stroke-linejoin="round"/>
-    <circle cx="32" cy="33" r="11" fill="#d9efad" stroke="#75481f" stroke-width="4"/>
-    <circle cx="32" cy="33" r="4" fill="#71ad64"/>
-  </svg>
-</span>
-      <span class="a-my-island-plugin-launcher-label">\u5C0F\u5C9B\u8BBE\u7F6E</span>
+    <!-- \u7C7B\u522B 3: \u5FEB\u6377\u5DE5\u5177\u4E0E\u60AC\u8D4F -->
+    <button class="a-my-island-plugin-launcher-button" id="launcher-btn-pomo" onclick="launchQuickFocusTimer()" title="\u5FEB\u901F\u8FDB\u5165\u4E13\u6CE8\u8BA1\u65F6\uFF08\u653B\u575A\u5B9E\u8BAD\u6253\u5361\u9875\uFF09">
+      <span class="a-my-island-plugin-launcher-icon">\u23F1\uFE0F</span>
+      <span class="a-my-island-plugin-launcher-label">\u4E13\u6CE8\u79D2\u8868</span>
     </button>
-
-    
-
-    <button class="a-my-island-plugin-launcher-button is-background-settings" id="launcher-btn-bg" onclick="openOriginalSettingsPanel(&apos;bg&apos;)" title="\u573A\u666F\u80CC\u666F\u58C1\u7EB8\u8BBE\u7F6E">
-      <span class="a-my-island-plugin-launcher-icon">
-  <svg viewBox="0 0 64 64" aria-hidden="true">
-    <rect x="7" y="10" width="50" height="43" rx="9" fill="#dff2cf" stroke="#75481f" stroke-width="4"/>
-    <circle cx="44" cy="23" r="7" fill="#f6c85f" stroke="#75481f" stroke-width="3"/>
-    <path d="M12 47 25 32l8 9 7-7 12 13Z" fill="#72b77c" stroke="#75481f" stroke-width="3" stroke-linejoin="round"/>
-  </svg>
-</span>
-      <span class="a-my-island-plugin-launcher-label">\u80CC\u666F\u8BBE\u7F6E</span>
-    </button>
-
-    <button class="a-my-island-plugin-launcher-button is-character-settings" id="launcher-btn-char" onclick="openOriginalSettingsPanel(&apos;char&apos;)" title="\u89D2\u8272\u5F62\u8C61\u4E0E\u4E92\u52A8\u8BBE\u7F6E">
-      <span class="a-my-island-plugin-launcher-icon">
-  <svg viewBox="0 0 64 64" aria-hidden="true">
-    <circle cx="32" cy="22" r="11" fill="#ffd0ae" stroke="#75481f" stroke-width="4"/>
-    <path d="M18 54c1-13 7-19 14-19s13 6 14 19Z" fill="#72b77c" stroke="#75481f" stroke-width="4" stroke-linejoin="round"/>
-    <path d="M20 20c1-10 7-15 14-15 8 0 14 6 14 15-5-2-9-5-12-9-4 5-9 8-16 9Z" fill="#9b5938" stroke="#75481f" stroke-width="3" stroke-linejoin="round"/>
-    <circle cx="28" cy="23" r="1.8" fill="#75481f"/><circle cx="37" cy="23" r="1.8" fill="#75481f"/>
-  </svg>
-</span>
-      <span class="a-my-island-plugin-launcher-label">\u89D2\u8272\u8BBE\u7F6E</span>
-    </button>
-
-    <button class="a-my-island-plugin-launcher-button is-environment-settings" id="launcher-btn-env" onclick="openOriginalSettingsPanel('env')" title="\u73AF\u5883\u5FAE\u7C92\u8BBE\u7F6E\uFF08\u843D\u53F6 / \u82B1\u74E3 / \u8424\u706B / \u7EC6\u96E8\uFF09">
-      <span class="a-my-island-plugin-launcher-icon" style="font-size:22px;">\u{1F343}</span>
-      <span class="a-my-island-plugin-launcher-label">\u73AF\u5883\u5FAE\u7C92</span>
-    </button>
-
-    
-
-    
-
-    <!-- \u7C7B\u522B\u5206\u5272\u7EBF 2 -->
-    <div class="a-my-island-plugin-launcher-separator" aria-hidden="true"></div>
-
-    <!-- \u7C7B\u522B 3: \u6A21\u5F0F\u4E0E\u4E13\u6CE8\u63A7\u5236 -->
-    
-
-    <button class="a-my-island-plugin-launcher-button is-immersive-settings" id="launcher-btn-immersive" onclick="openOriginalSettingsPanel(&apos;immersive&apos;)" title="\u6C89\u6D78\u6A21\u5F0F\u8BBE\u7F6E">
-      <span class="a-my-island-plugin-launcher-icon">
-  <svg viewBox="0 0 48 48" aria-hidden="true">
-    <path d="M8 18V10a2 2 0 0 1 2-2h8M30 8h8a2 2 0 0 1 2 2v8M40 30v8a2 2 0 0 1-2 2h-8M18 40h-8a2 2 0 0 1-2-2v-8" fill="none" stroke="#73502d" stroke-width="3.2" stroke-linecap="round"/>
-    <path d="M24 14c8 2 11 8 8 14-3 6-10 7-16 5 0-8 2-15 8-19Z" fill="#9fd071" stroke="#73502d" stroke-width="2.5" stroke-linejoin="round"/>
-    <path d="M17 34c5-5 9-9 14-14" fill="none" stroke="#73502d" stroke-width="2.5" stroke-linecap="round"/>
-  </svg>
-</span>
-      <span class="a-my-island-plugin-launcher-label">\u6C89\u6D78\u6A21\u5F0F</span>
+    <button class="a-my-island-plugin-launcher-button" id="launcher-btn-bounty" onclick="openBountyModal()" title="\u8C03\u9605\u7F6E\u9876\u5BB6\u957F\u60AC\u8D4F\u4EE4">
+      <span class="a-my-island-plugin-launcher-icon">\u{1F4DC}</span>
+      <span class="a-my-island-plugin-launcher-label">\u60AC\u8D4F\u5951\u7EA6</span>
     </button>
 
     <!-- \u7C7B\u522B\u5206\u5272\u7EBF 3 -->
     <div class="a-my-island-plugin-launcher-separator" aria-hidden="true"></div>
 
-    <!-- \u7C7B\u522B 4: \u5FEB\u6377\u52A8\u4F5C\u4E0E\u60AC\u8D4F -->
-
-
-    <button class="a-my-island-plugin-launcher-button" id="launcher-btn-pomo" onclick="launchQuickFocusTimer()" title="\u5FEB\u901F\u8FDB\u5165\u4E13\u6CE8\u8BA1\u65F6\uFF08\u653B\u575A\u5B9E\u8BAD\u6253\u5361\u9875\uFF09">
-      <span class="a-my-island-plugin-launcher-icon" style="font-size:22px;">\u23F1\uFE0F</span>
-      <span class="a-my-island-plugin-launcher-label">\u4E13\u6CE8\u79D2\u8868</span>
+    <!-- \u7C7B\u522B 4: \u5C0F\u5C9B\u7CFB\u7EDF\u8BBE\u7F6E\u4E2D\u5FC3 (\u70B9\u51FB\u5C55\u5F00/\u6298\u53E0 4 \u5927\u4E13\u5C5E\u7CFB\u7EDF\u8BBE\u7F6E\u9762\u677F) -->
+    <button class="a-my-island-plugin-launcher-button is-island-controls" id="launcher-btn-settings" onclick="toggleIslandControlsGroup()" title="\u5C55\u5F00\u6216\u6536\u8D77\u5C0F\u5C9B\u8BBE\u7F6E" aria-expanded="false">
+      <span class="a-my-island-plugin-launcher-icon">
+        <svg viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M27 8h10l2 7 6 3 7-2 5 9-5 5v7l5 5-5 9-7-2-6 3-2 7H27l-2-7-6-3-7 2-5-9 5-5v-7l-5-5 5-9 7 2 6-3 2-7Z" fill="#f3b85c" stroke="#75481f" stroke-width="4" stroke-linejoin="round"/>
+          <circle cx="32" cy="33" r="11" fill="#d9efad" stroke="#75481f" stroke-width="4"/>
+          <circle cx="32" cy="33" r="4" fill="#71ad64"/>
+        </svg>
+      </span>
+      <span class="a-my-island-plugin-launcher-label">\u5C0F\u5C9B\u8BBE\u7F6E</span>
     </button>
 
-    <button class="a-my-island-plugin-launcher-button" id="launcher-btn-bounty" onclick="openBountyModal()" title="\u8C03\u9605\u7F6E\u9876\u5BB6\u957F\u60AC\u8D4F\u4EE4">
-      <span class="a-my-island-plugin-launcher-icon" style="font-size:22px;">\u{1F4DC}</span>
-      <span class="a-my-island-plugin-launcher-label">\u60AC\u8D4F\u5951\u7EA6</span>
+    <!-- \u9644\u5C5E\u5B50\u8BBE\u7F6E\u6309\u94AE (\u9ED8\u8BA4\u6536\u7EB3\u9690\u85CF\uFF0C\u70B9\u51FB\u5C0F\u5C9B\u8BBE\u7F6E\u5C55\u5F00) -->
+    <button class="a-my-island-plugin-launcher-button is-background-settings is-island-control-hidden" id="launcher-btn-bg" onclick="openOriginalSettingsPanel(&apos;bg&apos;)" title="\u573A\u666F\u80CC\u666F\u58C1\u7EB8\u8BBE\u7F6E">
+      <span class="a-my-island-plugin-launcher-icon">
+        <svg viewBox="0 0 64 64" aria-hidden="true">
+          <rect x="7" y="10" width="50" height="43" rx="9" fill="#dff2cf" stroke="#75481f" stroke-width="4"/>
+          <circle cx="44" cy="23" r="7" fill="#f6c85f" stroke="#75481f" stroke-width="3"/>
+          <path d="M12 47 25 32l8 9 7-7 12 13Z" fill="#72b77c" stroke="#75481f" stroke-width="3" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <span class="a-my-island-plugin-launcher-label">\u80CC\u666F\u8BBE\u7F6E</span>
+    </button>
+
+    <button class="a-my-island-plugin-launcher-button is-character-settings is-island-control-hidden" id="launcher-btn-char" onclick="openOriginalSettingsPanel(&apos;char&apos;)" title="\u89D2\u8272\u5F62\u8C61\u4E0E\u4E92\u52A8\u8BBE\u7F6E">
+      <span class="a-my-island-plugin-launcher-icon">
+        <svg viewBox="0 0 64 64" aria-hidden="true">
+          <circle cx="32" cy="22" r="11" fill="#ffd0ae" stroke="#75481f" stroke-width="4"/>
+          <path d="M18 54c1-13 7-19 14-19s13 6 14 19Z" fill="#72b77c" stroke="#75481f" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M20 20c1-10 7-15 14-15 8 0 14 6 14 15-5-2-9-5-12-9-4 5-9 8-16 9Z" fill="#9b5938" stroke="#75481f" stroke-width="3" stroke-linejoin="round"/>
+          <circle cx="28" cy="23" r="1.8" fill="#75481f"/><circle cx="37" cy="23" r="1.8" fill="#75481f"/>
+        </svg>
+      </span>
+      <span class="a-my-island-plugin-launcher-label">\u89D2\u8272\u8BBE\u7F6E</span>
+    </button>
+
+    <button class="a-my-island-plugin-launcher-button is-environment-settings is-island-control-hidden" id="launcher-btn-env" onclick="openOriginalSettingsPanel('env')" title="\u73AF\u5883\u5FAE\u7C92\u8BBE\u7F6E\uFF08\u843D\u53F6 / \u82B1\u74E3 / \u8424\u706B / \u7EC6\u96E8\uFF09">
+      <span class="a-my-island-plugin-launcher-icon">\u{1F343}</span>
+      <span class="a-my-island-plugin-launcher-label">\u73AF\u5883\u5FAE\u7C92</span>
+    </button>
+
+    <button class="a-my-island-plugin-launcher-button is-immersive-settings is-island-control-hidden" id="launcher-btn-immersive" onclick="openOriginalSettingsPanel(&apos;immersive&apos;)" title="\u6C89\u6D78\u6A21\u5F0F\u8BBE\u7F6E">
+      <span class="a-my-island-plugin-launcher-icon">
+        <svg viewBox="0 0 48 48" aria-hidden="true">
+          <path d="M8 18V10a2 2 0 0 1 2-2h8M30 8h8a2 2 0 0 1 2 2v8M40 30v8a2 2 0 0 1-2 2h-8M18 40h-8a2 2 0 0 1-2-2v-8" fill="none" stroke="#73502d" stroke-width="3.2" stroke-linecap="round"/>
+          <path d="M24 14c8 2 11 8 8 14-3 6-10 7-16 5 0-8 2-15 8-19Z" fill="#9fd071" stroke="#73502d" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M17 34c5-5 9-9 14-14" fill="none" stroke="#73502d" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+      </span>
+      <span class="a-my-island-plugin-launcher-label">\u6C89\u6D78\u6A21\u5F0F</span>
     </button>
   </div>
 
@@ -1687,6 +1680,10 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
   <div class="island-top-unified-bar ws-top-unified-bar" id="ws-unified-topbar">
     <!-- 1. \u5DE6\u4FA7\uFF1AHUD \u6863\u6848\u533A + \u5BFC\u822A\u8FD4\u56DE\u952E + \u573A\u9986\u6807\u8BC6\u5FBD\u7AE0 (\u5355\u884C\u878D\u5408\uFF0C\u4E0E\u9996\u9875\u6267\u884C\u89C6\u56FE\u4FDD\u63011:1\u89C6\u89C9\u89C4\u8303) -->
     <div class="topbar-left-zone">
+      <button type="button" class="topbar-obsidian-split-btn btn-split-left" onclick="toggleObsidianSplit('left')" title="\u6253\u5F00/\u6298\u53E0 Obsidian \u5DE6\u4FA7\u8FB9\u680F" aria-label="\u5207\u6362\u5DE6\u4FA7\u8FB9\u680F">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+      </button>
+      
       <button class="ws-nav-back-btn" onclick="exitSecondaryWorkspace()" title="\u8FD4\u56DE\u6D77\u5C9B\u5927\u4E16\u754C\u89C4\u5212\u6C99\u76D8">
         <span style="font-size:14px;">\u25C0\uFE0F</span>
         <span>\u8FD4\u56DE\u5927\u5385</span>
@@ -1737,6 +1734,9 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
         <span class="stat-pill-label">\u8FDB\u884C\u4E2D:</span>
         <span class="stat-pill-val gold" id="ws-top-active-count">2 \u4E2A</span>
       </div>
+      <button type="button" class="topbar-obsidian-split-btn btn-split-right" onclick="toggleObsidianSplit('right')" title="\u6253\u5F00/\u6298\u53E0 Obsidian \u53F3\u4FA7\u8FB9\u680F" aria-label="\u5207\u6362\u53F3\u4FA7\u8FB9\u680F">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+      </button>
     </div>
   </div>
 
@@ -1929,6 +1929,10 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
   <div class="island-top-unified-bar ws-top-unified-bar tertiary-top-unified-bar" id="tertiary-unified-topbar">
     <!-- 1. \u5DE6\u4FA7\uFF1A\u4E3B\u8FD4\u56DE\u952E + \u4E2A\u4EBA\u6210\u957F\u6863\u6848 HUD (\u542B\u9879\u76EE\u6807\u8BC6\u5FAE\u5FBD\u7AE0) -->
     <div class="topbar-left-zone">
+      <button type="button" class="topbar-obsidian-split-btn btn-split-left" onclick="toggleObsidianSplit('left')" title="\u6253\u5F00/\u6298\u53E0 Obsidian \u5DE6\u4FA7\u8FB9\u680F" aria-label="\u5207\u6362\u5DE6\u4FA7\u8FB9\u680F">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+      </button>
+      
       <button class="ws-nav-back-btn" onclick="exitTertiaryWorkspace()" title="\u8FD4\u56DE\u4E0A\u4E00\u7EA7\u901A\u7528\u7518\u7279\u5DE5\u4F5C\u53F0">
         <span style="font-size:14px;">\u25C0\uFE0F</span>
         <span>\u8FD4\u56DE\u7518\u7279</span>
@@ -2040,6 +2044,9 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
         <span class="stat-pill-label">\u8282\u70B9\u6570:</span>
         <span class="stat-pill-val gold" id="tertiary-stat-node-count">6 \u4E2A</span>
       </div>
+      <button type="button" class="topbar-obsidian-split-btn btn-split-right" onclick="toggleObsidianSplit('right')" title="\u6253\u5F00/\u6298\u53E0 Obsidian \u53F3\u4FA7\u8FB9\u680F" aria-label="\u5207\u6362\u53F3\u4FA7\u8FB9\u680F">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+      </button>
     </div>
   </div>
 
@@ -4857,7 +4864,7 @@ function bootPrototypeRuntime() {
   let currentParticleMode = "gold";
   let isInTabletFrame = true;
   window.isBrowseMode = true;
-  let islandControlsExpanded = true;
+  let islandControlsExpanded = false;
   let activeOriginalPanel = null;
   let activeSelectedPavilion = "study";
   let islandPanX = 0;
@@ -5328,7 +5335,8 @@ function bootPrototypeRuntime() {
     const toggleButtons = [
       document.getElementById("launcher-btn-bg"),
       document.getElementById("launcher-btn-char"),
-      document.getElementById("launcher-btn-env")
+      document.getElementById("launcher-btn-env"),
+      document.getElementById("launcher-btn-immersive")
     ];
     if (btnSettings) {
       btnSettings.classList.toggle("is-active", islandControlsExpanded);
@@ -5661,6 +5669,13 @@ function bootPrototypeRuntime() {
       showIslandToast("\u5DF2\u9000\u51FA\u6C89\u6D78\u6A21\u5F0F\uFF0C\u6062\u590D\u5168\u80FD\u64CD\u4F5C\u754C\u9762\u3002");
     }
   }
+  window.toggleObsidianSplit = function(side) {
+    if (typeof window.__toggleObsidianSidebar === "function") {
+      window.__toggleObsidianSidebar(side);
+    } else {
+      showIslandToast((side === "left" ? "\u{1F4C2} \u5DE6\u4FA7\u8FB9\u680F" : "\u{1F4D1} \u53F3\u4FA7\u8FB9\u680F") + "\u5207\u6362\uFF08\u5728 Obsidian \u539F\u751F\u63D2\u4EF6\u73AF\u5883\u4E2D\u751F\u6548\uFF09");
+    }
+  };
   function showIslandToast(msg) {
     let toast = document.getElementById("island-quick-toast");
     if (!toast) {
@@ -14687,6 +14702,22 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
       cls: "youth-island-plugin-root youth-island-obsidian-view-root"
     });
     rootWrapper.innerHTML = ISLAND_UI_HTML;
+    const preventSidebarGestures = (e) => {
+      e.stopPropagation();
+    };
+    rootWrapper.addEventListener("touchstart", preventSidebarGestures, { capture: true, passive: true });
+    rootWrapper.addEventListener("touchmove", (e) => {
+      e.stopPropagation();
+      const target = e.target;
+      if (target && target.closest(
+        "#tertiary-mindmap-stage, .tertiary-canvas-viewport, .tertiary-canvas-world, #island-canvas-stage, #exec-carousel-stage"
+      )) {
+        if (e.cancelable) {
+          e.preventDefault();
+        }
+      }
+    }, { capture: true, passive: false });
+    rootWrapper.addEventListener("touchend", preventSidebarGestures, { capture: true, passive: true });
     this.installTabletTouchBridge(rootWrapper);
     bootPrototypeRuntime();
     await this.plugin.vaultStorage.hydrateRuntimeFromVault();
@@ -14912,6 +14943,26 @@ var YouthGrowthIslandPlugin = class extends import_obsidian4.Plugin {
     this.vaultStorage = new VaultStorageAdapter(this.app, () => this.settings);
     window.__openProjectInObsidianCanvas = async (projId) => {
       await this.vaultStorage.openProjectInCanvas(projId);
+    };
+    window.__toggleObsidianSidebar = (side) => {
+      try {
+        const ws = this.app.workspace;
+        if (side === "left") {
+          if (ws.leftSplit && typeof ws.leftSplit.toggle === "function") {
+            ws.leftSplit.toggle();
+          } else if (typeof ws.toggleLeftSidebar === "function") {
+            ws.toggleLeftSidebar();
+          }
+        } else if (side === "right") {
+          if (ws.rightSplit && typeof ws.rightSplit.toggle === "function") {
+            ws.rightSplit.toggle();
+          } else if (typeof ws.toggleRightSidebar === "function") {
+            ws.toggleRightSidebar();
+          }
+        }
+      } catch (err) {
+        console.error("Failed to toggle Obsidian sidebar:", err);
+      }
     };
     this.registerView(
       VIEW_TYPE_YOUTH_ISLAND,

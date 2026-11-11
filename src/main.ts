@@ -24,6 +24,28 @@ export default class YouthGrowthIslandPlugin extends Plugin {
       await this.vaultStorage.openProjectInCanvas(projId);
     };
 
+    // Bind Obsidian Native Sidebar Split Toggle Bridge to window
+    (window as any).__toggleObsidianSidebar = (side: "left" | "right") => {
+      try {
+        const ws = this.app.workspace as any;
+        if (side === "left") {
+          if (ws.leftSplit && typeof ws.leftSplit.toggle === "function") {
+            ws.leftSplit.toggle();
+          } else if (typeof ws.toggleLeftSidebar === "function") {
+            ws.toggleLeftSidebar();
+          }
+        } else if (side === "right") {
+          if (ws.rightSplit && typeof ws.rightSplit.toggle === "function") {
+            ws.rightSplit.toggle();
+          } else if (typeof ws.toggleRightSidebar === "function") {
+            ws.toggleRightSidebar();
+          }
+        }
+      } catch (err) {
+        console.error("Failed to toggle Obsidian sidebar:", err);
+      }
+    };
+
     // Register main custom ItemView
     this.registerView(
       VIEW_TYPE_YOUTH_ISLAND,

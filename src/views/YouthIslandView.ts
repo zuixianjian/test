@@ -103,6 +103,30 @@ export class YouthIslandView extends ItemView {
     });
     rootWrapper.innerHTML = ISLAND_UI_HTML;
 
+    // 彻底屏蔽在插件视图（尤其是脑图画布、沙盘和执行中心）内左右滑动误触发 Obsidian 侧边栏的手势
+    const preventSidebarGestures = (e: TouchEvent) => {
+      // 阻止向全局 Obsidian Workspace 容器冒泡，阻断 Mobile 滑动打开左右侧栏监听
+      e.stopPropagation();
+    };
+
+    rootWrapper.addEventListener("touchstart", preventSidebarGestures, { capture: true, passive: true });
+    rootWrapper.addEventListener("touchmove", (e: TouchEvent) => {
+      e.stopPropagation();
+      const target = e.target as HTMLElement | null;
+      // 当在脑图舞台、全景视口、海岛沙盘中拖动时，同时阻止系统默认横向手势链
+      if (
+        target &&
+        target.closest(
+          "#tertiary-mindmap-stage, .tertiary-canvas-viewport, .tertiary-canvas-world, #island-canvas-stage, #exec-carousel-stage"
+        )
+      ) {
+        if (e.cancelable) {
+          e.preventDefault();
+        }
+      }
+    }, { capture: true, passive: false });
+    rootWrapper.addEventListener("touchend", preventSidebarGestures, { capture: true, passive: true });
+
     // Install Android/Tablet touch-to-mouse bridge for mindmap canvas & draggable nodes
     this.installTabletTouchBridge(rootWrapper);
 
