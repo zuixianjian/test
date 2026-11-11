@@ -4248,12 +4248,14 @@ function updateTertiaryEdgesFast() {
   const linesGroup = document.getElementById('tertiary-lines-group');
   if (!linesGroup) return;
   const edges = window.TERTIARY_EDGES || [];
+  let needFull = false;
   edges.forEach(e => {
     const pathEl = document.getElementById('svg-line-' + e.id);
     const labelEl = document.getElementById('edge-label-' + e.id);
     const sEl = document.getElementById(e.sourceId);
     const tEl = document.getElementById(e.targetId);
-    if (!pathEl || !sEl || !tEl) return;
+    if (!sEl || !tEl) return;
+    if (!pathEl) { needFull = true; return; }
     const sLeft = parseInt(sEl.style.left, 10) || sEl.offsetLeft;
     const sTop = parseInt(sEl.style.top, 10) || sEl.offsetTop;
     const sWidth = sEl.offsetWidth || 340;
@@ -4278,10 +4280,42 @@ function updateTertiaryEdgesFast() {
     const dx = Math.abs(x2 - x1) * 0.5;
     const d = 'M ' + x1 + ' ' + y1 + ' C ' + (x1 + dx) + ' ' + y1 + ', ' + (x2 - dx) + ' ' + y2 + ', ' + x2 + ' ' + y2;
     pathEl.setAttribute('d', d);
+    const hitEl = document.getElementById('svg-hit-' + e.id);
+    if (hitEl) hitEl.setAttribute('d', d);
 
     if (labelEl) {
       labelEl.style.left = ((x1 + x2) / 2) + 'px';
       labelEl.style.top = ((y1 + y2) / 2) + 'px';
+    }
+  });
+  if (needFull) renderTertiaryEdges();
+}
+
+let tertiaryEdgeRaf = 0;
+function scheduleTertiaryEdgeRefresh() {
+  if (tertiaryEdgeRaf) return;
+  tertiaryEdgeRaf = requestAnimationFrame(() => {
+    tertiaryEdgeRaf = 0;
+    updateTertiaryEdgesFast();
+  });
+}
+
+// 兼容旧调用：折叠/展开、全部折叠等处使用的连线刷新入口
+function renderTertiaryConnections() {
+  renderTertiaryEdges();
+  scheduleTertiaryEdgeRefresh();
+}
+
+let tertiaryResizeObserver = null;
+function observeTertiaryCards() {
+  if (typeof ResizeObserver === 'undefined') return;
+  if (!tertiaryResizeObserver) {
+    tertiaryResizeObserver = new ResizeObserver(() => scheduleTertiaryEdgeRefresh());
+  }
+  document.querySelectorAll('#tertiary-canvas-world .tertiary-card').forEach(c => {
+    if (!c._tertiaryRoBound) {
+      c._tertiaryRoBound = true;
+      tertiaryResizeObserver.observe(c);
     }
   });
 }
@@ -4291,8 +4325,12 @@ function initTertiaryCanvasPanZoom() {
   const view = document.getElementById('tertiary-workspace-view');
   if (!stage) return;
   applyTertiaryTransform();
-  if (tertiaryEngineBound) return;
-  tertiaryEngineBound = true;
+  if (stage._tertiaryGestureBound) return;
+  stage._tertiaryGestureBound = true;
+  activePointers.clear();
+  isPinching = false;
+  isStagePanning = false;
+  activeDraggingCard = null;
 
   // 1. 鼠标滚轮自由缩放 (以鼠标光标所在点为缩放中心)
   stage.addEventListener('wheel', (e) => {
@@ -4313,10 +4351,9 @@ function initTertiaryCanvasPanZoom() {
 
   // 2. 全局统一 Pointerdown (支持鼠标、手写笔、单指和多指双指捏合)
   stage.addEventListener('pointerdown', (e) => {
-    // 忽略按钮、输入框、连线锚点与工具条
-    if (e.target.closest('button, input, select, textarea, .work-card-connect-handle, .a-my-island-graph-tool, .ws-nav-back-btn, .a-my-island-work-minimap')) {
-      return;
-    }
+    if (e.target.closest('.a-my-island-work-minimap')) return;
+    // 按钮/输入框/连线锚点：不启动拖拽或平移，但手指仍要计入，保证手指压在按钮上时也能双指缩放
+    const isInteractiveTarget = !!e.target.closest('button, input, select, textarea, .work-card-connect-handle');
 
     activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
@@ -4343,6 +4380,8 @@ function initTertiaryCanvasPanZoom() {
       pinchWorldAnchorY = (midStageY - window.tertiaryPanY) / pinchStartZoom;
       return;
     }
+
+    if (isInteractiveTarget) return;
 
     // 情况 B: 单指触控落在卡片上 -> 启动卡片拖拽
     const card = e.target.closest('.tertiary-card');
@@ -4473,6 +4512,7 @@ function initTertiaryCanvasPanZoom() {
 
 function initTertiaryWorkspace() {
   initTertiaryCanvasPanZoom();
+  observeTertiaryCards();
   bindTertiaryCardsDrag();
   renderTertiaryEdges();
   updateTertiaryNodeCountBadge();
@@ -4712,16 +4752,17 @@ function renderTertiaryEdges() {
     const markerEndAttr = e.arrowMode !== 'none' ? 'marker-end="url(#' + markerEndId + ')"' : '';
     const markerStartAttr = e.arrowMode === 'double' ? 'marker-start="url(#' + markerStartId + ')"' : '';
 
-    linesHtml += '<path d="' + d + '" stroke="transparent" stroke-width="24" fill="none" cursor="pointer" data-edge-id="' + e.id + '" onclick="openEdgePopover(this.dataset.edgeId, event)" />' +
-      '<path d="' + d + '" stroke="' + e.color + '" stroke-width="' + strokeWidth + '" stroke-dasharray="' + dashArray + '" fill="none" ' + markerEndAttr + ' ' + markerStartAttr + ' cursor="pointer" data-edge-id="' + e.id + '" onclick="openEdgePopover(this.dataset.edgeId, event)" />';
+    linesHtml += '<path id="svg-hit-' + e.id + '" d="' + d + '" stroke="transparent" stroke-width="24" fill="none" cursor="pointer" data-edge-id="' + e.id + '" onclick="openEdgePopover(this.dataset.edgeId, event)" />' +
+      '<path id="svg-line-' + e.id + '" d="' + d + '" stroke="' + e.color + '" stroke-width="' + strokeWidth + '" stroke-dasharray="' + dashArray + '" fill="none" ' + markerEndAttr + ' ' + markerStartAttr + ' cursor="pointer" data-edge-id="' + e.id + '" onclick="openEdgePopover(this.dataset.edgeId, event)" />';
 
     const labelText = e.label || e.type || '关联';
-    labelsHtml += '<div class="a-my-island-work-edge-label" style="left:' + midX + 'px; top:' + midY + 'px;" data-edge-id="' + e.id + '" onclick="openEdgePopover(this.dataset.edgeId, event)">' + labelText + '</div>';
+    labelsHtml += '<div id="edge-label-' + e.id + '" class="a-my-island-work-edge-label" style="left:' + midX + 'px; top:' + midY + 'px;" data-edge-id="' + e.id + '" onclick="openEdgePopover(this.dataset.edgeId, event)">' + labelText + '</div>';
   });
 
   if (defs) defs.innerHTML = defsHtml;
   linesGroup.innerHTML = linesHtml;
   labelsLayer.innerHTML = labelsHtml;
+  if (typeof observeTertiaryCards === 'function') observeTertiaryCards();
 }
 
 // ==================== 原版 1:1 路线设置 Popover 逻辑 ====================
@@ -11090,6 +11131,9 @@ function recordTreeTestDemo() {
   if (typeof zoomTertiaryCanvas === "function") (window as any).zoomTertiaryCanvas = zoomTertiaryCanvas;
   if (typeof resetTertiaryCanvasZoom === "function") (window as any).resetTertiaryCanvasZoom = resetTertiaryCanvasZoom;
   if (typeof updateTertiaryEdgesFast === "function") (window as any).updateTertiaryEdgesFast = updateTertiaryEdgesFast;
+  if (typeof scheduleTertiaryEdgeRefresh === "function") (window as any).scheduleTertiaryEdgeRefresh = scheduleTertiaryEdgeRefresh;
+  if (typeof renderTertiaryConnections === "function") (window as any).renderTertiaryConnections = renderTertiaryConnections;
+  if (typeof observeTertiaryCards === "function") (window as any).observeTertiaryCards = observeTertiaryCards;
   if (typeof initTertiaryCanvasPanZoom === "function") (window as any).initTertiaryCanvasPanZoom = initTertiaryCanvasPanZoom;
   if (typeof initTertiaryWorkspace === "function") (window as any).initTertiaryWorkspace = initTertiaryWorkspace;
   if (typeof toggleTertiaryCardMinimize === "function") (window as any).toggleTertiaryCardMinimize = toggleTertiaryCardMinimize;

@@ -8872,13 +8872,18 @@ function bootPrototypeRuntime() {
     if (!linesGroup)
       return;
     const edges = window.TERTIARY_EDGES || [];
+    let needFull = false;
     edges.forEach((e) => {
       const pathEl = document.getElementById("svg-line-" + e.id);
       const labelEl = document.getElementById("edge-label-" + e.id);
       const sEl = document.getElementById(e.sourceId);
       const tEl = document.getElementById(e.targetId);
-      if (!pathEl || !sEl || !tEl)
+      if (!sEl || !tEl)
         return;
+      if (!pathEl) {
+        needFull = true;
+        return;
+      }
       const sLeft = parseInt(sEl.style.left, 10) || sEl.offsetLeft;
       const sTop = parseInt(sEl.style.top, 10) || sEl.offsetTop;
       const sWidth = sEl.offsetWidth || 340;
@@ -8907,9 +8912,41 @@ function bootPrototypeRuntime() {
       const dx = Math.abs(x2 - x1) * 0.5;
       const d = "M " + x1 + " " + y1 + " C " + (x1 + dx) + " " + y1 + ", " + (x2 - dx) + " " + y2 + ", " + x2 + " " + y2;
       pathEl.setAttribute("d", d);
+      const hitEl = document.getElementById("svg-hit-" + e.id);
+      if (hitEl)
+        hitEl.setAttribute("d", d);
       if (labelEl) {
         labelEl.style.left = (x1 + x2) / 2 + "px";
         labelEl.style.top = (y1 + y2) / 2 + "px";
+      }
+    });
+    if (needFull)
+      renderTertiaryEdges();
+  }
+  let tertiaryEdgeRaf = 0;
+  function scheduleTertiaryEdgeRefresh() {
+    if (tertiaryEdgeRaf)
+      return;
+    tertiaryEdgeRaf = requestAnimationFrame(() => {
+      tertiaryEdgeRaf = 0;
+      updateTertiaryEdgesFast();
+    });
+  }
+  function renderTertiaryConnections() {
+    renderTertiaryEdges();
+    scheduleTertiaryEdgeRefresh();
+  }
+  let tertiaryResizeObserver = null;
+  function observeTertiaryCards() {
+    if (typeof ResizeObserver === "undefined")
+      return;
+    if (!tertiaryResizeObserver) {
+      tertiaryResizeObserver = new ResizeObserver(() => scheduleTertiaryEdgeRefresh());
+    }
+    document.querySelectorAll("#tertiary-canvas-world .tertiary-card").forEach((c) => {
+      if (!c._tertiaryRoBound) {
+        c._tertiaryRoBound = true;
+        tertiaryResizeObserver.observe(c);
       }
     });
   }
@@ -8919,9 +8956,13 @@ function bootPrototypeRuntime() {
     if (!stage)
       return;
     applyTertiaryTransform();
-    if (tertiaryEngineBound)
+    if (stage._tertiaryGestureBound)
       return;
-    tertiaryEngineBound = true;
+    stage._tertiaryGestureBound = true;
+    activePointers.clear();
+    isPinching = false;
+    isStagePanning = false;
+    activeDraggingCard = null;
     stage.addEventListener("wheel", (e) => {
       e.preventDefault();
       const rect = stage.getBoundingClientRect();
@@ -8938,9 +8979,9 @@ function bootPrototypeRuntime() {
       applyTertiaryTransform();
     }, { passive: false });
     stage.addEventListener("pointerdown", (e) => {
-      if (e.target.closest("button, input, select, textarea, .work-card-connect-handle, .a-my-island-graph-tool, .ws-nav-back-btn, .a-my-island-work-minimap")) {
+      if (e.target.closest(".a-my-island-work-minimap"))
         return;
-      }
+      const isInteractiveTarget = !!e.target.closest("button, input, select, textarea, .work-card-connect-handle");
       activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (activePointers.size === 2) {
         if (activeDraggingCard) {
@@ -8965,6 +9006,8 @@ function bootPrototypeRuntime() {
         pinchWorldAnchorY = (midStageY - window.tertiaryPanY) / pinchStartZoom;
         return;
       }
+      if (isInteractiveTarget)
+        return;
       const card = e.target.closest(".tertiary-card");
       if (card && activePointers.size === 1) {
         activeDraggingCard = card;
@@ -9093,6 +9136,7 @@ function bootPrototypeRuntime() {
   }
   function initTertiaryWorkspace() {
     initTertiaryCanvasPanZoom();
+    observeTertiaryCards();
     bindTertiaryCardsDrag();
     renderTertiaryEdges();
     updateTertiaryNodeCountBadge();
@@ -9300,14 +9344,16 @@ function bootPrototypeRuntime() {
       const dashArray = e.lineStyle === "dashed" ? "6,4" : "none";
       const markerEndAttr = e.arrowMode !== "none" ? 'marker-end="url(#' + markerEndId + ')"' : "";
       const markerStartAttr = e.arrowMode === "double" ? 'marker-start="url(#' + markerStartId + ')"' : "";
-      linesHtml += '<path d="' + d + '" stroke="transparent" stroke-width="24" fill="none" cursor="pointer" data-edge-id="' + e.id + '" onclick="openEdgePopover(this.dataset.edgeId, event)" /><path d="' + d + '" stroke="' + e.color + '" stroke-width="' + strokeWidth + '" stroke-dasharray="' + dashArray + '" fill="none" ' + markerEndAttr + " " + markerStartAttr + ' cursor="pointer" data-edge-id="' + e.id + '" onclick="openEdgePopover(this.dataset.edgeId, event)" />';
+      linesHtml += '<path id="svg-hit-' + e.id + '" d="' + d + '" stroke="transparent" stroke-width="24" fill="none" cursor="pointer" data-edge-id="' + e.id + '" onclick="openEdgePopover(this.dataset.edgeId, event)" /><path id="svg-line-' + e.id + '" d="' + d + '" stroke="' + e.color + '" stroke-width="' + strokeWidth + '" stroke-dasharray="' + dashArray + '" fill="none" ' + markerEndAttr + " " + markerStartAttr + ' cursor="pointer" data-edge-id="' + e.id + '" onclick="openEdgePopover(this.dataset.edgeId, event)" />';
       const labelText = e.label || e.type || "\u5173\u8054";
-      labelsHtml += '<div class="a-my-island-work-edge-label" style="left:' + midX + "px; top:" + midY + 'px;" data-edge-id="' + e.id + '" onclick="openEdgePopover(this.dataset.edgeId, event)">' + labelText + "</div>";
+      labelsHtml += '<div id="edge-label-' + e.id + '" class="a-my-island-work-edge-label" style="left:' + midX + "px; top:" + midY + 'px;" data-edge-id="' + e.id + '" onclick="openEdgePopover(this.dataset.edgeId, event)">' + labelText + "</div>";
     });
     if (defs)
       defs.innerHTML = defsHtml;
     linesGroup.innerHTML = linesHtml;
     labelsLayer.innerHTML = labelsHtml;
+    if (typeof observeTertiaryCards === "function")
+      observeTertiaryCards();
   }
   function openEdgePopover(edgeId, event) {
     if (event)
@@ -14035,6 +14081,12 @@ function bootPrototypeRuntime() {
     window.resetTertiaryCanvasZoom = resetTertiaryCanvasZoom;
   if (typeof updateTertiaryEdgesFast === "function")
     window.updateTertiaryEdgesFast = updateTertiaryEdgesFast;
+  if (typeof scheduleTertiaryEdgeRefresh === "function")
+    window.scheduleTertiaryEdgeRefresh = scheduleTertiaryEdgeRefresh;
+  if (typeof renderTertiaryConnections === "function")
+    window.renderTertiaryConnections = renderTertiaryConnections;
+  if (typeof observeTertiaryCards === "function")
+    window.observeTertiaryCards = observeTertiaryCards;
   if (typeof initTertiaryCanvasPanZoom === "function")
     window.initTertiaryCanvasPanZoom = initTertiaryCanvasPanZoom;
   if (typeof initTertiaryWorkspace === "function")

@@ -7012,8 +7012,7 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 /* ==================== 三级脑图节点卡片最小化与展开切换样式 ==================== */
 .tertiary-card {
   touch-action: none !important;
-  will-change: left, top !important;
-  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+  transition: width 0.18s cubic-bezier(0.4, 0, 0.2, 1),
               min-height 0.25s cubic-bezier(0.4, 0, 0.2, 1),
               box-shadow 0.2s ease,
               transform 0.2s ease,
@@ -12021,5 +12020,40 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 }
 #island-execution-center.is-fullview #island-goal-cards-dock {
   display: none !important;
+}
+
+
+/* ==========================================================================
+   脑图性能与手势补丁
+   - 世界层仅作坐标原点：1px + overflow:visible，避免几千像素的超大合成层拖垮 GPU
+   - SVG 连线层同样不再受固定宽高裁剪
+   ========================================================================== */
+.tertiary-canvas-world {
+  width: 1px !important;
+  height: 1px !important;
+  overflow: visible !important;
+  will-change: transform !important;
+  contain: none !important;
+}
+.tertiary-connections-layer {
+  width: 1px !important;
+  height: 1px !important;
+  overflow: visible !important;
+}
+.a-my-island-work-edge-labels-layer {
+  overflow: visible !important;
+}
+#tertiary-workspace-view,
+#tertiary-canvas-stage,
+.tertiary-card {
+  touch-action: none !important;
+}
+.tertiary-card {
+  will-change: auto !important;
+  backface-visibility: hidden;
+}
+.tertiary-card.is-card-dragging,
+#tertiary-workspace-view.is-viewport-moving .tertiary-card {
+  transition: none !important;
 }
 
