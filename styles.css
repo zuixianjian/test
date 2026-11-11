@@ -52,14 +52,18 @@
 .youth-island-plugin-root .ipad-shell-wrapper,
 .youth-island-plugin-root .ipad-shell-wrapper.in-frame-mode,
 .youth-island-plugin-root .ipad-screen-container,
+.youth-island-plugin-root #island-stage-view,
+.youth-island-plugin-root .stage-canvas-container,
 .youth-island-obsidian-view-root #main-viewport,
 .youth-island-obsidian-view-root .ipad-shell-wrapper,
 .youth-island-obsidian-view-root .ipad-shell-wrapper.in-frame-mode,
-.youth-island-obsidian-view-root .ipad-screen-container {
+.youth-island-obsidian-view-root .ipad-screen-container,
+.youth-island-obsidian-view-root #island-stage-view,
+.youth-island-obsidian-view-root .stage-canvas-container {
   width: 100% !important;
   height: 100% !important;
   max-width: none !important;
-  max-height: none !important;
+  max-height: 100% !important;
   border: none !important;
   border-radius: 0 !important;
   margin: 0 !important;
@@ -67,18 +71,27 @@
   box-shadow: none !important;
   top: 0 !important;
   left: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
 }
 
 /* True 100% Full-Screen Immersive Mode on Android Tablet / iPad in Obsidian */
 body.youth-island-tablet-fullscreen .workspace-leaf-content[data-type="youth-holistic-growth-island-view"] {
   position: fixed !important;
-  inset: 0 !important;
-  width: 100vw !important;
-  height: 100dvh !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
   z-index: 9000 !important;
   margin: 0 !important;
   padding: 0 !important;
   background: #1c251d !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
 }
 
 body.youth-island-tablet-fullscreen .workspace-leaf-content[data-type="youth-holistic-growth-island-view"] > .view-header {
@@ -90,7 +103,9 @@ body.youth-island-tablet-fullscreen .workspace-leaf-content[data-type="youth-hol
   margin: 0 !important;
   width: 100% !important;
   height: 100% !important;
+  max-height: 100% !important;
   overflow: hidden !important;
+  box-sizing: border-box !important;
 }
 
 body.youth-island-tablet-fullscreen .workspace-ribbon,
@@ -185,11 +200,39 @@ body.youth-island-tablet-fullscreen .titlebar {
   cursor: pointer !important;
 }
 
-/* 5. 确保执行中心避让发射台，不产生按钮遮挡 */
+/* 5. 确保执行中心与发射台安全避让，自适应安全边距，彻底杜绝按钮向下超出屏幕 */
+.youth-island-plugin-root .a-my-island-plugin-launcher,
+.youth-island-obsidian-view-root .a-my-island-plugin-launcher {
+  bottom: max(48px, calc(34px + env(safe-area-inset-bottom, 0px))) !important;
+}
+
 .youth-island-plugin-root .island-exec-center-container,
 .youth-island-obsidian-view-root .island-exec-center-container {
-  bottom: 96px !important;
+  bottom: max(124px, calc(108px + env(safe-area-inset-bottom, 0px))) !important;
 }
+
+.youth-island-plugin-root .a-my-island-work-minimap,
+.youth-island-obsidian-view-root .a-my-island-work-minimap,
+.youth-island-plugin-root #island-minimap-dock,
+.youth-island-obsidian-view-root #island-minimap-dock {
+  bottom: max(124px, calc(108px + env(safe-area-inset-bottom, 0px))) !important;
+}
+
+.youth-island-plugin-root .a-my-island-island-settings-panel,
+.youth-island-plugin-root .a-my-island-background-settings-panel,
+.youth-island-plugin-root .a-my-island-character-settings-panel,
+.youth-island-plugin-root .a-my-island-environment-settings-panel,
+.youth-island-plugin-root .a-my-island-scene-settings-panel,
+.youth-island-plugin-root .a-my-island-immersive-settings-panel,
+.youth-island-obsidian-view-root .a-my-island-island-settings-panel,
+.youth-island-obsidian-view-root .a-my-island-background-settings-panel,
+.youth-island-obsidian-view-root .a-my-island-character-settings-panel,
+.youth-island-obsidian-view-root .a-my-island-environment-settings-panel,
+.youth-island-obsidian-view-root .a-my-island-scene-settings-panel,
+.youth-island-obsidian-view-root .a-my-island-immersive-settings-panel {
+  bottom: max(124px, calc(108px + env(safe-area-inset-bottom, 0px))) !important;
+}
+
 
 
 /* === 终身岛民 1:1 游戏化海岛与二级工作台 CSS 全局规范 (iPad 平板移动优化版) === */
@@ -380,7 +423,8 @@ body {
 
 .ipad-shell-wrapper.in-frame-mode {
   width: min(96vw, 1194px);
-  height: min(96vh, 834px);
+  height: min(calc(100% - 16px), 834px);
+  max-height: calc(100% - 16px);
   background: #1c1c1e;
   border: 12px solid #2c2c2e;
   border-radius: 42px;
@@ -983,7 +1027,7 @@ body {
 #ws-minimap-dock {
   position: absolute !important;
   right: 18px !important;
-  bottom: 108px !important; /* 彻底避开底部发射器(高度约80px+屏底14px=94px)，留出充裕安全距离，绝不遮挡 */
+  bottom: max(124px, calc(108px + env(safe-area-inset-bottom, 0px))) !important; /* 彻底避开底部发射器并兼容安全区，绝不遮挡 */
   width: 196px !important;
   box-sizing: border-box !important;
   padding: 6px !important;
@@ -1736,7 +1780,7 @@ body.is-immersive .immersive-exit-pill {
 /* 1. 小岛发射器容器 (居中自适应，安全边距保障绝不溢出) */
 .a-my-island-plugin-launcher {
   position: absolute;
-  bottom: 14px;
+  bottom: max(48px, calc(34px + env(safe-area-inset-bottom, 0px)));
   left: 16px;
   right: auto;
   transform: none;
@@ -1872,6 +1916,7 @@ body.is-immersive .immersive-exit-pill {
 /* 小屏幕与窄屏下发射器紧凑自适应 */
 @media (max-width: 860px) {
   .a-my-island-plugin-launcher {
+    bottom: max(44px, calc(28px + env(safe-area-inset-bottom, 0px)));
     left: 8px;
     right: 8px;
     transform: none;
@@ -1969,7 +2014,7 @@ body.is-immersive .immersive-exit-pill {
 .a-my-island-scene-settings-panel,
 .a-my-island-immersive-settings-panel {
   position: absolute;
-  bottom: 96px;
+  bottom: max(124px, calc(108px + env(safe-area-inset-bottom, 0px)));
   left: 18px;
   z-index: 12000;
   display: flex;
@@ -2622,7 +2667,7 @@ body.is-immersive .immersive-exit-pill {
 /* 首页下方小岛发射器：全部采用小岛设置按钮样式，按类别一行展示 */
 .a-my-island-plugin-launcher {
   position: absolute;
-  bottom: 14px;
+  bottom: max(48px, calc(34px + env(safe-area-inset-bottom, 0px)));
   left: 16px;
   right: 16px;
   margin: 0 auto;
@@ -2672,7 +2717,7 @@ body.is-immersive .immersive-exit-pill {
   top: 64px; /* 紧随顶部 HUD 与置顶悬赏告示牌下方 */
   left: 0;
   right: 0;
-  bottom: 82px; /* 留出底部发射器高度 */
+  bottom: max(124px, calc(108px + env(safe-area-inset-bottom, 0px))); /* 留出底部发射器与安全区高度 */
   display: flex;
   flex-direction: column;
   background: transparent !important;
@@ -5497,7 +5542,7 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
   top: 74px !important; /* 单行操作栏 56px + 8px = 64px，留出 10px 呼吸间隙彻底避免遮挡 */
   left: 0;
   right: 0;
-  bottom: 96px !important;
+  bottom: max(124px, calc(108px + env(safe-area-inset-bottom, 0px))) !important;
   display: flex;
   flex-direction: column;
   background: transparent !important;
@@ -5541,7 +5586,7 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
   top: 74px !important;
   left: 0 !important;
   right: 0 !important;
-  bottom: 96px !important; /* 确保底部避开小岛发射器 (launcher 高度约 54px + bottom 14px = 68px) */
+  bottom: max(124px, calc(108px + env(safe-area-inset-bottom, 0px))) !important; /* 确保底部避开小岛发射器与安全区 */
   display: flex;
   flex-direction: column !important;
   background: transparent !important; /* 彻底去除黄色，沿用原版绿色海岛背景 */
@@ -12068,7 +12113,7 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
    ========================================================================== */
 .a-my-island-plugin-launcher {
   position: absolute !important;
-  bottom: 14px !important;
+  bottom: max(48px, calc(34px + env(safe-area-inset-bottom, 0px))) !important;
   left: 16px !important;
   right: auto !important;
   transform: none !important;

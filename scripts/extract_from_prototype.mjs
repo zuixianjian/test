@@ -102,14 +102,18 @@ const obsidianHostCss = `/* ====================================================
 .youth-island-plugin-root .ipad-shell-wrapper,
 .youth-island-plugin-root .ipad-shell-wrapper.in-frame-mode,
 .youth-island-plugin-root .ipad-screen-container,
+.youth-island-plugin-root #island-stage-view,
+.youth-island-plugin-root .stage-canvas-container,
 .youth-island-obsidian-view-root #main-viewport,
 .youth-island-obsidian-view-root .ipad-shell-wrapper,
 .youth-island-obsidian-view-root .ipad-shell-wrapper.in-frame-mode,
-.youth-island-obsidian-view-root .ipad-screen-container {
+.youth-island-obsidian-view-root .ipad-screen-container,
+.youth-island-obsidian-view-root #island-stage-view,
+.youth-island-obsidian-view-root .stage-canvas-container {
   width: 100% !important;
   height: 100% !important;
   max-width: none !important;
-  max-height: none !important;
+  max-height: 100% !important;
   border: none !important;
   border-radius: 0 !important;
   margin: 0 !important;
@@ -117,18 +121,27 @@ const obsidianHostCss = `/* ====================================================
   box-shadow: none !important;
   top: 0 !important;
   left: 0 !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
 }
 
 /* True 100% Full-Screen Immersive Mode on Android Tablet / iPad in Obsidian */
 body.youth-island-tablet-fullscreen .workspace-leaf-content[data-type="youth-holistic-growth-island-view"] {
   position: fixed !important;
-  inset: 0 !important;
-  width: 100vw !important;
-  height: 100dvh !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
   z-index: 9000 !important;
   margin: 0 !important;
   padding: 0 !important;
   background: #1c251d !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
 }
 
 body.youth-island-tablet-fullscreen .workspace-leaf-content[data-type="youth-holistic-growth-island-view"] > .view-header {
@@ -140,7 +153,9 @@ body.youth-island-tablet-fullscreen .workspace-leaf-content[data-type="youth-hol
   margin: 0 !important;
   width: 100% !important;
   height: 100% !important;
+  max-height: 100% !important;
   overflow: hidden !important;
+  box-sizing: border-box !important;
 }
 
 body.youth-island-tablet-fullscreen .workspace-ribbon,
@@ -235,11 +250,39 @@ body.youth-island-tablet-fullscreen .titlebar {
   cursor: pointer !important;
 }
 
-/* 5. 确保执行中心避让发射台，不产生按钮遮挡 */
+/* 5. 确保执行中心与发射台安全避让，自适应安全边距，彻底杜绝按钮向下超出屏幕 */
+.youth-island-plugin-root .a-my-island-plugin-launcher,
+.youth-island-obsidian-view-root .a-my-island-plugin-launcher {
+  bottom: max(48px, calc(34px + env(safe-area-inset-bottom, 0px))) !important;
+}
+
 .youth-island-plugin-root .island-exec-center-container,
 .youth-island-obsidian-view-root .island-exec-center-container {
-  bottom: 96px !important;
+  bottom: max(124px, calc(108px + env(safe-area-inset-bottom, 0px))) !important;
 }
+
+.youth-island-plugin-root .a-my-island-work-minimap,
+.youth-island-obsidian-view-root .a-my-island-work-minimap,
+.youth-island-plugin-root #island-minimap-dock,
+.youth-island-obsidian-view-root #island-minimap-dock {
+  bottom: max(124px, calc(108px + env(safe-area-inset-bottom, 0px))) !important;
+}
+
+.youth-island-plugin-root .a-my-island-island-settings-panel,
+.youth-island-plugin-root .a-my-island-background-settings-panel,
+.youth-island-plugin-root .a-my-island-character-settings-panel,
+.youth-island-plugin-root .a-my-island-environment-settings-panel,
+.youth-island-plugin-root .a-my-island-scene-settings-panel,
+.youth-island-plugin-root .a-my-island-immersive-settings-panel,
+.youth-island-obsidian-view-root .a-my-island-island-settings-panel,
+.youth-island-obsidian-view-root .a-my-island-background-settings-panel,
+.youth-island-obsidian-view-root .a-my-island-character-settings-panel,
+.youth-island-obsidian-view-root .a-my-island-environment-settings-panel,
+.youth-island-obsidian-view-root .a-my-island-scene-settings-panel,
+.youth-island-obsidian-view-root .a-my-island-immersive-settings-panel {
+  bottom: max(124px, calc(108px + env(safe-area-inset-bottom, 0px))) !important;
+}
+
 
 
 `;
