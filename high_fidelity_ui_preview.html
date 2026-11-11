@@ -792,49 +792,211 @@ body {
   flex-shrink: 0;
 }
 
-/* 原版鹰眼导航地图 (.a-my-island-work-minimap · 悬浮避让底部操作栏) */
-.a-my-island-work-minimap,
-#island-minimap-dock,
-#ws-minimap-dock {
+/* ==========================================================================
+   1:1 终身岛民右下角导航地图与发射器体系 (.a-my-island-work-navigation-dock)
+   ========================================================================== */
+.a-my-island-work-navigation-dock {
   position: absolute !important;
   right: 18px !important;
-  bottom: max(124px, calc(108px + env(safe-area-inset-bottom, 0px))) !important; /* 彻底避开底部发射器并兼容安全区，绝不遮挡 */
-  width: 196px !important;
-  box-sizing: border-box !important;
-  padding: 6px !important;
-  border: 2px solid rgba(255, 255, 255, 0.9) !important;
-  border-radius: 16px !important;
-  background: rgba(255, 248, 218, 0.95) !important;
-  color: #60401f !important;
-  box-shadow: 0 8px 24px rgba(68, 53, 34, 0.32), inset 0 0 0 1px rgba(123, 158, 103, 0.2) !important;
+  bottom: max(48px, calc(34px + env(safe-area-inset-bottom, 0px))) !important;
   z-index: 10002 !important;
-  overflow: hidden !important;
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+  pointer-events: none !important;
   transition: all 0.25s cubic-bezier(0.2, 0.8, 0.3, 1) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
 }
 
-.a-my-island-work-minimap.is-collapsed .minimap-body {
-  display: none;
+.a-my-island-work-minimap {
+  position: relative !important;
+  width: 236px !important;
+  box-sizing: border-box !important;
+  padding: 7px !important;
+  border: 2px solid rgb(255 255 255 / 86%) !important;
+  border-radius: 17px !important;
+  background: rgb(255 248 218 / 94%) !important;
+  color: #60401f !important;
+  box-shadow:
+    0 5px 14px rgb(68 53 34 / 20%),
+    inset 0 0 0 1px rgb(123 158 103 / 18%) !important;
+  pointer-events: auto !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  transition: opacity 0.2s ease, transform 0.2s ease !important;
+}
+
+.a-my-island-work-minimap.is-collapsed {
+  display: none !important;
 }
 
 .a-my-island-work-minimap-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 2px 4px 3px;
-  font-size: 10px;
-  font-weight: 850;
-  cursor: pointer;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  min-height: 25px !important;
+  padding: 0 7px 5px !important;
+  font-family: var(--font-interface);
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  color: #60401f !important;
+  cursor: pointer !important;
+  user-select: none !important;
 }
 
-.minimap-body {
-  width: 100%;
-  height: 100px;
-  background: #1e2e1e;
-  border-radius: 8px;
-  overflow: hidden;
-  position: relative;
+.a-my-island-work-minimap-header-title {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+}
+
+.a-my-island-work-minimap-close {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 20px !important;
+  height: 20px !important;
+  border-radius: 6px !important;
+  border: 1px solid rgba(139, 90, 43, 0.25) !important;
+  background: rgba(255, 255, 255, 0.7) !important;
+  color: #60401f !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+  cursor: pointer !important;
+  line-height: 1 !important;
+  transition: all 0.15s ease !important;
+}
+
+.a-my-island-work-minimap-close:hover {
+  background: #fef2f2 !important;
+  color: #dc2626 !important;
+  border-color: #fecaca !important;
+}
+
+.a-my-island-work-minimap-body {
+  width: 220px !important;
+  height: 130px !important;
+  overflow: hidden !important;
+  border: 1px solid rgb(109 139 91 / 30%) !important;
+  border-radius: 11px !important;
+  background: rgb(244 246 218 / 76%) !important;
+  box-shadow: inset 0 1px 4px rgb(70 89 53 / 13%) !important;
+  touch-action: none !important;
+  position: relative !important;
+}
+
+.a-my-island-work-minimap-body > svg {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  cursor: crosshair !important;
+}
+
+.a-my-island-work-minimap-hit-area {
+  fill: transparent !important;
+}
+
+.a-my-island-work-minimap-node {
+  fill: #c7de9f !important;
+  stroke: rgb(72 111 72 / 62%) !important;
+  stroke-width: 1 !important;
+  pointer-events: none !important;
+}
+
+.a-my-island-work-minimap-node.is-project {
+  fill: #8ed1ca !important;
+}
+.a-my-island-work-minimap-node.is-stage {
+  fill: #f4c96e !important;
+}
+.a-my-island-work-minimap-node.is-task {
+  fill: #ef9f83 !important;
+}
+.a-my-island-work-minimap-node.is-text {
+  fill: #e7d2a7 !important;
+}
+.a-my-island-work-minimap-node.is-root {
+  fill: #e8a955 !important;
+}
+.a-my-island-work-minimap-node.is-background-group {
+  fill: rgb(239 203 111 / 22%) !important;
+  stroke: rgb(187 132 60 / 72%) !important;
+  stroke-dasharray: 3 2 !important;
+}
+
+.a-my-island-work-minimap-viewport {
+  fill: rgb(255 255 255 / 18%) !important;
+  stroke: #e55f39 !important;
+  stroke-width: 2 !important;
+  vector-effect: non-scaling-stroke !important;
+  cursor: grab !important;
+}
+
+.a-my-island-work-minimap-viewport:active {
+  cursor: grabbing !important;
+}
+
+.a-my-island-work-minimap-toggle {
+  display: grid !important;
+  order: 1 !important;
+  grid-template-rows: 32px 14px !important;
+  width: 58px !important;
+  min-width: 58px !important;
+  height: 56px !important;
+  min-height: 56px !important;
+  margin: 0 !important;
+  padding: 3px 4px 2px !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: 1px !important;
+  border: 1.5px solid #b8b68e !important;
+  border-radius: 14px !important;
+  background: linear-gradient(155deg, #fffef4 0%, #fffbea 58%, #f4edd5 100%) !important;
+  color: #60401f !important;
+  box-shadow:
+    0 4px 0 rgb(105 103 68 / 18%),
+    0 7px 11px rgb(53 82 64 / 20%),
+    inset 0 1px 0 rgb(255 255 255 / 92%) !important;
+  font-family: var(--font-interface);
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  transform: translateY(0) !important;
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease !important;
+}
+
+.a-my-island-work-minimap-toggle:hover,
+.a-my-island-work-minimap-toggle:focus-visible,
+.a-my-island-work-minimap-toggle.is-active {
+  border-color: #ff945b !important;
+  background: linear-gradient(155deg, #fff8e9 0%, #ffe4bf 58%, #f7cca0 100%) !important;
+  box-shadow:
+    0 4px 0 rgb(220 112 60 / 20%),
+    0 7px 12px rgb(53 82 64 / 22%),
+    inset 0 1px 0 rgb(255 255 255 / 94%) !important;
+  outline: none !important;
+}
+
+.a-my-island-work-minimap-toggle:hover {
+  transform: translateY(-1px) !important;
+}
+
+.a-my-island-work-minimap-toggle .a-my-island-plugin-launcher-icon {
+  width: 28px !important;
+  height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.a-my-island-work-minimap-toggle .a-my-island-plugin-launcher-icon > svg {
+  width: 26px !important;
+  height: 26px !important;
 }
 
 /* 原版小岛系统设置面板 (.a-my-island-island-settings-panel) */
@@ -7241,82 +7403,12 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
   border-color: #f87171;
 }
 
-/* 三级节点导航小地图 (右下角避让与浮雕框) */
-#tertiary-minimap-dock.tertiary-minimap {
+/* 三级节点导航小地图 (右下角避让与浮雕框 · 沿用 1:1 原版导航体系) */
+.a-my-island-work-navigation-dock.tertiary-nav-dock {
   position: absolute !important;
-  right: 24px !important;
-  bottom: 24px !important;
+  right: 18px !important;
+  bottom: max(32px, calc(20px + env(safe-area-inset-bottom, 0px))) !important;
   z-index: 95 !important;
-  width: 196px !important;
-  box-sizing: border-box !important;
-  padding: 6px !important;
-  border: 2px solid rgba(255, 255, 255, 0.9) !important;
-  border-radius: 16px !important;
-  background: rgba(255, 248, 218, 0.95) !important;
-  color: #60401f !important;
-  box-shadow: 0 8px 24px rgba(68, 53, 34, 0.32), inset 0 0 0 1px rgba(123, 158, 103, 0.2) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
-}
-
-.a-my-island-minimap-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 2px 4px 4px;
-  font-size: 11px;
-  font-weight: 800;
-  color: #60401f;
-}
-
-.a-my-island-minimap-title {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.a-my-island-minimap-toggle {
-  background: transparent;
-  border: none;
-  font-size: 14px;
-  font-weight: 900;
-  color: #8c6b45;
-  cursor: pointer;
-  padding: 0 4px;
-  line-height: 1;
-}
-
-.a-my-island-minimap-content {
-  width: 100%;
-  height: 96px;
-  background: #2a3a2e;
-  border-radius: 8px;
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-
-.a-my-island-minimap-viewport-box {
-  position: absolute;
-  left: 6px;
-  top: 6px;
-  width: 74px;
-  height: 52px;
-  border: 1.5px solid #f59e0b;
-  background: rgba(245, 158, 11, 0.18);
-  border-radius: 4px;
-  box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
-}
-
-.a-my-island-minimap-blip {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #10b981;
-  border: 1.5px solid #ffffff;
-  box-shadow: 0 0 6px #10b981;
 }
 
 /* 甘特图下钻三级节点药丸按钮 */
@@ -12598,25 +12690,61 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
       </div>
     </div>
 
-    <!-- 模式 B (规划视图): 页面右下角：原版鹰眼导航地图 (.a-my-island-work-minimap) -->
-    <div class="a-my-island-work-minimap" id="island-minimap-dock" style="display:none;">
-      <div class="a-my-island-work-minimap-header" onclick="toggleMinimap()">
-        <span>🧭 导航地图</span>
-        <span id="minimap-toggle-icon">−</span>
+    <!-- 模式 B (规划视图): 页面右下角：1:1 终身岛民原版导航地图与发射器 (.a-my-island-work-navigation-dock) -->
+    <div class="a-my-island-work-navigation-dock" id="island-navigation-dock" style="display:none;">
+      <!-- 小地图主体容器 -->
+      <div class="a-my-island-work-minimap" id="island-minimap-dock">
+        <div class="a-my-island-work-minimap-header" onclick="toggleIslandMinimapDock()">
+          <span class="a-my-island-work-minimap-header-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#60401f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; margin-right:2px;"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+            导航地图
+          </span>
+          <button type="button" class="a-my-island-work-minimap-close" id="island-minimap-close-btn" onclick="event.stopPropagation(); toggleIslandMinimapDock();" title="收起导航地图">−</button>
+        </div>
+        <div class="a-my-island-work-minimap-body" id="island-minimap-body">
+          <svg viewBox="0 0 220 130" role="img" aria-label="节点分布和当前视图位置" id="island-minimap-svg">
+            <rect x="0" y="0" width="220" height="130" class="a-my-island-work-minimap-hit-area"></rect>
+            <g id="island-minimap-nodes" class="a-my-island-work-minimap-nodes"></g>
+            <rect id="island-minimap-viewport" x="0" y="0" width="20" height="20" rx="3" class="a-my-island-work-minimap-viewport"></rect>
+          </svg>
+        </div>
       </div>
-      <div class="minimap-body" id="minimap-body">
-        <svg viewBox="0 0 210 110" style="width:100%; height:100%;">
-          <ellipse cx="105" cy="55" rx="88" ry="45" fill="#2d422d" stroke="#486e48" stroke-width="1.5" />
-          <g id="minimap-dots-group">
-            <circle cx="62" cy="34" r="4.5" fill="#ea580c" />
-            <circle cx="148" cy="34" r="4.5" fill="#0d9488" />
-            <circle cx="62" cy="76" r="4.5" fill="#f59e0b" />
-            <circle cx="148" cy="76" r="4.5" fill="#3b82f6" />
-          </g>
-          <!-- 动态视口框 -->
-          <rect id="minimap-viewport-rect" x="25" y="15" width="160" height="80" rx="4" style="stroke:#ea580c; stroke-width:1.5; stroke-dasharray:3,2; fill:rgba(234,88,12,0.15);" />
-        </svg>
-      </div>
+
+      <!-- 3D 岛民发射台风格地图切换按钮 -->
+      <button type="button" class="a-my-island-work-minimap-toggle is-active" id="island-minimap-toggle-btn" onclick="toggleIslandMinimapDock()" aria-label="收起导航地图" title="展开/收起导航地图">
+        <span class="a-my-island-plugin-launcher-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#6a421e" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
+            <defs>
+              <linearGradient id="ami-map-green" x1="0" y1="0" x2="0" y2="1">
+                <stop stop-color="#b9e688"/>
+                <stop offset=".48" stop-color="#8ed06b"/>
+                <stop offset="1" stop-color="#68ad52"/>
+              </linearGradient>
+              <linearGradient id="ami-map-mint" x1="0" y1="0" x2="0" y2="1">
+                <stop stop-color="#f8f6dc"/>
+                <stop offset="1" stop-color="#cbdcb7"/>
+              </linearGradient>
+              <linearGradient id="ami-map-coral" x1="0" y1="0" x2="0" y2="1">
+                <stop stop-color="#ffb38c"/>
+                <stop offset=".5" stop-color="#fb8d67"/>
+                <stop offset="1" stop-color="#dc654b"/>
+              </linearGradient>
+              <filter id="ami-map-softShadow" x="-30%" y="-30%" width="160%" height="175%">
+                <feDropShadow dx="0" dy="1.15" stdDeviation=".8" flood-color="#6a421e" flood-opacity=".3"/>
+              </filter>
+            </defs>
+            <g filter="url(#ami-map-softShadow)">
+              <path d="M3 5.5 9 3l6 2.5L21 3v15.5L15 21l-6-2.5L3 21z" fill="url(#ami-map-mint)"/>
+              <path d="m9 3 6 2.5v15L9 18.5z" fill="url(#ami-map-green)" opacity=".82"/>
+            </g>
+            <path d="M9 3v15.5M15 5.5V21"/>
+            <path d="M5.4 8.2 7.2 7.4M16.8 10.2l2-1M5.2 15.7l2-1M16.9 16.5l1.8-.8" stroke="#fff" opacity=".78"/>
+            <circle cx="12" cy="11.5" r="2.1" fill="url(#ami-map-coral)"/>
+            <path d="M12 13.6v2.1"/>
+          </svg>
+        </span>
+        <span class="a-my-island-plugin-launcher-label">地图</span>
+      </button>
     </div>
 
     <!-- 首页下方：全部采用小岛设置按钮样式，按类别一行展示 (.a-my-island-plugin-launcher) -->
@@ -13674,19 +13802,61 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 
     </div>
 
-    <!-- 4. 原版鹰眼导航地图 (悬浮于右下角) -->
-    <div class="a-my-island-work-minimap tertiary-minimap" id="tertiary-minimap-dock">
-      <div class="a-my-island-minimap-header">
-        <span class="a-my-island-minimap-title">🧭 导航地图</span>
-        <button class="a-my-island-minimap-toggle" onclick="toggleTertiaryMinimap()" title="折叠/展开小地图">⌄</button>
+    <!-- 4. 1:1 终身岛民原版导航地图与发射器 (悬浮于右下角) -->
+    <div class="a-my-island-work-navigation-dock tertiary-nav-dock" id="tertiary-navigation-dock">
+      <!-- 脑图导航小地图主体 -->
+      <div class="a-my-island-work-minimap" id="tertiary-minimap-dock">
+        <div class="a-my-island-work-minimap-header" onclick="toggleTertiaryMinimapDock()">
+          <span class="a-my-island-work-minimap-header-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#60401f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; margin-right:2px;"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+            脑图导航
+          </span>
+          <button type="button" class="a-my-island-work-minimap-close" id="tertiary-minimap-close-btn" onclick="event.stopPropagation(); toggleTertiaryMinimapDock();" title="收起脑图导航">−</button>
+        </div>
+        <div class="a-my-island-work-minimap-body" id="tertiary-minimap-body">
+          <svg viewBox="0 0 220 130" role="img" aria-label="脑图节点分布和视口" id="tertiary-minimap-svg">
+            <rect x="0" y="0" width="220" height="130" class="a-my-island-work-minimap-hit-area"></rect>
+            <g id="tertiary-minimap-nodes" class="a-my-island-work-minimap-nodes"></g>
+            <rect id="tertiary-minimap-viewport" x="0" y="0" width="20" height="20" rx="3" class="a-my-island-work-minimap-viewport"></rect>
+          </svg>
+        </div>
       </div>
-      <div class="a-my-island-minimap-content" id="tertiary-minimap-content">
-        <div class="a-my-island-minimap-viewport-box" id="tertiary-minimap-vp"></div>
-        <div class="a-my-island-minimap-blip" style="left:12px; top:16px;" title="卡片1: 错题原题"></div>
-        <div class="a-my-island-minimap-blip" style="left:48px; top:16px;" title="卡片2: 战术公式"></div>
-        <div class="a-my-island-minimap-blip" style="left:84px; top:16px;" title="卡片3: 错因反思"></div>
-        <div class="a-my-island-minimap-blip" style="left:120px; top:16px;" title="卡片4: 成果结晶"></div>
-      </div>
+
+      <!-- 3D 岛民发射台风格地图切换按钮 -->
+      <button type="button" class="a-my-island-work-minimap-toggle is-active" id="tertiary-minimap-toggle-btn" onclick="toggleTertiaryMinimapDock()" aria-label="收起脑图导航" title="展开/收起脑图导航">
+        <span class="a-my-island-plugin-launcher-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#6a421e" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
+            <defs>
+              <linearGradient id="ami-tmap-green" x1="0" y1="0" x2="0" y2="1">
+                <stop stop-color="#b9e688"/>
+                <stop offset=".48" stop-color="#8ed06b"/>
+                <stop offset="1" stop-color="#68ad52"/>
+              </linearGradient>
+              <linearGradient id="ami-tmap-mint" x1="0" y1="0" x2="0" y2="1">
+                <stop stop-color="#f8f6dc"/>
+                <stop offset="1" stop-color="#cbdcb7"/>
+              </linearGradient>
+              <linearGradient id="ami-tmap-coral" x1="0" y1="0" x2="0" y2="1">
+                <stop stop-color="#ffb38c"/>
+                <stop offset=".5" stop-color="#fb8d67"/>
+                <stop offset="1" stop-color="#dc654b"/>
+              </linearGradient>
+              <filter id="ami-tmap-softShadow" x="-30%" y="-30%" width="160%" height="175%">
+                <feDropShadow dx="0" dy="1.15" stdDeviation=".8" flood-color="#6a421e" flood-opacity=".3"/>
+              </filter>
+            </defs>
+            <g filter="url(#ami-tmap-softShadow)">
+              <path d="M3 5.5 9 3l6 2.5L21 3v15.5L15 21l-6-2.5L3 21z" fill="url(#ami-tmap-mint)"/>
+              <path d="m9 3 6 2.5v15L9 18.5z" fill="url(#ami-tmap-green)" opacity=".82"/>
+            </g>
+            <path d="M9 3v15.5M15 5.5V21"/>
+            <path d="M5.4 8.2 7.2 7.4M16.8 10.2l2-1M5.2 15.7l2-1M16.9 16.5l1.8-.8" stroke="#fff" opacity=".78"/>
+            <circle cx="12" cy="11.5" r="2.1" fill="url(#ami-tmap-coral)"/>
+            <path d="M12 13.6v2.1"/>
+          </svg>
+        </span>
+        <span class="a-my-island-plugin-launcher-label">地图</span>
+      </button>
     </div>
   </div><!-- /tertiary-canvas-stage -->
 </div><!-- /tertiary-workspace-view -->
@@ -15129,29 +15299,212 @@ const homeLayoutNames = ['自由布局', '网格布局', '环形布局'];
 // 1. 自由画布平移、缩放与节点拖拽引擎
 // ==========================================================================
 
+// ==========================================================================
+// 1:1 终身岛民鹰眼导航地图核心动力学引擎 (SVG 拓扑微缩节点 + 自由视口框拖拽 + 点击居中)
+// ==========================================================================
+let islandMinimapBounds = null;
+let islandMinimapScale = 1;
+let islandMinimapOffsetX = 0;
+let islandMinimapOffsetY = 0;
+let isDraggingIslandMinimapVp = false;
+let islandMinimapEventsBound = false;
+
 function applyIslandTransform() {
   const canvasWorld = document.getElementById('island-world-canvas');
   if (canvasWorld) {
     canvasWorld.style.transform = 'translate(' + islandPanX + 'px, ' + islandPanY + 'px) scale(' + islandZoom + ')';
   }
-  updateMinimapViewport();
+  updateIslandMinimap();
 }
 
-function updateMinimapViewport() {
-  const rect = document.getElementById('minimap-viewport-rect');
-  if (!rect) return;
-  // 计算雷达视口框相对比例
-  const baseW = 160;
-  const baseH = 80;
-  const w = Math.max(30, Math.min(190, baseW / islandZoom));
-  const h = Math.max(20, Math.min(100, baseH / islandZoom));
-  const x = Math.max(10, Math.min(180, 25 - (islandPanX / 20)));
-  const y = Math.max(10, Math.min(90, 15 - (islandPanY / 20)));
-  rect.setAttribute('x', x);
-  rect.setAttribute('y', y);
-  rect.setAttribute('width', w);
-  rect.setAttribute('height', h);
+function updateIslandMinimap() {
+  const dock = document.getElementById('island-navigation-dock');
+  const panel = document.getElementById('island-minimap-dock');
+  const svg = document.getElementById('island-minimap-svg');
+  const nodesGroup = document.getElementById('island-minimap-nodes');
+  const vpRect = document.getElementById('island-minimap-viewport');
+  const stage = document.getElementById('island-canvas-stage');
+  const canvasWorld = document.getElementById('island-world-canvas');
+  if (!dock || !panel || !svg || !nodesGroup || !vpRect || !stage || !canvasWorld) return;
+  if (panel.classList.contains('is-collapsed')) return;
+
+  if (!islandMinimapEventsBound) {
+    initIslandMinimapEvents();
+  }
+
+  const stageW = stage.clientWidth || 1000;
+  const stageH = stage.clientHeight || 700;
+
+  // Viewport in canvas space
+  const vpLeft = -islandPanX / islandZoom;
+  const vpTop = -islandPanY / islandZoom;
+  const vpRight = (stageW - islandPanX) / islandZoom;
+  const vpBottom = (stageH - islandPanY) / islandZoom;
+
+  // Pavilion nodes in world
+  const pavilionNodes = Array.from(canvasWorld.querySelectorAll('.pavilion-node'));
+  const nodeDataList = pavilionNodes.map(node => {
+    const left = node.offsetLeft || 0;
+    const top = node.offsetTop || 0;
+    const w = node.offsetWidth || 150;
+    const h = node.offsetHeight || 100;
+    let type = 'stage';
+    if (node.id === 'node-study') type = 'stage';
+    else if (node.id === 'node-dojo') type = 'project';
+    else if (node.id === 'node-cultivation') type = 'task';
+    else if (node.id === 'node-cognition') type = 'root';
+    return { id: node.id, x: left, y: top, w, h, type };
+  });
+
+  const plaza = document.getElementById('island-plaza-center');
+  if (plaza) {
+    nodeDataList.push({
+      id: 'plaza',
+      x: plaza.offsetLeft || (stageW * 0.4),
+      y: plaza.offsetTop || (stageH * 0.4),
+      w: plaza.offsetWidth || 220,
+      h: plaza.offsetHeight || 130,
+      type: 'background-group'
+    });
+  }
+
+  const bounds = nodeDataList.reduce((acc, n) => {
+    acc.minX = Math.min(acc.minX, n.x);
+    acc.minY = Math.min(acc.minY, n.y);
+    acc.maxX = Math.max(acc.maxX, n.x + n.w);
+    acc.maxY = Math.max(acc.maxY, n.y + n.h);
+    return acc;
+  }, { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity });
+
+  if (!isFinite(bounds.minX)) {
+    bounds.minX = 0; bounds.minY = 0; bounds.maxX = 1000; bounds.maxY = 600;
+  }
+
+  const pad = Math.max(80, 0.06 * Math.max(bounds.maxX - bounds.minX, bounds.maxY - bounds.minY));
+  const minX = bounds.minX - pad;
+  const minY = bounds.minY - pad;
+  const maxX = bounds.maxX + pad;
+  const maxY = bounds.maxY + pad;
+
+  const spanX = Math.max(1, maxX - minX);
+  const spanY = Math.max(1, maxY - minY);
+  const scale = Math.min(208 / spanX, 118 / spanY);
+  const offsetX = (220 - spanX * scale) / 2;
+  const offsetY = (130 - spanY * scale) / 2;
+
+  islandMinimapBounds = { minX, minY, maxX, maxY };
+  islandMinimapScale = scale;
+  islandMinimapOffsetX = offsetX;
+  islandMinimapOffsetY = offsetY;
+
+  // Render nodes
+  let nodesHtml = '';
+  const bgNodes = nodeDataList.filter(n => n.type === 'background-group');
+  const normalNodes = nodeDataList.filter(n => n.type !== 'background-group');
+
+  [...bgNodes, ...normalNodes].forEach(n => {
+    const rx = offsetX + (n.x - minX) * scale;
+    const ry = offsetY + (n.y - minY) * scale;
+    const rw = Math.max(4, n.w * scale);
+    const rh = Math.max(4, n.h * scale);
+    const round = n.type === 'background-group' ? 4 : Math.min(3, rw / 3, rh / 3);
+    nodesHtml += `<rect x="${rx.toFixed(1)}" y="${ry.toFixed(1)}" width="${rw.toFixed(1)}" height="${rh.toFixed(1)}" rx="${round.toFixed(1)}" class="a-my-island-work-minimap-node is-${n.type}"></rect>`;
+  });
+  nodesGroup.innerHTML = nodesHtml;
+
+  // Viewport rect
+  const vx = offsetX + (vpLeft - minX) * scale;
+  const vy = offsetY + (vpTop - minY) * scale;
+  const vw = Math.max(6, (stageW / islandZoom) * scale);
+  const vh = Math.max(6, (stageH / islandZoom) * scale);
+  vpRect.setAttribute('x', vx.toFixed(1));
+  vpRect.setAttribute('y', vy.toFixed(1));
+  vpRect.setAttribute('width', vw.toFixed(1));
+  vpRect.setAttribute('height', vh.toFixed(1));
 }
+
+function initIslandMinimapEvents() {
+  const svg = document.getElementById('island-minimap-svg');
+  const vpRect = document.getElementById('island-minimap-viewport');
+  const stage = document.getElementById('island-canvas-stage');
+  if (!svg || !vpRect || !stage || islandMinimapEventsBound) return;
+  islandMinimapEventsBound = true;
+
+  // 点击小地图空白处将该点平移居中至画布中心
+  svg.addEventListener('click', (e) => {
+    if (isDraggingIslandMinimapVp || !islandMinimapBounds) return;
+    const rect = svg.getBoundingClientRect();
+    const svgX = ((e.clientX - rect.left) / rect.width) * 220;
+    const svgY = ((e.clientY - rect.top) / rect.height) * 130;
+
+    const targetX = islandMinimapBounds.minX + (svgX - islandMinimapOffsetX) / islandMinimapScale;
+    const targetY = islandMinimapBounds.minY + (svgY - islandMinimapOffsetY) / islandMinimapScale;
+
+    const stageW = stage.clientWidth || 1000;
+    const stageH = stage.clientHeight || 700;
+
+    islandPanX = stageW / 2 - targetX * islandZoom;
+    islandPanY = stageH / 2 - targetY * islandZoom;
+    applyIslandTransform();
+  });
+
+  // 鼠标/触控拖拽视口框实时平移画布
+  vpRect.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!islandMinimapBounds) return;
+    isDraggingIslandMinimapVp = true;
+    try { svg.setPointerCapture(e.pointerId); } catch {}
+
+    const initialClientX = e.clientX;
+    const initialClientY = e.clientY;
+    const initialPanX = islandPanX;
+    const initialPanY = islandPanY;
+
+    const onPointerMove = (ev) => {
+      const rect = svg.getBoundingClientRect();
+      const deltaSvgX = ((ev.clientX - initialClientX) / rect.width) * 220;
+      const deltaSvgY = ((ev.clientY - initialClientY) / rect.height) * 130;
+      const deltaCanvasX = deltaSvgX / islandMinimapScale;
+      const deltaCanvasY = deltaSvgY / islandMinimapScale;
+
+      islandPanX = initialPanX - deltaCanvasX * islandZoom;
+      islandPanY = initialPanY - deltaCanvasY * islandZoom;
+      applyIslandTransform();
+    };
+
+    const onPointerUp = (ev) => {
+      try { svg.releasePointerCapture(ev.pointerId); } catch {}
+      svg.removeEventListener('pointermove', onPointerMove);
+      svg.removeEventListener('pointerup', onPointerUp);
+      svg.removeEventListener('pointercancel', onPointerUp);
+      setTimeout(() => { isDraggingIslandMinimapVp = false; }, 50);
+    };
+
+    svg.addEventListener('pointermove', onPointerMove);
+    svg.addEventListener('pointerup', onPointerUp);
+    svg.addEventListener('pointercancel', onPointerUp);
+  });
+}
+
+function toggleIslandMinimapDock(forceState) {
+  const panel = document.getElementById('island-minimap-dock');
+  const btn = document.getElementById('island-minimap-toggle-btn');
+  if (!panel) return;
+  const isCurrentlyCollapsed = panel.classList.contains('is-collapsed');
+  const shouldCollapse = typeof forceState === 'boolean' ? !forceState : !isCurrentlyCollapsed;
+  panel.classList.toggle('is-collapsed', shouldCollapse);
+  if (btn) {
+    btn.classList.toggle('is-active', !shouldCollapse);
+    btn.setAttribute('aria-label', shouldCollapse ? '展开导航地图' : '收起导航地图');
+  }
+  if (!shouldCollapse) {
+    updateIslandMinimap();
+  }
+}
+
+function toggleMinimap() { toggleIslandMinimapDock(); }
+function updateMinimapViewport() { updateIslandMinimap(); }
 
 // 自由布局切换 (自由布局 / 网格布局 / 环形布局)
 // 执行视图顶部：核心学期目标横幅折叠与展开控制器
@@ -15609,7 +15962,7 @@ function switchHomeGlobalView(mode) {
   const homeToolbar = document.getElementById('home-top-graph-toolbar');
   const subviewSwitcher = document.getElementById('unified-exec-subview-switcher');
   const islandCanvas = document.getElementById('island-world-canvas');
-  const minimap = document.getElementById('island-minimap-dock');
+  const navDock = document.getElementById('island-navigation-dock');
 
   if (currentGlobalView === 'exec') {
     if (execCenter) {
@@ -15628,9 +15981,8 @@ function switchHomeGlobalView(mode) {
       islandCanvas.classList.add('is-hidden');
       islandCanvas.style.setProperty('display', 'none', 'important');
     }
-    if (minimap) {
-      minimap.classList.add('is-hidden');
-      minimap.style.setProperty('display', 'none', 'important');
+    if (navDock) {
+      navDock.style.setProperty('display', 'none', 'important');
     }
     showIslandToast('⚡ 执行视图：当日待办 3D 大卡片流光轮播已就绪');
   } else if (currentGlobalView === 'plan') {
@@ -15650,9 +16002,8 @@ function switchHomeGlobalView(mode) {
       islandCanvas.classList.remove('is-hidden');
       islandCanvas.style.setProperty('display', 'block', 'important');
     }
-    if (minimap) {
-      minimap.classList.remove('is-hidden');
-      minimap.style.setProperty('display', 'flex', 'important');
+    if (navDock) {
+      navDock.style.setProperty('display', 'flex', 'important');
     }
     applyIslandTransform();
     showIslandToast('🧭 规划视图：进入四大核心规划场馆自由漫游沙盘（支持动态扩展新场馆）');
@@ -19217,15 +19568,191 @@ function exitTertiaryWorkspace() {
   showIslandToast('◀️ 已保存当前项目脑图并返回项目甘特总览');
 }
 
-function toggleTertiaryMinimap() {
-  const content = document.getElementById('tertiary-minimap-content');
-  const toggleBtn = document.querySelector('#tertiary-minimap-dock .a-my-island-minimap-toggle');
-  if (!content) return;
-  const isHidden = content.style.display === 'none';
-  content.style.display = isHidden ? 'block' : 'none';
-  if (toggleBtn) {
-    toggleBtn.innerText = isHidden ? '⌄' : '⌃';
+let tertiaryMinimapEventsBound = false;
+let isDraggingTertiaryMinimapVp = false;
+let tertiaryMinimapBounds = null;
+let tertiaryMinimapScale = 1;
+let tertiaryMinimapOffsetX = 0;
+let tertiaryMinimapOffsetY = 0;
+
+function updateTertiaryMinimap() {
+  const dock = document.getElementById('tertiary-navigation-dock');
+  const panel = document.getElementById('tertiary-minimap-dock');
+  const svg = document.getElementById('tertiary-minimap-svg');
+  const nodesGroup = document.getElementById('tertiary-minimap-nodes');
+  const vpRect = document.getElementById('tertiary-minimap-viewport');
+  const stage = document.getElementById('tertiary-canvas-stage');
+  const canvasWorld = document.getElementById('tertiary-canvas-world');
+  if (!dock || !panel || !svg || !nodesGroup || !vpRect || !stage || !canvasWorld) return;
+  if (panel.classList.contains('is-collapsed')) return;
+
+  if (!tertiaryMinimapEventsBound) {
+    initTertiaryMinimapEvents();
   }
+
+  const stageW = stage.clientWidth || 1000;
+  const stageH = stage.clientHeight || 700;
+  const tZoom = window.tertiaryZoom || 1.0;
+  const tPanX = window.tertiaryPanX || 0;
+  const tPanY = window.tertiaryPanY || 0;
+
+  // Viewport in canvas space
+  const vpLeft = -tPanX / tZoom;
+  const vpTop = -tPanY / tZoom;
+  const vpRight = (stageW - tPanX) / tZoom;
+  const vpBottom = (stageH - tPanY) / tZoom;
+
+  // Tertiary cards in world
+  const cards = Array.from(canvasWorld.querySelectorAll('.tertiary-card, .tertiary-node-card'));
+  const nodeDataList = cards.map((card, idx) => {
+    const left = parseInt(card.style.left, 10) || card.offsetLeft || 0;
+    const top = parseInt(card.style.top, 10) || card.offsetTop || 0;
+    const w = card.offsetWidth || 340;
+    const h = card.offsetHeight || 200;
+    let type = 'stage';
+    if (card.classList.contains('is-root') || idx === 0) type = 'root';
+    else if (card.classList.contains('is-task') || (card.dataset && card.dataset.type === 'task')) type = 'task';
+    else if (card.classList.contains('is-project') || (card.dataset && card.dataset.type === 'project')) type = 'project';
+    else if (card.classList.contains('is-text') || (card.dataset && card.dataset.type === 'text')) type = 'text';
+    return { id: card.id || ('card-' + idx), x: left, y: top, w, h, type };
+  });
+
+  const bounds = nodeDataList.reduce((acc, n) => {
+    acc.minX = Math.min(acc.minX, n.x);
+    acc.minY = Math.min(acc.minY, n.y);
+    acc.maxX = Math.max(acc.maxX, n.x + n.w);
+    acc.maxY = Math.max(acc.maxY, n.y + n.h);
+    return acc;
+  }, { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity });
+
+  if (!isFinite(bounds.minX)) {
+    bounds.minX = 0; bounds.minY = 0; bounds.maxX = 1000; bounds.maxY = 600;
+  }
+
+  const pad = Math.max(80, 0.06 * Math.max(bounds.maxX - bounds.minX, bounds.maxY - bounds.minY));
+  const minX = bounds.minX - pad;
+  const minY = bounds.minY - pad;
+  const maxX = bounds.maxX + pad;
+  const maxY = bounds.maxY + pad;
+
+  const spanX = Math.max(1, maxX - minX);
+  const spanY = Math.max(1, maxY - minY);
+  const scale = Math.min(208 / spanX, 118 / spanY);
+  const offsetX = (220 - spanX * scale) / 2;
+  const offsetY = (130 - spanY * scale) / 2;
+
+  tertiaryMinimapBounds = { minX, minY, maxX, maxY };
+  tertiaryMinimapScale = scale;
+  tertiaryMinimapOffsetX = offsetX;
+  tertiaryMinimapOffsetY = offsetY;
+
+  // Render nodes
+  let nodesHtml = '';
+  nodeDataList.forEach(n => {
+    const rx = offsetX + (n.x - minX) * scale;
+    const ry = offsetY + (n.y - minY) * scale;
+    const rw = Math.max(4, n.w * scale);
+    const rh = Math.max(4, n.h * scale);
+    const round = Math.min(3, rw / 3, rh / 3);
+    nodesHtml += `<rect x="${rx.toFixed(1)}" y="${ry.toFixed(1)}" width="${rw.toFixed(1)}" height="${rh.toFixed(1)}" rx="${round.toFixed(1)}" class="a-my-island-work-minimap-node is-${n.type}"></rect>`;
+  });
+  nodesGroup.innerHTML = nodesHtml;
+
+  // Viewport rect
+  const vx = offsetX + (vpLeft - minX) * scale;
+  const vy = offsetY + (vpTop - minY) * scale;
+  const vw = Math.max(6, (stageW / tZoom) * scale);
+  const vh = Math.max(6, (stageH / tZoom) * scale);
+  vpRect.setAttribute('x', vx.toFixed(1));
+  vpRect.setAttribute('y', vy.toFixed(1));
+  vpRect.setAttribute('width', vw.toFixed(1));
+  vpRect.setAttribute('height', vh.toFixed(1));
+}
+
+function initTertiaryMinimapEvents() {
+  const svg = document.getElementById('tertiary-minimap-svg');
+  const vpRect = document.getElementById('tertiary-minimap-viewport');
+  const stage = document.getElementById('tertiary-canvas-stage');
+  if (!svg || !vpRect || !stage || tertiaryMinimapEventsBound) return;
+  tertiaryMinimapEventsBound = true;
+
+  // 点击小地图空白处将该点平移居中至画布中心
+  svg.addEventListener('click', (e) => {
+    if (isDraggingTertiaryMinimapVp || !tertiaryMinimapBounds) return;
+    const rect = svg.getBoundingClientRect();
+    const svgX = ((e.clientX - rect.left) / rect.width) * 220;
+    const svgY = ((e.clientY - rect.top) / rect.height) * 130;
+
+    const targetX = tertiaryMinimapBounds.minX + (svgX - tertiaryMinimapOffsetX) / tertiaryMinimapScale;
+    const targetY = tertiaryMinimapBounds.minY + (svgY - tertiaryMinimapOffsetY) / tertiaryMinimapScale;
+
+    const stageW = stage.clientWidth || 1000;
+    const stageH = stage.clientHeight || 700;
+    const tZoom = window.tertiaryZoom || 1.0;
+
+    window.tertiaryPanX = stageW / 2 - targetX * tZoom;
+    window.tertiaryPanY = stageH / 2 - targetY * tZoom;
+    applyTertiaryTransform();
+  });
+
+  // 鼠标/触控拖拽视口框实时平移画布
+  vpRect.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!tertiaryMinimapBounds) return;
+    isDraggingTertiaryMinimapVp = true;
+    try { svg.setPointerCapture(e.pointerId); } catch {}
+
+    const initialClientX = e.clientX;
+    const initialClientY = e.clientY;
+    const initialPanX = window.tertiaryPanX || 0;
+    const initialPanY = window.tertiaryPanY || 0;
+    const tZoom = window.tertiaryZoom || 1.0;
+
+    const onPointerMove = (ev) => {
+      const rect = svg.getBoundingClientRect();
+      const deltaSvgX = ((ev.clientX - initialClientX) / rect.width) * 220;
+      const deltaSvgY = ((ev.clientY - initialClientY) / rect.height) * 130;
+      const deltaCanvasX = deltaSvgX / tertiaryMinimapScale;
+      const deltaCanvasY = deltaSvgY / tertiaryMinimapScale;
+
+      window.tertiaryPanX = initialPanX - deltaCanvasX * tZoom;
+      window.tertiaryPanY = initialPanY - deltaCanvasY * tZoom;
+      applyTertiaryTransform();
+    };
+
+    const onPointerUp = (ev) => {
+      try { svg.releasePointerCapture(ev.pointerId); } catch {}
+      svg.removeEventListener('pointermove', onPointerMove);
+      svg.removeEventListener('pointerup', onPointerUp);
+      svg.removeEventListener('pointercancel', onPointerUp);
+      setTimeout(() => { isDraggingTertiaryMinimapVp = false; }, 50);
+    };
+
+    svg.addEventListener('pointermove', onPointerMove);
+    svg.addEventListener('pointerup', onPointerUp);
+    svg.addEventListener('pointercancel', onPointerUp);
+  });
+}
+
+function toggleTertiaryMinimapDock(forceState) {
+  const panel = document.getElementById('tertiary-minimap-dock');
+  const btn = document.getElementById('tertiary-minimap-toggle-btn');
+  if (!panel) return;
+  const isCurrentlyCollapsed = panel.classList.contains('is-collapsed');
+  const shouldCollapse = typeof forceState === 'boolean' ? !forceState : !isCurrentlyCollapsed;
+  panel.classList.toggle('is-collapsed', shouldCollapse);
+  if (btn) {
+    btn.classList.toggle('is-active', !shouldCollapse);
+    btn.setAttribute('aria-label', shouldCollapse ? '展开脑图导航' : '收起脑图导航');
+  }
+  if (!shouldCollapse) {
+    updateTertiaryMinimap();
+  }
+}
+
+function toggleTertiaryMinimap() {
+  toggleTertiaryMinimapDock();
 }
 
 function cycleGridMode() {
@@ -19283,6 +19810,7 @@ function applyTertiaryTransform() {
   world.style.transformOrigin = '0 0';
   const badge = document.getElementById('tertiary-zoom-badge');
   if (badge) badge.textContent = Math.round(window.tertiaryZoom * 100) + '%';
+  if (typeof updateTertiaryMinimap === 'function') updateTertiaryMinimap();
 }
 
 function zoomTertiaryCanvas(factor) {
@@ -19440,6 +19968,7 @@ function initTertiaryWorkspace() {
   initTertiaryCanvasPanZoom();
   renderTertiaryConnections();
   observeTertiaryCards();
+  if (typeof updateTertiaryMinimap === 'function') updateTertiaryMinimap();
 }
 
 function initTertiaryCanvasPanZoom() {
@@ -19913,6 +20442,7 @@ function renderTertiaryEdges() {
   linesGroup.innerHTML = linesHtml;
   labelsLayer.innerHTML = labelsHtml;
   if (typeof observeTertiaryCards === 'function') observeTertiaryCards();
+  if (typeof updateTertiaryMinimap === 'function') updateTertiaryMinimap();
 }
 
 // ==================== 原版 1:1 路线设置 Popover 逻辑 ====================

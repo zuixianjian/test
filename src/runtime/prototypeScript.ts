@@ -40,29 +40,212 @@ const homeLayoutNames = ['自由布局', '网格布局', '环形布局'];
 // 1. 自由画布平移、缩放与节点拖拽引擎
 // ==========================================================================
 
+// ==========================================================================
+// 1:1 终身岛民鹰眼导航地图核心动力学引擎 (SVG 拓扑微缩节点 + 自由视口框拖拽 + 点击居中)
+// ==========================================================================
+let islandMinimapBounds = null;
+let islandMinimapScale = 1;
+let islandMinimapOffsetX = 0;
+let islandMinimapOffsetY = 0;
+let isDraggingIslandMinimapVp = false;
+let islandMinimapEventsBound = false;
+
 function applyIslandTransform() {
   const canvasWorld = document.getElementById('island-world-canvas');
   if (canvasWorld) {
     canvasWorld.style.transform = 'translate(' + islandPanX + 'px, ' + islandPanY + 'px) scale(' + islandZoom + ')';
   }
-  updateMinimapViewport();
+  updateIslandMinimap();
 }
 
-function updateMinimapViewport() {
-  const rect = document.getElementById('minimap-viewport-rect');
-  if (!rect) return;
-  // 计算雷达视口框相对比例
-  const baseW = 160;
-  const baseH = 80;
-  const w = Math.max(30, Math.min(190, baseW / islandZoom));
-  const h = Math.max(20, Math.min(100, baseH / islandZoom));
-  const x = Math.max(10, Math.min(180, 25 - (islandPanX / 20)));
-  const y = Math.max(10, Math.min(90, 15 - (islandPanY / 20)));
-  rect.setAttribute('x', x);
-  rect.setAttribute('y', y);
-  rect.setAttribute('width', w);
-  rect.setAttribute('height', h);
+function updateIslandMinimap() {
+  const dock = document.getElementById('island-navigation-dock');
+  const panel = document.getElementById('island-minimap-dock');
+  const svg = document.getElementById('island-minimap-svg');
+  const nodesGroup = document.getElementById('island-minimap-nodes');
+  const vpRect = document.getElementById('island-minimap-viewport');
+  const stage = document.getElementById('island-canvas-stage');
+  const canvasWorld = document.getElementById('island-world-canvas');
+  if (!dock || !panel || !svg || !nodesGroup || !vpRect || !stage || !canvasWorld) return;
+  if (panel.classList.contains('is-collapsed')) return;
+
+  if (!islandMinimapEventsBound) {
+    initIslandMinimapEvents();
+  }
+
+  const stageW = stage.clientWidth || 1000;
+  const stageH = stage.clientHeight || 700;
+
+  // Viewport in canvas space
+  const vpLeft = -islandPanX / islandZoom;
+  const vpTop = -islandPanY / islandZoom;
+  const vpRight = (stageW - islandPanX) / islandZoom;
+  const vpBottom = (stageH - islandPanY) / islandZoom;
+
+  // Pavilion nodes in world
+  const pavilionNodes = Array.from(canvasWorld.querySelectorAll('.pavilion-node'));
+  const nodeDataList = pavilionNodes.map(node => {
+    const left = node.offsetLeft || 0;
+    const top = node.offsetTop || 0;
+    const w = node.offsetWidth || 150;
+    const h = node.offsetHeight || 100;
+    let type = 'stage';
+    if (node.id === 'node-study') type = 'stage';
+    else if (node.id === 'node-dojo') type = 'project';
+    else if (node.id === 'node-cultivation') type = 'task';
+    else if (node.id === 'node-cognition') type = 'root';
+    return { id: node.id, x: left, y: top, w, h, type };
+  });
+
+  const plaza = document.getElementById('island-plaza-center');
+  if (plaza) {
+    nodeDataList.push({
+      id: 'plaza',
+      x: plaza.offsetLeft || (stageW * 0.4),
+      y: plaza.offsetTop || (stageH * 0.4),
+      w: plaza.offsetWidth || 220,
+      h: plaza.offsetHeight || 130,
+      type: 'background-group'
+    });
+  }
+
+  const bounds = nodeDataList.reduce((acc, n) => {
+    acc.minX = Math.min(acc.minX, n.x);
+    acc.minY = Math.min(acc.minY, n.y);
+    acc.maxX = Math.max(acc.maxX, n.x + n.w);
+    acc.maxY = Math.max(acc.maxY, n.y + n.h);
+    return acc;
+  }, { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity });
+
+  if (!isFinite(bounds.minX)) {
+    bounds.minX = 0; bounds.minY = 0; bounds.maxX = 1000; bounds.maxY = 600;
+  }
+
+  const pad = Math.max(80, 0.06 * Math.max(bounds.maxX - bounds.minX, bounds.maxY - bounds.minY));
+  const minX = bounds.minX - pad;
+  const minY = bounds.minY - pad;
+  const maxX = bounds.maxX + pad;
+  const maxY = bounds.maxY + pad;
+
+  const spanX = Math.max(1, maxX - minX);
+  const spanY = Math.max(1, maxY - minY);
+  const scale = Math.min(208 / spanX, 118 / spanY);
+  const offsetX = (220 - spanX * scale) / 2;
+  const offsetY = (130 - spanY * scale) / 2;
+
+  islandMinimapBounds = { minX, minY, maxX, maxY };
+  islandMinimapScale = scale;
+  islandMinimapOffsetX = offsetX;
+  islandMinimapOffsetY = offsetY;
+
+  // Render nodes
+  let nodesHtml = '';
+  const bgNodes = nodeDataList.filter(n => n.type === 'background-group');
+  const normalNodes = nodeDataList.filter(n => n.type !== 'background-group');
+
+  [...bgNodes, ...normalNodes].forEach(n => {
+    const rx = offsetX + (n.x - minX) * scale;
+    const ry = offsetY + (n.y - minY) * scale;
+    const rw = Math.max(4, n.w * scale);
+    const rh = Math.max(4, n.h * scale);
+    const round = n.type === 'background-group' ? 4 : Math.min(3, rw / 3, rh / 3);
+    nodesHtml += `<rect x="${rx.toFixed(1)}" y="${ry.toFixed(1)}" width="${rw.toFixed(1)}" height="${rh.toFixed(1)}" rx="${round.toFixed(1)}" class="a-my-island-work-minimap-node is-${n.type}"></rect>`;
+  });
+  nodesGroup.innerHTML = nodesHtml;
+
+  // Viewport rect
+  const vx = offsetX + (vpLeft - minX) * scale;
+  const vy = offsetY + (vpTop - minY) * scale;
+  const vw = Math.max(6, (stageW / islandZoom) * scale);
+  const vh = Math.max(6, (stageH / islandZoom) * scale);
+  vpRect.setAttribute('x', vx.toFixed(1));
+  vpRect.setAttribute('y', vy.toFixed(1));
+  vpRect.setAttribute('width', vw.toFixed(1));
+  vpRect.setAttribute('height', vh.toFixed(1));
 }
+
+function initIslandMinimapEvents() {
+  const svg = document.getElementById('island-minimap-svg');
+  const vpRect = document.getElementById('island-minimap-viewport');
+  const stage = document.getElementById('island-canvas-stage');
+  if (!svg || !vpRect || !stage || islandMinimapEventsBound) return;
+  islandMinimapEventsBound = true;
+
+  // 点击小地图空白处将该点平移居中至画布中心
+  svg.addEventListener('click', (e) => {
+    if (isDraggingIslandMinimapVp || !islandMinimapBounds) return;
+    const rect = svg.getBoundingClientRect();
+    const svgX = ((e.clientX - rect.left) / rect.width) * 220;
+    const svgY = ((e.clientY - rect.top) / rect.height) * 130;
+
+    const targetX = islandMinimapBounds.minX + (svgX - islandMinimapOffsetX) / islandMinimapScale;
+    const targetY = islandMinimapBounds.minY + (svgY - islandMinimapOffsetY) / islandMinimapScale;
+
+    const stageW = stage.clientWidth || 1000;
+    const stageH = stage.clientHeight || 700;
+
+    islandPanX = stageW / 2 - targetX * islandZoom;
+    islandPanY = stageH / 2 - targetY * islandZoom;
+    applyIslandTransform();
+  });
+
+  // 鼠标/触控拖拽视口框实时平移画布
+  vpRect.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!islandMinimapBounds) return;
+    isDraggingIslandMinimapVp = true;
+    try { svg.setPointerCapture(e.pointerId); } catch {}
+
+    const initialClientX = e.clientX;
+    const initialClientY = e.clientY;
+    const initialPanX = islandPanX;
+    const initialPanY = islandPanY;
+
+    const onPointerMove = (ev) => {
+      const rect = svg.getBoundingClientRect();
+      const deltaSvgX = ((ev.clientX - initialClientX) / rect.width) * 220;
+      const deltaSvgY = ((ev.clientY - initialClientY) / rect.height) * 130;
+      const deltaCanvasX = deltaSvgX / islandMinimapScale;
+      const deltaCanvasY = deltaSvgY / islandMinimapScale;
+
+      islandPanX = initialPanX - deltaCanvasX * islandZoom;
+      islandPanY = initialPanY - deltaCanvasY * islandZoom;
+      applyIslandTransform();
+    };
+
+    const onPointerUp = (ev) => {
+      try { svg.releasePointerCapture(ev.pointerId); } catch {}
+      svg.removeEventListener('pointermove', onPointerMove);
+      svg.removeEventListener('pointerup', onPointerUp);
+      svg.removeEventListener('pointercancel', onPointerUp);
+      setTimeout(() => { isDraggingIslandMinimapVp = false; }, 50);
+    };
+
+    svg.addEventListener('pointermove', onPointerMove);
+    svg.addEventListener('pointerup', onPointerUp);
+    svg.addEventListener('pointercancel', onPointerUp);
+  });
+}
+
+function toggleIslandMinimapDock(forceState) {
+  const panel = document.getElementById('island-minimap-dock');
+  const btn = document.getElementById('island-minimap-toggle-btn');
+  if (!panel) return;
+  const isCurrentlyCollapsed = panel.classList.contains('is-collapsed');
+  const shouldCollapse = typeof forceState === 'boolean' ? !forceState : !isCurrentlyCollapsed;
+  panel.classList.toggle('is-collapsed', shouldCollapse);
+  if (btn) {
+    btn.classList.toggle('is-active', !shouldCollapse);
+    btn.setAttribute('aria-label', shouldCollapse ? '展开导航地图' : '收起导航地图');
+  }
+  if (!shouldCollapse) {
+    updateIslandMinimap();
+  }
+}
+
+function toggleMinimap() { toggleIslandMinimapDock(); }
+function updateMinimapViewport() { updateIslandMinimap(); }
 
 // 自由布局切换 (自由布局 / 网格布局 / 环形布局)
 // 执行视图顶部：核心学期目标横幅折叠与展开控制器
@@ -520,7 +703,7 @@ function switchHomeGlobalView(mode) {
   const homeToolbar = document.getElementById('home-top-graph-toolbar');
   const subviewSwitcher = document.getElementById('unified-exec-subview-switcher');
   const islandCanvas = document.getElementById('island-world-canvas');
-  const minimap = document.getElementById('island-minimap-dock');
+  const navDock = document.getElementById('island-navigation-dock');
 
   if (currentGlobalView === 'exec') {
     if (execCenter) {
@@ -539,9 +722,8 @@ function switchHomeGlobalView(mode) {
       islandCanvas.classList.add('is-hidden');
       islandCanvas.style.setProperty('display', 'none', 'important');
     }
-    if (minimap) {
-      minimap.classList.add('is-hidden');
-      minimap.style.setProperty('display', 'none', 'important');
+    if (navDock) {
+      navDock.style.setProperty('display', 'none', 'important');
     }
     showIslandToast('⚡ 执行视图：当日待办 3D 大卡片流光轮播已就绪');
   } else if (currentGlobalView === 'plan') {
@@ -561,9 +743,8 @@ function switchHomeGlobalView(mode) {
       islandCanvas.classList.remove('is-hidden');
       islandCanvas.style.setProperty('display', 'block', 'important');
     }
-    if (minimap) {
-      minimap.classList.remove('is-hidden');
-      minimap.style.setProperty('display', 'flex', 'important');
+    if (navDock) {
+      navDock.style.setProperty('display', 'flex', 'important');
     }
     applyIslandTransform();
     showIslandToast('🧭 规划视图：进入四大核心规划场馆自由漫游沙盘（支持动态扩展新场馆）');
@@ -4128,15 +4309,191 @@ function exitTertiaryWorkspace() {
   showIslandToast('◀️ 已保存当前项目脑图并返回项目甘特总览');
 }
 
-function toggleTertiaryMinimap() {
-  const content = document.getElementById('tertiary-minimap-content');
-  const toggleBtn = document.querySelector('#tertiary-minimap-dock .a-my-island-minimap-toggle');
-  if (!content) return;
-  const isHidden = content.style.display === 'none';
-  content.style.display = isHidden ? 'block' : 'none';
-  if (toggleBtn) {
-    toggleBtn.innerText = isHidden ? '⌄' : '⌃';
+let tertiaryMinimapEventsBound = false;
+let isDraggingTertiaryMinimapVp = false;
+let tertiaryMinimapBounds = null;
+let tertiaryMinimapScale = 1;
+let tertiaryMinimapOffsetX = 0;
+let tertiaryMinimapOffsetY = 0;
+
+function updateTertiaryMinimap() {
+  const dock = document.getElementById('tertiary-navigation-dock');
+  const panel = document.getElementById('tertiary-minimap-dock');
+  const svg = document.getElementById('tertiary-minimap-svg');
+  const nodesGroup = document.getElementById('tertiary-minimap-nodes');
+  const vpRect = document.getElementById('tertiary-minimap-viewport');
+  const stage = document.getElementById('tertiary-canvas-stage');
+  const canvasWorld = document.getElementById('tertiary-canvas-world');
+  if (!dock || !panel || !svg || !nodesGroup || !vpRect || !stage || !canvasWorld) return;
+  if (panel.classList.contains('is-collapsed')) return;
+
+  if (!tertiaryMinimapEventsBound) {
+    initTertiaryMinimapEvents();
   }
+
+  const stageW = stage.clientWidth || 1000;
+  const stageH = stage.clientHeight || 700;
+  const tZoom = window.tertiaryZoom || 1.0;
+  const tPanX = window.tertiaryPanX || 0;
+  const tPanY = window.tertiaryPanY || 0;
+
+  // Viewport in canvas space
+  const vpLeft = -tPanX / tZoom;
+  const vpTop = -tPanY / tZoom;
+  const vpRight = (stageW - tPanX) / tZoom;
+  const vpBottom = (stageH - tPanY) / tZoom;
+
+  // Tertiary cards in world
+  const cards = Array.from(canvasWorld.querySelectorAll('.tertiary-card, .tertiary-node-card'));
+  const nodeDataList = cards.map((card, idx) => {
+    const left = parseInt(card.style.left, 10) || card.offsetLeft || 0;
+    const top = parseInt(card.style.top, 10) || card.offsetTop || 0;
+    const w = card.offsetWidth || 340;
+    const h = card.offsetHeight || 200;
+    let type = 'stage';
+    if (card.classList.contains('is-root') || idx === 0) type = 'root';
+    else if (card.classList.contains('is-task') || (card.dataset && card.dataset.type === 'task')) type = 'task';
+    else if (card.classList.contains('is-project') || (card.dataset && card.dataset.type === 'project')) type = 'project';
+    else if (card.classList.contains('is-text') || (card.dataset && card.dataset.type === 'text')) type = 'text';
+    return { id: card.id || ('card-' + idx), x: left, y: top, w, h, type };
+  });
+
+  const bounds = nodeDataList.reduce((acc, n) => {
+    acc.minX = Math.min(acc.minX, n.x);
+    acc.minY = Math.min(acc.minY, n.y);
+    acc.maxX = Math.max(acc.maxX, n.x + n.w);
+    acc.maxY = Math.max(acc.maxY, n.y + n.h);
+    return acc;
+  }, { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity });
+
+  if (!isFinite(bounds.minX)) {
+    bounds.minX = 0; bounds.minY = 0; bounds.maxX = 1000; bounds.maxY = 600;
+  }
+
+  const pad = Math.max(80, 0.06 * Math.max(bounds.maxX - bounds.minX, bounds.maxY - bounds.minY));
+  const minX = bounds.minX - pad;
+  const minY = bounds.minY - pad;
+  const maxX = bounds.maxX + pad;
+  const maxY = bounds.maxY + pad;
+
+  const spanX = Math.max(1, maxX - minX);
+  const spanY = Math.max(1, maxY - minY);
+  const scale = Math.min(208 / spanX, 118 / spanY);
+  const offsetX = (220 - spanX * scale) / 2;
+  const offsetY = (130 - spanY * scale) / 2;
+
+  tertiaryMinimapBounds = { minX, minY, maxX, maxY };
+  tertiaryMinimapScale = scale;
+  tertiaryMinimapOffsetX = offsetX;
+  tertiaryMinimapOffsetY = offsetY;
+
+  // Render nodes
+  let nodesHtml = '';
+  nodeDataList.forEach(n => {
+    const rx = offsetX + (n.x - minX) * scale;
+    const ry = offsetY + (n.y - minY) * scale;
+    const rw = Math.max(4, n.w * scale);
+    const rh = Math.max(4, n.h * scale);
+    const round = Math.min(3, rw / 3, rh / 3);
+    nodesHtml += `<rect x="${rx.toFixed(1)}" y="${ry.toFixed(1)}" width="${rw.toFixed(1)}" height="${rh.toFixed(1)}" rx="${round.toFixed(1)}" class="a-my-island-work-minimap-node is-${n.type}"></rect>`;
+  });
+  nodesGroup.innerHTML = nodesHtml;
+
+  // Viewport rect
+  const vx = offsetX + (vpLeft - minX) * scale;
+  const vy = offsetY + (vpTop - minY) * scale;
+  const vw = Math.max(6, (stageW / tZoom) * scale);
+  const vh = Math.max(6, (stageH / tZoom) * scale);
+  vpRect.setAttribute('x', vx.toFixed(1));
+  vpRect.setAttribute('y', vy.toFixed(1));
+  vpRect.setAttribute('width', vw.toFixed(1));
+  vpRect.setAttribute('height', vh.toFixed(1));
+}
+
+function initTertiaryMinimapEvents() {
+  const svg = document.getElementById('tertiary-minimap-svg');
+  const vpRect = document.getElementById('tertiary-minimap-viewport');
+  const stage = document.getElementById('tertiary-canvas-stage');
+  if (!svg || !vpRect || !stage || tertiaryMinimapEventsBound) return;
+  tertiaryMinimapEventsBound = true;
+
+  // 点击小地图空白处将该点平移居中至画布中心
+  svg.addEventListener('click', (e) => {
+    if (isDraggingTertiaryMinimapVp || !tertiaryMinimapBounds) return;
+    const rect = svg.getBoundingClientRect();
+    const svgX = ((e.clientX - rect.left) / rect.width) * 220;
+    const svgY = ((e.clientY - rect.top) / rect.height) * 130;
+
+    const targetX = tertiaryMinimapBounds.minX + (svgX - tertiaryMinimapOffsetX) / tertiaryMinimapScale;
+    const targetY = tertiaryMinimapBounds.minY + (svgY - tertiaryMinimapOffsetY) / tertiaryMinimapScale;
+
+    const stageW = stage.clientWidth || 1000;
+    const stageH = stage.clientHeight || 700;
+    const tZoom = window.tertiaryZoom || 1.0;
+
+    window.tertiaryPanX = stageW / 2 - targetX * tZoom;
+    window.tertiaryPanY = stageH / 2 - targetY * tZoom;
+    applyTertiaryTransform();
+  });
+
+  // 鼠标/触控拖拽视口框实时平移画布
+  vpRect.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!tertiaryMinimapBounds) return;
+    isDraggingTertiaryMinimapVp = true;
+    try { svg.setPointerCapture(e.pointerId); } catch {}
+
+    const initialClientX = e.clientX;
+    const initialClientY = e.clientY;
+    const initialPanX = window.tertiaryPanX || 0;
+    const initialPanY = window.tertiaryPanY || 0;
+    const tZoom = window.tertiaryZoom || 1.0;
+
+    const onPointerMove = (ev) => {
+      const rect = svg.getBoundingClientRect();
+      const deltaSvgX = ((ev.clientX - initialClientX) / rect.width) * 220;
+      const deltaSvgY = ((ev.clientY - initialClientY) / rect.height) * 130;
+      const deltaCanvasX = deltaSvgX / tertiaryMinimapScale;
+      const deltaCanvasY = deltaSvgY / tertiaryMinimapScale;
+
+      window.tertiaryPanX = initialPanX - deltaCanvasX * tZoom;
+      window.tertiaryPanY = initialPanY - deltaCanvasY * tZoom;
+      applyTertiaryTransform();
+    };
+
+    const onPointerUp = (ev) => {
+      try { svg.releasePointerCapture(ev.pointerId); } catch {}
+      svg.removeEventListener('pointermove', onPointerMove);
+      svg.removeEventListener('pointerup', onPointerUp);
+      svg.removeEventListener('pointercancel', onPointerUp);
+      setTimeout(() => { isDraggingTertiaryMinimapVp = false; }, 50);
+    };
+
+    svg.addEventListener('pointermove', onPointerMove);
+    svg.addEventListener('pointerup', onPointerUp);
+    svg.addEventListener('pointercancel', onPointerUp);
+  });
+}
+
+function toggleTertiaryMinimapDock(forceState) {
+  const panel = document.getElementById('tertiary-minimap-dock');
+  const btn = document.getElementById('tertiary-minimap-toggle-btn');
+  if (!panel) return;
+  const isCurrentlyCollapsed = panel.classList.contains('is-collapsed');
+  const shouldCollapse = typeof forceState === 'boolean' ? !forceState : !isCurrentlyCollapsed;
+  panel.classList.toggle('is-collapsed', shouldCollapse);
+  if (btn) {
+    btn.classList.toggle('is-active', !shouldCollapse);
+    btn.setAttribute('aria-label', shouldCollapse ? '展开脑图导航' : '收起脑图导航');
+  }
+  if (!shouldCollapse) {
+    updateTertiaryMinimap();
+  }
+}
+
+function toggleTertiaryMinimap() {
+  toggleTertiaryMinimapDock();
 }
 
 function cycleGridMode() {
@@ -4194,6 +4551,7 @@ function applyTertiaryTransform() {
   world.style.transformOrigin = '0 0';
   const badge = document.getElementById('tertiary-zoom-badge');
   if (badge) badge.textContent = Math.round(window.tertiaryZoom * 100) + '%';
+  if (typeof updateTertiaryMinimap === 'function') updateTertiaryMinimap();
 }
 
 function zoomTertiaryCanvas(factor) {
@@ -4351,6 +4709,7 @@ function initTertiaryWorkspace() {
   initTertiaryCanvasPanZoom();
   renderTertiaryConnections();
   observeTertiaryCards();
+  if (typeof updateTertiaryMinimap === 'function') updateTertiaryMinimap();
 }
 
 function initTertiaryCanvasPanZoom() {
@@ -4824,6 +5183,7 @@ function renderTertiaryEdges() {
   linesGroup.innerHTML = linesHtml;
   labelsLayer.innerHTML = labelsHtml;
   if (typeof observeTertiaryCards === 'function') observeTertiaryCards();
+  if (typeof updateTertiaryMinimap === 'function') updateTertiaryMinimap();
 }
 
 // ==================== 原版 1:1 路线设置 Popover 逻辑 ====================
@@ -11051,6 +11411,10 @@ function recordTreeTestDemo() {
 
   // Expose all top-level functions to window for inline HTML handlers
   if (typeof applyIslandTransform === "function") (window as any).applyIslandTransform = applyIslandTransform;
+  if (typeof updateIslandMinimap === "function") (window as any).updateIslandMinimap = updateIslandMinimap;
+  if (typeof initIslandMinimapEvents === "function") (window as any).initIslandMinimapEvents = initIslandMinimapEvents;
+  if (typeof toggleIslandMinimapDock === "function") (window as any).toggleIslandMinimapDock = toggleIslandMinimapDock;
+  if (typeof toggleMinimap === "function") (window as any).toggleMinimap = toggleMinimap;
   if (typeof updateMinimapViewport === "function") (window as any).updateMinimapViewport = updateMinimapViewport;
   if (typeof toggleIslandGoalDock === "function") (window as any).toggleIslandGoalDock = toggleIslandGoalDock;
   if (typeof cycleHomeLayout === "function") (window as any).cycleHomeLayout = cycleHomeLayout;
@@ -11144,7 +11508,6 @@ function recordTreeTestDemo() {
   if (typeof togglePomodoroTimer === "function") (window as any).togglePomodoroTimer = togglePomodoroTimer;
   if (typeof resetPomodoroTimer === "function") (window as any).resetPomodoroTimer = resetPomodoroTimer;
   if (typeof updatePomoText === "function") (window as any).updatePomoText = updatePomoText;
-  if (typeof toggleMinimap === "function") (window as any).toggleMinimap = toggleMinimap;
   if (typeof toggleWsMinimap === "function") (window as any).toggleWsMinimap = toggleWsMinimap;
   if (typeof filterGallery === "function") (window as any).filterGallery = filterGallery;
   if (typeof getCheckinEl === "function") (window as any).getCheckinEl = getCheckinEl;
@@ -11184,6 +11547,9 @@ function recordTreeTestDemo() {
   if (typeof buildStarterCanvasForProject === "function") (window as any).buildStarterCanvasForProject = buildStarterCanvasForProject;
   if (typeof enterTertiaryWorkspace === "function") (window as any).enterTertiaryWorkspace = enterTertiaryWorkspace;
   if (typeof exitTertiaryWorkspace === "function") (window as any).exitTertiaryWorkspace = exitTertiaryWorkspace;
+  if (typeof updateTertiaryMinimap === "function") (window as any).updateTertiaryMinimap = updateTertiaryMinimap;
+  if (typeof initTertiaryMinimapEvents === "function") (window as any).initTertiaryMinimapEvents = initTertiaryMinimapEvents;
+  if (typeof toggleTertiaryMinimapDock === "function") (window as any).toggleTertiaryMinimapDock = toggleTertiaryMinimapDock;
   if (typeof toggleTertiaryMinimap === "function") (window as any).toggleTertiaryMinimap = toggleTertiaryMinimap;
   if (typeof cycleGridMode === "function") (window as any).cycleGridMode = cycleGridMode;
   if (typeof handleOpenObsidianCanvas === "function") (window as any).handleOpenObsidianCanvas = handleOpenObsidianCanvas;

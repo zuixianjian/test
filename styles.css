@@ -1021,49 +1021,211 @@ body {
   flex-shrink: 0;
 }
 
-/* 原版鹰眼导航地图 (.a-my-island-work-minimap · 悬浮避让底部操作栏) */
-.a-my-island-work-minimap,
-#island-minimap-dock,
-#ws-minimap-dock {
+/* ==========================================================================
+   1:1 终身岛民右下角导航地图与发射器体系 (.a-my-island-work-navigation-dock)
+   ========================================================================== */
+.a-my-island-work-navigation-dock {
   position: absolute !important;
   right: 18px !important;
-  bottom: max(124px, calc(108px + env(safe-area-inset-bottom, 0px))) !important; /* 彻底避开底部发射器并兼容安全区，绝不遮挡 */
-  width: 196px !important;
-  box-sizing: border-box !important;
-  padding: 6px !important;
-  border: 2px solid rgba(255, 255, 255, 0.9) !important;
-  border-radius: 16px !important;
-  background: rgba(255, 248, 218, 0.95) !important;
-  color: #60401f !important;
-  box-shadow: 0 8px 24px rgba(68, 53, 34, 0.32), inset 0 0 0 1px rgba(123, 158, 103, 0.2) !important;
+  bottom: max(48px, calc(34px + env(safe-area-inset-bottom, 0px))) !important;
   z-index: 10002 !important;
-  overflow: hidden !important;
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+  pointer-events: none !important;
   transition: all 0.25s cubic-bezier(0.2, 0.8, 0.3, 1) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
 }
 
-.a-my-island-work-minimap.is-collapsed .minimap-body {
-  display: none;
+.a-my-island-work-minimap {
+  position: relative !important;
+  width: 236px !important;
+  box-sizing: border-box !important;
+  padding: 7px !important;
+  border: 2px solid rgb(255 255 255 / 86%) !important;
+  border-radius: 17px !important;
+  background: rgb(255 248 218 / 94%) !important;
+  color: #60401f !important;
+  box-shadow:
+    0 5px 14px rgb(68 53 34 / 20%),
+    inset 0 0 0 1px rgb(123 158 103 / 18%) !important;
+  pointer-events: auto !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  transition: opacity 0.2s ease, transform 0.2s ease !important;
+}
+
+.a-my-island-work-minimap.is-collapsed {
+  display: none !important;
 }
 
 .a-my-island-work-minimap-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 2px 4px 3px;
-  font-size: 10px;
-  font-weight: 850;
-  cursor: pointer;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  min-height: 25px !important;
+  padding: 0 7px 5px !important;
+  font-family: var(--font-interface);
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  color: #60401f !important;
+  cursor: pointer !important;
+  user-select: none !important;
 }
 
-.minimap-body {
-  width: 100%;
-  height: 100px;
-  background: #1e2e1e;
-  border-radius: 8px;
-  overflow: hidden;
-  position: relative;
+.a-my-island-work-minimap-header-title {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+}
+
+.a-my-island-work-minimap-close {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 20px !important;
+  height: 20px !important;
+  border-radius: 6px !important;
+  border: 1px solid rgba(139, 90, 43, 0.25) !important;
+  background: rgba(255, 255, 255, 0.7) !important;
+  color: #60401f !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+  cursor: pointer !important;
+  line-height: 1 !important;
+  transition: all 0.15s ease !important;
+}
+
+.a-my-island-work-minimap-close:hover {
+  background: #fef2f2 !important;
+  color: #dc2626 !important;
+  border-color: #fecaca !important;
+}
+
+.a-my-island-work-minimap-body {
+  width: 220px !important;
+  height: 130px !important;
+  overflow: hidden !important;
+  border: 1px solid rgb(109 139 91 / 30%) !important;
+  border-radius: 11px !important;
+  background: rgb(244 246 218 / 76%) !important;
+  box-shadow: inset 0 1px 4px rgb(70 89 53 / 13%) !important;
+  touch-action: none !important;
+  position: relative !important;
+}
+
+.a-my-island-work-minimap-body > svg {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  cursor: crosshair !important;
+}
+
+.a-my-island-work-minimap-hit-area {
+  fill: transparent !important;
+}
+
+.a-my-island-work-minimap-node {
+  fill: #c7de9f !important;
+  stroke: rgb(72 111 72 / 62%) !important;
+  stroke-width: 1 !important;
+  pointer-events: none !important;
+}
+
+.a-my-island-work-minimap-node.is-project {
+  fill: #8ed1ca !important;
+}
+.a-my-island-work-minimap-node.is-stage {
+  fill: #f4c96e !important;
+}
+.a-my-island-work-minimap-node.is-task {
+  fill: #ef9f83 !important;
+}
+.a-my-island-work-minimap-node.is-text {
+  fill: #e7d2a7 !important;
+}
+.a-my-island-work-minimap-node.is-root {
+  fill: #e8a955 !important;
+}
+.a-my-island-work-minimap-node.is-background-group {
+  fill: rgb(239 203 111 / 22%) !important;
+  stroke: rgb(187 132 60 / 72%) !important;
+  stroke-dasharray: 3 2 !important;
+}
+
+.a-my-island-work-minimap-viewport {
+  fill: rgb(255 255 255 / 18%) !important;
+  stroke: #e55f39 !important;
+  stroke-width: 2 !important;
+  vector-effect: non-scaling-stroke !important;
+  cursor: grab !important;
+}
+
+.a-my-island-work-minimap-viewport:active {
+  cursor: grabbing !important;
+}
+
+.a-my-island-work-minimap-toggle {
+  display: grid !important;
+  order: 1 !important;
+  grid-template-rows: 32px 14px !important;
+  width: 58px !important;
+  min-width: 58px !important;
+  height: 56px !important;
+  min-height: 56px !important;
+  margin: 0 !important;
+  padding: 3px 4px 2px !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: 1px !important;
+  border: 1.5px solid #b8b68e !important;
+  border-radius: 14px !important;
+  background: linear-gradient(155deg, #fffef4 0%, #fffbea 58%, #f4edd5 100%) !important;
+  color: #60401f !important;
+  box-shadow:
+    0 4px 0 rgb(105 103 68 / 18%),
+    0 7px 11px rgb(53 82 64 / 20%),
+    inset 0 1px 0 rgb(255 255 255 / 92%) !important;
+  font-family: var(--font-interface);
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  transform: translateY(0) !important;
+  transition:
+    transform 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease !important;
+}
+
+.a-my-island-work-minimap-toggle:hover,
+.a-my-island-work-minimap-toggle:focus-visible,
+.a-my-island-work-minimap-toggle.is-active {
+  border-color: #ff945b !important;
+  background: linear-gradient(155deg, #fff8e9 0%, #ffe4bf 58%, #f7cca0 100%) !important;
+  box-shadow:
+    0 4px 0 rgb(220 112 60 / 20%),
+    0 7px 12px rgb(53 82 64 / 22%),
+    inset 0 1px 0 rgb(255 255 255 / 94%) !important;
+  outline: none !important;
+}
+
+.a-my-island-work-minimap-toggle:hover {
+  transform: translateY(-1px) !important;
+}
+
+.a-my-island-work-minimap-toggle .a-my-island-plugin-launcher-icon {
+  width: 28px !important;
+  height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.a-my-island-work-minimap-toggle .a-my-island-plugin-launcher-icon > svg {
+  width: 26px !important;
+  height: 26px !important;
 }
 
 /* 原版小岛系统设置面板 (.a-my-island-island-settings-panel) */
@@ -7469,82 +7631,12 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
   border-color: #f87171;
 }
 
-/* 三级节点导航小地图 (右下角避让与浮雕框) */
-#tertiary-minimap-dock.tertiary-minimap {
+/* 三级节点导航小地图 (右下角避让与浮雕框 · 沿用 1:1 原版导航体系) */
+.a-my-island-work-navigation-dock.tertiary-nav-dock {
   position: absolute !important;
-  right: 24px !important;
-  bottom: 24px !important;
+  right: 18px !important;
+  bottom: max(32px, calc(20px + env(safe-area-inset-bottom, 0px))) !important;
   z-index: 95 !important;
-  width: 196px !important;
-  box-sizing: border-box !important;
-  padding: 6px !important;
-  border: 2px solid rgba(255, 255, 255, 0.9) !important;
-  border-radius: 16px !important;
-  background: rgba(255, 248, 218, 0.95) !important;
-  color: #60401f !important;
-  box-shadow: 0 8px 24px rgba(68, 53, 34, 0.32), inset 0 0 0 1px rgba(123, 158, 103, 0.2) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
-}
-
-.a-my-island-minimap-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 2px 4px 4px;
-  font-size: 11px;
-  font-weight: 800;
-  color: #60401f;
-}
-
-.a-my-island-minimap-title {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.a-my-island-minimap-toggle {
-  background: transparent;
-  border: none;
-  font-size: 14px;
-  font-weight: 900;
-  color: #8c6b45;
-  cursor: pointer;
-  padding: 0 4px;
-  line-height: 1;
-}
-
-.a-my-island-minimap-content {
-  width: 100%;
-  height: 96px;
-  background: #2a3a2e;
-  border-radius: 8px;
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-
-.a-my-island-minimap-viewport-box {
-  position: absolute;
-  left: 6px;
-  top: 6px;
-  width: 74px;
-  height: 52px;
-  border: 1.5px solid #f59e0b;
-  background: rgba(245, 158, 11, 0.18);
-  border-radius: 4px;
-  box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
-}
-
-.a-my-island-minimap-blip {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #10b981;
-  border: 1.5px solid #ffffff;
-  box-shadow: 0 0 6px #10b981;
 }
 
 /* 甘特图下钻三级节点药丸按钮 */
