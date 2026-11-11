@@ -5001,11 +5001,11 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 
 
 /* ==========================================================================
-   首页执行中心顶部：🎯 各模块规划目标卡片条 (纯各模块规划目标展示 · 3列自适应网格)
+   首页执行中心顶部：🎯 各模块规划目标卡片条 (纯各模块规划目标展示 · 自适应宽度长条容器)
    ========================================================================== */
 .island-goal-cards-dock {
-  width: calc(100% - 28px) !important;
-  max-width: 960px !important;
+  width: fit-content !important;
+  max-width: min(960px, calc(100% - 28px)) !important;
   margin: 6px auto 4px !important;
   background: linear-gradient(155deg, rgba(255, 253, 246, 0.96) 0%, rgba(250, 243, 228, 0.94) 100%) !important;
   border: 1.5px solid #c2884a !important;
@@ -5016,20 +5016,37 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
   z-index: 35 !important;
   flex-shrink: 0 !important;
   box-sizing: border-box !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
 }
 
-/* 目标卡片列表群：整幅三列，minmax(0, 1fr) 防溢出设计 */
+/* 目标卡片列表群：自适应长条排列，宽度跟随卡片数量贴合收缩 */
 .island-goal-cards-list {
-  width: 100% !important;
+  width: fit-content !important;
+  max-width: 100% !important;
   min-width: 0 !important;
-  display: grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  justify-content: center !important;
+  align-items: stretch !important;
   gap: 10px !important;
   box-sizing: border-box !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  scrollbar-width: none !important;
 }
 
-/* 单张学期目标微卡片 */
+.island-goal-cards-list::-webkit-scrollbar {
+  display: none !important;
+}
+
+/* 单张学期目标微卡片：保持原固定标准宽度 300px，不拉伸不变形 */
 .island-goal-item-card {
+  width: 300px !important;
+  max-width: calc(100vw - 48px) !important;
+  flex: 0 0 auto !important;
   background: linear-gradient(155deg, #ffffff 0%, #fffdf9 60%, #fef9f0 100%) !important;
   border: 1.5px solid #d4c0a5 !important;
   border-radius: 11px !important;
