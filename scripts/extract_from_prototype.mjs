@@ -174,13 +174,33 @@ body.youth-island-tablet-fullscreen .titlebar {
   box-sizing: border-box;
 }
 
-/* 1. 小岛底部发射台按键：自适应等分，保证不超出屏幕 (尺寸细节见原型补丁 CSS) */
-.youth-island-plugin-root .a-my-island-plugin-launcher-button,
-.youth-island-obsidian-view-root .a-my-island-plugin-launcher-button {
+/* 1. 小岛底部发射台按键：横向充满屏幕、自适应等分拉伸、保证不超出屏幕 */
+.youth-island-plugin-root .a-my-island-plugin-launcher,
+.youth-island-obsidian-view-root .a-my-island-plugin-launcher {
+  left: 14px !important;
+  right: 14px !important;
+  width: calc(100% - 28px) !important;
+  max-width: none !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  bottom: max(48px, calc(34px + env(safe-area-inset-bottom, 0px))) !important;
+}
+
+.youth-island-plugin-root .a-my-island-plugin-launcher .a-my-island-plugin-launcher-button,
+.youth-island-obsidian-view-root .a-my-island-plugin-launcher .a-my-island-plugin-launcher-button {
   display: grid !important;
   box-sizing: border-box !important;
   place-items: center !important;
   align-content: center !important;
+  flex: 1 1 0% !important;
+  width: auto !important;
+  min-width: 48px !important;
+  max-width: none !important;
+}
+
+.youth-island-plugin-root .a-my-island-work-navigation-dock,
+.youth-island-obsidian-view-root .a-my-island-work-navigation-dock {
+  bottom: max(120px, calc(106px + env(safe-area-inset-bottom, 0px))) !important;
 }
 
 /* 2. 顶栏操作工具键防变形 */
