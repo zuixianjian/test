@@ -29,14 +29,26 @@ export default class YouthGrowthIslandPlugin extends Plugin {
       try {
         const ws = this.app.workspace as any;
         if (side === "left") {
-          if (ws.leftSplit && typeof ws.leftSplit.toggle === "function") {
-            ws.leftSplit.toggle();
+          const split = ws.leftSplit;
+          if (split) {
+            if (typeof split.toggle === "function") {
+              split.toggle();
+            } else if (typeof split.collapse === "function" && typeof split.expand === "function") {
+              if (split.collapsed) split.expand();
+              else split.collapse();
+            }
           } else if (typeof ws.toggleLeftSidebar === "function") {
             ws.toggleLeftSidebar();
           }
         } else if (side === "right") {
-          if (ws.rightSplit && typeof ws.rightSplit.toggle === "function") {
-            ws.rightSplit.toggle();
+          const split = ws.rightSplit;
+          if (split) {
+            if (typeof split.toggle === "function") {
+              split.toggle();
+            } else if (typeof split.collapse === "function" && typeof split.expand === "function") {
+              if (split.collapsed) split.expand();
+              else split.collapse();
+            }
           } else if (typeof ws.toggleRightSidebar === "function") {
             ws.toggleRightSidebar();
           }

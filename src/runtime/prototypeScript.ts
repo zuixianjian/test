@@ -4255,6 +4255,21 @@ function fitCanvasView() {
 }
 
 // 快速更新 SVG 连线 (仅修改 path 的 d 属性，不重绘整个 DOM，保障 60/120fps 流畅度)
+
+// 连线在卡片折叠/展开动画期间的连续动力学平滑追踪循环
+function animateTertiaryEdgesDuringTransition(duration = 320) {
+  const startTime = performance.now();
+  function step(now) {
+    updateTertiaryEdgesFast();
+    if (now - startTime < duration) {
+      requestAnimationFrame(step);
+    } else {
+      updateTertiaryEdgesFast();
+    }
+  }
+  requestAnimationFrame(step);
+}
+
 function updateTertiaryEdgesFast() {
   const linesGroup = document.getElementById('tertiary-lines-group');
   if (!linesGroup) return;
@@ -4331,6 +4346,13 @@ function observeTertiaryCards() {
   });
 }
 
+
+function initTertiaryWorkspace() {
+  initTertiaryCanvasPanZoom();
+  renderTertiaryConnections();
+  observeTertiaryCards();
+}
+
 function initTertiaryCanvasPanZoom() {
   const stage = document.getElementById('tertiary-canvas-stage');
   const view = document.getElementById('tertiary-workspace-view');
@@ -4338,12 +4360,10 @@ function initTertiaryCanvasPanZoom() {
   applyTertiaryTransform();
   if (stage._tertiaryGestureBound) return;
   stage._tertiaryGestureBound = true;
-  activePointers.clear();
-  isPinching = false;
-  isStagePanning = false;
-  activeDraggingCard = null;
 
-  // 1. 鼠标滚轮自由缩放 (以鼠标光标所在点为缩放中心)
+  // -------------------------------------------------------------
+  // A. 鼠标滚轮自由无级缩放 (以鼠标光标所在点为缩放中心)
+  // -------------------------------------------------------------
   stage.addEventListener('wheel', (e) => {
     e.preventDefault();
     const rect = stage.getBoundingClientRect();
@@ -4351,7 +4371,7 @@ function initTertiaryCanvasPanZoom() {
     const cursorStageY = e.clientY - rect.top;
     const oldZoom = window.tertiaryZoom || 1.0;
     const factor = e.deltaY < 0 ? 1.12 : 0.88;
-    const newZoom = Math.min(3.0, Math.max(0.25, oldZoom * factor));
+    const newZoom = Math.min(3.5, Math.max(0.25, oldZoom * factor));
     const worldX = (cursorStageX - window.tertiaryPanX) / oldZoom;
     const worldY = (cursorStageY - window.tertiaryPanY) / oldZoom;
     window.tertiaryZoom = newZoom;
@@ -4360,43 +4380,124 @@ function initTertiaryCanvasPanZoom() {
     applyTertiaryTransform();
   }, { passive: false });
 
-  // 2. 全局统一 Pointerdown (支持鼠标、手写笔、单指和多指双指捏合)
-  stage.addEventListener('pointerdown', (e) => {
-    if (e.target.closest('.a-my-island-work-minimap')) return;
-    // 按钮/输入框/连线锚点：不启动拖拽或平移，但手指仍要计入，保证手指压在按钮上时也能双指缩放
-    const isInteractiveTarget = !!e.target.closest('button, input, select, textarea, .work-card-connect-handle');
+  // -------------------------------------------------------------
+  // B. 原生移动端触控引擎 (TouchEvents): 完美支持双指捏合无级缩放与平移
+  // -------------------------------------------------------------
+  let touchStartDist = 0;
+  let touchStartZoom = 1.0;
+  let touchPivotWorldX = 0;
+  let touchPivotWorldY = 0;
+  let isTouchPinching = false;
+  let isTouchPanning = false;
+  let touchPanStartX = 0;
+  let touchPanStartY = 0;
+  let touchPanInitialPanX = 0;
+  let touchPanInitialPanY = 0;
 
-    activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  stage.addEventListener('touchstart', (e) => {
+    // 关键：在脑图舞台内无条件阻断向全局冒泡，防止 Obsidian 侧边栏抽屉触发
+    e.stopPropagation();
 
-    // 情况 A: 屏幕上出现 2 个触控点 -> 无论是否落在卡片上，立即触发【双指捏合无级缩放】
-    if (activePointers.size === 2) {
-      // 立即中断任何正在进行的单卡片拖拽
-      if (activeDraggingCard) {
-        try { activeDraggingCard.releasePointerCapture(e.pointerId); } catch (_) {}
-        activeDraggingCard.classList.remove('is-card-dragging');
-        activeDraggingCard = null;
-      }
-      isStagePanning = false;
-      isPinching = true;
+    // 双指触控 -> 启动双指捏合缩放
+    if (e.touches.length === 2) {
+      isTouchPinching = true;
+      isTouchPanning = false;
       if (view) view.classList.add('is-viewport-moving');
 
-      const pts = Array.from(activePointers.values());
-      pinchStartDistance = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
-      pinchStartZoom = window.tertiaryZoom || 1.0;
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      touchStartDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      touchStartZoom = window.tertiaryZoom || 1.0;
 
       const rect = stage.getBoundingClientRect();
-      const midStageX = (pts[0].x + pts[1].x) / 2 - rect.left;
-      const midStageY = (pts[0].y + pts[1].y) / 2 - rect.top;
-      pinchWorldAnchorX = (midStageX - window.tertiaryPanX) / pinchStartZoom;
-      pinchWorldAnchorY = (midStageY - window.tertiaryPanY) / pinchStartZoom;
+      const midStageX = (t1.clientX + t2.clientX) / 2 - rect.left;
+      const midStageY = (t1.clientY + t2.clientY) / 2 - rect.top;
+      touchPivotWorldX = (midStageX - window.tertiaryPanX) / touchStartZoom;
+      touchPivotWorldY = (midStageY - window.tertiaryPanY) / touchStartZoom;
       return;
     }
 
-    if (isInteractiveTarget) return;
+    // 单指触控 -> 检查是否落在卡片上
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      const card = e.target.closest('.tertiary-card');
+      const isInteractive = !!e.target.closest('button, input, select, textarea, .work-card-connect-handle');
 
-    // 情况 B: 单指触控落在卡片上 -> 启动卡片拖拽
+      if (!card && !isInteractive) {
+        // 单指落在空白画布背景 -> 启动平移
+        isTouchPanning = true;
+        isTouchPinching = false;
+        touchPanStartX = touch.clientX;
+        touchPanStartY = touch.clientY;
+        touchPanInitialPanX = window.tertiaryPanX;
+        touchPanInitialPanY = window.tertiaryPanY;
+        stage.classList.add('is-dragging-canvas');
+        if (view) view.classList.add('is-viewport-moving');
+      }
+    }
+  }, { passive: false });
+
+  stage.addEventListener('touchmove', (e) => {
+    // 只要在脑图画布内滑动，无条件阻断向外冒泡并阻止原生页面滚动/侧边栏手势
+    e.stopPropagation();
+    if (e.cancelable) e.preventDefault();
+
+    // 1. 处理双指无级自由缩放 (Pinch-to-zoom)
+    if (isTouchPinching && e.touches.length >= 2) {
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const currentDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      if (touchStartDist > 0) {
+        const factor = currentDist / touchStartDist;
+        const newZoom = Math.min(3.5, Math.max(0.25, touchStartZoom * factor));
+        const rect = stage.getBoundingClientRect();
+        const currentMidStageX = (t1.clientX + t2.clientX) / 2 - rect.left;
+        const currentMidStageY = (t1.clientY + t2.clientY) / 2 - rect.top;
+        window.tertiaryZoom = newZoom;
+        window.tertiaryPanX = currentMidStageX - touchPivotWorldX * newZoom;
+        window.tertiaryPanY = currentMidStageY - touchPivotWorldY * newZoom;
+        applyTertiaryTransform();
+      }
+      return;
+    }
+
+    // 2. 处理单指画布自由漫游抓手平移
+    if (isTouchPanning && e.touches.length === 1) {
+      const touch = e.touches[0];
+      const dx = touch.clientX - touchPanStartX;
+      const dy = touch.clientY - touchPanStartY;
+      window.tertiaryPanX = touchPanInitialPanX + dx;
+      window.tertiaryPanY = touchPanInitialPanY + dy;
+      applyTertiaryTransform();
+    }
+  }, { passive: false });
+
+  const onTouchEnd = (e) => {
+    e.stopPropagation();
+    if (e.touches.length < 2 && isTouchPinching) {
+      isTouchPinching = false;
+      if (view) view.classList.remove('is-viewport-moving');
+    }
+    if (e.touches.length === 0) {
+      isTouchPanning = false;
+      stage.classList.remove('is-dragging-canvas');
+      if (view) view.classList.remove('is-viewport-moving');
+    }
+  };
+  stage.addEventListener('touchend', onTouchEnd, { passive: false });
+  stage.addEventListener('touchcancel', onTouchEnd, { passive: false });
+
+  // -------------------------------------------------------------
+  // C. Pointer 事件处理卡片拖拽与鼠标画布漫游 (桌面与手写笔)
+  // -------------------------------------------------------------
+  stage.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'touch') return; // 触屏已由上方 TouchEvent 引擎专属处理
+    if (e.target.closest('.a-my-island-work-minimap')) return;
+    const isInteractive = !!e.target.closest('button, input, select, textarea, .work-card-connect-handle');
+    if (isInteractive) return;
+
     const card = e.target.closest('.tertiary-card');
-    if (card && activePointers.size === 1) {
+    if (card) {
       activeDraggingCard = card;
       cardDragHasMoved = false;
       cardDragStartClientX = e.clientX;
@@ -4421,44 +4522,21 @@ function initTertiaryCanvasPanZoom() {
       return;
     }
 
-    // 情况 C: 单指触控落在画布空白背景上 -> 启动画布抓手平移
-    if (activePointers.size === 1) {
-      isStagePanning = true;
-      stagePanStartClientX = e.clientX;
-      stagePanStartClientY = e.clientY;
-      stagePanStartPanX = window.tertiaryPanX;
-      stagePanStartPanY = window.tertiaryPanY;
-      stage.classList.add('is-dragging-canvas');
-      if (view) view.classList.add('is-viewport-moving');
-      try { stage.setPointerCapture(e.pointerId); } catch (_) {}
-    }
+    // 鼠标点击空白处平移
+    isStagePanning = true;
+    stagePanStartClientX = e.clientX;
+    stagePanStartClientY = e.clientY;
+    stagePanStartPanX = window.tertiaryPanX;
+    stagePanStartPanY = window.tertiaryPanY;
+    stage.classList.add('is-dragging-canvas');
+    if (view) view.classList.add('is-viewport-moving');
+    try { stage.setPointerCapture(e.pointerId); } catch (_) {}
   });
 
-  // 3. 全局统一 Pointermove (平滑执行双指缩放、画布平移或卡片拖拽)
   stage.addEventListener('pointermove', (e) => {
-    if (!activePointers.has(e.pointerId)) return;
-    activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (e.pointerType === 'touch') return;
 
-    // 处理双指缩放与平移 (Pinch-to-zoom)
-    if (isPinching && activePointers.size >= 2) {
-      const pts = Array.from(activePointers.values());
-      const currentDist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
-      if (pinchStartDistance > 0) {
-        const factor = currentDist / pinchStartDistance;
-        const newZoom = Math.min(3.0, Math.max(0.25, pinchStartZoom * factor));
-        const rect = stage.getBoundingClientRect();
-        const currentMidStageX = (pts[0].x + pts[1].x) / 2 - rect.left;
-        const currentMidStageY = (pts[0].y + pts[1].y) / 2 - rect.top;
-        window.tertiaryZoom = newZoom;
-        window.tertiaryPanX = currentMidStageX - pinchWorldAnchorX * newZoom;
-        window.tertiaryPanY = currentMidStageY - pinchWorldAnchorY * newZoom;
-        applyTertiaryTransform();
-      }
-      return;
-    }
-
-    // 处理画布单指抓手平移
-    if (isStagePanning && activePointers.size === 1) {
+    if (isStagePanning) {
       const dx = e.clientX - stagePanStartClientX;
       const dy = e.clientY - stagePanStartClientY;
       window.tertiaryPanX = stagePanStartPanX + dx;
@@ -4467,8 +4545,7 @@ function initTertiaryCanvasPanZoom() {
       return;
     }
 
-    // 处理单张卡片精准拖拽
-    if (activeDraggingCard && activePointers.size === 1) {
+    if (activeDraggingCard) {
       const zoom = window.tertiaryZoom || 1.0;
       const dx = (e.clientX - cardDragStartClientX) / zoom;
       const dy = (e.clientY - cardDragStartClientY) / zoom;
@@ -4476,10 +4553,8 @@ function initTertiaryCanvasPanZoom() {
         cardDragHasMoved = true;
         if (typeof pushTertiaryHistory === 'function') pushTertiaryHistory();
       }
-      const targetLeft = Math.max(10, cardDragInitialLeft + dx);
-      const targetTop = Math.max(10, cardDragInitialTop + dy);
-      activeDraggingCard.style.left = targetLeft + 'px';
-      activeDraggingCard.style.top = targetTop + 'px';
+      activeDraggingCard.style.left = Math.max(10, cardDragInitialLeft + dx) + 'px';
+      activeDraggingCard.style.top = Math.max(10, cardDragInitialTop + dy) + 'px';
       cardFollowerInitialPositions.forEach(f => {
         f.el.style.left = Math.max(10, f.left + dx) + 'px';
         f.el.style.top = Math.max(10, f.top + dy) + 'px';
@@ -4488,46 +4563,26 @@ function initTertiaryCanvasPanZoom() {
     }
   });
 
-  // 4. 全局统一 Pointerup & Pointercancel
   const onPointerEnd = (e) => {
-    activePointers.delete(e.pointerId);
-
-    if (activePointers.size < 2 && isPinching) {
-      isPinching = false;
-      if (view) view.classList.remove('is-viewport-moving');
-    }
-
-    if (isStagePanning) {
-      isStagePanning = false;
-      stage.classList.remove('is-dragging-canvas');
-      if (view) view.classList.remove('is-viewport-moving');
-      try { stage.releasePointerCapture(e.pointerId); } catch (_) {}
-    }
-
     if (activeDraggingCard) {
       try { activeDraggingCard.releasePointerCapture(e.pointerId); } catch (_) {}
       activeDraggingCard.classList.remove('is-card-dragging');
       activeDraggingCard = null;
-      if (cardDragHasMoved) {
-        renderTertiaryEdges();
-        if (typeof saveCurrentProjectCanvasSnapshot === 'function') {
-          saveCurrentProjectCanvasSnapshot();
-        }
-      }
+      updateTertiaryEdgesFast();
+    }
+    if (isStagePanning) {
+      try { stage.releasePointerCapture(e.pointerId); } catch (_) {}
+      isStagePanning = false;
+      stage.classList.remove('is-dragging-canvas');
+      if (view) view.classList.remove('is-viewport-moving');
     }
   };
-
   stage.addEventListener('pointerup', onPointerEnd);
   stage.addEventListener('pointercancel', onPointerEnd);
 }
 
-function initTertiaryWorkspace() {
-  initTertiaryCanvasPanZoom();
-  observeTertiaryCards();
-  bindTertiaryCardsDrag();
-  renderTertiaryEdges();
-  updateTertiaryNodeCountBadge();
-}
+// 全局一键最小化 / 展开全部三级卡片
+let isAllTertiaryCardsMinimized = false;
 
 // ==================== 三级脑图节点卡片最小化与展开交互控制器 ====================
 function toggleTertiaryCardMinimize(cardId, event) {
@@ -4542,22 +4597,18 @@ function toggleTertiaryCardMinimize(cardId, event) {
     btn.title = isMin ? '展开卡片显示完整信息' : '最小化卡片仅显示标题';
   }
 
-  // 刷新三次贝塞尔拓扑连线
-  if (typeof renderTertiaryConnections === 'function') {
-    renderTertiaryConnections();
-  }
+  // 关键：在卡片折叠/展开动画期间启动 320ms 高频动力学重绘循环，连线与端点箭头 100% 同步平滑移动
+  animateTertiaryEdgesDuringTransition(320);
 
   const titleEl = card.querySelector('.work-node-title');
   const cardTitle = titleEl ? titleEl.textContent : '节点';
   if (isMin) {
-    showIslandToast('🗜️ 【' + cardTitle + '】已最小化，仅显示标题！再次点击或双击展开。');
+    showIslandToast('🗜️ 【' + cardTitle + '】已折叠收起！再次点击或双击展开。');
   } else {
-    showIslandToast('📖 【' + cardTitle + '】已展开，显示全部规划内容！');
+    showIslandToast('📖 【' + cardTitle + '】已展开显示完整规划！');
   }
 }
 
-// 全局一键最小化 / 展开全部三级卡片
-let isAllTertiaryCardsMinimized = false;
 function toggleAllTertiaryCardsMinimize() {
   const cards = document.querySelectorAll('.tertiary-card');
   if (!cards.length) return;
@@ -4582,9 +4633,8 @@ function toggleAllTertiaryCardsMinimize() {
     if (label) label.textContent = isAllTertiaryCardsMinimized ? '全部展开' : '全部折叠';
   }
 
-  if (typeof renderTertiaryConnections === 'function') {
-    renderTertiaryConnections();
-  }
+  // 启动连线平滑跟随动画循环
+  animateTertiaryEdgesDuringTransition(340);
 
   showIslandToast(isAllTertiaryCardsMinimized ? '🗜️ 画布上所有节点已一键最小化为纯标题态！' : '📖 画布上所有节点已一键展开完整规划！');
 }
@@ -11141,12 +11191,14 @@ function recordTreeTestDemo() {
   if (typeof applyTertiaryTransform === "function") (window as any).applyTertiaryTransform = applyTertiaryTransform;
   if (typeof zoomTertiaryCanvas === "function") (window as any).zoomTertiaryCanvas = zoomTertiaryCanvas;
   if (typeof resetTertiaryCanvasZoom === "function") (window as any).resetTertiaryCanvasZoom = resetTertiaryCanvasZoom;
+  if (typeof animateTertiaryEdgesDuringTransition === "function") (window as any).animateTertiaryEdgesDuringTransition = animateTertiaryEdgesDuringTransition;
+  if (typeof step === "function") (window as any).step = step;
   if (typeof updateTertiaryEdgesFast === "function") (window as any).updateTertiaryEdgesFast = updateTertiaryEdgesFast;
   if (typeof scheduleTertiaryEdgeRefresh === "function") (window as any).scheduleTertiaryEdgeRefresh = scheduleTertiaryEdgeRefresh;
   if (typeof renderTertiaryConnections === "function") (window as any).renderTertiaryConnections = renderTertiaryConnections;
   if (typeof observeTertiaryCards === "function") (window as any).observeTertiaryCards = observeTertiaryCards;
-  if (typeof initTertiaryCanvasPanZoom === "function") (window as any).initTertiaryCanvasPanZoom = initTertiaryCanvasPanZoom;
   if (typeof initTertiaryWorkspace === "function") (window as any).initTertiaryWorkspace = initTertiaryWorkspace;
+  if (typeof initTertiaryCanvasPanZoom === "function") (window as any).initTertiaryCanvasPanZoom = initTertiaryCanvasPanZoom;
   if (typeof toggleTertiaryCardMinimize === "function") (window as any).toggleTertiaryCardMinimize = toggleTertiaryCardMinimize;
   if (typeof toggleAllTertiaryCardsMinimize === "function") (window as any).toggleAllTertiaryCardsMinimize = toggleAllTertiaryCardsMinimize;
   if (typeof bindTertiaryCardsDrag === "function") (window as any).bindTertiaryCardsDrag = bindTertiaryCardsDrag;

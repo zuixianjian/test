@@ -103,32 +103,26 @@ export class YouthIslandView extends ItemView {
     });
     rootWrapper.innerHTML = ISLAND_UI_HTML;
 
-    // 彻底屏蔽在插件视图（尤其是脑图画布、沙盘和执行中心）内左右滑动误触发 Obsidian 侧边栏的手势
-    const preventSidebarGestures = (e: TouchEvent) => {
-      // 阻止向全局 Obsidian Workspace 容器冒泡，阻断 Mobile 滑动打开左右侧栏监听
-      e.stopPropagation();
-    };
-
-    rootWrapper.addEventListener("touchstart", preventSidebarGestures, { capture: true, passive: true });
-    rootWrapper.addEventListener("touchmove", (e: TouchEvent) => {
-      e.stopPropagation();
+    // 彻底屏蔽在海岛插件视图（特别是脑图画布、全景沙盘和执行中心）内左右滑动手势误触发 Obsidian 侧边栏
+    const captureBlockSidebarGestures = (e: TouchEvent) => {
       const target = e.target as HTMLElement | null;
-      // 当在脑图舞台、全景视口、海岛沙盘中拖动时，同时阻止系统默认横向手势链
-      if (
-        target &&
-        target.closest(
-          "#tertiary-mindmap-stage, .tertiary-canvas-viewport, .tertiary-canvas-world, #island-canvas-stage, #exec-carousel-stage"
-        )
-      ) {
-        if (e.cancelable) {
-          e.preventDefault();
+      if (!target) return;
+      const root = target.closest(".youth-island-plugin-root");
+      if (root) {
+        // 关键：在 window 捕获阶段立刻切断事件向 Obsidian App 容器的传播
+        e.stopPropagation();
+        // 当触控位于脑图视口、海岛画布或卡片轮播中时，阻止原生边缘滑动链
+        if (e.type === "touchmove" && target.closest("#tertiary-workspace-view, #tertiary-canvas-stage, .tertiary-canvas-world, #island-canvas-stage, #island-execution-center")) {
+          if (e.cancelable) {
+            e.preventDefault();
+          }
         }
       }
-    }, { capture: true, passive: false });
-    rootWrapper.addEventListener("touchend", preventSidebarGestures, { capture: true, passive: true });
+    };
 
-    // Install Android/Tablet touch-to-mouse bridge for mindmap canvas & draggable nodes
-    this.installTabletTouchBridge(rootWrapper);
+    window.addEventListener("touchstart", captureBlockSidebarGestures, { capture: true, passive: false });
+    window.addEventListener("touchmove", captureBlockSidebarGestures, { capture: true, passive: false });
+    window.addEventListener("touchend", captureBlockSidebarGestures, { capture: true, passive: false });
 
     // Boot interactive runtime
     bootPrototypeRuntime();

@@ -798,8 +798,9 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
     <div class="island-top-unified-bar" id="home-unified-topbar">
       <!-- 1. \u5DE6\u4FA7\uFF1AHUD \u5C9B\u6C11\u6210\u957F\u6863\u6848\u540D\u7247 -->
       <div class="topbar-left-zone">
-      <button type="button" class="topbar-obsidian-split-btn btn-split-left" onclick="toggleObsidianSplit('left')" title="\u6253\u5F00/\u6298\u53E0 Obsidian \u5DE6\u4FA7\u8FB9\u680F" aria-label="\u5207\u6362\u5DE6\u4FA7\u8FB9\u680F">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+      <button type="button" class="a-my-island-graph-tool topbar-obsidian-tool-btn btn-toggle-left-sidebar" onclick="toggleObsidianSplit('left')" title="\u6253\u5F00/\u6298\u53E0 Obsidian \u5DE6\u4FA7\u8FB9\u680F" aria-label="\u6253\u5F00\u5DE6\u4FA7\u680F" style="margin-right:6px; flex-shrink:0;">
+        <span class="a-my-island-graph-tool-icon" style="font-size:18px;">\u{1F4C2}</span>
+        <span class="a-my-island-graph-tool-label">\u5DE6\u4FA7\u680F</span>
       </button>
       
         <div class="hud-profile-container">
@@ -892,8 +893,9 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
           <span class="stat-pill-val gold" id="exec-stat-progress">0/0</span>
         </div>
       
-        <button type="button" class="topbar-obsidian-split-btn btn-split-right" onclick="toggleObsidianSplit('right')" title="\u6253\u5F00/\u6298\u53E0 Obsidian \u53F3\u4FA7\u8FB9\u680F" aria-label="\u5207\u6362\u53F3\u4FA7\u8FB9\u680F">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+        <button type="button" class="a-my-island-graph-tool topbar-obsidian-tool-btn btn-toggle-right-sidebar" onclick="toggleObsidianSplit('right')" title="\u6253\u5F00/\u6298\u53E0 Obsidian \u53F3\u4FA7\u8FB9\u680F" aria-label="\u6253\u5F00\u53F3\u4FA7\u680F" style="margin-left:6px; flex-shrink:0;">
+        <span class="a-my-island-graph-tool-icon" style="font-size:18px;">\u{1F4D1}</span>
+        <span class="a-my-island-graph-tool-label">\u53F3\u4FA7\u680F</span>
       </button>
       </div>
     </div>
@@ -1680,8 +1682,9 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
   <div class="island-top-unified-bar ws-top-unified-bar" id="ws-unified-topbar">
     <!-- 1. \u5DE6\u4FA7\uFF1AHUD \u6863\u6848\u533A + \u5BFC\u822A\u8FD4\u56DE\u952E + \u573A\u9986\u6807\u8BC6\u5FBD\u7AE0 (\u5355\u884C\u878D\u5408\uFF0C\u4E0E\u9996\u9875\u6267\u884C\u89C6\u56FE\u4FDD\u63011:1\u89C6\u89C9\u89C4\u8303) -->
     <div class="topbar-left-zone">
-      <button type="button" class="topbar-obsidian-split-btn btn-split-left" onclick="toggleObsidianSplit('left')" title="\u6253\u5F00/\u6298\u53E0 Obsidian \u5DE6\u4FA7\u8FB9\u680F" aria-label="\u5207\u6362\u5DE6\u4FA7\u8FB9\u680F">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+      <button type="button" class="a-my-island-graph-tool topbar-obsidian-tool-btn btn-toggle-left-sidebar" onclick="toggleObsidianSplit('left')" title="\u6253\u5F00/\u6298\u53E0 Obsidian \u5DE6\u4FA7\u8FB9\u680F" aria-label="\u6253\u5F00\u5DE6\u4FA7\u680F" style="margin-right:6px; flex-shrink:0;">
+        <span class="a-my-island-graph-tool-icon" style="font-size:18px;">\u{1F4C2}</span>
+        <span class="a-my-island-graph-tool-label">\u5DE6\u4FA7\u680F</span>
       </button>
       
       <button class="ws-nav-back-btn" onclick="exitSecondaryWorkspace()" title="\u8FD4\u56DE\u6D77\u5C9B\u5927\u4E16\u754C\u89C4\u5212\u6C99\u76D8">
@@ -1734,8 +1737,9 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
         <span class="stat-pill-label">\u8FDB\u884C\u4E2D:</span>
         <span class="stat-pill-val gold" id="ws-top-active-count">2 \u4E2A</span>
       </div>
-      <button type="button" class="topbar-obsidian-split-btn btn-split-right" onclick="toggleObsidianSplit('right')" title="\u6253\u5F00/\u6298\u53E0 Obsidian \u53F3\u4FA7\u8FB9\u680F" aria-label="\u5207\u6362\u53F3\u4FA7\u8FB9\u680F">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+      <button type="button" class="a-my-island-graph-tool topbar-obsidian-tool-btn btn-toggle-right-sidebar" onclick="toggleObsidianSplit('right')" title="\u6253\u5F00/\u6298\u53E0 Obsidian \u53F3\u4FA7\u8FB9\u680F" aria-label="\u6253\u5F00\u53F3\u4FA7\u680F" style="margin-left:6px; flex-shrink:0;">
+        <span class="a-my-island-graph-tool-icon" style="font-size:18px;">\u{1F4D1}</span>
+        <span class="a-my-island-graph-tool-label">\u53F3\u4FA7\u680F</span>
       </button>
     </div>
   </div>
@@ -1929,8 +1933,9 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
   <div class="island-top-unified-bar ws-top-unified-bar tertiary-top-unified-bar" id="tertiary-unified-topbar">
     <!-- 1. \u5DE6\u4FA7\uFF1A\u4E3B\u8FD4\u56DE\u952E + \u4E2A\u4EBA\u6210\u957F\u6863\u6848 HUD (\u542B\u9879\u76EE\u6807\u8BC6\u5FAE\u5FBD\u7AE0) -->
     <div class="topbar-left-zone">
-      <button type="button" class="topbar-obsidian-split-btn btn-split-left" onclick="toggleObsidianSplit('left')" title="\u6253\u5F00/\u6298\u53E0 Obsidian \u5DE6\u4FA7\u8FB9\u680F" aria-label="\u5207\u6362\u5DE6\u4FA7\u8FB9\u680F">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+      <button type="button" class="a-my-island-graph-tool topbar-obsidian-tool-btn btn-toggle-left-sidebar" onclick="toggleObsidianSplit('left')" title="\u6253\u5F00/\u6298\u53E0 Obsidian \u5DE6\u4FA7\u8FB9\u680F" aria-label="\u6253\u5F00\u5DE6\u4FA7\u680F" style="margin-right:6px; flex-shrink:0;">
+        <span class="a-my-island-graph-tool-icon" style="font-size:18px;">\u{1F4C2}</span>
+        <span class="a-my-island-graph-tool-label">\u5DE6\u4FA7\u680F</span>
       </button>
       
       <button class="ws-nav-back-btn" onclick="exitTertiaryWorkspace()" title="\u8FD4\u56DE\u4E0A\u4E00\u7EA7\u901A\u7528\u7518\u7279\u5DE5\u4F5C\u53F0">
@@ -2044,8 +2049,9 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
         <span class="stat-pill-label">\u8282\u70B9\u6570:</span>
         <span class="stat-pill-val gold" id="tertiary-stat-node-count">6 \u4E2A</span>
       </div>
-      <button type="button" class="topbar-obsidian-split-btn btn-split-right" onclick="toggleObsidianSplit('right')" title="\u6253\u5F00/\u6298\u53E0 Obsidian \u53F3\u4FA7\u8FB9\u680F" aria-label="\u5207\u6362\u53F3\u4FA7\u8FB9\u680F">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+      <button type="button" class="a-my-island-graph-tool topbar-obsidian-tool-btn btn-toggle-right-sidebar" onclick="toggleObsidianSplit('right')" title="\u6253\u5F00/\u6298\u53E0 Obsidian \u53F3\u4FA7\u8FB9\u680F" aria-label="\u6253\u5F00\u53F3\u4FA7\u680F" style="margin-left:6px; flex-shrink:0;">
+        <span class="a-my-island-graph-tool-icon" style="font-size:18px;">\u{1F4D1}</span>
+        <span class="a-my-island-graph-tool-label">\u53F3\u4FA7\u680F</span>
       </button>
     </div>
   </div>
@@ -8882,6 +8888,18 @@ function bootPrototypeRuntime() {
     applyTertiaryTransform();
     showIslandToast("\u26F6 \u5DF2\u81EA\u9002\u5E94\u5C45\u4E2D\u7F29\u653E\u5168\u90E8\u5361\u7247 (" + Math.round(fitScale * 100) + "%)");
   }
+  function animateTertiaryEdgesDuringTransition(duration = 320) {
+    const startTime = performance.now();
+    function step2(now) {
+      updateTertiaryEdgesFast();
+      if (now - startTime < duration) {
+        requestAnimationFrame(step2);
+      } else {
+        updateTertiaryEdgesFast();
+      }
+    }
+    requestAnimationFrame(step2);
+  }
   function updateTertiaryEdgesFast() {
     const linesGroup = document.getElementById("tertiary-lines-group");
     if (!linesGroup)
@@ -8965,6 +8983,11 @@ function bootPrototypeRuntime() {
       }
     });
   }
+  function initTertiaryWorkspace() {
+    initTertiaryCanvasPanZoom();
+    renderTertiaryConnections();
+    observeTertiaryCards();
+  }
   function initTertiaryCanvasPanZoom() {
     const stage = document.getElementById("tertiary-canvas-stage");
     const view = document.getElementById("tertiary-workspace-view");
@@ -8974,10 +8997,6 @@ function bootPrototypeRuntime() {
     if (stage._tertiaryGestureBound)
       return;
     stage._tertiaryGestureBound = true;
-    activePointers.clear();
-    isPinching = false;
-    isStagePanning = false;
-    activeDraggingCard = null;
     stage.addEventListener("wheel", (e) => {
       e.preventDefault();
       const rect = stage.getBoundingClientRect();
@@ -8985,7 +9004,7 @@ function bootPrototypeRuntime() {
       const cursorStageY = e.clientY - rect.top;
       const oldZoom = window.tertiaryZoom || 1;
       const factor = e.deltaY < 0 ? 1.12 : 0.88;
-      const newZoom = Math.min(3, Math.max(0.25, oldZoom * factor));
+      const newZoom = Math.min(3.5, Math.max(0.25, oldZoom * factor));
       const worldX = (cursorStageX - window.tertiaryPanX) / oldZoom;
       const worldY = (cursorStageY - window.tertiaryPanY) / oldZoom;
       window.tertiaryZoom = newZoom;
@@ -8993,38 +9012,107 @@ function bootPrototypeRuntime() {
       window.tertiaryPanY = cursorStageY - worldY * newZoom;
       applyTertiaryTransform();
     }, { passive: false });
-    stage.addEventListener("pointerdown", (e) => {
-      if (e.target.closest(".a-my-island-work-minimap"))
-        return;
-      const isInteractiveTarget = !!e.target.closest("button, input, select, textarea, .work-card-connect-handle");
-      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      if (activePointers.size === 2) {
-        if (activeDraggingCard) {
-          try {
-            activeDraggingCard.releasePointerCapture(e.pointerId);
-          } catch (_) {
-          }
-          activeDraggingCard.classList.remove("is-card-dragging");
-          activeDraggingCard = null;
-        }
-        isStagePanning = false;
-        isPinching = true;
+    let touchStartDist = 0;
+    let touchStartZoom = 1;
+    let touchPivotWorldX = 0;
+    let touchPivotWorldY = 0;
+    let isTouchPinching = false;
+    let isTouchPanning = false;
+    let touchPanStartX = 0;
+    let touchPanStartY = 0;
+    let touchPanInitialPanX = 0;
+    let touchPanInitialPanY = 0;
+    stage.addEventListener("touchstart", (e) => {
+      e.stopPropagation();
+      if (e.touches.length === 2) {
+        isTouchPinching = true;
+        isTouchPanning = false;
         if (view)
           view.classList.add("is-viewport-moving");
-        const pts = Array.from(activePointers.values());
-        pinchStartDistance = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
-        pinchStartZoom = window.tertiaryZoom || 1;
+        const t1 = e.touches[0];
+        const t2 = e.touches[1];
+        touchStartDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+        touchStartZoom = window.tertiaryZoom || 1;
         const rect = stage.getBoundingClientRect();
-        const midStageX = (pts[0].x + pts[1].x) / 2 - rect.left;
-        const midStageY = (pts[0].y + pts[1].y) / 2 - rect.top;
-        pinchWorldAnchorX = (midStageX - window.tertiaryPanX) / pinchStartZoom;
-        pinchWorldAnchorY = (midStageY - window.tertiaryPanY) / pinchStartZoom;
+        const midStageX = (t1.clientX + t2.clientX) / 2 - rect.left;
+        const midStageY = (t1.clientY + t2.clientY) / 2 - rect.top;
+        touchPivotWorldX = (midStageX - window.tertiaryPanX) / touchStartZoom;
+        touchPivotWorldY = (midStageY - window.tertiaryPanY) / touchStartZoom;
         return;
       }
-      if (isInteractiveTarget)
+      if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        const card = e.target.closest(".tertiary-card");
+        const isInteractive = !!e.target.closest("button, input, select, textarea, .work-card-connect-handle");
+        if (!card && !isInteractive) {
+          isTouchPanning = true;
+          isTouchPinching = false;
+          touchPanStartX = touch.clientX;
+          touchPanStartY = touch.clientY;
+          touchPanInitialPanX = window.tertiaryPanX;
+          touchPanInitialPanY = window.tertiaryPanY;
+          stage.classList.add("is-dragging-canvas");
+          if (view)
+            view.classList.add("is-viewport-moving");
+        }
+      }
+    }, { passive: false });
+    stage.addEventListener("touchmove", (e) => {
+      e.stopPropagation();
+      if (e.cancelable)
+        e.preventDefault();
+      if (isTouchPinching && e.touches.length >= 2) {
+        const t1 = e.touches[0];
+        const t2 = e.touches[1];
+        const currentDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+        if (touchStartDist > 0) {
+          const factor = currentDist / touchStartDist;
+          const newZoom = Math.min(3.5, Math.max(0.25, touchStartZoom * factor));
+          const rect = stage.getBoundingClientRect();
+          const currentMidStageX = (t1.clientX + t2.clientX) / 2 - rect.left;
+          const currentMidStageY = (t1.clientY + t2.clientY) / 2 - rect.top;
+          window.tertiaryZoom = newZoom;
+          window.tertiaryPanX = currentMidStageX - touchPivotWorldX * newZoom;
+          window.tertiaryPanY = currentMidStageY - touchPivotWorldY * newZoom;
+          applyTertiaryTransform();
+        }
+        return;
+      }
+      if (isTouchPanning && e.touches.length === 1) {
+        const touch = e.touches[0];
+        const dx = touch.clientX - touchPanStartX;
+        const dy = touch.clientY - touchPanStartY;
+        window.tertiaryPanX = touchPanInitialPanX + dx;
+        window.tertiaryPanY = touchPanInitialPanY + dy;
+        applyTertiaryTransform();
+      }
+    }, { passive: false });
+    const onTouchEnd = (e) => {
+      e.stopPropagation();
+      if (e.touches.length < 2 && isTouchPinching) {
+        isTouchPinching = false;
+        if (view)
+          view.classList.remove("is-viewport-moving");
+      }
+      if (e.touches.length === 0) {
+        isTouchPanning = false;
+        stage.classList.remove("is-dragging-canvas");
+        if (view)
+          view.classList.remove("is-viewport-moving");
+      }
+    };
+    stage.addEventListener("touchend", onTouchEnd, { passive: false });
+    stage.addEventListener("touchcancel", onTouchEnd, { passive: false });
+    stage.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "touch")
+        return;
+      if (e.target.closest(".a-my-island-work-minimap"))
+        return;
+      const isInteractive = !!e.target.closest("button, input, select, textarea, .work-card-connect-handle");
+      if (isInteractive)
         return;
       const card = e.target.closest(".tertiary-card");
-      if (card && activePointers.size === 1) {
+      if (card) {
         activeDraggingCard = card;
         cardDragHasMoved = false;
         cardDragStartClientX = e.clientX;
@@ -9051,42 +9139,23 @@ function bootPrototypeRuntime() {
         }
         return;
       }
-      if (activePointers.size === 1) {
-        isStagePanning = true;
-        stagePanStartClientX = e.clientX;
-        stagePanStartClientY = e.clientY;
-        stagePanStartPanX = window.tertiaryPanX;
-        stagePanStartPanY = window.tertiaryPanY;
-        stage.classList.add("is-dragging-canvas");
-        if (view)
-          view.classList.add("is-viewport-moving");
-        try {
-          stage.setPointerCapture(e.pointerId);
-        } catch (_) {
-        }
+      isStagePanning = true;
+      stagePanStartClientX = e.clientX;
+      stagePanStartClientY = e.clientY;
+      stagePanStartPanX = window.tertiaryPanX;
+      stagePanStartPanY = window.tertiaryPanY;
+      stage.classList.add("is-dragging-canvas");
+      if (view)
+        view.classList.add("is-viewport-moving");
+      try {
+        stage.setPointerCapture(e.pointerId);
+      } catch (_) {
       }
     });
     stage.addEventListener("pointermove", (e) => {
-      if (!activePointers.has(e.pointerId))
+      if (e.pointerType === "touch")
         return;
-      activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      if (isPinching && activePointers.size >= 2) {
-        const pts = Array.from(activePointers.values());
-        const currentDist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
-        if (pinchStartDistance > 0) {
-          const factor = currentDist / pinchStartDistance;
-          const newZoom = Math.min(3, Math.max(0.25, pinchStartZoom * factor));
-          const rect = stage.getBoundingClientRect();
-          const currentMidStageX = (pts[0].x + pts[1].x) / 2 - rect.left;
-          const currentMidStageY = (pts[0].y + pts[1].y) / 2 - rect.top;
-          window.tertiaryZoom = newZoom;
-          window.tertiaryPanX = currentMidStageX - pinchWorldAnchorX * newZoom;
-          window.tertiaryPanY = currentMidStageY - pinchWorldAnchorY * newZoom;
-          applyTertiaryTransform();
-        }
-        return;
-      }
-      if (isStagePanning && activePointers.size === 1) {
+      if (isStagePanning) {
         const dx = e.clientX - stagePanStartClientX;
         const dy = e.clientY - stagePanStartClientY;
         window.tertiaryPanX = stagePanStartPanX + dx;
@@ -9094,7 +9163,7 @@ function bootPrototypeRuntime() {
         applyTertiaryTransform();
         return;
       }
-      if (activeDraggingCard && activePointers.size === 1) {
+      if (activeDraggingCard) {
         const zoom = window.tertiaryZoom || 1;
         const dx = (e.clientX - cardDragStartClientX) / zoom;
         const dy = (e.clientY - cardDragStartClientY) / zoom;
@@ -9103,10 +9172,8 @@ function bootPrototypeRuntime() {
           if (typeof pushTertiaryHistory === "function")
             pushTertiaryHistory();
         }
-        const targetLeft = Math.max(10, cardDragInitialLeft + dx);
-        const targetTop = Math.max(10, cardDragInitialTop + dy);
-        activeDraggingCard.style.left = targetLeft + "px";
-        activeDraggingCard.style.top = targetTop + "px";
+        activeDraggingCard.style.left = Math.max(10, cardDragInitialLeft + dx) + "px";
+        activeDraggingCard.style.top = Math.max(10, cardDragInitialTop + dy) + "px";
         cardFollowerInitialPositions.forEach((f) => {
           f.el.style.left = Math.max(10, f.left + dx) + "px";
           f.el.style.top = Math.max(10, f.top + dy) + "px";
@@ -9115,22 +9182,6 @@ function bootPrototypeRuntime() {
       }
     });
     const onPointerEnd = (e) => {
-      activePointers.delete(e.pointerId);
-      if (activePointers.size < 2 && isPinching) {
-        isPinching = false;
-        if (view)
-          view.classList.remove("is-viewport-moving");
-      }
-      if (isStagePanning) {
-        isStagePanning = false;
-        stage.classList.remove("is-dragging-canvas");
-        if (view)
-          view.classList.remove("is-viewport-moving");
-        try {
-          stage.releasePointerCapture(e.pointerId);
-        } catch (_) {
-        }
-      }
       if (activeDraggingCard) {
         try {
           activeDraggingCard.releasePointerCapture(e.pointerId);
@@ -9138,24 +9189,23 @@ function bootPrototypeRuntime() {
         }
         activeDraggingCard.classList.remove("is-card-dragging");
         activeDraggingCard = null;
-        if (cardDragHasMoved) {
-          renderTertiaryEdges();
-          if (typeof saveCurrentProjectCanvasSnapshot === "function") {
-            saveCurrentProjectCanvasSnapshot();
-          }
+        updateTertiaryEdgesFast();
+      }
+      if (isStagePanning) {
+        try {
+          stage.releasePointerCapture(e.pointerId);
+        } catch (_) {
         }
+        isStagePanning = false;
+        stage.classList.remove("is-dragging-canvas");
+        if (view)
+          view.classList.remove("is-viewport-moving");
       }
     };
     stage.addEventListener("pointerup", onPointerEnd);
     stage.addEventListener("pointercancel", onPointerEnd);
   }
-  function initTertiaryWorkspace() {
-    initTertiaryCanvasPanZoom();
-    observeTertiaryCards();
-    bindTertiaryCardsDrag();
-    renderTertiaryEdges();
-    updateTertiaryNodeCountBadge();
-  }
+  let isAllTertiaryCardsMinimized = false;
   function toggleTertiaryCardMinimize(cardId, event) {
     if (event)
       event.stopPropagation();
@@ -9168,18 +9218,15 @@ function bootPrototypeRuntime() {
       btn.innerHTML = isMin ? "\u{1F53D}" : "\u{1F53C}";
       btn.title = isMin ? "\u5C55\u5F00\u5361\u7247\u663E\u793A\u5B8C\u6574\u4FE1\u606F" : "\u6700\u5C0F\u5316\u5361\u7247\u4EC5\u663E\u793A\u6807\u9898";
     }
-    if (typeof renderTertiaryConnections === "function") {
-      renderTertiaryConnections();
-    }
+    animateTertiaryEdgesDuringTransition(320);
     const titleEl = card.querySelector(".work-node-title");
     const cardTitle = titleEl ? titleEl.textContent : "\u8282\u70B9";
     if (isMin) {
-      showIslandToast("\u{1F5DC}\uFE0F \u3010" + cardTitle + "\u3011\u5DF2\u6700\u5C0F\u5316\uFF0C\u4EC5\u663E\u793A\u6807\u9898\uFF01\u518D\u6B21\u70B9\u51FB\u6216\u53CC\u51FB\u5C55\u5F00\u3002");
+      showIslandToast("\u{1F5DC}\uFE0F \u3010" + cardTitle + "\u3011\u5DF2\u6298\u53E0\u6536\u8D77\uFF01\u518D\u6B21\u70B9\u51FB\u6216\u53CC\u51FB\u5C55\u5F00\u3002");
     } else {
-      showIslandToast("\u{1F4D6} \u3010" + cardTitle + "\u3011\u5DF2\u5C55\u5F00\uFF0C\u663E\u793A\u5168\u90E8\u89C4\u5212\u5185\u5BB9\uFF01");
+      showIslandToast("\u{1F4D6} \u3010" + cardTitle + "\u3011\u5DF2\u5C55\u5F00\u663E\u793A\u5B8C\u6574\u89C4\u5212\uFF01");
     }
   }
-  let isAllTertiaryCardsMinimized = false;
   function toggleAllTertiaryCardsMinimize() {
     const cards = document.querySelectorAll(".tertiary-card");
     if (!cards.length)
@@ -9203,9 +9250,7 @@ function bootPrototypeRuntime() {
       if (label)
         label.textContent = isAllTertiaryCardsMinimized ? "\u5168\u90E8\u5C55\u5F00" : "\u5168\u90E8\u6298\u53E0";
     }
-    if (typeof renderTertiaryConnections === "function") {
-      renderTertiaryConnections();
-    }
+    animateTertiaryEdgesDuringTransition(340);
     showIslandToast(isAllTertiaryCardsMinimized ? "\u{1F5DC}\uFE0F \u753B\u5E03\u4E0A\u6240\u6709\u8282\u70B9\u5DF2\u4E00\u952E\u6700\u5C0F\u5316\u4E3A\u7EAF\u6807\u9898\u6001\uFF01" : "\u{1F4D6} \u753B\u5E03\u4E0A\u6240\u6709\u8282\u70B9\u5DF2\u4E00\u952E\u5C55\u5F00\u5B8C\u6574\u89C4\u5212\uFF01");
   }
   function bindTertiaryCardsDrag() {
@@ -14094,6 +14139,10 @@ function bootPrototypeRuntime() {
     window.zoomTertiaryCanvas = zoomTertiaryCanvas;
   if (typeof resetTertiaryCanvasZoom === "function")
     window.resetTertiaryCanvasZoom = resetTertiaryCanvasZoom;
+  if (typeof animateTertiaryEdgesDuringTransition === "function")
+    window.animateTertiaryEdgesDuringTransition = animateTertiaryEdgesDuringTransition;
+  if (typeof step === "function")
+    window.step = step;
   if (typeof updateTertiaryEdgesFast === "function")
     window.updateTertiaryEdgesFast = updateTertiaryEdgesFast;
   if (typeof scheduleTertiaryEdgeRefresh === "function")
@@ -14102,10 +14151,10 @@ function bootPrototypeRuntime() {
     window.renderTertiaryConnections = renderTertiaryConnections;
   if (typeof observeTertiaryCards === "function")
     window.observeTertiaryCards = observeTertiaryCards;
-  if (typeof initTertiaryCanvasPanZoom === "function")
-    window.initTertiaryCanvasPanZoom = initTertiaryCanvasPanZoom;
   if (typeof initTertiaryWorkspace === "function")
     window.initTertiaryWorkspace = initTertiaryWorkspace;
+  if (typeof initTertiaryCanvasPanZoom === "function")
+    window.initTertiaryCanvasPanZoom = initTertiaryCanvasPanZoom;
   if (typeof toggleTertiaryCardMinimize === "function")
     window.toggleTertiaryCardMinimize = toggleTertiaryCardMinimize;
   if (typeof toggleAllTertiaryCardsMinimize === "function")
@@ -14702,23 +14751,23 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
       cls: "youth-island-plugin-root youth-island-obsidian-view-root"
     });
     rootWrapper.innerHTML = ISLAND_UI_HTML;
-    const preventSidebarGestures = (e) => {
-      e.stopPropagation();
-    };
-    rootWrapper.addEventListener("touchstart", preventSidebarGestures, { capture: true, passive: true });
-    rootWrapper.addEventListener("touchmove", (e) => {
-      e.stopPropagation();
+    const captureBlockSidebarGestures = (e) => {
       const target = e.target;
-      if (target && target.closest(
-        "#tertiary-mindmap-stage, .tertiary-canvas-viewport, .tertiary-canvas-world, #island-canvas-stage, #exec-carousel-stage"
-      )) {
-        if (e.cancelable) {
-          e.preventDefault();
+      if (!target)
+        return;
+      const root = target.closest(".youth-island-plugin-root");
+      if (root) {
+        e.stopPropagation();
+        if (e.type === "touchmove" && target.closest("#tertiary-workspace-view, #tertiary-canvas-stage, .tertiary-canvas-world, #island-canvas-stage, #island-execution-center")) {
+          if (e.cancelable) {
+            e.preventDefault();
+          }
         }
       }
-    }, { capture: true, passive: false });
-    rootWrapper.addEventListener("touchend", preventSidebarGestures, { capture: true, passive: true });
-    this.installTabletTouchBridge(rootWrapper);
+    };
+    window.addEventListener("touchstart", captureBlockSidebarGestures, { capture: true, passive: false });
+    window.addEventListener("touchmove", captureBlockSidebarGestures, { capture: true, passive: false });
+    window.addEventListener("touchend", captureBlockSidebarGestures, { capture: true, passive: false });
     bootPrototypeRuntime();
     await this.plugin.vaultStorage.hydrateRuntimeFromVault();
     const win = window;
@@ -14948,14 +14997,30 @@ var YouthGrowthIslandPlugin = class extends import_obsidian4.Plugin {
       try {
         const ws = this.app.workspace;
         if (side === "left") {
-          if (ws.leftSplit && typeof ws.leftSplit.toggle === "function") {
-            ws.leftSplit.toggle();
+          const split = ws.leftSplit;
+          if (split) {
+            if (typeof split.toggle === "function") {
+              split.toggle();
+            } else if (typeof split.collapse === "function" && typeof split.expand === "function") {
+              if (split.collapsed)
+                split.expand();
+              else
+                split.collapse();
+            }
           } else if (typeof ws.toggleLeftSidebar === "function") {
             ws.toggleLeftSidebar();
           }
         } else if (side === "right") {
-          if (ws.rightSplit && typeof ws.rightSplit.toggle === "function") {
-            ws.rightSplit.toggle();
+          const split = ws.rightSplit;
+          if (split) {
+            if (typeof split.toggle === "function") {
+              split.toggle();
+            } else if (typeof split.collapse === "function" && typeof split.expand === "function") {
+              if (split.collapsed)
+                split.expand();
+              else
+                split.collapse();
+            }
           } else if (typeof ws.toggleRightSidebar === "function") {
             ws.toggleRightSidebar();
           }
