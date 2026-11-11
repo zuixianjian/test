@@ -186,6 +186,9 @@ var VaultStorageAdapter = class {
       if (Array.isArray(appSnapshot.WEEK_BOARD_DATA) && Array.isArray(win.WEEK_BOARD_DATA)) {
         win.WEEK_BOARD_DATA.splice(0, win.WEEK_BOARD_DATA.length, ...appSnapshot.WEEK_BOARD_DATA);
       }
+      if (appSnapshot.TASK_HISTORY_BY_DATE && typeof appSnapshot.TASK_HISTORY_BY_DATE === "object") {
+        win.TASK_HISTORY_BY_DATE = appSnapshot.TASK_HISTORY_BY_DATE;
+      }
       if (appSnapshot.TREASURY_STATE && win.TREASURY_STATE) {
         Object.assign(win.TREASURY_STATE, appSnapshot.TREASURY_STATE);
       }
@@ -398,6 +401,7 @@ var VaultStorageAdapter = class {
       PROJECT_CANVAS_STORE: win.PROJECT_CANVAS_STORE || null,
       PAVILION_META: win.PAVILION_META || null,
       WEEK_BOARD_DATA: win.WEEK_BOARD_DATA || null,
+      TASK_HISTORY_BY_DATE: win.TASK_HISTORY_BY_DATE || null,
       TREASURY_STATE: win.TREASURY_STATE || null,
       ACHIEVEMENT_STATE: win.ACHIEVEMENT_STATE || null,
       NOTE_STATE: win.NOTE_STATE || null,
@@ -960,7 +964,7 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
     <div class="week-board-header">
       <div class="week-nav-group">
         <button class="week-nav-btn" onclick="changeWeek(-1)">\u25C0 \u4E0A\u4E00\u5468</button>
-        <span class="week-range-text">2026\u5E74\u7B2C43\u5468 (10\u670826\u65E5 - 11\u670801\u65E5)</span>
+        <span class="week-range-text"></span>
         <button class="week-nav-btn" onclick="changeWeek(1)">\u4E0B\u4E00\u5468 \u25B6</button>
         <button class="week-today-btn" onclick="resetToCurrentWeek()">\u56DE\u5230\u672C\u5468</button>
       </div>
@@ -995,16 +999,16 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
     <div class="month-board-header">
       <div class="month-nav-group">
         <button class="month-nav-btn" onclick="changeMonth(-1)">\u25C0 \u4E0A\u4E2A\u6708</button>
-        <span class="month-title-text" id="month-title-label">2026 \u5E74 10 \u6708</span>
+        <span class="month-title-text" id="month-title-label"></span>
         <button class="month-nav-btn" onclick="changeMonth(1)">\u4E0B\u4E2A\u6708 \u25B6</button>
         <button class="month-today-btn" onclick="resetToCurrentMonth()">\u56DE\u5230\u4ECA\u65E5</button>
       </div>
 
       <div class="month-summary-stat">
-        <span class="stat-chip green">\u{1F7E2} \u5DF2\u529E: 126 \u9879</span>
-        <span class="stat-chip yellow">\u{1F7E1} \u5F85\u529E: 12 \u9879</span>
-        <span class="stat-chip red">\u{1F534} \u672A\u529E: 4 \u9879</span>
-        <span class="stat-chip gold">\u2B50 \u6574\u4F53\u8FBE\u6210\u7387: 88.5%</span>
+        <span class="stat-chip green">\u{1F7E2} \u5DF2\u529E: 0 \u9879</span>
+        <span class="stat-chip yellow">\u{1F7E1} \u5F85\u529E: 0 \u9879</span>
+        <span class="stat-chip red">\u{1F534} \u672A\u529E: 0 \u9879</span>
+        <span class="stat-chip gold">\u2B50 \u6574\u4F53\u8FBE\u6210\u7387: --</span>
       </div>
     </div>
 
@@ -1032,8 +1036,8 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
         <div class="inspector-date-box">
           <span class="inspector-date-icon">\u{1F4C5}</span>
           <div>
-            <div class="inspector-date-title" id="inspector-date-title">2026\u5E7410\u670826\u65E5 \u661F\u671F\u4E00</div>
-            <div class="inspector-date-sub" id="inspector-date-sub">\u519C\u5386\u4E5D\u6708\u5341\u516D \xB7 \u5BD2\u9732\u7B2C18\u5929 \xB7 \u7269\u5019\u6E05\u723D\u5B9C\u4EBA</div>
+            <div class="inspector-date-title" id="inspector-date-title"></div>
+            <div class="inspector-date-sub" id="inspector-date-sub"></div>
           </div>
         </div>
         <button class="day-inspector-close-btn" onclick="closeDayInspector()">\u2715</button>
@@ -1881,7 +1885,7 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
             \u8D77\u6B62\u65F6\u95F4 <span style="font-size: 11px; font-weight: 600; color: #8c6b45;">\uFF08\u7CFB\u7EDF\u5C06\u4F9D\u636E\u65F6\u95F4\u5468\u671F\u4E0E\u5B9E\u9645\u6267\u884C\u60C5\u51B5\u81EA\u52A8\u5224\u5B9A\u72B6\u6001\uFF1A\u5F85\u89C4\u5212\u3001\u5F85\u6267\u884C\u3001\u8FDB\u884C\u4E2D\u3001\u5DF2\u5B8C\u6210\u3001\u5DF2\u5F52\u6863\uFF09</span>
           </label>
           <div style="display: flex; align-items: center; gap: 10px;">
-            <input type="date" id="input-proj-start" class="add-module-text-input" value="2026-10-27" style="flex: 1;" onchange="handleProjDateChange()">
+            <input type="date" id="input-proj-start" class="add-module-text-input" value="" style="flex: 1;" onchange="handleProjDateChange()">
             <span style="font-weight: 900; color: #8c6b45;">\u81F3</span>
             <input type="date" id="input-proj-end" class="add-module-text-input" value="2026-11-09" style="flex: 1;" onchange="handleProjDateChange()">
           </div>
@@ -1899,7 +1903,7 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
         <div class="proj-status-preview-box">
           <span style="font-size: 12px; font-weight: 850; color: #60401f;">\u7CFB\u7EDF\u81EA\u52A8\u5224\u5B9A\u72B6\u6001\uFF1A</span>
           <span class="gantt-status-pill status-exec" id="proj-status-preview-badge">\u8FDB\u884C\u4E2D</span>
-          <span style="font-size: 11px; color: #8c6b45;" id="proj-status-preview-hint">\u5F53\u524D\u8D77\u6B62\u5468\u671F\u8986\u76D6\u4ECA\u65E5 (2026-10-27)\uFF0C\u7CFB\u7EDF\u81EA\u52A8\u5224\u5B9A\u4E3A\u3010\u8FDB\u884C\u4E2D\u3011\uFF1B\u5C0F\u65B9\u683C\u5168\u90E8\u8FBE\u6210\u540E\u81EA\u52A8\u5347\u7EA7\u4E3A\u3010\u5DF2\u5B8C\u6210\u3011\u3002</span>
+          <span style="font-size: 11px; color: #8c6b45;" id="proj-status-preview-hint">\u5F53\u524D\u8D77\u6B62\u5468\u671F\u8986\u76D6\u4ECA\u65E5\uFF0C\u7CFB\u7EDF\u81EA\u52A8\u5224\u5B9A\u4E3A\u3010\u8FDB\u884C\u4E2D\u3011\uFF1B\u5C0F\u65B9\u683C\u5168\u90E8\u8FBE\u6210\u540E\u81EA\u52A8\u5347\u7EA7\u4E3A\u3010\u5DF2\u5B8C\u6210\u3011\u3002</span>
         </div>
 
         <!-- 3.6 \u5E95\u90E8\u64CD\u4F5C\u6309\u94AE -->
@@ -7239,7 +7243,7 @@ function bootPrototypeRuntime() {
       }
     }
     if (typeof WEEK_BOARD_DATA !== "undefined" && Array.isArray(WEEK_BOARD_DATA)) {
-      const todayCol = WEEK_BOARD_DATA.find((d) => d.isToday) || WEEK_BOARD_DATA[5];
+      const todayCol = getTodayWeekCol();
       if (todayCol && Array.isArray(todayCol.tasks)) {
         const pName2 = typeof PAVILION_META !== "undefined" && PAVILION_META[pavilionId] && PAVILION_META[pavilionId].name ? PAVILION_META[pavilionId].name : "";
         const pendingTask = todayCol.tasks.find((t) => t.status === "pending" && (t.title === title || pName2 && t.pavilion.includes(pName2.slice(0, 2)))) || todayCol.tasks.find((t) => t.status === "pending");
@@ -10426,6 +10430,9 @@ function bootPrototypeRuntime() {
     if (goalDock) {
       goalDock.style.display = view === "day" ? "" : "none";
     }
+    const execCenterEl = document.getElementById("island-execution-center");
+    if (execCenterEl)
+      execCenterEl.classList.toggle("is-fullview", view !== "day");
     ["day", "week", "month"].forEach((v) => {
       const btn = document.getElementById("btn-exec-" + v);
       const pane = document.getElementById("exec-subview-" + v);
@@ -10617,36 +10624,154 @@ function bootPrototypeRuntime() {
   }
   window.currentWeekOffset = 0;
   window.currentWeekFilter = "all";
+  window.TASK_HISTORY_BY_DATE = window.TASK_HISTORY_BY_DATE || {};
   const WEEK_BOARD_DATA = [
-    { dayIndex: 0, dayName: "\u5468\u4E00", dateStr: "10/26", tasks: [] },
-    { dayIndex: 1, dayName: "\u5468\u4E8C", dateStr: "10/27", tasks: [] },
-    { dayIndex: 2, dayName: "\u5468\u4E09", dateStr: "10/28", tasks: [] },
-    { dayIndex: 3, dayName: "\u5468\u56DB", dateStr: "10/29", tasks: [] },
-    { dayIndex: 4, dayName: "\u5468\u4E94", dateStr: "10/30", tasks: [] },
-    { dayIndex: 5, dayName: "\u5468\u516D (\u4ECA\u65E5)", dateStr: "10/31", isToday: true, tasks: [] },
-    { dayIndex: 6, dayName: "\u5468\u65E5", dateStr: "11/01", tasks: [] }
+    { dayIndex: 0, dayName: "\u5468\u4E00", dateStr: "", tasks: [] },
+    { dayIndex: 1, dayName: "\u5468\u4E8C", dateStr: "", tasks: [] },
+    { dayIndex: 2, dayName: "\u5468\u4E09", dateStr: "", tasks: [] },
+    { dayIndex: 3, dayName: "\u5468\u56DB", dateStr: "", tasks: [] },
+    { dayIndex: 4, dayName: "\u5468\u4E94", dateStr: "", tasks: [] },
+    { dayIndex: 5, dayName: "\u5468\u516D", dateStr: "", tasks: [] },
+    { dayIndex: 6, dayName: "\u5468\u65E5", dateStr: "", tasks: [] }
   ];
+  const CAL_WEEK_NAMES = ["\u5468\u4E00", "\u5468\u4E8C", "\u5468\u4E09", "\u5468\u56DB", "\u5468\u4E94", "\u5468\u516D", "\u5468\u65E5"];
+  const CAL_WEEK_NAMES_LONG = ["\u661F\u671F\u4E00", "\u661F\u671F\u4E8C", "\u661F\u671F\u4E09", "\u661F\u671F\u56DB", "\u661F\u671F\u4E94", "\u661F\u671F\u516D", "\u661F\u671F\u65E5"];
+  function calPad2(n) {
+    return String(n).padStart(2, "0");
+  }
+  function calDateKey(d) {
+    return d.getFullYear() + "-" + calPad2(d.getMonth() + 1) + "-" + calPad2(d.getDate());
+  }
+  function calMondayOf(d) {
+    const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    x.setDate(x.getDate() - (x.getDay() + 6) % 7);
+    return x;
+  }
+  function calIsoWeekNumber(d) {
+    const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    const day = t.getUTCDay() || 7;
+    t.setUTCDate(t.getUTCDate() + 4 - day);
+    const y0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+    return Math.ceil(((t - y0) / 864e5 + 1) / 7);
+  }
+  function calLunarText(d) {
+    try {
+      const fmt = new Intl.DateTimeFormat("zh-u-ca-chinese", { month: "long", day: "numeric" });
+      const s = fmt.format(d);
+      const m = s.match(/^(.*月)(.+)$/);
+      if (!m)
+        return s;
+      return m[2] === "\u521D\u4E00" ? m[1] : m[2];
+    } catch (e) {
+      return "";
+    }
+  }
+  function syncWeekBoardToRealDate() {
+    window.TASK_HISTORY_BY_DATE = window.TASK_HISTORY_BY_DATE || {};
+    const now = /* @__PURE__ */ new Date();
+    const todayKey = calDateKey(now);
+    const monday = calMondayOf(now);
+    let legacyTasks = [];
+    WEEK_BOARD_DATA.forEach((col, i) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      const key = calDateKey(d);
+      if (!Array.isArray(col.tasks))
+        col.tasks = [];
+      if (!col.dateKey) {
+        if (col.tasks.length)
+          legacyTasks = legacyTasks.concat(col.tasks);
+        col.tasks = [];
+      } else if (col.dateKey !== key) {
+        if (col.tasks.length) {
+          const archived = col.tasks.map((t) => Object.assign({}, t, { status: t.status === "pending" ? "overdue" : t.status }));
+          window.TASK_HISTORY_BY_DATE[col.dateKey] = (window.TASK_HISTORY_BY_DATE[col.dateKey] || []).concat(archived);
+        }
+        col.tasks = [];
+      }
+      col.dateKey = key;
+      col.dayIndex = i;
+      col.dateStr = calPad2(d.getMonth() + 1) + "/" + calPad2(d.getDate());
+      col.isToday = key === todayKey;
+      col.dayName = CAL_WEEK_NAMES[i] + (col.isToday ? " (\u4ECA\u65E5)" : "");
+    });
+    if (legacyTasks.length) {
+      const todayCol = WEEK_BOARD_DATA.find((c) => c.isToday);
+      if (todayCol)
+        todayCol.tasks = todayCol.tasks.concat(legacyTasks);
+    }
+  }
+  function getTodayWeekCol() {
+    syncWeekBoardToRealDate();
+    return WEEK_BOARD_DATA.find((c) => c.isToday) || WEEK_BOARD_DATA[((/* @__PURE__ */ new Date()).getDay() + 6) % 7];
+  }
+  function updateWeekRangeLabel() {
+    const label = document.querySelector(".week-range-text");
+    if (!label)
+      return;
+    const monday = calMondayOf(/* @__PURE__ */ new Date());
+    monday.setDate(monday.getDate() + window.currentWeekOffset * 7);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    const tag = window.currentWeekOffset === 0 ? "" : window.currentWeekOffset > 0 ? " \xB7 \u672A\u6765\u5468" : " \xB7 \u5386\u53F2\u5468";
+    label.textContent = monday.getFullYear() + "\u5E74\u7B2C" + calIsoWeekNumber(monday) + "\u5468 (" + (monday.getMonth() + 1) + "\u6708" + calPad2(monday.getDate()) + "\u65E5 - " + (sunday.getMonth() + 1) + "\u6708" + calPad2(sunday.getDate()) + "\u65E5)" + tag;
+  }
+  function getWeekColsForOffset(offset) {
+    syncWeekBoardToRealDate();
+    if (offset === 0)
+      return WEEK_BOARD_DATA;
+    const monday = calMondayOf(/* @__PURE__ */ new Date());
+    monday.setDate(monday.getDate() + offset * 7);
+    const cols = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      const key = calDateKey(d);
+      cols.push({
+        dayIndex: i,
+        dayName: CAL_WEEK_NAMES[i],
+        dateStr: calPad2(d.getMonth() + 1) + "/" + calPad2(d.getDate()),
+        dateKey: key,
+        isToday: false,
+        tasks: getRecordsForDate(key)
+      });
+    }
+    return cols;
+  }
+  function getRecordsForDate(key) {
+    const col = WEEK_BOARD_DATA.find((c) => c.dateKey === key);
+    let tasks = col ? col.tasks || [] : (window.TASK_HISTORY_BY_DATE || {})[key] || [];
+    if (tasks.length > 0)
+      return tasks;
+    const derived = [];
+    (window.GANTT_PROJECTS || []).forEach((p) => {
+      if (Array.isArray(p.completedDays) && p.completedDays.includes(key)) {
+        const meta = typeof PAVILION_META !== "undefined" && PAVILION_META[p.pavilion] ? PAVILION_META[p.pavilion] : { name: p.category || "\u89C4\u5212\u9986", icon: "\u{1F3AF}" };
+        derived.push({
+          id: "g-" + p.id + "-" + key,
+          pavilion: meta.name || "\u89C4\u5212\u9986",
+          pavilionBadge: (meta.icon || "\u{1F3AF}") + " " + (meta.name || "\u89C4\u5212\u9986"),
+          title: "\u300A" + p.title + "\u300B\u8FBE\u6807\u6253\u5361",
+          status: "done",
+          duration: "--",
+          time: key,
+          instruction: p.desc || "",
+          evidence: "\u2713 \u9879\u76EE\u7518\u7279\u8FBE\u6807\u8BB0\u5F55",
+          reflection: ""
+        });
+      }
+    });
+    return derived;
+  }
   function changeWeek(delta) {
     window.currentWeekOffset += delta;
-    const weekLabel = document.querySelector(".week-range-text");
-    if (weekLabel) {
-      if (window.currentWeekOffset === 0) {
-        weekLabel.textContent = "2026\u5E74\u7B2C43\u5468 (10\u670826\u65E5 - 11\u670801\u65E5)";
-      } else if (window.currentWeekOffset > 0) {
-        weekLabel.textContent = "2026\u5E74\u7B2C" + (43 + window.currentWeekOffset) + "\u5468 (\u672A\u6765\u89C4\u5212\u5468)";
-      } else {
-        weekLabel.textContent = "2026\u5E74\u7B2C" + (43 + window.currentWeekOffset) + "\u5468 (\u5386\u53F2\u5F52\u6863\u5468)";
-      }
-    }
+    updateWeekRangeLabel();
     renderWeekBoard(window.currentWeekFilter);
     showIslandToast(window.currentWeekOffset === 0 ? "\u{1F4C5} \u5DF2\u5207\u6362\u81F3\u672C\u5468\u770B\u677F" : delta > 0 ? "\u23E9 \u5DF2\u5207\u6362\u81F3\u4E0B\u4E00\u5468\u770B\u677F" : "\u23EA \u5DF2\u5207\u6362\u81F3\u4E0A\u4E00\u5468\u770B\u677F");
   }
   function resetToCurrentWeek() {
     window.currentWeekOffset = 0;
-    const weekLabel = document.querySelector(".week-range-text");
-    if (weekLabel) {
-      weekLabel.textContent = "2026\u5E74\u7B2C43\u5468 (10\u670826\u65E5 - 11\u670801\u65E5)";
-    }
+    updateWeekRangeLabel();
     renderWeekBoard(window.currentWeekFilter);
     showIslandToast("\u{1F4C5} \u5DF2\u56DE\u5230\u672C\u5468\u4EFB\u52A1\u5168\u666F\u770B\u677F\uFF01");
   }
@@ -10663,8 +10788,10 @@ function bootPrototypeRuntime() {
     if (!container)
       return;
     filter = filter || window.currentWeekFilter || "all";
+    const weekCols = getWeekColsForOffset(window.currentWeekOffset || 0);
+    updateWeekRangeLabel();
     let totalAll = 0, totalDone = 0, totalPending = 0, totalOverdue = 0;
-    WEEK_BOARD_DATA.forEach((col) => {
+    weekCols.forEach((col) => {
       (col.tasks || []).forEach((t) => {
         totalAll++;
         if (t.status === "done")
@@ -10687,8 +10814,8 @@ function bootPrototypeRuntime() {
         tab.textContent = "\u{1F534} \u7F3A\u5361 (" + totalOverdue + ")";
     });
     let html = "";
-    WEEK_BOARD_DATA.forEach((col, idx) => {
-      const isToday = idx === 5 && window.currentWeekOffset === 0;
+    weekCols.forEach((col, idx) => {
+      const isToday = !!col.isToday;
       const filteredTasks = col.tasks.filter((t) => {
         if (filter === "all")
           return true;
@@ -10815,28 +10942,26 @@ function bootPrototypeRuntime() {
       modal.style.display = "none";
   }
   window.currentMonthOffset = 0;
+  function getCalendarBaseMonth() {
+    const now = /* @__PURE__ */ new Date();
+    return new Date(now.getFullYear(), now.getMonth() + (window.currentMonthOffset || 0), 1);
+  }
+  function updateMonthTitleLabel() {
+    const label = document.getElementById("month-title-label");
+    if (!label)
+      return;
+    const base = getCalendarBaseMonth();
+    label.textContent = base.getFullYear() + " \u5E74 " + (base.getMonth() + 1) + " \u6708";
+  }
   function changeMonth(delta) {
     window.currentMonthOffset += delta;
-    const label = document.getElementById("month-title-label");
-    if (label) {
-      if (window.currentMonthOffset === 0) {
-        label.textContent = "2026 \u5E74 10 \u6708";
-      } else if (window.currentMonthOffset === 1) {
-        label.textContent = "2026 \u5E74 11 \u6708";
-      } else if (window.currentMonthOffset === -1) {
-        label.textContent = "2026 \u5E74 9 \u6708";
-      } else {
-        label.textContent = 2026 + Math.floor((9 + window.currentMonthOffset) / 12) + " \u5E74 " + (((9 + window.currentMonthOffset) % 12 + 12) % 12 + 1) + " \u6708";
-      }
-    }
+    updateMonthTitleLabel();
     renderMonthCalendar();
     showIslandToast(delta > 0 ? "\u4E0B\u4E2A\u6708\u6708\u5386\u8DB3\u8FF9" : "\u4E0A\u4E2A\u6708\u6708\u5386\u8DB3\u8FF9");
   }
   function resetToCurrentMonth() {
     window.currentMonthOffset = 0;
-    const label = document.getElementById("month-title-label");
-    if (label)
-      label.textContent = "2026 \u5E74 10 \u6708";
+    updateMonthTitleLabel();
     renderMonthCalendar();
     showIslandToast("\u{1F4C5} \u5DF2\u56DE\u5230\u672C\u6708\u8DB3\u8FF9\u77E9\u9635\uFF01");
   }
@@ -10844,97 +10969,94 @@ function bootPrototypeRuntime() {
     const grid = document.getElementById("month-calendar-grid");
     if (!grid)
       return;
+    syncWeekBoardToRealDate();
+    updateMonthTitleLabel();
+    const base = getCalendarBaseMonth();
+    const year = base.getFullYear();
+    const month = base.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const lead = (base.getDay() + 6) % 7;
+    const rows = Math.ceil((lead + daysInMonth) / 7);
+    const todayKey = calDateKey(/* @__PURE__ */ new Date());
+    grid.style.gridTemplateRows = "28px repeat(" + rows + ", minmax(0, 1fr))";
     const weekdayHeaders = '<div class="cal-weekday-header">\u4E00</div><div class="cal-weekday-header">\u4E8C</div><div class="cal-weekday-header">\u4E09</div><div class="cal-weekday-header">\u56DB</div><div class="cal-weekday-header">\u4E94</div><div class="cal-weekday-header weekend">\u516D</div><div class="cal-weekday-header weekend">\u65E5</div>';
     let cellsHtml = "";
-    cellsHtml += '<div class="month-day-cell other-month" style="opacity:0.4; background:#f8fafc;"><div class="month-date-row"><span class="month-date-num">28</span><span class="month-date-lunar">\u4E5D\u6708</span></div></div>';
-    cellsHtml += '<div class="month-day-cell other-month" style="opacity:0.4; background:#f8fafc;"><div class="month-date-row"><span class="month-date-num">29</span><span class="month-date-lunar">\u5EFF\u516B</span></div></div>';
-    cellsHtml += '<div class="month-day-cell other-month" style="opacity:0.4; background:#f8fafc;"><div class="month-date-row"><span class="month-date-num">30</span><span class="month-date-lunar">\u5EFF\u4E5D</span></div></div>';
-    const lunarTerms = {
-      1: "\u56FD\u5E86",
-      8: "\u5BD2\u9732",
-      15: "\u671B\u65E5",
-      23: "\u971C\u964D",
-      31: "\u4E07\u5723"
-    };
-    for (let day = 1; day <= 31; day++) {
-      const isToday = day === 31 && window.currentMonthOffset === 0;
-      const lunar = lunarTerms[day] || (day < 10 ? "\u521D" + day : day < 20 ? "\u5341" + (day - 10) : day === 20 ? "\u4E8C\u5341" : "\u5EFF" + (day - 20));
+    let sumDone = 0, sumPending = 0, sumOverdue = 0;
+    const otherCell = (d) => '<div class="month-day-cell other-month" style="opacity:0.4; background:#f8fafc; pointer-events:none;"><div class="month-date-row"><span class="month-date-num">' + d.getDate() + '</span><span class="month-date-lunar">' + calLunarText(d) + "</span></div></div>";
+    for (let i = lead; i > 0; i--) {
+      cellsHtml += otherCell(new Date(year, month, 1 - i));
+    }
+    for (let day = 1; day <= daysInMonth; day++) {
+      const d = new Date(year, month, day);
+      const key = calDateKey(d);
+      const isToday = key === todayKey;
+      const recs = getRecordsForDate(key);
+      const done = recs.filter((t) => t.status === "done").length;
+      const pend = recs.filter((t) => t.status === "pending").length;
+      const over = recs.filter((t) => t.status === "overdue").length;
+      sumDone += done;
+      sumPending += pend;
+      sumOverdue += over;
       let pips = "";
-      if (day <= 30) {
-        pips = '<span class="month-pip" style="background:#dcfce7; color:#15803d;">\u{1F7E2} ' + (2 + day % 3) + "</span>";
-        if (day % 7 === 3) {
-          pips += '<span class="month-pip" style="background:#fee2e2; color:#b91c1c;">\u{1F534} 1</span>';
-        }
-      } else if (day === 31) {
-        const st = window.USER_PROFILE_STATE || { completedTodayCount: 2, totalTodayCount: 5, violationCount: 0 };
-        const doneC = st.completedTodayCount || 2;
-        const pendC = Math.max(0, (st.totalTodayCount || 5) - doneC);
-        pips = '<span class="month-pip" style="background:#dcfce7; color:#15803d;">\u{1F7E2} ' + doneC + "</span>";
-        if (pendC > 0) {
-          pips += '<span class="month-pip" style="background:#fef3c7; color:#b45309;">\u{1F7E1} ' + pendC + "</span>";
-        }
+      if (done > 0)
+        pips += '<span class="month-pip" style="background:#dcfce7; color:#15803d;">\u{1F7E2} ' + done + "</span>";
+      if (pend > 0)
+        pips += '<span class="month-pip" style="background:#fef3c7; color:#b45309;">\u{1F7E1} ' + pend + "</span>";
+      if (over > 0)
+        pips += '<span class="month-pip" style="background:#fee2e2; color:#b91c1c;">\u{1F534} ' + over + "</span>";
+      if (isToday) {
+        const st = window.USER_PROFILE_STATE || {};
         if (st.violationCount > 0) {
           pips += '<span class="month-pip" style="background:#fee2e2; color:#b91c1c;">\u2696\uFE0F -' + st.violationCount * 5 + "%</span>";
         }
       }
-      cellsHtml += '<div class="month-day-cell' + (isToday ? " today active" : "") + '" onclick="inspectMonthDate(2026, 10, ' + day + ')" style="' + (isToday ? "border:2px solid #ea580c; background:#fff7ed; box-shadow:0 0 10px rgba(234,88,12,0.25);" : "") + '">  <div class="month-date-row">    <span class="month-date-num"' + (isToday ? ' style="color:#c2410c; font-weight:900;"' : "") + ">" + day + "</span>" + (isToday ? '    <span style="font-size:9px; background:#ea580c; color:#fff; font-weight:800; padding:1px 5px; border-radius:6px;">\u4ECA\u65E5</span>' : '    <span class="month-date-lunar">' + lunar + "</span>") + '  </div>  <div class="month-pips-row" style="margin-top:4px;">' + pips + "</div></div>";
+      cellsHtml += '<div class="month-day-cell' + (isToday ? " today active is-today" : "") + '" onclick="inspectMonthDate(' + year + ", " + (month + 1) + ", " + day + ')">  <div class="month-date-row">    <span class="month-date-num"' + (isToday ? ' style="color:#c2410c; font-weight:900;"' : "") + ">" + day + "</span>" + (isToday ? '    <span style="font-size:9px; background:#ea580c; color:#fff; font-weight:800; padding:1px 5px; border-radius:6px;">\u4ECA\u65E5</span>' : '    <span class="month-date-lunar">' + calLunarText(d) + "</span>") + '  </div>  <div class="month-pips-row" style="margin-top:4px;">' + pips + "</div></div>";
     }
-    cellsHtml += '<div class="month-day-cell other-month" style="opacity:0.4; background:#f8fafc;"><div class="month-date-row"><span class="month-date-num">1</span><span class="month-date-lunar">\u5341\u4E00\u6708</span></div></div>';
+    const trail = rows * 7 - lead - daysInMonth;
+    for (let i = 1; i <= trail; i++) {
+      cellsHtml += otherCell(new Date(year, month + 1, i));
+    }
     grid.innerHTML = weekdayHeaders + cellsHtml;
+    const chips = document.querySelectorAll("#exec-subview-month .month-summary-stat .stat-chip");
+    const total = sumDone + sumPending + sumOverdue;
+    if (chips.length >= 4) {
+      chips[0].textContent = "\u{1F7E2} \u5DF2\u529E: " + sumDone + " \u9879";
+      chips[1].textContent = "\u{1F7E1} \u5F85\u529E: " + sumPending + " \u9879";
+      chips[2].textContent = "\u{1F534} \u672A\u529E: " + sumOverdue + " \u9879";
+      chips[3].textContent = "\u2B50 \u6574\u4F53\u8FBE\u6210\u7387: " + (total > 0 ? Math.round(sumDone / total * 1e3) / 10 + "%" : "--");
+    }
   }
   function inspectMonthDate(year, month, day) {
     const modal = document.getElementById("day-inspector-modal");
     if (!modal)
       return;
+    syncWeekBoardToRealDate();
+    const d = new Date(year, month - 1, day);
+    const key = calDateKey(d);
+    const isToday = key === calDateKey(/* @__PURE__ */ new Date());
+    const recs = getRecordsForDate(key);
     const dateTitle = document.getElementById("inspector-date-title");
     if (dateTitle) {
-      dateTitle.textContent = year + "\u5E74" + month + "\u6708" + day + "\u65E5 " + (day === 31 ? "\u661F\u671F\u516D (\u4ECA\u65E5)" : "\u6210\u957F\u8DB3\u8FF9");
+      dateTitle.textContent = year + "\u5E74" + month + "\u6708" + day + "\u65E5 " + CAL_WEEK_NAMES_LONG[(d.getDay() + 6) % 7] + (isToday ? " (\u4ECA\u65E5)" : "");
     }
     const dateSub = document.getElementById("inspector-date-sub");
     if (dateSub) {
-      dateSub.textContent = "\u91D1\u79CB\u5341\u6708 \xB7 \u6668\u66E6\u5C9B\u5C11\u5E74\u5168\u4EBA\u6210\u957F\u8F68\u8FF9 \xB7 \u6BCF\u65E5\u4E09\u7701\u543E\u8EAB";
+      const lunar = calLunarText(d);
+      dateSub.textContent = (lunar ? "\u519C\u5386 " + lunar + " \xB7 " : "") + "\u5171 " + recs.length + " \u9879\u6210\u957F\u8BB0\u5F55";
     }
-    const listDone = document.getElementById("inspector-list-done");
-    const countDone = document.getElementById("inspector-count-done");
-    const listPending = document.getElementById("inspector-list-pending");
-    const countPending = document.getElementById("inspector-count-pending");
-    const listOverdue = document.getElementById("inspector-list-overdue");
-    const countOverdue = document.getElementById("inspector-count-overdue");
-    if (day === 31) {
-      const todayTasks = WEEK_BOARD_DATA[5] && Array.isArray(WEEK_BOARD_DATA[5].tasks) ? WEEK_BOARD_DATA[5].tasks : [];
-      const doneTasks = todayTasks.filter((t) => t.status === "done");
-      const pendingTasks = todayTasks.filter((t) => t.status === "pending");
-      const overdueTasks = todayTasks.filter((t) => t.status === "overdue");
-      if (countDone)
-        countDone.textContent = doneTasks.length + " \u9879";
-      if (listDone) {
-        listDone.innerHTML = doneTasks.length > 0 ? doneTasks.map((t) => '<div class="inspector-task-item"><span>' + (t.pavilionBadge ? t.pavilionBadge.split(" ")[0] + " " : "\u{1F3EB} ") + t.pavilion + "\uFF1A" + t.title + " (" + t.duration + ')</span><span style="color:#16a34a; font-weight:800; font-size:11px;">\u2713 \u5DF2\u5B8C\u6210</span></div>').join("") : '<div style="color:#94a3b8; font-size:11px; padding:6px 0;">\u4ECA\u65E5\u6682\u65E0\u5DF2\u5B8C\u6210\u4E8B\u9879</div>';
+    const item = (t, color, tag) => '<div class="inspector-task-item"><span>' + (t.pavilionBadge ? t.pavilionBadge.split(" ")[0] + " " : "") + t.pavilion + "\uFF1A" + t.title + (t.duration && t.duration !== "--" ? " (" + t.duration + ")" : "") + '</span><span style="color:' + color + '; font-weight:800; font-size:11px;">' + tag + "</span></div>";
+    const fill = (listId, countId, arr, color, tag, emptyText) => {
+      const listEl = document.getElementById(listId);
+      const countEl = document.getElementById(countId);
+      if (countEl)
+        countEl.textContent = arr.length + " \u9879";
+      if (listEl) {
+        listEl.innerHTML = arr.length > 0 ? arr.map((t) => item(t, color, tag)).join("") : '<div style="color:#94a3b8; font-size:11px; padding:6px 0;">' + emptyText + "</div>";
       }
-      if (countPending)
-        countPending.textContent = pendingTasks.length + " \u9879";
-      if (listPending) {
-        listPending.innerHTML = pendingTasks.length > 0 ? pendingTasks.map((t) => '<div class="inspector-task-item"><span>' + (t.pavilionBadge ? t.pavilionBadge.split(" ")[0] + " " : "\u{1F9E0} ") + t.pavilion + "\uFF1A" + t.title + '</span><span style="color:#d97706; font-weight:800; font-size:11px;">\u{1F7E1} \u5F85\u6253\u5361</span></div>').join("") : '<div style="color:#16a34a; font-size:11px; font-weight:700; padding:6px 0;">\u{1F389} \u4ECA\u65E5\u5F85\u529E\u5DF2\u5168\u90E8\u6E05\u7A7A\u8FBE\u6210\uFF01</div>';
-      }
-      if (countOverdue)
-        countOverdue.textContent = overdueTasks.length + " \u9879";
-      if (listOverdue) {
-        listOverdue.innerHTML = overdueTasks.length > 0 ? overdueTasks.map((t) => '<div class="inspector-task-item"><span>\u{1F534} ' + t.pavilion + "\uFF1A" + t.title + '</span><span style="color:#dc2626; font-weight:800; font-size:11px;">\u672A\u529E\u7F3A\u5361</span></div>').join("") : '<div style="color:#94a3b8; font-size:11px; padding:6px 0;">\u{1F389} \u4ECA\u65E5\u65E0\u8D85\u671F\u672A\u529E\u4E8B\u9879\uFF01</div>';
-      }
-    } else {
-      if (countDone)
-        countDone.textContent = "3 \u9879";
-      if (listDone) {
-        listDone.innerHTML = '<div class="inspector-task-item"><span>\u{1F3EB} \u6821\u53F2\u9986\uFF1A\u5B66\u79D1\u57FA\u7840\u653B\u575A\u4E0E\u9519\u9898\u6E05\u96F6</span><span style="color:#16a34a; font-weight:800; font-size:11px;">\u2713 \u5DF2\u6253\u5361</span></div><div class="inspector-task-item"><span>\u{1FA9E} \u4FEE\u8EAB\u9601\uFF1A\u300A\u5927\u5B66\u300B\u77E5\u6B62\u5B9A\u9759\u6668\u8BFB\u81EA\u7701</span><span style="color:#16a34a; font-weight:800; font-size:11px;">\u2713 \u5DF2\u6253\u5361</span></div><div class="inspector-task-item"><span>\u{1F4B0} \u85CF\u91D1\u5C4B\uFF1A\u96F6\u7528\u91D1\u8BB0\u8D26\u4E0E\u56DB\u7EF4\u7F50\u5206\u6D41</span><span style="color:#16a34a; font-weight:800; font-size:11px;">\u2713 \u5DF2\u6253\u5361</span></div>';
-      }
-      if (countPending)
-        countPending.textContent = "0 \u9879";
-      if (listPending)
-        listPending.innerHTML = '<div style="color:#94a3b8; font-size:11px; padding:6px 0;">\u8BE5\u5386\u53F2\u65E5\u5DF2\u65E0\u5F85\u529E\u4E8B\u9879</div>';
-      if (countOverdue)
-        countOverdue.textContent = "0 \u9879";
-      if (listOverdue)
-        listOverdue.innerHTML = '<div style="color:#94a3b8; font-size:11px; padding:6px 0;">\u8BE5\u65E5\u5168\u90E8\u5B88\u7EA6\u8FBE\u6210\uFF01</div>';
-    }
+    };
+    fill("inspector-list-done", "inspector-count-done", recs.filter((t) => t.status === "done"), "#16a34a", "\u2713 \u5DF2\u5B8C\u6210", "\u6682\u65E0\u5DF2\u5B8C\u6210\u4E8B\u9879");
+    fill("inspector-list-pending", "inspector-count-pending", recs.filter((t) => t.status === "pending"), "#d97706", "\u{1F7E1} \u5F85\u6253\u5361", "\u6682\u65E0\u5F85\u529E\u4E8B\u9879");
+    fill("inspector-list-overdue", "inspector-count-overdue", recs.filter((t) => t.status === "overdue"), "#dc2626", "\u672A\u529E\u7F3A\u5361", "\u6682\u65E0\u7F3A\u5361\u4E8B\u9879");
     modal.style.display = "flex";
   }
   function closeDayInspector() {
@@ -12115,6 +12237,10 @@ function bootPrototypeRuntime() {
     }
   });
   window.addEventListener("DOMContentLoaded", () => {
+    syncWeekBoardToRealDate();
+    const _ps = document.getElementById("input-proj-start");
+    if (_ps && !_ps.value)
+      _ps.value = GANTT_TODAY;
     initIslandSettings();
     initWeatherEngine();
     initCanvasPanZoomAndDrag();
@@ -12146,7 +12272,10 @@ function bootPrototypeRuntime() {
       renderBountyModalAndBillboard();
     switchHomeGlobalView("exec");
   }, 200);
-  const GANTT_TODAY = "2026-10-27";
+  const GANTT_TODAY = function() {
+    const d = /* @__PURE__ */ new Date();
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  }();
   const GANTT_START_DATE = "2026-10-18";
   const GANTT_END_DATE = "2026-11-20";
   const GANTT_DAY_WIDTH = 38;
@@ -12667,7 +12796,7 @@ function bootPrototypeRuntime() {
       window.USER_PROFILE_STATE.totalTodayCount = deck.querySelectorAll(".exec-task-card").length;
     }
     if (typeof WEEK_BOARD_DATA !== "undefined" && Array.isArray(WEEK_BOARD_DATA)) {
-      const todayCol = WEEK_BOARD_DATA.find((d) => d.isToday) || WEEK_BOARD_DATA[5];
+      const todayCol = getTodayWeekCol();
       if (todayCol && Array.isArray(todayCol.tasks)) {
         todayCol.tasks.push({
           id: "w-" + taskId,
@@ -14072,6 +14201,26 @@ function bootPrototypeRuntime() {
     window.nourishBaselineTree = nourishBaselineTree;
   if (typeof addCustomDynamicFieldRow === "function")
     window.addCustomDynamicFieldRow = addCustomDynamicFieldRow;
+  if (typeof calPad2 === "function")
+    window.calPad2 = calPad2;
+  if (typeof calDateKey === "function")
+    window.calDateKey = calDateKey;
+  if (typeof calMondayOf === "function")
+    window.calMondayOf = calMondayOf;
+  if (typeof calIsoWeekNumber === "function")
+    window.calIsoWeekNumber = calIsoWeekNumber;
+  if (typeof calLunarText === "function")
+    window.calLunarText = calLunarText;
+  if (typeof syncWeekBoardToRealDate === "function")
+    window.syncWeekBoardToRealDate = syncWeekBoardToRealDate;
+  if (typeof getTodayWeekCol === "function")
+    window.getTodayWeekCol = getTodayWeekCol;
+  if (typeof updateWeekRangeLabel === "function")
+    window.updateWeekRangeLabel = updateWeekRangeLabel;
+  if (typeof getWeekColsForOffset === "function")
+    window.getWeekColsForOffset = getWeekColsForOffset;
+  if (typeof getRecordsForDate === "function")
+    window.getRecordsForDate = getRecordsForDate;
   if (typeof changeWeek === "function")
     window.changeWeek = changeWeek;
   if (typeof resetToCurrentWeek === "function")
@@ -14084,6 +14233,10 @@ function bootPrototypeRuntime() {
     window.showWeekTaskDetail = showWeekTaskDetail;
   if (typeof closeTaskDetailModal === "function")
     window.closeTaskDetailModal = closeTaskDetailModal;
+  if (typeof getCalendarBaseMonth === "function")
+    window.getCalendarBaseMonth = getCalendarBaseMonth;
+  if (typeof updateMonthTitleLabel === "function")
+    window.updateMonthTitleLabel = updateMonthTitleLabel;
   if (typeof changeMonth === "function")
     window.changeMonth = changeMonth;
   if (typeof resetToCurrentMonth === "function")

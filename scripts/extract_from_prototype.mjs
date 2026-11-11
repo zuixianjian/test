@@ -159,58 +159,13 @@ body.youth-island-tablet-fullscreen .titlebar {
   box-sizing: border-box;
 }
 
-/* 1. 小岛底部发射台按键几何尺寸与布局强制锁定 */
+/* 1. 小岛底部发射台按键：自适应等分，保证不超出屏幕 (尺寸细节见原型补丁 CSS) */
 .youth-island-plugin-root .a-my-island-plugin-launcher-button,
 .youth-island-obsidian-view-root .a-my-island-plugin-launcher-button {
   display: grid !important;
-  flex: 0 0 68px !important;
-  width: 68px !important;
-  min-width: 68px !important;
-  max-width: 68px !important;
-  height: 66px !important;
-  min-height: 66px !important;
-  max-height: 66px !important;
-  grid-template-rows: 36px 16px !important;
+  box-sizing: border-box !important;
   place-items: center !important;
   align-content: center !important;
-  gap: 3px !important;
-  padding: 6px 6px 5px !important;
-  box-sizing: border-box !important;
-  flex-shrink: 0 !important;
-}
-
-.youth-island-plugin-root .a-my-island-plugin-launcher-icon,
-.youth-island-obsidian-view-root .a-my-island-plugin-launcher-icon {
-  display: grid !important;
-  width: 34px !important;
-  height: 34px !important;
-  place-items: center !important;
-  font-size: 24px !important;
-  line-height: 1 !important;
-  flex-shrink: 0 !important;
-}
-
-.youth-island-plugin-root .a-my-island-plugin-launcher-icon > svg,
-.youth-island-obsidian-view-root .a-my-island-plugin-launcher-icon > svg {
-  display: block !important;
-  width: 32px !important;
-  height: 32px !important;
-  flex-shrink: 0 !important;
-}
-
-.youth-island-plugin-root .a-my-island-plugin-launcher-label,
-.youth-island-obsidian-view-root .a-my-island-plugin-launcher-label {
-  display: block !important;
-  max-width: 58px !important;
-  overflow: hidden !important;
-  color: #60401f !important;
-  font-size: 11px !important;
-  font-weight: 850 !important;
-  line-height: 1.15 !important;
-  text-align: center !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-  flex-shrink: 0 !important;
 }
 
 /* 2. 顶栏操作工具键防变形 */

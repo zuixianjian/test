@@ -121,6 +121,9 @@ export class VaultStorageAdapter {
       if (Array.isArray(appSnapshot.WEEK_BOARD_DATA) && Array.isArray(win.WEEK_BOARD_DATA)) {
         win.WEEK_BOARD_DATA.splice(0, win.WEEK_BOARD_DATA.length, ...appSnapshot.WEEK_BOARD_DATA);
       }
+      if (appSnapshot.TASK_HISTORY_BY_DATE && typeof appSnapshot.TASK_HISTORY_BY_DATE === "object") {
+        win.TASK_HISTORY_BY_DATE = appSnapshot.TASK_HISTORY_BY_DATE;
+      }
       if (appSnapshot.TREASURY_STATE && win.TREASURY_STATE) {
         Object.assign(win.TREASURY_STATE, appSnapshot.TREASURY_STATE);
       }
@@ -372,6 +375,7 @@ export class VaultStorageAdapter {
       PROJECT_CANVAS_STORE: win.PROJECT_CANVAS_STORE || null,
       PAVILION_META: win.PAVILION_META || null,
       WEEK_BOARD_DATA: win.WEEK_BOARD_DATA || null,
+      TASK_HISTORY_BY_DATE: win.TASK_HISTORY_BY_DATE || null,
       TREASURY_STATE: win.TREASURY_STATE || null,
       ACHIEVEMENT_STATE: win.ACHIEVEMENT_STATE || null,
       NOTE_STATE: win.NOTE_STATE || null,

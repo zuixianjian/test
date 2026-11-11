@@ -2576,7 +2576,7 @@ function triggerGlobalCheckinClosedLoop(opts) {
 
   // 2. 回写周视图与月历视图状态气泡 (确保使用 'done' 状态，杜绝错标为 'completed' 导致显示缺卡)
   if (typeof WEEK_BOARD_DATA !== 'undefined' && Array.isArray(WEEK_BOARD_DATA)) {
-    const todayCol = WEEK_BOARD_DATA.find(d => d.isToday) || WEEK_BOARD_DATA[5];
+    const todayCol = getTodayWeekCol();
     if (todayCol && Array.isArray(todayCol.tasks)) {
       const pName = (typeof PAVILION_META !== 'undefined' && PAVILION_META[pavilionId] && PAVILION_META[pavilionId].name) ? PAVILION_META[pavilionId].name : '';
       const pendingTask = todayCol.tasks.find(t => t.status === 'pending' && (t.title === title || (pName && t.pavilion.includes(pName.slice(0, 2))))) ||
@@ -6116,6 +6116,8 @@ function switchExecSubView(view) {
   if (goalDock) {
     goalDock.style.display = (view === 'day') ? '' : 'none';
   }
+  const execCenterEl = document.getElementById('island-execution-center');
+  if (execCenterEl) execCenterEl.classList.toggle('is-fullview', view !== 'day');
   ['day', 'week', 'month'].forEach(v => {
     const btn = document.getElementById('btn-exec-' + v);
     const pane = document.getElementById('exec-subview-' + v);
@@ -6327,42 +6329,169 @@ function addCustomDynamicFieldRow(containerId) {
   showIslandToast('➕ 已新增自定义动态业务字段行');
 }
 
-// 2. 周看板全局状态与控制器
+// 2. 周看板全局状态与控制器 (按真实系统日期驱动，不再含任何写死日期)
 window.currentWeekOffset = 0;
 window.currentWeekFilter = 'all';
+window.TASK_HISTORY_BY_DATE = window.TASK_HISTORY_BY_DATE || {};
 
 const WEEK_BOARD_DATA = [
-  { dayIndex: 0, dayName: '周一', dateStr: '10/26', tasks: [] },
-  { dayIndex: 1, dayName: '周二', dateStr: '10/27', tasks: [] },
-  { dayIndex: 2, dayName: '周三', dateStr: '10/28', tasks: [] },
-  { dayIndex: 3, dayName: '周四', dateStr: '10/29', tasks: [] },
-  { dayIndex: 4, dayName: '周五', dateStr: '10/30', tasks: [] },
-  { dayIndex: 5, dayName: '周六 (今日)', dateStr: '10/31', isToday: true, tasks: [] },
-  { dayIndex: 6, dayName: '周日', dateStr: '11/01', tasks: [] }
+  { dayIndex: 0, dayName: '周一', dateStr: '', tasks: [] },
+  { dayIndex: 1, dayName: '周二', dateStr: '', tasks: [] },
+  { dayIndex: 2, dayName: '周三', dateStr: '', tasks: [] },
+  { dayIndex: 3, dayName: '周四', dateStr: '', tasks: [] },
+  { dayIndex: 4, dayName: '周五', dateStr: '', tasks: [] },
+  { dayIndex: 5, dayName: '周六', dateStr: '', tasks: [] },
+  { dayIndex: 6, dayName: '周日', dateStr: '', tasks: [] }
 ];
+
+const CAL_WEEK_NAMES = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+const CAL_WEEK_NAMES_LONG = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日'];
+
+function calPad2(n) { return String(n).padStart(2, '0'); }
+
+function calDateKey(d) {
+  return d.getFullYear() + '-' + calPad2(d.getMonth() + 1) + '-' + calPad2(d.getDate());
+}
+
+function calMondayOf(d) {
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+  return x;
+}
+
+function calIsoWeekNumber(d) {
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate() + 4 - day);
+  const y0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  return Math.ceil(((t - y0) / 86400000 + 1) / 7);
+}
+
+function calLunarText(d) {
+  try {
+    const fmt = new Intl.DateTimeFormat('zh-u-ca-chinese', { month: 'long', day: 'numeric' });
+    const s = fmt.format(d);
+    const m = s.match(/^(.*月)(.+)$/);
+    if (!m) return s;
+    return m[2] === '初一' ? m[1] : m[2];
+  } catch (e) {
+    return '';
+  }
+}
+
+// 将 WEEK_BOARD_DATA 对齐到系统真实“本周”，跨周/跨日自动归档历史并把未完成转为缺卡
+function syncWeekBoardToRealDate() {
+  window.TASK_HISTORY_BY_DATE = window.TASK_HISTORY_BY_DATE || {};
+  const now = new Date();
+  const todayKey = calDateKey(now);
+  const monday = calMondayOf(now);
+  let legacyTasks = [];
+
+  WEEK_BOARD_DATA.forEach((col, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const key = calDateKey(d);
+    if (!Array.isArray(col.tasks)) col.tasks = [];
+    if (!col.dateKey) {
+      // 旧版快照没有日期信息：统一并入今日，避免丢失用户真实任务
+      if (col.tasks.length) legacyTasks = legacyTasks.concat(col.tasks);
+      col.tasks = [];
+    } else if (col.dateKey !== key) {
+      if (col.tasks.length) {
+        const archived = col.tasks.map(t => Object.assign({}, t, { status: t.status === 'pending' ? 'overdue' : t.status }));
+        window.TASK_HISTORY_BY_DATE[col.dateKey] = (window.TASK_HISTORY_BY_DATE[col.dateKey] || []).concat(archived);
+      }
+      col.tasks = [];
+    }
+    col.dateKey = key;
+    col.dayIndex = i;
+    col.dateStr = calPad2(d.getMonth() + 1) + '/' + calPad2(d.getDate());
+    col.isToday = (key === todayKey);
+    col.dayName = CAL_WEEK_NAMES[i] + (col.isToday ? ' (今日)' : '');
+  });
+
+  if (legacyTasks.length) {
+    const todayCol = WEEK_BOARD_DATA.find(c => c.isToday);
+    if (todayCol) todayCol.tasks = todayCol.tasks.concat(legacyTasks);
+  }
+}
+
+function getTodayWeekCol() {
+  syncWeekBoardToRealDate();
+  return WEEK_BOARD_DATA.find(c => c.isToday) || WEEK_BOARD_DATA[(new Date().getDay() + 6) % 7];
+}
+
+function updateWeekRangeLabel() {
+  const label = document.querySelector('.week-range-text');
+  if (!label) return;
+  const monday = calMondayOf(new Date());
+  monday.setDate(monday.getDate() + window.currentWeekOffset * 7);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  const tag = window.currentWeekOffset === 0 ? '' : (window.currentWeekOffset > 0 ? ' · 未来周' : ' · 历史周');
+  label.textContent = monday.getFullYear() + '年第' + calIsoWeekNumber(monday) + '周 (' +
+    (monday.getMonth() + 1) + '月' + calPad2(monday.getDate()) + '日 - ' +
+    (sunday.getMonth() + 1) + '月' + calPad2(sunday.getDate()) + '日)' + tag;
+}
+
+function getWeekColsForOffset(offset) {
+  syncWeekBoardToRealDate();
+  if (offset === 0) return WEEK_BOARD_DATA;
+  const monday = calMondayOf(new Date());
+  monday.setDate(monday.getDate() + offset * 7);
+  const cols = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const key = calDateKey(d);
+    cols.push({
+      dayIndex: i,
+      dayName: CAL_WEEK_NAMES[i],
+      dateStr: calPad2(d.getMonth() + 1) + '/' + calPad2(d.getDate()),
+      dateKey: key,
+      isToday: false,
+      tasks: getRecordsForDate(key)
+    });
+  }
+  return cols;
+}
+
+// 某一天的全部记录：本周数据 / 历史归档 / 甘特项目达标打卡
+function getRecordsForDate(key) {
+  const col = WEEK_BOARD_DATA.find(c => c.dateKey === key);
+  let tasks = col ? (col.tasks || []) : ((window.TASK_HISTORY_BY_DATE || {})[key] || []);
+  if (tasks.length > 0) return tasks;
+  const derived = [];
+  (window.GANTT_PROJECTS || []).forEach(p => {
+    if (Array.isArray(p.completedDays) && p.completedDays.includes(key)) {
+      const meta = (typeof PAVILION_META !== 'undefined' && PAVILION_META[p.pavilion]) ? PAVILION_META[p.pavilion] : { name: p.category || '规划馆', icon: '🎯' };
+      derived.push({
+        id: 'g-' + p.id + '-' + key,
+        pavilion: meta.name || '规划馆',
+        pavilionBadge: (meta.icon || '🎯') + ' ' + (meta.name || '规划馆'),
+        title: '《' + p.title + '》达标打卡',
+        status: 'done',
+        duration: '--',
+        time: key,
+        instruction: p.desc || '',
+        evidence: '✓ 项目甘特达标记录',
+        reflection: ''
+      });
+    }
+  });
+  return derived;
+}
 
 function changeWeek(delta) {
   window.currentWeekOffset += delta;
-  const weekLabel = document.querySelector('.week-range-text');
-  if (weekLabel) {
-    if (window.currentWeekOffset === 0) {
-      weekLabel.textContent = '2026年第43周 (10月26日 - 11月01日)';
-    } else if (window.currentWeekOffset > 0) {
-      weekLabel.textContent = '2026年第' + (43 + window.currentWeekOffset) + '周 (未来规划周)';
-    } else {
-      weekLabel.textContent = '2026年第' + (43 + window.currentWeekOffset) + '周 (历史归档周)';
-    }
-  }
+  updateWeekRangeLabel();
   renderWeekBoard(window.currentWeekFilter);
   showIslandToast(window.currentWeekOffset === 0 ? '📅 已切换至本周看板' : (delta > 0 ? '⏩ 已切换至下一周看板' : '⏪ 已切换至上一周看板'));
 }
 
 function resetToCurrentWeek() {
   window.currentWeekOffset = 0;
-  const weekLabel = document.querySelector('.week-range-text');
-  if (weekLabel) {
-    weekLabel.textContent = '2026年第43周 (10月26日 - 11月01日)';
-  }
+  updateWeekRangeLabel();
   renderWeekBoard(window.currentWeekFilter);
   showIslandToast('📅 已回到本周任务全景看板！');
 }
@@ -6381,10 +6510,12 @@ function renderWeekBoard(filter) {
   if (!container) return;
 
   filter = filter || window.currentWeekFilter || 'all';
+  const weekCols = getWeekColsForOffset(window.currentWeekOffset || 0);
+  updateWeekRangeLabel();
 
   // 动态统计全周各状态数量并同步刷新顶部筛选标签
   let totalAll = 0, totalDone = 0, totalPending = 0, totalOverdue = 0;
-  WEEK_BOARD_DATA.forEach(col => {
+  weekCols.forEach(col => {
     (col.tasks || []).forEach(t => {
       totalAll++;
       if (t.status === 'done') totalDone++;
@@ -6401,8 +6532,8 @@ function renderWeekBoard(filter) {
   });
 
   let html = '';
-  WEEK_BOARD_DATA.forEach((col, idx) => {
-    const isToday = (idx === 5 && window.currentWeekOffset === 0);
+  weekCols.forEach((col, idx) => {
+    const isToday = !!col.isToday;
     const filteredTasks = col.tasks.filter(t => {
       if (filter === 'all') return true;
       if (filter === 'pending') return t.status === 'pending';
@@ -6545,31 +6676,31 @@ function closeTaskDetailModal() {
   if (modal) modal.style.display = 'none';
 }
 
-// 4. 月日历全局状态与控制器
+// 4. 月日历全局状态与控制器 (按真实系统日期动态生成)
 window.currentMonthOffset = 0;
+
+function getCalendarBaseMonth() {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth() + (window.currentMonthOffset || 0), 1);
+}
+
+function updateMonthTitleLabel() {
+  const label = document.getElementById('month-title-label');
+  if (!label) return;
+  const base = getCalendarBaseMonth();
+  label.textContent = base.getFullYear() + ' 年 ' + (base.getMonth() + 1) + ' 月';
+}
 
 function changeMonth(delta) {
   window.currentMonthOffset += delta;
-  const label = document.getElementById('month-title-label');
-  if (label) {
-    if (window.currentMonthOffset === 0) {
-      label.textContent = '2026 年 10 月';
-    } else if (window.currentMonthOffset === 1) {
-      label.textContent = '2026 年 11 月';
-    } else if (window.currentMonthOffset === -1) {
-      label.textContent = '2026 年 9 月';
-    } else {
-      label.textContent = (2026 + Math.floor((9 + window.currentMonthOffset) / 12)) + ' 年 ' + (((9 + window.currentMonthOffset) % 12 + 12) % 12 + 1) + ' 月';
-    }
-  }
+  updateMonthTitleLabel();
   renderMonthCalendar();
   showIslandToast(delta > 0 ? '下个月月历足迹' : '上个月月历足迹');
 }
 
 function resetToCurrentMonth() {
   window.currentMonthOffset = 0;
-  const label = document.getElementById('month-title-label');
-  if (label) label.textContent = '2026 年 10 月';
+  updateMonthTitleLabel();
   renderMonthCalendar();
   showIslandToast('📅 已回到本月足迹矩阵！');
 }
@@ -6577,128 +6708,128 @@ function resetToCurrentMonth() {
 function renderMonthCalendar() {
   const grid = document.getElementById('month-calendar-grid');
   if (!grid) return;
+  syncWeekBoardToRealDate();
+  updateMonthTitleLabel();
 
-  // 保留星期表头
-  const weekdayHeaders = 
-    '<div class="cal-weekday-header">一</div>' +
-    '<div class="cal-weekday-header">二</div>' +
-    '<div class="cal-weekday-header">三</div>' +
-    '<div class="cal-weekday-header">四</div>' +
+  const base = getCalendarBaseMonth();
+  const year = base.getFullYear();
+  const month = base.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const lead = (base.getDay() + 6) % 7;
+  const rows = Math.ceil((lead + daysInMonth) / 7);
+  const todayKey = calDateKey(new Date());
+
+  grid.style.gridTemplateRows = '28px repeat(' + rows + ', minmax(0, 1fr))';
+
+  const weekdayHeaders =
+    '<div class="cal-weekday-header">一</div><div class="cal-weekday-header">二</div>' +
+    '<div class="cal-weekday-header">三</div><div class="cal-weekday-header">四</div>' +
     '<div class="cal-weekday-header">五</div>' +
-    '<div class="cal-weekday-header weekend">六</div>' +
-    '<div class="cal-weekday-header weekend">日</div>';
+    '<div class="cal-weekday-header weekend">六</div><div class="cal-weekday-header weekend">日</div>';
 
-  // 2026年10月1日为星期四，前面有3天空白（周一二三：9/28, 9/29, 9/30）
   let cellsHtml = '';
+  let sumDone = 0, sumPending = 0, sumOverdue = 0;
 
-  // 占位天 (9月最后3天)
-  cellsHtml += '<div class="month-day-cell other-month" style="opacity:0.4; background:#f8fafc;"><div class="month-date-row"><span class="month-date-num">28</span><span class="month-date-lunar">九月</span></div></div>';
-  cellsHtml += '<div class="month-day-cell other-month" style="opacity:0.4; background:#f8fafc;"><div class="month-date-row"><span class="month-date-num">29</span><span class="month-date-lunar">廿八</span></div></div>';
-  cellsHtml += '<div class="month-day-cell other-month" style="opacity:0.4; background:#f8fafc;"><div class="month-date-row"><span class="month-date-num">30</span><span class="month-date-lunar">廿九</span></div></div>';
+  const otherCell = (d) =>
+    '<div class="month-day-cell other-month" style="opacity:0.4; background:#f8fafc; pointer-events:none;">' +
+    '<div class="month-date-row"><span class="month-date-num">' + d.getDate() + '</span>' +
+    '<span class="month-date-lunar">' + calLunarText(d) + '</span></div></div>';
 
-  const lunarTerms = {
-    1: '国庆', 8: '寒露', 15: '望日', 23: '霜降', 31: '万圣'
-  };
+  for (let i = lead; i > 0; i--) {
+    cellsHtml += otherCell(new Date(year, month, 1 - i));
+  }
 
-  for (let day = 1; day <= 31; day++) {
-    const isToday = (day === 31 && window.currentMonthOffset === 0);
-    const lunar = lunarTerms[day] || (day < 10 ? '初' + day : (day < 20 ? '十' + (day - 10) : (day === 20 ? '二十' : '廿' + (day - 20))));
-    
-    // 渲染红黄绿状态气泡
+  for (let day = 1; day <= daysInMonth; day++) {
+    const d = new Date(year, month, day);
+    const key = calDateKey(d);
+    const isToday = (key === todayKey);
+    const recs = getRecordsForDate(key);
+    const done = recs.filter(t => t.status === 'done').length;
+    const pend = recs.filter(t => t.status === 'pending').length;
+    const over = recs.filter(t => t.status === 'overdue').length;
+    sumDone += done; sumPending += pend; sumOverdue += over;
+
     let pips = '';
-    if (day <= 30) {
-      pips = '<span class="month-pip" style="background:#dcfce7; color:#15803d;">🟢 ' + (2 + (day % 3)) + '</span>';
-      if (day % 7 === 3) {
-        pips += '<span class="month-pip" style="background:#fee2e2; color:#b91c1c;">🔴 1</span>';
-      }
-    } else if (day === 31) {
-      const st = window.USER_PROFILE_STATE || { completedTodayCount: 2, totalTodayCount: 5, violationCount: 0 };
-      const doneC = st.completedTodayCount || 2;
-      const pendC = Math.max(0, (st.totalTodayCount || 5) - doneC);
-      pips = '<span class="month-pip" style="background:#dcfce7; color:#15803d;">🟢 ' + doneC + '</span>';
-      if (pendC > 0) {
-        pips += '<span class="month-pip" style="background:#fef3c7; color:#b45309;">🟡 ' + pendC + '</span>';
-      }
+    if (done > 0) pips += '<span class="month-pip" style="background:#dcfce7; color:#15803d;">🟢 ' + done + '</span>';
+    if (pend > 0) pips += '<span class="month-pip" style="background:#fef3c7; color:#b45309;">🟡 ' + pend + '</span>';
+    if (over > 0) pips += '<span class="month-pip" style="background:#fee2e2; color:#b91c1c;">🔴 ' + over + '</span>';
+    if (isToday) {
+      const st = window.USER_PROFILE_STATE || {};
       if (st.violationCount > 0) {
         pips += '<span class="month-pip" style="background:#fee2e2; color:#b91c1c;">⚖️ -' + (st.violationCount * 5) + '%</span>';
       }
     }
 
-    cellsHtml += 
-      '<div class="month-day-cell' + (isToday ? ' today active' : '') + '" onclick="inspectMonthDate(2026, 10, ' + day + ')" style="' + (isToday ? 'border:2px solid #ea580c; background:#fff7ed; box-shadow:0 0 10px rgba(234,88,12,0.25);' : '') + '">' +
+    cellsHtml +=
+      '<div class="month-day-cell' + (isToday ? ' today active is-today' : '') + '" onclick="inspectMonthDate(' + year + ', ' + (month + 1) + ', ' + day + ')">' +
       '  <div class="month-date-row">' +
       '    <span class="month-date-num"' + (isToday ? ' style="color:#c2410c; font-weight:900;"' : '') + '>' + day + '</span>' +
-      (isToday ? '    <span style="font-size:9px; background:#ea580c; color:#fff; font-weight:800; padding:1px 5px; border-radius:6px;">今日</span>' : '    <span class="month-date-lunar">' + lunar + '</span>') +
+      (isToday
+        ? '    <span style="font-size:9px; background:#ea580c; color:#fff; font-weight:800; padding:1px 5px; border-radius:6px;">今日</span>'
+        : '    <span class="month-date-lunar">' + calLunarText(d) + '</span>') +
       '  </div>' +
       '  <div class="month-pips-row" style="margin-top:4px;">' + pips + '</div>' +
       '</div>';
   }
 
-  // 补齐 11 月前几天以铺满 35/42 格 (10/31 是周六，还差周日 11/1)
-  cellsHtml += '<div class="month-day-cell other-month" style="opacity:0.4; background:#f8fafc;"><div class="month-date-row"><span class="month-date-num">1</span><span class="month-date-lunar">十一月</span></div></div>';
+  const trail = rows * 7 - lead - daysInMonth;
+  for (let i = 1; i <= trail; i++) {
+    cellsHtml += otherCell(new Date(year, month + 1, i));
+  }
 
   grid.innerHTML = weekdayHeaders + cellsHtml;
+
+  // 同步月度汇总条 (真实统计)
+  const chips = document.querySelectorAll('#exec-subview-month .month-summary-stat .stat-chip');
+  const total = sumDone + sumPending + sumOverdue;
+  if (chips.length >= 4) {
+    chips[0].textContent = '🟢 已办: ' + sumDone + ' 项';
+    chips[1].textContent = '🟡 待办: ' + sumPending + ' 项';
+    chips[2].textContent = '🔴 未办: ' + sumOverdue + ' 项';
+    chips[3].textContent = '⭐ 整体达成率: ' + (total > 0 ? (Math.round(sumDone / total * 1000) / 10) + '%' : '--');
+  }
 }
 
-// 5. 单日全息清单弹窗 (Day Inspector)
+// 5. 单日全息清单弹窗 (Day Inspector) —— 仅展示真实记录，无任何演示数据
 function inspectMonthDate(year, month, day) {
   const modal = document.getElementById('day-inspector-modal');
   if (!modal) return;
+  syncWeekBoardToRealDate();
+
+  const d = new Date(year, month - 1, day);
+  const key = calDateKey(d);
+  const isToday = key === calDateKey(new Date());
+  const recs = getRecordsForDate(key);
 
   const dateTitle = document.getElementById('inspector-date-title');
   if (dateTitle) {
-    dateTitle.textContent = year + '年' + month + '月' + day + '日 ' + (day === 31 ? '星期六 (今日)' : '成长足迹');
+    dateTitle.textContent = year + '年' + month + '月' + day + '日 ' + CAL_WEEK_NAMES_LONG[(d.getDay() + 6) % 7] + (isToday ? ' (今日)' : '');
   }
-
   const dateSub = document.getElementById('inspector-date-sub');
   if (dateSub) {
-    dateSub.textContent = '金秋十月 · 晨曦岛少年全人成长轨迹 · 每日三省吾身';
+    const lunar = calLunarText(d);
+    dateSub.textContent = (lunar ? '农历 ' + lunar + ' · ' : '') + '共 ' + recs.length + ' 项成长记录';
   }
 
-  const listDone = document.getElementById('inspector-list-done');
-  const countDone = document.getElementById('inspector-count-done');
-  const listPending = document.getElementById('inspector-list-pending');
-  const countPending = document.getElementById('inspector-count-pending');
-  const listOverdue = document.getElementById('inspector-list-overdue');
-  const countOverdue = document.getElementById('inspector-count-overdue');
+  const item = (t, color, tag) =>
+    '<div class="inspector-task-item"><span>' + (t.pavilionBadge ? t.pavilionBadge.split(' ')[0] + ' ' : '') + t.pavilion + '：' + t.title +
+    (t.duration && t.duration !== '--' ? ' (' + t.duration + ')' : '') +
+    '</span><span style="color:' + color + '; font-weight:800; font-size:11px;">' + tag + '</span></div>';
 
-  if (day === 31) {
-    const todayTasks = (WEEK_BOARD_DATA[5] && Array.isArray(WEEK_BOARD_DATA[5].tasks)) ? WEEK_BOARD_DATA[5].tasks : [];
-    const doneTasks = todayTasks.filter(t => t.status === 'done');
-    const pendingTasks = todayTasks.filter(t => t.status === 'pending');
-    const overdueTasks = todayTasks.filter(t => t.status === 'overdue');
+  const fill = (listId, countId, arr, color, tag, emptyText) => {
+    const listEl = document.getElementById(listId);
+    const countEl = document.getElementById(countId);
+    if (countEl) countEl.textContent = arr.length + ' 项';
+    if (listEl) {
+      listEl.innerHTML = arr.length > 0
+        ? arr.map(t => item(t, color, tag)).join('')
+        : '<div style="color:#94a3b8; font-size:11px; padding:6px 0;">' + emptyText + '</div>';
+    }
+  };
 
-    if (countDone) countDone.textContent = doneTasks.length + ' 项';
-    if (listDone) {
-      listDone.innerHTML = doneTasks.length > 0
-        ? doneTasks.map(t => '<div class="inspector-task-item"><span>' + (t.pavilionBadge ? t.pavilionBadge.split(' ')[0] + ' ' : '🏫 ') + t.pavilion + '：' + t.title + ' (' + t.duration + ')</span><span style="color:#16a34a; font-weight:800; font-size:11px;">✓ 已完成</span></div>').join('')
-        : '<div style="color:#94a3b8; font-size:11px; padding:6px 0;">今日暂无已完成事项</div>';
-    }
-    if (countPending) countPending.textContent = pendingTasks.length + ' 项';
-    if (listPending) {
-      listPending.innerHTML = pendingTasks.length > 0
-        ? pendingTasks.map(t => '<div class="inspector-task-item"><span>' + (t.pavilionBadge ? t.pavilionBadge.split(' ')[0] + ' ' : '🧠 ') + t.pavilion + '：' + t.title + '</span><span style="color:#d97706; font-weight:800; font-size:11px;">🟡 待打卡</span></div>').join('')
-        : '<div style="color:#16a34a; font-size:11px; font-weight:700; padding:6px 0;">🎉 今日待办已全部清空达成！</div>';
-    }
-    if (countOverdue) countOverdue.textContent = overdueTasks.length + ' 项';
-    if (listOverdue) {
-      listOverdue.innerHTML = overdueTasks.length > 0
-        ? overdueTasks.map(t => '<div class="inspector-task-item"><span>🔴 ' + t.pavilion + '：' + t.title + '</span><span style="color:#dc2626; font-weight:800; font-size:11px;">未办缺卡</span></div>').join('')
-        : '<div style="color:#94a3b8; font-size:11px; padding:6px 0;">🎉 今日无超期未办事项！</div>';
-    }
-  } else {
-    if (countDone) countDone.textContent = '3 项';
-    if (listDone) {
-      listDone.innerHTML = 
-        '<div class="inspector-task-item"><span>🏫 校史馆：学科基础攻坚与错题清零</span><span style="color:#16a34a; font-weight:800; font-size:11px;">✓ 已打卡</span></div>' +
-        '<div class="inspector-task-item"><span>🪞 修身阁：《大学》知止定静晨读自省</span><span style="color:#16a34a; font-weight:800; font-size:11px;">✓ 已打卡</span></div>' +
-        '<div class="inspector-task-item"><span>💰 藏金屋：零用金记账与四维罐分流</span><span style="color:#16a34a; font-weight:800; font-size:11px;">✓ 已打卡</span></div>';
-    }
-    if (countPending) countPending.textContent = '0 项';
-    if (listPending) listPending.innerHTML = '<div style="color:#94a3b8; font-size:11px; padding:6px 0;">该历史日已无待办事项</div>';
-    if (countOverdue) countOverdue.textContent = '0 项';
-    if (listOverdue) listOverdue.innerHTML = '<div style="color:#94a3b8; font-size:11px; padding:6px 0;">该日全部守约达成！</div>';
-  }
+  fill('inspector-list-done', 'inspector-count-done', recs.filter(t => t.status === 'done'), '#16a34a', '✓ 已完成', '暂无已完成事项');
+  fill('inspector-list-pending', 'inspector-count-pending', recs.filter(t => t.status === 'pending'), '#d97706', '🟡 待打卡', '暂无待办事项');
+  fill('inspector-list-overdue', 'inspector-count-overdue', recs.filter(t => t.status === 'overdue'), '#dc2626', '未办缺卡', '暂无缺卡事项');
 
   modal.style.display = 'flex';
 }
@@ -8935,6 +9066,9 @@ window.addEventListener('keydown', (e) => {
 
 // 初始化启动
 window.addEventListener('DOMContentLoaded', () => {
+  syncWeekBoardToRealDate();
+  const _ps = document.getElementById('input-proj-start');
+  if (_ps && !_ps.value) _ps.value = GANTT_TODAY;
   initIslandSettings();
   initWeatherEngine();
   initCanvasPanZoomAndDrag();
@@ -8976,7 +9110,10 @@ setTimeout(() => {
 // ==========================================================================
 // 通用二级节点项目甘特图控制中心 (Universal Secondary Workspace Gantt Controller)
 // ==========================================================================
-const GANTT_TODAY = '2026-10-27';
+const GANTT_TODAY = (function () {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+})();
 const GANTT_START_DATE = '2026-10-18';
 const GANTT_END_DATE = '2026-11-20';
 const GANTT_DAY_WIDTH = 38;
@@ -9613,7 +9750,7 @@ function syncNewNodeToHomeExecution(taskCfg) {
     window.USER_PROFILE_STATE.totalTodayCount = deck.querySelectorAll('.exec-task-card').length;
   }
   if (typeof WEEK_BOARD_DATA !== 'undefined' && Array.isArray(WEEK_BOARD_DATA)) {
-    const todayCol = WEEK_BOARD_DATA.find(d => d.isToday) || WEEK_BOARD_DATA[5];
+    const todayCol = getTodayWeekCol();
     if (todayCol && Array.isArray(todayCol.tasks)) {
       todayCol.tasks.push({
         id: 'w-' + taskId,
@@ -11036,12 +11173,24 @@ function recordTreeTestDemo() {
   if (typeof openQuickNoteModal === "function") (window as any).openQuickNoteModal = openQuickNoteModal;
   if (typeof nourishBaselineTree === "function") (window as any).nourishBaselineTree = nourishBaselineTree;
   if (typeof addCustomDynamicFieldRow === "function") (window as any).addCustomDynamicFieldRow = addCustomDynamicFieldRow;
+  if (typeof calPad2 === "function") (window as any).calPad2 = calPad2;
+  if (typeof calDateKey === "function") (window as any).calDateKey = calDateKey;
+  if (typeof calMondayOf === "function") (window as any).calMondayOf = calMondayOf;
+  if (typeof calIsoWeekNumber === "function") (window as any).calIsoWeekNumber = calIsoWeekNumber;
+  if (typeof calLunarText === "function") (window as any).calLunarText = calLunarText;
+  if (typeof syncWeekBoardToRealDate === "function") (window as any).syncWeekBoardToRealDate = syncWeekBoardToRealDate;
+  if (typeof getTodayWeekCol === "function") (window as any).getTodayWeekCol = getTodayWeekCol;
+  if (typeof updateWeekRangeLabel === "function") (window as any).updateWeekRangeLabel = updateWeekRangeLabel;
+  if (typeof getWeekColsForOffset === "function") (window as any).getWeekColsForOffset = getWeekColsForOffset;
+  if (typeof getRecordsForDate === "function") (window as any).getRecordsForDate = getRecordsForDate;
   if (typeof changeWeek === "function") (window as any).changeWeek = changeWeek;
   if (typeof resetToCurrentWeek === "function") (window as any).resetToCurrentWeek = resetToCurrentWeek;
   if (typeof filterWeekTasks === "function") (window as any).filterWeekTasks = filterWeekTasks;
   if (typeof renderWeekBoard === "function") (window as any).renderWeekBoard = renderWeekBoard;
   if (typeof showWeekTaskDetail === "function") (window as any).showWeekTaskDetail = showWeekTaskDetail;
   if (typeof closeTaskDetailModal === "function") (window as any).closeTaskDetailModal = closeTaskDetailModal;
+  if (typeof getCalendarBaseMonth === "function") (window as any).getCalendarBaseMonth = getCalendarBaseMonth;
+  if (typeof updateMonthTitleLabel === "function") (window as any).updateMonthTitleLabel = updateMonthTitleLabel;
   if (typeof changeMonth === "function") (window as any).changeMonth = changeMonth;
   if (typeof resetToCurrentMonth === "function") (window as any).resetToCurrentMonth = resetToCurrentMonth;
   if (typeof renderMonthCalendar === "function") (window as any).renderMonthCalendar = renderMonthCalendar;

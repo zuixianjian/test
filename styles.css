@@ -109,58 +109,13 @@ body.youth-island-tablet-fullscreen .titlebar {
   box-sizing: border-box;
 }
 
-/* 1. 小岛底部发射台按键几何尺寸与布局强制锁定 */
+/* 1. 小岛底部发射台按键：自适应等分，保证不超出屏幕 (尺寸细节见原型补丁 CSS) */
 .youth-island-plugin-root .a-my-island-plugin-launcher-button,
 .youth-island-obsidian-view-root .a-my-island-plugin-launcher-button {
   display: grid !important;
-  flex: 0 0 68px !important;
-  width: 68px !important;
-  min-width: 68px !important;
-  max-width: 68px !important;
-  height: 66px !important;
-  min-height: 66px !important;
-  max-height: 66px !important;
-  grid-template-rows: 36px 16px !important;
+  box-sizing: border-box !important;
   place-items: center !important;
   align-content: center !important;
-  gap: 3px !important;
-  padding: 6px 6px 5px !important;
-  box-sizing: border-box !important;
-  flex-shrink: 0 !important;
-}
-
-.youth-island-plugin-root .a-my-island-plugin-launcher-icon,
-.youth-island-obsidian-view-root .a-my-island-plugin-launcher-icon {
-  display: grid !important;
-  width: 34px !important;
-  height: 34px !important;
-  place-items: center !important;
-  font-size: 24px !important;
-  line-height: 1 !important;
-  flex-shrink: 0 !important;
-}
-
-.youth-island-plugin-root .a-my-island-plugin-launcher-icon > svg,
-.youth-island-obsidian-view-root .a-my-island-plugin-launcher-icon > svg {
-  display: block !important;
-  width: 32px !important;
-  height: 32px !important;
-  flex-shrink: 0 !important;
-}
-
-.youth-island-plugin-root .a-my-island-plugin-launcher-label,
-.youth-island-obsidian-view-root .a-my-island-plugin-launcher-label {
-  display: block !important;
-  max-width: 58px !important;
-  overflow: hidden !important;
-  color: #60401f !important;
-  font-size: 11px !important;
-  font-weight: 850 !important;
-  line-height: 1.15 !important;
-  text-align: center !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-  flex-shrink: 0 !important;
 }
 
 /* 2. 顶栏操作工具键防变形 */
@@ -11995,5 +11950,76 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
   cursor: grabbing !important;
   box-shadow: 0 12px 28px rgba(0,0,0,0.22) !important;
   z-index: 50 !important;
+}
+
+
+/* ==========================================================================
+   平板适配补丁：底部发射台自适应、周看板铺满、周月全屏层级
+   ========================================================================== */
+.a-my-island-plugin-launcher {
+  left: 8px !important;
+  right: 8px !important;
+  width: auto !important;
+  max-width: none !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  padding: 5px 6px !important;
+  overflow-x: auto !important;
+  box-sizing: border-box !important;
+}
+.a-my-island-plugin-launcher .a-my-island-plugin-launcher-button {
+  flex: 1 1 0 !important;
+  width: auto !important;
+  min-width: 40px !important;
+  max-width: 68px !important;
+  height: 60px !important;
+  min-height: 60px !important;
+  max-height: 60px !important;
+  padding: 4px 2px 3px !important;
+  grid-template-rows: 28px 14px !important;
+  gap: 2px !important;
+}
+.a-my-island-plugin-launcher .a-my-island-plugin-launcher-icon {
+  width: 28px !important;
+  height: 28px !important;
+  font-size: 20px !important;
+}
+.a-my-island-plugin-launcher .a-my-island-plugin-launcher-icon > svg {
+  width: 26px !important;
+  height: 26px !important;
+}
+.a-my-island-plugin-launcher .a-my-island-plugin-launcher-label {
+  max-width: 100% !important;
+  font-size: 10px !important;
+  letter-spacing: -0.3px !important;
+}
+.a-my-island-plugin-launcher .a-my-island-plugin-launcher-separator {
+  height: 38px !important;
+  margin: 0 1px !important;
+}
+
+#week-board-columns-container {
+  display: grid !important;
+  grid-template-columns: repeat(7, minmax(112px, 1fr)) !important;
+  align-items: stretch !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+}
+#week-board-columns-container .week-board-col {
+  min-width: 0 !important;
+  width: auto !important;
+  height: 100% !important;
+}
+#week-board-columns-container .week-col-tasks {
+  overflow-y: auto !important;
+  min-height: 0 !important;
+}
+
+#exec-subview-week,
+#exec-subview-month {
+  z-index: 60 !important;
+}
+#island-execution-center.is-fullview #island-goal-cards-dock {
+  display: none !important;
 }
 
