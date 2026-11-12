@@ -52,10 +52,20 @@ let islandMinimapEventsBound = false;
 
 function applyIslandTransform() {
   const canvasWorld = document.getElementById('island-world-canvas');
+  const stage = document.getElementById('island-canvas-stage');
   if (canvasWorld) {
     canvasWorld.style.transformOrigin = '0 0';
     canvasWorld.style.transform = 'translate3d(' + islandPanX + 'px, ' + islandPanY + 'px, 0) scale(' + islandZoom + ')';
   }
+  // 联动海岛沙盘背景微视差平移，提供极佳的物理滑动反馈
+  if (stage) {
+    const bgX = (islandPanX * 0.35).toFixed(1);
+    const bgY = (islandPanY * 0.35).toFixed(1);
+    stage.style.backgroundPosition = `calc(50% + ${bgX}px) calc(100% + ${bgY}px)`;
+  }
+  window.islandPanX = islandPanX;
+  window.islandPanY = islandPanY;
+  window.islandZoom = islandZoom;
   updateIslandMinimap();
 }
 
@@ -80,16 +90,16 @@ function updateIslandMinimap() {
   // Viewport in canvas space
   const vpLeft = -islandPanX / islandZoom;
   const vpTop = -islandPanY / islandZoom;
-  const vpRight = (stageW - islandPanX) / islandZoom;
-  const vpBottom = (stageH - islandPanY) / islandZoom;
+  const vpWidth = stageW / islandZoom;
+  const vpHeight = stageH / islandZoom;
 
   // Pavilion nodes in world
   const pavilionNodes = Array.from(canvasWorld.querySelectorAll('.pavilion-node'));
   const nodeDataList = pavilionNodes.map(node => {
     const left = node.offsetLeft || 0;
     const top = node.offsetTop || 0;
-    const w = node.offsetWidth || 150;
-    const h = node.offsetHeight || 100;
+    const w = node.offsetWidth || 120;
+    const h = node.offsetHeight || 90;
     let type = 'stage';
     if (node.id === 'node-study') type = 'stage';
     else if (node.id === 'node-dojo') type = 'project';
@@ -98,41 +108,40 @@ function updateIslandMinimap() {
     return { id: node.id, x: left, y: top, w, h, type };
   });
 
-  const plaza = document.getElementById('island-plaza-center');
-  if (plaza) {
-    nodeDataList.push({
-      id: 'plaza',
-      x: plaza.offsetLeft || (stageW * 0.4),
-      y: plaza.offsetTop || (stageH * 0.4),
-      w: plaza.offsetWidth || 220,
-      h: plaza.offsetHeight || 130,
-      type: 'background-group'
-    });
-  }
+  // 1:1 终身岛民世界模型：基础包围盒以海岛舞台完整范围 (0, 0, stageW, stageH) 为基准
+  let minX = 0;
+  let minY = 0;
+  let maxX = stageW;
+  let maxY = stageH;
 
-  const bounds = nodeDataList.reduce((acc, n) => {
-    acc.minX = Math.min(acc.minX, n.x);
-    acc.minY = Math.min(acc.minY, n.y);
-    acc.maxX = Math.max(acc.maxX, n.x + n.w);
-    acc.maxY = Math.max(acc.maxY, n.y + n.h);
-    return acc;
-  }, { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity });
+  nodeDataList.forEach(n => {
+    minX = Math.min(minX, n.x);
+    minY = Math.min(minY, n.y);
+    maxX = Math.max(maxX, n.x + n.w);
+    maxY = Math.max(maxY, n.y + n.h);
+  });
 
-  if (!isFinite(bounds.minX)) {
-    bounds.minX = 0; bounds.minY = 0; bounds.maxX = 1000; bounds.maxY = 600;
-  }
+  // 将当前视口范围也纳入总投影范围，确保视口红框在小地图内永远不发生负坐标溢出
+  minX = Math.min(minX, vpLeft);
+  minY = Math.min(minY, vpTop);
+  maxX = Math.max(maxX, vpLeft + vpWidth);
+  maxY = Math.max(maxY, vpTop + vpHeight);
 
-  const pad = Math.max(80, 0.06 * Math.max(bounds.maxX - bounds.minX, bounds.maxY - bounds.minY));
-  const minX = bounds.minX - pad;
-  const minY = bounds.minY - pad;
-  const maxX = bounds.maxX + pad;
-  const maxY = bounds.maxY + pad;
+  const pad = Math.max(40, 0.05 * Math.max(maxX - minX, maxY - minY));
+  minX -= pad;
+  minY -= pad;
+  maxX += pad;
+  maxY += pad;
 
   const spanX = Math.max(1, maxX - minX);
   const spanY = Math.max(1, maxY - minY);
-  const scale = Math.min(208 / spanX, 118 / spanY);
-  const offsetX = (220 - spanX * scale) / 2;
-  const offsetY = (130 - spanY * scale) / 2;
+  
+  // 180 x 100 紧凑微缩规格
+  const svgW = 180;
+  const svgH = 100;
+  const scale = Math.min((svgW - 16) / spanX, (svgH - 14) / spanY);
+  const offsetX = (svgW - spanX * scale) / 2;
+  const offsetY = (svgH - spanY * scale) / 2;
 
   islandMinimapBounds = { minX, minY, maxX, maxY };
   islandMinimapScale = scale;
@@ -141,15 +150,12 @@ function updateIslandMinimap() {
 
   // Render nodes
   let nodesHtml = '';
-  const bgNodes = nodeDataList.filter(n => n.type === 'background-group');
-  const normalNodes = nodeDataList.filter(n => n.type !== 'background-group');
-
-  [...bgNodes, ...normalNodes].forEach(n => {
+  nodeDataList.forEach(n => {
     const rx = offsetX + (n.x - minX) * scale;
     const ry = offsetY + (n.y - minY) * scale;
-    const rw = Math.max(4, n.w * scale);
-    const rh = Math.max(4, n.h * scale);
-    const round = n.type === 'background-group' ? 4 : Math.min(3, rw / 3, rh / 3);
+    const rw = Math.max(6, n.w * scale);
+    const rh = Math.max(5, n.h * scale);
+    const round = Math.min(3, rw / 3, rh / 3);
     nodesHtml += `<rect x="${rx.toFixed(1)}" y="${ry.toFixed(1)}" width="${rw.toFixed(1)}" height="${rh.toFixed(1)}" rx="${round.toFixed(1)}" class="a-my-island-work-minimap-node is-${n.type}"></rect>`;
   });
   nodesGroup.innerHTML = nodesHtml;
@@ -157,8 +163,8 @@ function updateIslandMinimap() {
   // Viewport rect
   const vx = offsetX + (vpLeft - minX) * scale;
   const vy = offsetY + (vpTop - minY) * scale;
-  const vw = Math.max(6, (stageW / islandZoom) * scale);
-  const vh = Math.max(6, (stageH / islandZoom) * scale);
+  const vw = Math.max(8, vpWidth * scale);
+  const vh = Math.max(8, vpHeight * scale);
   vpRect.setAttribute('x', vx.toFixed(1));
   vpRect.setAttribute('y', vy.toFixed(1));
   vpRect.setAttribute('width', vw.toFixed(1));
@@ -176,8 +182,8 @@ function initIslandMinimapEvents() {
   svg.addEventListener('click', (e) => {
     if (isDraggingIslandMinimapVp || !islandMinimapBounds) return;
     const rect = svg.getBoundingClientRect();
-    const svgX = ((e.clientX - rect.left) / rect.width) * 220;
-    const svgY = ((e.clientY - rect.top) / rect.height) * 130;
+    const svgX = ((e.clientX - rect.left) / rect.width) * 180;
+    const svgY = ((e.clientY - rect.top) / rect.height) * 100;
 
     const targetX = islandMinimapBounds.minX + (svgX - islandMinimapOffsetX) / islandMinimapScale;
     const targetY = islandMinimapBounds.minY + (svgY - islandMinimapOffsetY) / islandMinimapScale;
@@ -206,8 +212,8 @@ function initIslandMinimapEvents() {
 
     const onPointerMove = (ev) => {
       const rect = svg.getBoundingClientRect();
-      const deltaSvgX = ((ev.clientX - initialClientX) / rect.width) * 220;
-      const deltaSvgY = ((ev.clientY - initialClientY) / rect.height) * 130;
+      const deltaSvgX = ((ev.clientX - initialClientX) / rect.width) * 180;
+      const deltaSvgY = ((ev.clientY - initialClientY) / rect.height) * 100;
       const deltaCanvasX = deltaSvgX / islandMinimapScale;
       const deltaCanvasY = deltaSvgY / islandMinimapScale;
 
@@ -803,7 +809,7 @@ function initCanvasPanZoomAndDrag() {
     try { stage.setPointerCapture(e.pointerId); } catch (_) {}
   });
 
-  stage.addEventListener('pointermove', (e) => {
+  const onStagePointerMove = (e) => {
     if (e.pointerType === 'touch') return;
     if (typeof currentGlobalView !== 'undefined' && currentGlobalView !== 'plan') return;
 
@@ -829,10 +835,10 @@ function initCanvasPanZoomAndDrag() {
       islandPanX = pointerPanInitialPanX + dx;
       islandPanY = pointerPanInitialPanY + dy;
       applyIslandTransform();
-    if (typeof bindPavilionNodesClickGuards === 'function') bindPavilionNodesClickGuards();
+      if (typeof bindPavilionNodesClickGuards === 'function') bindPavilionNodesClickGuards();
       return;
     }
-  });
+  };
 
   const onPointerUp = (e) => {
     if (e.pointerType === 'touch') return;
@@ -856,14 +862,24 @@ function initCanvasPanZoomAndDrag() {
       stage.classList.remove('is-canvas-dragging');
     }
   };
+
+  stage.addEventListener('pointermove', onStagePointerMove);
+  window.addEventListener('pointermove', onStagePointerMove);
   stage.addEventListener('pointerup', onPointerUp);
   stage.addEventListener('pointercancel', onPointerUp);
+  window.addEventListener('pointerup', onPointerUp);
+  window.addEventListener('pointercancel', onPointerUp);
+
+  stage.addEventListener('touchend', onIslandTouchEnd, { passive: false });
+  stage.addEventListener('touchcancel', onIslandTouchEnd, { passive: false });
+  window.addEventListener('touchend', onIslandTouchEnd, { passive: false });
+  window.addEventListener('touchcancel', onIslandTouchEnd, { passive: false });
 
   // -------------------------------------------------------------
-  // D. 捕获阶段防御：严防节点拖拽结束误触发 handlePavilionClick 路由
+  // D. 捕获阶段防御：严防节点拖拽结束误触发 handlePavilionClick 路由 (仅限场馆节点)
   // -------------------------------------------------------------
   stage.addEventListener('click', (e) => {
-    if (window._islandNodeDragMoved) {
+    if (window._islandNodeDragMoved && e.target.closest('.pavilion-node')) {
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
@@ -905,7 +921,7 @@ function updateTwinPathLine() {
 // ==========================================================================
 
 function switchHomeGlobalView(mode) {
-  currentGlobalView = (mode === 'plan') ? 'plan' : 'exec';
+  currentGlobalView = (mode === 'plan' || mode === 'planning') ? 'plan' : 'exec';
   ['exec', 'plan'].forEach(m => {
     const btn = document.getElementById('launcher-view-' + m);
     if (btn) btn.classList.toggle('is-active', m === currentGlobalView);
@@ -958,6 +974,9 @@ function switchHomeGlobalView(mode) {
     }
     if (navDock) {
       navDock.style.setProperty('display', 'flex', 'important');
+    }
+    if (typeof initCanvasPanZoomAndDrag === 'function') {
+      initCanvasPanZoomAndDrag();
     }
     applyIslandTransform();
     if (typeof bindPavilionNodesClickGuards === 'function') bindPavilionNodesClickGuards();
@@ -4635,8 +4654,8 @@ function initTertiaryMinimapEvents() {
   svg.addEventListener('click', (e) => {
     if (isDraggingTertiaryMinimapVp || !tertiaryMinimapBounds) return;
     const rect = svg.getBoundingClientRect();
-    const svgX = ((e.clientX - rect.left) / rect.width) * 220;
-    const svgY = ((e.clientY - rect.top) / rect.height) * 130;
+    const svgX = ((e.clientX - rect.left) / rect.width) * 180;
+    const svgY = ((e.clientY - rect.top) / rect.height) * 100;
 
     const targetX = tertiaryMinimapBounds.minX + (svgX - tertiaryMinimapOffsetX) / tertiaryMinimapScale;
     const targetY = tertiaryMinimapBounds.minY + (svgY - tertiaryMinimapOffsetY) / tertiaryMinimapScale;
@@ -4666,8 +4685,8 @@ function initTertiaryMinimapEvents() {
 
     const onPointerMove = (ev) => {
       const rect = svg.getBoundingClientRect();
-      const deltaSvgX = ((ev.clientX - initialClientX) / rect.width) * 220;
-      const deltaSvgY = ((ev.clientY - initialClientY) / rect.height) * 130;
+      const deltaSvgX = ((ev.clientX - initialClientX) / rect.width) * 180;
+      const deltaSvgY = ((ev.clientY - initialClientY) / rect.height) * 100;
       const deltaCanvasX = deltaSvgX / tertiaryMinimapScale;
       const deltaCanvasY = deltaSvgY / tertiaryMinimapScale;
 

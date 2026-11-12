@@ -937,7 +937,7 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
           <span style="font-size:42px; margin-bottom:10px;">\u{1F3DD}\uFE0F</span>
           <h3 style="font-size:17px; font-weight:900; color:#60401f; margin:0 0 6px 0;">\u4ECA\u65E5\u6682\u65E0\u5F85\u529E\u4E8B\u9879</h3>
           <p style="font-size:12px; color:#8c6b45; line-height:1.5; margin:0 0 16px 0;">\u70B9\u51FB\u4E0B\u65B9\u542F\u52A8\u53F0\u8FDB\u5165\u3010\u6821\u53F2\u9986\u3011\u3001\u3010\u6B66\u9053\u9986\u3011\u3001\u3010\u601D\u8FA8\u9986\u3011\u6216\u3010\u4FEE\u8EAB\u9601\u3011\u5EFA\u7ACB\u6210\u957F\u89C4\u5212\uFF0C\u6216\u70B9\u51FB\u4E0A\u65B9\u544A\u793A\u724C\u53D1\u5E03\u5BB6\u957F\u60AC\u8D4F\u5951\u7EA6\uFF0C\u4EFB\u52A1\u5C06\u81EA\u52A8\u540C\u6B65\u81F3\u4ECA\u65E5\u5F85\u529E\uFF01</p>
-          <button type="button" class="card-graphic-pill pill-timer" style="padding:6px 18px; font-size:12px; font-weight:900; cursor:pointer;" onclick="switchHomeGlobalView('planning')">\u{1F9ED} \u524D\u5F80\u89C4\u5212\u65B0\u8BFE\u9898</button>
+          <button type="button" class="card-graphic-pill pill-timer" style="padding:6px 18px; font-size:12px; font-weight:900; cursor:pointer;" onclick="switchHomeGlobalView('plan')">\u{1F9ED} \u524D\u5F80\u89C4\u5212\u65B0\u8BFE\u9898</button>
         </div>
       </div>
     </div>
@@ -1309,18 +1309,18 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
 
     <!-- \u6A21\u5F0F B (\u89C4\u5212\u89C6\u56FE): \u9875\u9762\u53F3\u4E0B\u89D2\uFF1A1:1 \u7EC8\u8EAB\u5C9B\u6C11\u539F\u7248\u5BFC\u822A\u5730\u56FE\u4E0E\u53D1\u5C04\u5668 (.a-my-island-work-navigation-dock) -->
     <div class="a-my-island-work-navigation-dock" id="island-navigation-dock" style="display:none;">
-      <!-- \u5C0F\u5730\u56FE\u4E3B\u4F53\u5BB9\u5668 -->
-      <div class="a-my-island-work-minimap" id="island-minimap-dock">
+      <!-- \u5C0F\u5730\u56FE\u4E3B\u4F53\u5BB9\u5668 (\u9ED8\u8BA4\u6536\u8D77\u6298\u53E0\uFF0C\u7EDD\u4E0D\u906E\u6321\u4E2D\u95F4\u6838\u5FC3\u573A\u9986\u5185\u5BB9) -->
+      <div class="a-my-island-work-minimap is-collapsed" id="island-minimap-dock">
         <div class="a-my-island-work-minimap-header" onclick="toggleIslandMinimapDock()">
           <span class="a-my-island-work-minimap-header-title">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#60401f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; margin-right:2px;"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#60401f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; margin-right:2px;"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
             \u5BFC\u822A\u5730\u56FE
           </span>
           <button type="button" class="a-my-island-work-minimap-close" id="island-minimap-close-btn" onclick="event.stopPropagation(); toggleIslandMinimapDock();" title="\u6536\u8D77\u5BFC\u822A\u5730\u56FE">\u2212</button>
         </div>
         <div class="a-my-island-work-minimap-body" id="island-minimap-body">
-          <svg viewBox="0 0 220 130" role="img" aria-label="\u8282\u70B9\u5206\u5E03\u548C\u5F53\u524D\u89C6\u56FE\u4F4D\u7F6E" id="island-minimap-svg">
-            <rect x="0" y="0" width="220" height="130" class="a-my-island-work-minimap-hit-area"></rect>
+          <svg viewBox="0 0 180 100" role="img" aria-label="\u8282\u70B9\u5206\u5E03\u548C\u5F53\u524D\u89C6\u56FE\u4F4D\u7F6E" id="island-minimap-svg">
+            <rect x="0" y="0" width="180" height="100" class="a-my-island-work-minimap-hit-area"></rect>
             <g id="island-minimap-nodes" class="a-my-island-work-minimap-nodes"></g>
             <rect id="island-minimap-viewport" x="0" y="0" width="20" height="20" rx="3" class="a-my-island-work-minimap-viewport"></rect>
           </svg>
@@ -1328,7 +1328,7 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
       </div>
 
       <!-- 3D \u5C9B\u6C11\u53D1\u5C04\u53F0\u98CE\u683C\u5730\u56FE\u5207\u6362\u6309\u94AE -->
-      <button type="button" class="a-my-island-work-minimap-toggle is-active" id="island-minimap-toggle-btn" onclick="toggleIslandMinimapDock()" aria-label="\u6536\u8D77\u5BFC\u822A\u5730\u56FE" title="\u5C55\u5F00/\u6536\u8D77\u5BFC\u822A\u5730\u56FE">
+      <button type="button" class="a-my-island-work-minimap-toggle" id="island-minimap-toggle-btn" onclick="toggleIslandMinimapDock()" aria-label="\u5C55\u5F00\u5BFC\u822A\u5730\u56FE" title="\u5C55\u5F00/\u6536\u8D77\u5BFC\u822A\u5730\u56FE">
         <span class="a-my-island-plugin-launcher-icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#6a421e" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
             <defs>
@@ -4964,10 +4964,19 @@ function bootPrototypeRuntime() {
   let islandMinimapEventsBound = false;
   function applyIslandTransform() {
     const canvasWorld = document.getElementById("island-world-canvas");
+    const stage = document.getElementById("island-canvas-stage");
     if (canvasWorld) {
       canvasWorld.style.transformOrigin = "0 0";
       canvasWorld.style.transform = "translate3d(" + islandPanX + "px, " + islandPanY + "px, 0) scale(" + islandZoom + ")";
     }
+    if (stage) {
+      const bgX = (islandPanX * 0.35).toFixed(1);
+      const bgY = (islandPanY * 0.35).toFixed(1);
+      stage.style.backgroundPosition = `calc(50% + ${bgX}px) calc(100% + ${bgY}px)`;
+    }
+    window.islandPanX = islandPanX;
+    window.islandPanY = islandPanY;
+    window.islandZoom = islandZoom;
     updateIslandMinimap();
   }
   function updateIslandMinimap() {
@@ -4989,14 +4998,14 @@ function bootPrototypeRuntime() {
     const stageH = stage.clientHeight || 700;
     const vpLeft = -islandPanX / islandZoom;
     const vpTop = -islandPanY / islandZoom;
-    const vpRight = (stageW - islandPanX) / islandZoom;
-    const vpBottom = (stageH - islandPanY) / islandZoom;
+    const vpWidth = stageW / islandZoom;
+    const vpHeight = stageH / islandZoom;
     const pavilionNodes = Array.from(canvasWorld.querySelectorAll(".pavilion-node"));
     const nodeDataList = pavilionNodes.map((node) => {
       const left = node.offsetLeft || 0;
       const top = node.offsetTop || 0;
-      const w = node.offsetWidth || 150;
-      const h = node.offsetHeight || 100;
+      const w = node.offsetWidth || 120;
+      const h = node.offsetHeight || 90;
       let type = "stage";
       if (node.id === "node-study")
         type = "stage";
@@ -5008,60 +5017,50 @@ function bootPrototypeRuntime() {
         type = "root";
       return { id: node.id, x: left, y: top, w, h, type };
     });
-    const plaza = document.getElementById("island-plaza-center");
-    if (plaza) {
-      nodeDataList.push({
-        id: "plaza",
-        x: plaza.offsetLeft || stageW * 0.4,
-        y: plaza.offsetTop || stageH * 0.4,
-        w: plaza.offsetWidth || 220,
-        h: plaza.offsetHeight || 130,
-        type: "background-group"
-      });
-    }
-    const bounds = nodeDataList.reduce((acc, n) => {
-      acc.minX = Math.min(acc.minX, n.x);
-      acc.minY = Math.min(acc.minY, n.y);
-      acc.maxX = Math.max(acc.maxX, n.x + n.w);
-      acc.maxY = Math.max(acc.maxY, n.y + n.h);
-      return acc;
-    }, { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity });
-    if (!isFinite(bounds.minX)) {
-      bounds.minX = 0;
-      bounds.minY = 0;
-      bounds.maxX = 1e3;
-      bounds.maxY = 600;
-    }
-    const pad = Math.max(80, 0.06 * Math.max(bounds.maxX - bounds.minX, bounds.maxY - bounds.minY));
-    const minX = bounds.minX - pad;
-    const minY = bounds.minY - pad;
-    const maxX = bounds.maxX + pad;
-    const maxY = bounds.maxY + pad;
+    let minX = 0;
+    let minY = 0;
+    let maxX = stageW;
+    let maxY = stageH;
+    nodeDataList.forEach((n) => {
+      minX = Math.min(minX, n.x);
+      minY = Math.min(minY, n.y);
+      maxX = Math.max(maxX, n.x + n.w);
+      maxY = Math.max(maxY, n.y + n.h);
+    });
+    minX = Math.min(minX, vpLeft);
+    minY = Math.min(minY, vpTop);
+    maxX = Math.max(maxX, vpLeft + vpWidth);
+    maxY = Math.max(maxY, vpTop + vpHeight);
+    const pad = Math.max(40, 0.05 * Math.max(maxX - minX, maxY - minY));
+    minX -= pad;
+    minY -= pad;
+    maxX += pad;
+    maxY += pad;
     const spanX = Math.max(1, maxX - minX);
     const spanY = Math.max(1, maxY - minY);
-    const scale = Math.min(208 / spanX, 118 / spanY);
-    const offsetX = (220 - spanX * scale) / 2;
-    const offsetY = (130 - spanY * scale) / 2;
+    const svgW = 180;
+    const svgH = 100;
+    const scale = Math.min((svgW - 16) / spanX, (svgH - 14) / spanY);
+    const offsetX = (svgW - spanX * scale) / 2;
+    const offsetY = (svgH - spanY * scale) / 2;
     islandMinimapBounds = { minX, minY, maxX, maxY };
     islandMinimapScale = scale;
     islandMinimapOffsetX = offsetX;
     islandMinimapOffsetY = offsetY;
     let nodesHtml = "";
-    const bgNodes = nodeDataList.filter((n) => n.type === "background-group");
-    const normalNodes = nodeDataList.filter((n) => n.type !== "background-group");
-    [...bgNodes, ...normalNodes].forEach((n) => {
+    nodeDataList.forEach((n) => {
       const rx = offsetX + (n.x - minX) * scale;
       const ry = offsetY + (n.y - minY) * scale;
-      const rw = Math.max(4, n.w * scale);
-      const rh = Math.max(4, n.h * scale);
-      const round = n.type === "background-group" ? 4 : Math.min(3, rw / 3, rh / 3);
+      const rw = Math.max(6, n.w * scale);
+      const rh = Math.max(5, n.h * scale);
+      const round = Math.min(3, rw / 3, rh / 3);
       nodesHtml += `<rect x="${rx.toFixed(1)}" y="${ry.toFixed(1)}" width="${rw.toFixed(1)}" height="${rh.toFixed(1)}" rx="${round.toFixed(1)}" class="a-my-island-work-minimap-node is-${n.type}"></rect>`;
     });
     nodesGroup.innerHTML = nodesHtml;
     const vx = offsetX + (vpLeft - minX) * scale;
     const vy = offsetY + (vpTop - minY) * scale;
-    const vw = Math.max(6, stageW / islandZoom * scale);
-    const vh = Math.max(6, stageH / islandZoom * scale);
+    const vw = Math.max(8, vpWidth * scale);
+    const vh = Math.max(8, vpHeight * scale);
     vpRect.setAttribute("x", vx.toFixed(1));
     vpRect.setAttribute("y", vy.toFixed(1));
     vpRect.setAttribute("width", vw.toFixed(1));
@@ -5078,8 +5077,8 @@ function bootPrototypeRuntime() {
       if (isDraggingIslandMinimapVp || !islandMinimapBounds)
         return;
       const rect = svg.getBoundingClientRect();
-      const svgX = (e.clientX - rect.left) / rect.width * 220;
-      const svgY = (e.clientY - rect.top) / rect.height * 130;
+      const svgX = (e.clientX - rect.left) / rect.width * 180;
+      const svgY = (e.clientY - rect.top) / rect.height * 100;
       const targetX = islandMinimapBounds.minX + (svgX - islandMinimapOffsetX) / islandMinimapScale;
       const targetY = islandMinimapBounds.minY + (svgY - islandMinimapOffsetY) / islandMinimapScale;
       const stageW = stage.clientWidth || 1e3;
@@ -5106,8 +5105,8 @@ function bootPrototypeRuntime() {
       const initialPanY = islandPanY;
       const onPointerMove = (ev) => {
         const rect = svg.getBoundingClientRect();
-        const deltaSvgX = (ev.clientX - initialClientX) / rect.width * 220;
-        const deltaSvgY = (ev.clientY - initialClientY) / rect.height * 130;
+        const deltaSvgX = (ev.clientX - initialClientX) / rect.width * 180;
+        const deltaSvgY = (ev.clientY - initialClientY) / rect.height * 100;
         const deltaCanvasX = deltaSvgX / islandMinimapScale;
         const deltaCanvasY = deltaSvgY / islandMinimapScale;
         islandPanX = initialPanX - deltaCanvasX * islandZoom;
@@ -5650,7 +5649,7 @@ function bootPrototypeRuntime() {
       } catch (_) {
       }
     });
-    stage.addEventListener("pointermove", (e) => {
+    const onStagePointerMove = (e) => {
       if (e.pointerType === "touch")
         return;
       if (typeof currentGlobalView !== "undefined" && currentGlobalView !== "plan")
@@ -5680,7 +5679,7 @@ function bootPrototypeRuntime() {
           bindPavilionNodesClickGuards();
         return;
       }
-    });
+    };
     const onPointerUp = (e) => {
       if (e.pointerType === "touch")
         return;
@@ -5710,10 +5709,18 @@ function bootPrototypeRuntime() {
         stage.classList.remove("is-canvas-dragging");
       }
     };
+    stage.addEventListener("pointermove", onStagePointerMove);
+    window.addEventListener("pointermove", onStagePointerMove);
     stage.addEventListener("pointerup", onPointerUp);
     stage.addEventListener("pointercancel", onPointerUp);
+    window.addEventListener("pointerup", onPointerUp);
+    window.addEventListener("pointercancel", onPointerUp);
+    stage.addEventListener("touchend", onIslandTouchEnd, { passive: false });
+    stage.addEventListener("touchcancel", onIslandTouchEnd, { passive: false });
+    window.addEventListener("touchend", onIslandTouchEnd, { passive: false });
+    window.addEventListener("touchcancel", onIslandTouchEnd, { passive: false });
     stage.addEventListener("click", (e) => {
-      if (window._islandNodeDragMoved) {
+      if (window._islandNodeDragMoved && e.target.closest(".pavilion-node")) {
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
@@ -5746,7 +5753,7 @@ function bootPrototypeRuntime() {
   function updateTwinPathLine() {
   }
   function switchHomeGlobalView(mode) {
-    currentGlobalView = mode === "plan" ? "plan" : "exec";
+    currentGlobalView = mode === "plan" || mode === "planning" ? "plan" : "exec";
     ["exec", "plan"].forEach((m) => {
       const btn = document.getElementById("launcher-view-" + m);
       if (btn)
@@ -5798,6 +5805,9 @@ function bootPrototypeRuntime() {
       }
       if (navDock) {
         navDock.style.setProperty("display", "flex", "important");
+      }
+      if (typeof initCanvasPanZoomAndDrag === "function") {
+        initCanvasPanZoomAndDrag();
       }
       applyIslandTransform();
       if (typeof bindPavilionNodesClickGuards === "function")
@@ -9348,8 +9358,8 @@ function bootPrototypeRuntime() {
       if (isDraggingTertiaryMinimapVp || !tertiaryMinimapBounds)
         return;
       const rect = svg.getBoundingClientRect();
-      const svgX = (e.clientX - rect.left) / rect.width * 220;
-      const svgY = (e.clientY - rect.top) / rect.height * 130;
+      const svgX = (e.clientX - rect.left) / rect.width * 180;
+      const svgY = (e.clientY - rect.top) / rect.height * 100;
       const targetX = tertiaryMinimapBounds.minX + (svgX - tertiaryMinimapOffsetX) / tertiaryMinimapScale;
       const targetY = tertiaryMinimapBounds.minY + (svgY - tertiaryMinimapOffsetY) / tertiaryMinimapScale;
       const stageW = stage.clientWidth || 1e3;
@@ -9376,8 +9386,8 @@ function bootPrototypeRuntime() {
       const tZoom = window.tertiaryZoom || 1;
       const onPointerMove = (ev) => {
         const rect = svg.getBoundingClientRect();
-        const deltaSvgX = (ev.clientX - initialClientX) / rect.width * 220;
-        const deltaSvgY = (ev.clientY - initialClientY) / rect.height * 130;
+        const deltaSvgX = (ev.clientX - initialClientX) / rect.width * 180;
+        const deltaSvgY = (ev.clientY - initialClientY) / rect.height * 100;
         const deltaCanvasX = deltaSvgX / tertiaryMinimapScale;
         const deltaCanvasY = deltaSvgY / tertiaryMinimapScale;
         window.tertiaryPanX = initialPanX - deltaCanvasX * tZoom;
@@ -15406,23 +15416,28 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
       cls: "youth-island-plugin-root youth-island-obsidian-view-root"
     });
     rootWrapper.innerHTML = ISLAND_UI_HTML;
-    const captureBlockSidebarGestures = (e) => {
+    const blockObsidianSidebarBubble = (e) => {
+      e.stopPropagation();
+    };
+    rootWrapper.addEventListener("touchstart", blockObsidianSidebarBubble, { passive: true });
+    rootWrapper.addEventListener("touchmove", blockObsidianSidebarBubble, { passive: true });
+    rootWrapper.addEventListener("touchend", blockObsidianSidebarBubble, { passive: true });
+    rootWrapper.addEventListener("touchcancel", blockObsidianSidebarBubble, { passive: true });
+    const blockSidebarEdgeGestures = (e) => {
       const target = e.target;
-      if (!target)
+      if (!target || !target.closest(".youth-island-plugin-root"))
         return;
-      const root = target.closest(".youth-island-plugin-root");
-      if (root) {
-        e.stopPropagation();
-        if (e.type === "touchmove" && target.closest("#tertiary-workspace-view, #tertiary-canvas-stage, .tertiary-canvas-world, #island-canvas-stage, #island-execution-center")) {
-          if (e.cancelable) {
+      if (e.touches && e.touches.length > 0) {
+        const touch = e.touches[0];
+        const screenW = window.innerWidth || document.documentElement.clientWidth;
+        if (touch.clientX < 28 || touch.clientX > screenW - 28) {
+          if (e.cancelable && e.type === "touchmove") {
             e.preventDefault();
           }
         }
       }
     };
-    window.addEventListener("touchstart", captureBlockSidebarGestures, { capture: true, passive: false });
-    window.addEventListener("touchmove", captureBlockSidebarGestures, { capture: true, passive: false });
-    window.addEventListener("touchend", captureBlockSidebarGestures, { capture: true, passive: false });
+    window.addEventListener("touchmove", blockSidebarEdgeGestures, { capture: true, passive: false });
     bootPrototypeRuntime();
     await this.plugin.vaultStorage.hydrateRuntimeFromVault();
     const win = window;

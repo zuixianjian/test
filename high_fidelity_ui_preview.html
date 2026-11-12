@@ -798,23 +798,25 @@ body {
 .a-my-island-work-navigation-dock {
   position: absolute !important;
   right: 18px !important;
-  bottom: max(120px, calc(106px + env(safe-area-inset-bottom, 0px))) !important;
+  bottom: max(48px, calc(34px + env(safe-area-inset-bottom, 0px))) !important;
   z-index: 10002 !important;
   display: flex !important;
+  flex-direction: column !important;
   align-items: flex-end !important;
   justify-content: flex-end !important;
-  gap: 10px !important;
+  gap: 8px !important;
   pointer-events: none !important;
   transition: all 0.25s cubic-bezier(0.2, 0.8, 0.3, 1) !important;
 }
 
 .a-my-island-work-minimap {
   position: relative !important;
-  width: 236px !important;
+  order: 1 !important;
+  width: 184px !important;
   box-sizing: border-box !important;
-  padding: 7px !important;
+  padding: 6px 8px !important;
   border: 2px solid rgb(255 255 255 / 86%) !important;
-  border-radius: 17px !important;
+  border-radius: 14px !important;
   background: rgb(255 248 218 / 94%) !important;
   color: #60401f !important;
   box-shadow:
@@ -834,10 +836,10 @@ body {
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
-  min-height: 25px !important;
-  padding: 0 7px 5px !important;
+  min-height: 20px !important;
+  padding: 0 4px 4px !important;
   font-family: var(--font-interface);
-  font-size: 12px !important;
+  font-size: 11px !important;
   font-weight: 800 !important;
   color: #60401f !important;
   cursor: pointer !important;
@@ -847,20 +849,20 @@ body {
 .a-my-island-work-minimap-header-title {
   display: inline-flex !important;
   align-items: center !important;
-  gap: 5px !important;
+  gap: 4px !important;
 }
 
 .a-my-island-work-minimap-close {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  width: 20px !important;
-  height: 20px !important;
-  border-radius: 6px !important;
+  width: 18px !important;
+  height: 18px !important;
+  border-radius: 5px !important;
   border: 1px solid rgba(139, 90, 43, 0.25) !important;
   background: rgba(255, 255, 255, 0.7) !important;
   color: #60401f !important;
-  font-size: 13px !important;
+  font-size: 12px !important;
   font-weight: 900 !important;
   cursor: pointer !important;
   line-height: 1 !important;
@@ -874,11 +876,11 @@ body {
 }
 
 .a-my-island-work-minimap-body {
-  width: 220px !important;
-  height: 130px !important;
+  width: 168px !important;
+  height: 96px !important;
   overflow: hidden !important;
   border: 1px solid rgb(109 139 91 / 30%) !important;
-  border-radius: 11px !important;
+  border-radius: 9px !important;
   background: rgb(244 246 218 / 76%) !important;
   box-shadow: inset 0 1px 4px rgb(70 89 53 / 13%) !important;
   touch-action: none !important;
@@ -938,28 +940,28 @@ body {
 
 .a-my-island-work-minimap-toggle {
   display: grid !important;
-  order: 1 !important;
-  grid-template-rows: 32px 14px !important;
-  width: 58px !important;
-  min-width: 58px !important;
-  height: 56px !important;
-  min-height: 56px !important;
+  order: 2 !important;
+  grid-template-rows: 28px 14px !important;
+  width: 54px !important;
+  min-width: 54px !important;
+  height: 54px !important;
+  min-height: 54px !important;
   margin: 0 !important;
-  padding: 3px 4px 2px !important;
+  padding: 3px 2px 2px !important;
   place-items: center !important;
   align-content: center !important;
   gap: 1px !important;
   border: 1.5px solid #b8b68e !important;
-  border-radius: 14px !important;
+  border-radius: 13px !important;
   background: linear-gradient(155deg, #fffef4 0%, #fffbea 58%, #f4edd5 100%) !important;
   color: #60401f !important;
   box-shadow:
-    0 4px 0 rgb(105 103 68 / 18%),
-    0 7px 11px rgb(53 82 64 / 20%),
+    0 3px 0 rgb(105 103 68 / 18%),
+    0 5px 9px rgb(53 82 64 / 20%),
     inset 0 1px 0 rgb(255 255 255 / 92%) !important;
   font-family: var(--font-interface);
-  font-size: 11px !important;
-  font-weight: 800 !important;
+  font-size: 10.5px !important;
+  font-weight: 850 !important;
   line-height: 1 !important;
   pointer-events: auto !important;
   cursor: pointer !important;
@@ -976,8 +978,11 @@ body {
   border-color: #ff945b !important;
   background: linear-gradient(155deg, #fff8e9 0%, #ffe4bf 58%, #f7cca0 100%) !important;
   box-shadow:
-    0 4px 0 rgb(220 112 60 / 20%),
-    0 7px 12px rgb(53 82 64 / 22%),
+    0 3px 0 rgb(220 112 60 / 20%),
+    0 6px 10px rgb(53 82 64 / 22%),
+    inset 0 1px 0 rgb(255 255 255 / 94%) !important;
+  outline: none;
+}
     inset 0 1px 0 rgb(255 255 255 / 94%) !important;
   outline: none !important;
 }
@@ -12372,7 +12377,7 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
           <span style="font-size:42px; margin-bottom:10px;">🏝️</span>
           <h3 style="font-size:17px; font-weight:900; color:#60401f; margin:0 0 6px 0;">今日暂无待办事项</h3>
           <p style="font-size:12px; color:#8c6b45; line-height:1.5; margin:0 0 16px 0;">点击下方启动台进入【校史馆】、【武道馆】、【思辨馆】或【修身阁】建立成长规划，或点击上方告示牌发布家长悬赏契约，任务将自动同步至今日待办！</p>
-          <button type="button" class="card-graphic-pill pill-timer" style="padding:6px 18px; font-size:12px; font-weight:900; cursor:pointer;" onclick="switchHomeGlobalView('planning')">🧭 前往规划新课题</button>
+          <button type="button" class="card-graphic-pill pill-timer" style="padding:6px 18px; font-size:12px; font-weight:900; cursor:pointer;" onclick="switchHomeGlobalView('plan')">🧭 前往规划新课题</button>
         </div>
       </div>
     </div>
@@ -12744,18 +12749,18 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 
     <!-- 模式 B (规划视图): 页面右下角：1:1 终身岛民原版导航地图与发射器 (.a-my-island-work-navigation-dock) -->
     <div class="a-my-island-work-navigation-dock" id="island-navigation-dock" style="display:none;">
-      <!-- 小地图主体容器 -->
-      <div class="a-my-island-work-minimap" id="island-minimap-dock">
+      <!-- 小地图主体容器 (默认收起折叠，绝不遮挡中间核心场馆内容) -->
+      <div class="a-my-island-work-minimap is-collapsed" id="island-minimap-dock">
         <div class="a-my-island-work-minimap-header" onclick="toggleIslandMinimapDock()">
           <span class="a-my-island-work-minimap-header-title">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#60401f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; margin-right:2px;"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#60401f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle; margin-right:2px;"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
             导航地图
           </span>
           <button type="button" class="a-my-island-work-minimap-close" id="island-minimap-close-btn" onclick="event.stopPropagation(); toggleIslandMinimapDock();" title="收起导航地图">−</button>
         </div>
         <div class="a-my-island-work-minimap-body" id="island-minimap-body">
-          <svg viewBox="0 0 220 130" role="img" aria-label="节点分布和当前视图位置" id="island-minimap-svg">
-            <rect x="0" y="0" width="220" height="130" class="a-my-island-work-minimap-hit-area"></rect>
+          <svg viewBox="0 0 180 100" role="img" aria-label="节点分布和当前视图位置" id="island-minimap-svg">
+            <rect x="0" y="0" width="180" height="100" class="a-my-island-work-minimap-hit-area"></rect>
             <g id="island-minimap-nodes" class="a-my-island-work-minimap-nodes"></g>
             <rect id="island-minimap-viewport" x="0" y="0" width="20" height="20" rx="3" class="a-my-island-work-minimap-viewport"></rect>
           </svg>
@@ -12763,7 +12768,7 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
       </div>
 
       <!-- 3D 岛民发射台风格地图切换按钮 -->
-      <button type="button" class="a-my-island-work-minimap-toggle is-active" id="island-minimap-toggle-btn" onclick="toggleIslandMinimapDock()" aria-label="收起导航地图" title="展开/收起导航地图">
+      <button type="button" class="a-my-island-work-minimap-toggle" id="island-minimap-toggle-btn" onclick="toggleIslandMinimapDock()" aria-label="展开导航地图" title="展开/收起导航地图">
         <span class="a-my-island-plugin-launcher-icon">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#6a421e" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
             <defs>
@@ -15363,10 +15368,20 @@ let islandMinimapEventsBound = false;
 
 function applyIslandTransform() {
   const canvasWorld = document.getElementById('island-world-canvas');
+  const stage = document.getElementById('island-canvas-stage');
   if (canvasWorld) {
     canvasWorld.style.transformOrigin = '0 0';
     canvasWorld.style.transform = 'translate3d(' + islandPanX + 'px, ' + islandPanY + 'px, 0) scale(' + islandZoom + ')';
   }
+  // 联动海岛沙盘背景微视差平移，提供极佳的物理滑动反馈
+  if (stage) {
+    const bgX = (islandPanX * 0.35).toFixed(1);
+    const bgY = (islandPanY * 0.35).toFixed(1);
+    stage.style.backgroundPosition = `calc(50% + ${bgX}px) calc(100% + ${bgY}px)`;
+  }
+  window.islandPanX = islandPanX;
+  window.islandPanY = islandPanY;
+  window.islandZoom = islandZoom;
   updateIslandMinimap();
 }
 
@@ -15391,16 +15406,16 @@ function updateIslandMinimap() {
   // Viewport in canvas space
   const vpLeft = -islandPanX / islandZoom;
   const vpTop = -islandPanY / islandZoom;
-  const vpRight = (stageW - islandPanX) / islandZoom;
-  const vpBottom = (stageH - islandPanY) / islandZoom;
+  const vpWidth = stageW / islandZoom;
+  const vpHeight = stageH / islandZoom;
 
   // Pavilion nodes in world
   const pavilionNodes = Array.from(canvasWorld.querySelectorAll('.pavilion-node'));
   const nodeDataList = pavilionNodes.map(node => {
     const left = node.offsetLeft || 0;
     const top = node.offsetTop || 0;
-    const w = node.offsetWidth || 150;
-    const h = node.offsetHeight || 100;
+    const w = node.offsetWidth || 120;
+    const h = node.offsetHeight || 90;
     let type = 'stage';
     if (node.id === 'node-study') type = 'stage';
     else if (node.id === 'node-dojo') type = 'project';
@@ -15409,41 +15424,40 @@ function updateIslandMinimap() {
     return { id: node.id, x: left, y: top, w, h, type };
   });
 
-  const plaza = document.getElementById('island-plaza-center');
-  if (plaza) {
-    nodeDataList.push({
-      id: 'plaza',
-      x: plaza.offsetLeft || (stageW * 0.4),
-      y: plaza.offsetTop || (stageH * 0.4),
-      w: plaza.offsetWidth || 220,
-      h: plaza.offsetHeight || 130,
-      type: 'background-group'
-    });
-  }
+  // 1:1 终身岛民世界模型：基础包围盒以海岛舞台完整范围 (0, 0, stageW, stageH) 为基准
+  let minX = 0;
+  let minY = 0;
+  let maxX = stageW;
+  let maxY = stageH;
 
-  const bounds = nodeDataList.reduce((acc, n) => {
-    acc.minX = Math.min(acc.minX, n.x);
-    acc.minY = Math.min(acc.minY, n.y);
-    acc.maxX = Math.max(acc.maxX, n.x + n.w);
-    acc.maxY = Math.max(acc.maxY, n.y + n.h);
-    return acc;
-  }, { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity });
+  nodeDataList.forEach(n => {
+    minX = Math.min(minX, n.x);
+    minY = Math.min(minY, n.y);
+    maxX = Math.max(maxX, n.x + n.w);
+    maxY = Math.max(maxY, n.y + n.h);
+  });
 
-  if (!isFinite(bounds.minX)) {
-    bounds.minX = 0; bounds.minY = 0; bounds.maxX = 1000; bounds.maxY = 600;
-  }
+  // 将当前视口范围也纳入总投影范围，确保视口红框在小地图内永远不发生负坐标溢出
+  minX = Math.min(minX, vpLeft);
+  minY = Math.min(minY, vpTop);
+  maxX = Math.max(maxX, vpLeft + vpWidth);
+  maxY = Math.max(maxY, vpTop + vpHeight);
 
-  const pad = Math.max(80, 0.06 * Math.max(bounds.maxX - bounds.minX, bounds.maxY - bounds.minY));
-  const minX = bounds.minX - pad;
-  const minY = bounds.minY - pad;
-  const maxX = bounds.maxX + pad;
-  const maxY = bounds.maxY + pad;
+  const pad = Math.max(40, 0.05 * Math.max(maxX - minX, maxY - minY));
+  minX -= pad;
+  minY -= pad;
+  maxX += pad;
+  maxY += pad;
 
   const spanX = Math.max(1, maxX - minX);
   const spanY = Math.max(1, maxY - minY);
-  const scale = Math.min(208 / spanX, 118 / spanY);
-  const offsetX = (220 - spanX * scale) / 2;
-  const offsetY = (130 - spanY * scale) / 2;
+  
+  // 180 x 100 紧凑微缩规格
+  const svgW = 180;
+  const svgH = 100;
+  const scale = Math.min((svgW - 16) / spanX, (svgH - 14) / spanY);
+  const offsetX = (svgW - spanX * scale) / 2;
+  const offsetY = (svgH - spanY * scale) / 2;
 
   islandMinimapBounds = { minX, minY, maxX, maxY };
   islandMinimapScale = scale;
@@ -15452,15 +15466,12 @@ function updateIslandMinimap() {
 
   // Render nodes
   let nodesHtml = '';
-  const bgNodes = nodeDataList.filter(n => n.type === 'background-group');
-  const normalNodes = nodeDataList.filter(n => n.type !== 'background-group');
-
-  [...bgNodes, ...normalNodes].forEach(n => {
+  nodeDataList.forEach(n => {
     const rx = offsetX + (n.x - minX) * scale;
     const ry = offsetY + (n.y - minY) * scale;
-    const rw = Math.max(4, n.w * scale);
-    const rh = Math.max(4, n.h * scale);
-    const round = n.type === 'background-group' ? 4 : Math.min(3, rw / 3, rh / 3);
+    const rw = Math.max(6, n.w * scale);
+    const rh = Math.max(5, n.h * scale);
+    const round = Math.min(3, rw / 3, rh / 3);
     nodesHtml += `<rect x="${rx.toFixed(1)}" y="${ry.toFixed(1)}" width="${rw.toFixed(1)}" height="${rh.toFixed(1)}" rx="${round.toFixed(1)}" class="a-my-island-work-minimap-node is-${n.type}"></rect>`;
   });
   nodesGroup.innerHTML = nodesHtml;
@@ -15468,8 +15479,8 @@ function updateIslandMinimap() {
   // Viewport rect
   const vx = offsetX + (vpLeft - minX) * scale;
   const vy = offsetY + (vpTop - minY) * scale;
-  const vw = Math.max(6, (stageW / islandZoom) * scale);
-  const vh = Math.max(6, (stageH / islandZoom) * scale);
+  const vw = Math.max(8, vpWidth * scale);
+  const vh = Math.max(8, vpHeight * scale);
   vpRect.setAttribute('x', vx.toFixed(1));
   vpRect.setAttribute('y', vy.toFixed(1));
   vpRect.setAttribute('width', vw.toFixed(1));
@@ -15487,8 +15498,8 @@ function initIslandMinimapEvents() {
   svg.addEventListener('click', (e) => {
     if (isDraggingIslandMinimapVp || !islandMinimapBounds) return;
     const rect = svg.getBoundingClientRect();
-    const svgX = ((e.clientX - rect.left) / rect.width) * 220;
-    const svgY = ((e.clientY - rect.top) / rect.height) * 130;
+    const svgX = ((e.clientX - rect.left) / rect.width) * 180;
+    const svgY = ((e.clientY - rect.top) / rect.height) * 100;
 
     const targetX = islandMinimapBounds.minX + (svgX - islandMinimapOffsetX) / islandMinimapScale;
     const targetY = islandMinimapBounds.minY + (svgY - islandMinimapOffsetY) / islandMinimapScale;
@@ -15517,8 +15528,8 @@ function initIslandMinimapEvents() {
 
     const onPointerMove = (ev) => {
       const rect = svg.getBoundingClientRect();
-      const deltaSvgX = ((ev.clientX - initialClientX) / rect.width) * 220;
-      const deltaSvgY = ((ev.clientY - initialClientY) / rect.height) * 130;
+      const deltaSvgX = ((ev.clientX - initialClientX) / rect.width) * 180;
+      const deltaSvgY = ((ev.clientY - initialClientY) / rect.height) * 100;
       const deltaCanvasX = deltaSvgX / islandMinimapScale;
       const deltaCanvasY = deltaSvgY / islandMinimapScale;
 
@@ -16114,7 +16125,7 @@ function initCanvasPanZoomAndDrag() {
     try { stage.setPointerCapture(e.pointerId); } catch (_) {}
   });
 
-  stage.addEventListener('pointermove', (e) => {
+  const onStagePointerMove = (e) => {
     if (e.pointerType === 'touch') return;
     if (typeof currentGlobalView !== 'undefined' && currentGlobalView !== 'plan') return;
 
@@ -16140,10 +16151,10 @@ function initCanvasPanZoomAndDrag() {
       islandPanX = pointerPanInitialPanX + dx;
       islandPanY = pointerPanInitialPanY + dy;
       applyIslandTransform();
-    if (typeof bindPavilionNodesClickGuards === 'function') bindPavilionNodesClickGuards();
+      if (typeof bindPavilionNodesClickGuards === 'function') bindPavilionNodesClickGuards();
       return;
     }
-  });
+  };
 
   const onPointerUp = (e) => {
     if (e.pointerType === 'touch') return;
@@ -16167,14 +16178,24 @@ function initCanvasPanZoomAndDrag() {
       stage.classList.remove('is-canvas-dragging');
     }
   };
+
+  stage.addEventListener('pointermove', onStagePointerMove);
+  window.addEventListener('pointermove', onStagePointerMove);
   stage.addEventListener('pointerup', onPointerUp);
   stage.addEventListener('pointercancel', onPointerUp);
+  window.addEventListener('pointerup', onPointerUp);
+  window.addEventListener('pointercancel', onPointerUp);
+
+  stage.addEventListener('touchend', onIslandTouchEnd, { passive: false });
+  stage.addEventListener('touchcancel', onIslandTouchEnd, { passive: false });
+  window.addEventListener('touchend', onIslandTouchEnd, { passive: false });
+  window.addEventListener('touchcancel', onIslandTouchEnd, { passive: false });
 
   // -------------------------------------------------------------
-  // D. 捕获阶段防御：严防节点拖拽结束误触发 handlePavilionClick 路由
+  // D. 捕获阶段防御：严防节点拖拽结束误触发 handlePavilionClick 路由 (仅限场馆节点)
   // -------------------------------------------------------------
   stage.addEventListener('click', (e) => {
-    if (window._islandNodeDragMoved) {
+    if (window._islandNodeDragMoved && e.target.closest('.pavilion-node')) {
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
@@ -16216,7 +16237,7 @@ function updateTwinPathLine() {
 // ==========================================================================
 
 function switchHomeGlobalView(mode) {
-  currentGlobalView = (mode === 'plan') ? 'plan' : 'exec';
+  currentGlobalView = (mode === 'plan' || mode === 'planning') ? 'plan' : 'exec';
   ['exec', 'plan'].forEach(m => {
     const btn = document.getElementById('launcher-view-' + m);
     if (btn) btn.classList.toggle('is-active', m === currentGlobalView);
@@ -16269,6 +16290,9 @@ function switchHomeGlobalView(mode) {
     }
     if (navDock) {
       navDock.style.setProperty('display', 'flex', 'important');
+    }
+    if (typeof initCanvasPanZoomAndDrag === 'function') {
+      initCanvasPanZoomAndDrag();
     }
     applyIslandTransform();
     if (typeof bindPavilionNodesClickGuards === 'function') bindPavilionNodesClickGuards();
@@ -19946,8 +19970,8 @@ function initTertiaryMinimapEvents() {
   svg.addEventListener('click', (e) => {
     if (isDraggingTertiaryMinimapVp || !tertiaryMinimapBounds) return;
     const rect = svg.getBoundingClientRect();
-    const svgX = ((e.clientX - rect.left) / rect.width) * 220;
-    const svgY = ((e.clientY - rect.top) / rect.height) * 130;
+    const svgX = ((e.clientX - rect.left) / rect.width) * 180;
+    const svgY = ((e.clientY - rect.top) / rect.height) * 100;
 
     const targetX = tertiaryMinimapBounds.minX + (svgX - tertiaryMinimapOffsetX) / tertiaryMinimapScale;
     const targetY = tertiaryMinimapBounds.minY + (svgY - tertiaryMinimapOffsetY) / tertiaryMinimapScale;
@@ -19977,8 +20001,8 @@ function initTertiaryMinimapEvents() {
 
     const onPointerMove = (ev) => {
       const rect = svg.getBoundingClientRect();
-      const deltaSvgX = ((ev.clientX - initialClientX) / rect.width) * 220;
-      const deltaSvgY = ((ev.clientY - initialClientY) / rect.height) * 130;
+      const deltaSvgX = ((ev.clientX - initialClientX) / rect.width) * 180;
+      const deltaSvgY = ((ev.clientY - initialClientY) / rect.height) * 100;
       const deltaCanvasX = deltaSvgX / tertiaryMinimapScale;
       const deltaCanvasY = deltaSvgY / tertiaryMinimapScale;
 
