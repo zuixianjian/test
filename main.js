@@ -867,6 +867,19 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
             <span class="a-my-island-graph-tool-icon">\u2299</span>
             <span class="a-my-island-graph-tool-label">\u5C45\u4E2D\u8282\u70B9</span>
           </button>
+          <div class="top-tool-divider"></div>
+          <button class="a-my-island-graph-tool" onclick="zoomIslandCanvas(1.18)" title="\u653E\u5927\u89C4\u5212\u6C99\u76D8 (\u6216\u4F7F\u7528\u6EDA\u8F6E\u4E0A\u6EDA / \u53CC\u6307\u634F\u5408\u653E\u5927)">
+            <span class="a-my-island-graph-tool-icon">\u2795</span>
+            <span class="a-my-island-graph-tool-label">\u653E\u5927</span>
+          </button>
+          <button class="a-my-island-graph-tool" onclick="zoomIslandCanvas(0.85)" title="\u7F29\u5C0F\u89C4\u5212\u6C99\u76D8 (\u6216\u4F7F\u7528\u6EDA\u8F6E\u4E0B\u6EDA / \u53CC\u6307\u634F\u5408\u7F29\u5C0F)">
+            <span class="a-my-island-graph-tool-icon">\u2796</span>
+            <span class="a-my-island-graph-tool-label">\u7F29\u5C0F</span>
+          </button>
+          <button class="a-my-island-graph-tool" onclick="resetIslandCanvasZoom()" title="\u6062\u590D 100% \u539F\u59CB\u6BD4\u4F8B">
+            <span class="a-my-island-graph-tool-icon" id="island-zoom-badge" style="font-size:10.5px; font-weight:900; color:#b45309;">100%</span>
+            <span class="a-my-island-graph-tool-label">\u8FD8\u539F</span>
+          </button>
         </div>
       </div>
 
@@ -4977,7 +4990,32 @@ function bootPrototypeRuntime() {
     window.islandPanX = islandPanX;
     window.islandPanY = islandPanY;
     window.islandZoom = islandZoom;
+    const badge = document.getElementById("island-zoom-badge");
+    if (badge)
+      badge.textContent = Math.round(islandZoom * 100) + "%";
     updateIslandMinimap();
+  }
+  function zoomIslandCanvas(factor) {
+    const stage = document.getElementById("island-canvas-stage");
+    if (!stage)
+      return;
+    const oldZoom = islandZoom || 1;
+    const newZoom = Math.min(3, Math.max(0.35, oldZoom * factor));
+    const centerX = stage.clientWidth / 2;
+    const centerY = stage.clientHeight / 2;
+    const worldX = (centerX - islandPanX) / oldZoom;
+    const worldY = (centerY - islandPanY) / oldZoom;
+    islandZoom = newZoom;
+    islandPanX = centerX - worldX * newZoom;
+    islandPanY = centerY - worldY * newZoom;
+    applyIslandTransform();
+  }
+  function resetIslandCanvasZoom() {
+    islandZoom = 1;
+    islandPanX = 0;
+    islandPanY = 0;
+    applyIslandTransform();
+    showIslandToast("\u{1F50D} \u89C4\u5212\u6C99\u76D8\u5DF2\u6062\u590D 100% \u539F\u59CB\u6BD4\u4F8B");
   }
   function updateIslandMinimap() {
     const dock = document.getElementById("island-navigation-dock");
@@ -5473,149 +5511,45 @@ function bootPrototypeRuntime() {
       if (typeof currentGlobalView !== "undefined" && currentGlobalView !== "plan")
         return;
       e.preventDefault();
+      e.stopPropagation();
       const rect = stage.getBoundingClientRect();
       const cursorStageX = e.clientX - rect.left;
       const cursorStageY = e.clientY - rect.top;
-      const oldZoom = islandZoom || 1;
-      const factor = e.deltaY < 0 ? 1.12 : 0.88;
-      const newZoom = Math.min(3, Math.max(0.35, oldZoom * factor));
-      const worldX = (cursorStageX - islandPanX) / oldZoom;
-      const worldY = (cursorStageY - islandPanY) / oldZoom;
-      islandZoom = newZoom;
-      islandPanX = cursorStageX - worldX * newZoom;
-      islandPanY = cursorStageY - worldY * newZoom;
+      if (e.ctrlKey || !e.shiftKey && Math.abs(e.deltaX) < 2) {
+        const oldZoom = islandZoom || 1;
+        const factor = e.deltaY < 0 ? 1.08 : 0.92;
+        const newZoom = Math.min(3, Math.max(0.35, oldZoom * factor));
+        const worldX = (cursorStageX - islandPanX) / oldZoom;
+        const worldY = (cursorStageY - islandPanY) / oldZoom;
+        islandZoom = newZoom;
+        islandPanX = cursorStageX - worldX * newZoom;
+        islandPanY = cursorStageY - worldY * newZoom;
+      } else {
+        islandPanX -= e.deltaX || 0;
+        islandPanY -= e.deltaY || 0;
+      }
       applyIslandTransform();
       if (typeof bindPavilionNodesClickGuards === "function")
         bindPavilionNodesClickGuards();
     }, { passive: false });
-    stage.addEventListener("touchstart", (e) => {
-      if (typeof currentGlobalView !== "undefined" && currentGlobalView !== "plan")
-        return;
-      e.stopPropagation();
-      if (e.touches.length === 2) {
-        isIslandPinching = true;
-        isIslandPanning = false;
-        if (activeTouchDragPavilionNode) {
-          activeTouchDragPavilionNode.classList.remove("is-node-dragging");
-          activeTouchDragPavilionNode = null;
-        }
-        const t1 = e.touches[0];
-        const t2 = e.touches[1];
-        islandPinchStartDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-        islandPinchStartZoom = islandZoom || 1;
-        const rect = stage.getBoundingClientRect();
-        const midStageX = (t1.clientX + t2.clientX) / 2 - rect.left;
-        const midStageY = (t1.clientY + t2.clientY) / 2 - rect.top;
-        islandPinchPivotWorldX = (midStageX - islandPanX) / islandPinchStartZoom;
-        islandPinchPivotWorldY = (midStageY - islandPanY) / islandPinchStartZoom;
-        return;
-      }
-      if (e.touches.length === 1) {
-        const touch = e.touches[0];
-        const node = e.target.closest(".pavilion-node");
-        const isInteractive = !!e.target.closest("button, input, select, textarea, .a-my-island-plugin-launcher, .a-my-island-graph-toolbar, .a-my-island-work-navigation-dock, .hud-profile-container, .parent-bounty-billboard, .a-my-island-island-settings-panel");
-        if (node) {
-          activeTouchDragPavilionNode = node;
-          nodeTouchHasMoved = false;
-          nodeTouchDragStartX = touch.clientX;
-          nodeTouchDragStartY = touch.clientY;
-          nodeTouchInitLeft = node.offsetLeft;
-          nodeTouchInitTop = node.offsetTop;
-          node.classList.add("is-node-dragging");
-          return;
-        }
-        if (!isInteractive) {
-          isIslandPanning = true;
-          isIslandPinching = false;
-          islandTouchPanStartX = touch.clientX;
-          islandTouchPanStartY = touch.clientY;
-          islandTouchPanInitialPanX = islandPanX;
-          islandTouchPanInitialPanY = islandPanY;
-          stage.classList.add("is-canvas-dragging");
-        }
-      }
-    }, { passive: false });
-    stage.addEventListener("touchmove", (e) => {
-      if (typeof currentGlobalView !== "undefined" && currentGlobalView !== "plan")
-        return;
-      e.stopPropagation();
-      if (e.cancelable)
-        e.preventDefault();
-      if (isIslandPinching && e.touches.length >= 2) {
-        const t1 = e.touches[0];
-        const t2 = e.touches[1];
-        const currentDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-        if (islandPinchStartDist > 0) {
-          const factor = currentDist / islandPinchStartDist;
-          const newZoom = Math.min(3, Math.max(0.35, islandPinchStartZoom * factor));
-          const rect = stage.getBoundingClientRect();
-          const currentMidStageX = (t1.clientX + t2.clientX) / 2 - rect.left;
-          const currentMidStageY = (t1.clientY + t2.clientY) / 2 - rect.top;
-          islandZoom = newZoom;
-          islandPanX = currentMidStageX - islandPinchPivotWorldX * newZoom;
-          islandPanY = currentMidStageY - islandPinchPivotWorldY * newZoom;
-          applyIslandTransform();
-          if (typeof bindPavilionNodesClickGuards === "function")
-            bindPavilionNodesClickGuards();
-        }
-        return;
-      }
-      if (activeTouchDragPavilionNode && e.touches.length === 1) {
-        const touch = e.touches[0];
-        const dx = (touch.clientX - nodeTouchDragStartX) / islandZoom;
-        const dy = (touch.clientY - nodeTouchDragStartY) / islandZoom;
-        if (!nodeTouchHasMoved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
-          nodeTouchHasMoved = true;
-          activeTouchDragPavilionNode._dragMoved = true;
-          window._islandNodeDragMoved = true;
-        }
-        if (nodeTouchHasMoved) {
-          activeTouchDragPavilionNode.style.left = nodeTouchInitLeft + dx + "px";
-          activeTouchDragPavilionNode.style.top = nodeTouchInitTop + dy + "px";
-          updateIslandMinimap();
-        }
-        return;
-      }
-      if (isIslandPanning && e.touches.length === 1) {
-        const touch = e.touches[0];
-        const dx = touch.clientX - islandTouchPanStartX;
-        const dy = touch.clientY - islandTouchPanStartY;
-        islandPanX = islandTouchPanInitialPanX + dx;
-        islandPanY = islandTouchPanInitialPanY + dy;
-        applyIslandTransform();
-        if (typeof bindPavilionNodesClickGuards === "function")
-          bindPavilionNodesClickGuards();
-        return;
-      }
-    }, { passive: false });
-    const onIslandTouchEnd = (e) => {
-      e.stopPropagation();
-      if (e.touches.length < 2 && isIslandPinching) {
-        isIslandPinching = false;
-      }
-      if (e.touches.length === 0) {
-        isIslandPanning = false;
-        stage.classList.remove("is-canvas-dragging");
-      }
-      if (activeTouchDragPavilionNode) {
-        const node = activeTouchDragPavilionNode;
-        activeTouchDragPavilionNode = null;
-        node.classList.remove("is-node-dragging");
-        if (nodeTouchHasMoved) {
-          node._dragMoved = true;
-          window._islandNodeDragMoved = true;
-          setTimeout(() => {
-            node._dragMoved = false;
-            window._islandNodeDragMoved = false;
-          }, 220);
-        }
-      }
-    };
-    stage.addEventListener("touchend", onIslandTouchEnd, { passive: false });
-    stage.addEventListener("touchcancel", onIslandTouchEnd, { passive: false });
+    const activePointers2 = /* @__PURE__ */ new Map();
+    let pinchStartDist = 0;
+    let pinchStartZoom2 = 1;
+    let pinchPivotWorldX = 0;
+    let pinchPivotWorldY = 0;
+    let isPinching2 = false;
+    let isPanning = false;
+    let panStartX2 = 0;
+    let panStartY = 0;
+    let panInitialX = 0;
+    let panInitialY = 0;
+    let activeDragNode = null;
+    let dragNodeStartX = 0;
+    let dragNodeStartY = 0;
+    let dragNodeInitLeft = 0;
+    let dragNodeInitTop = 0;
+    let dragNodeHasMoved = false;
     stage.addEventListener("pointerdown", (e) => {
-      if (e.pointerType === "touch")
-        return;
       if (typeof currentGlobalView !== "undefined" && currentGlobalView !== "plan")
         return;
       if (e.target.closest(".a-my-island-work-navigation-dock"))
@@ -5623,75 +5557,117 @@ function bootPrototypeRuntime() {
       const isInteractive = !!e.target.closest("button, input, select, textarea, .a-my-island-plugin-launcher, .a-my-island-graph-toolbar, .hud-profile-container, .parent-bounty-billboard, .a-my-island-island-settings-panel");
       if (isInteractive)
         return;
-      const node = e.target.closest(".pavilion-node");
-      if (node) {
-        activePointerDragNode = node;
-        nodePointerHasMoved = false;
-        nodePointerDragStartX = e.clientX;
-        nodePointerDragStartY = e.clientY;
-        nodePointerInitLeft = node.offsetLeft;
-        nodePointerInitTop = node.offsetTop;
-        node.classList.add("is-node-dragging");
+      e.stopPropagation();
+      activePointers2.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+      if (activePointers2.size === 2) {
+        isPinching2 = true;
+        isPanning = false;
+        if (activeDragNode) {
+          try {
+            activeDragNode.releasePointerCapture(e.pointerId);
+          } catch (_) {
+          }
+          activeDragNode.classList.remove("is-node-dragging");
+          activeDragNode = null;
+        }
+        const pts = Array.from(activePointers2.values());
+        pinchStartDist = Math.hypot(pts[1].clientX - pts[0].clientX, pts[1].clientY - pts[0].clientY);
+        pinchStartZoom2 = islandZoom || 1;
+        const rect = stage.getBoundingClientRect();
+        const midStageX = (pts[0].clientX + pts[1].clientX) / 2 - rect.left;
+        const midStageY = (pts[0].clientY + pts[1].clientY) / 2 - rect.top;
+        pinchPivotWorldX = (midStageX - islandPanX) / pinchStartZoom2;
+        pinchPivotWorldY = (midStageY - islandPanY) / pinchStartZoom2;
+        return;
+      }
+      if (activePointers2.size === 1) {
+        const node = e.target.closest(".pavilion-node");
+        if (node) {
+          activeDragNode = node;
+          dragNodeHasMoved = false;
+          dragNodeStartX = e.clientX;
+          dragNodeStartY = e.clientY;
+          dragNodeInitLeft = node.offsetLeft;
+          dragNodeInitTop = node.offsetTop;
+          node.classList.add("is-node-dragging");
+          try {
+            node.setPointerCapture(e.pointerId);
+          } catch (_) {
+          }
+          return;
+        }
+        isPanning = true;
+        isPinching2 = false;
+        panStartX2 = e.clientX;
+        panStartY = e.clientY;
+        panInitialX = islandPanX;
+        panInitialY = islandPanY;
+        stage.classList.add("is-canvas-dragging");
         try {
-          node.setPointerCapture(e.pointerId);
+          stage.setPointerCapture(e.pointerId);
         } catch (_) {
         }
-        return;
-      }
-      isPointerPanning = true;
-      pointerPanStartX = e.clientX;
-      pointerPanStartY = e.clientY;
-      pointerPanInitialPanX = islandPanX;
-      pointerPanInitialPanY = islandPanY;
-      stage.classList.add("is-canvas-dragging");
-      try {
-        stage.setPointerCapture(e.pointerId);
-      } catch (_) {
       }
     });
-    const onStagePointerMove = (e) => {
-      if (e.pointerType === "touch")
+    const onWindowPointerMove = (e) => {
+      if (!activePointers2.has(e.pointerId))
         return;
-      if (typeof currentGlobalView !== "undefined" && currentGlobalView !== "plan")
+      activePointers2.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+      if (isPinching2 && activePointers2.size >= 2) {
+        const pts = Array.from(activePointers2.values());
+        const currentDist = Math.hypot(pts[1].clientX - pts[0].clientX, pts[1].clientY - pts[0].clientY);
+        if (pinchStartDist > 0) {
+          const factor = currentDist / pinchStartDist;
+          const newZoom = Math.min(3, Math.max(0.35, pinchStartZoom2 * factor));
+          const rect = stage.getBoundingClientRect();
+          const currentMidStageX = (pts[0].clientX + pts[1].clientX) / 2 - rect.left;
+          const currentMidStageY = (pts[0].clientY + pts[1].clientY) / 2 - rect.top;
+          islandZoom = newZoom;
+          islandPanX = currentMidStageX - pinchPivotWorldX * newZoom;
+          islandPanY = currentMidStageY - pinchPivotWorldY * newZoom;
+          applyIslandTransform();
+          if (typeof bindPavilionNodesClickGuards === "function")
+            bindPavilionNodesClickGuards();
+        }
         return;
-      if (activePointerDragNode) {
-        const dx = (e.clientX - nodePointerDragStartX) / islandZoom;
-        const dy = (e.clientY - nodePointerDragStartY) / islandZoom;
-        if (!nodePointerHasMoved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
-          nodePointerHasMoved = true;
-          activePointerDragNode._dragMoved = true;
+      }
+      if (activeDragNode && activePointers2.size === 1) {
+        const dx = (e.clientX - dragNodeStartX) / islandZoom;
+        const dy = (e.clientY - dragNodeStartY) / islandZoom;
+        if (!dragNodeHasMoved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
+          dragNodeHasMoved = true;
+          activeDragNode._dragMoved = true;
           window._islandNodeDragMoved = true;
         }
-        if (nodePointerHasMoved) {
-          activePointerDragNode.style.left = nodePointerInitLeft + dx + "px";
-          activePointerDragNode.style.top = nodePointerInitTop + dy + "px";
+        if (dragNodeHasMoved) {
+          activeDragNode.style.left = dragNodeInitLeft + dx + "px";
+          activeDragNode.style.top = dragNodeInitTop + dy + "px";
           updateIslandMinimap();
         }
         return;
       }
-      if (isPointerPanning) {
-        const dx = e.clientX - pointerPanStartX;
-        const dy = e.clientY - pointerPanStartY;
-        islandPanX = pointerPanInitialPanX + dx;
-        islandPanY = pointerPanInitialPanY + dy;
+      if (isPanning && activePointers2.size === 1) {
+        const dx = e.clientX - panStartX2;
+        const dy = e.clientY - panStartY;
+        islandPanX = panInitialX + dx;
+        islandPanY = panInitialY + dy;
         applyIslandTransform();
         if (typeof bindPavilionNodesClickGuards === "function")
           bindPavilionNodesClickGuards();
         return;
       }
     };
-    const onPointerUp = (e) => {
-      if (e.pointerType === "touch")
-        return;
-      if (activePointerDragNode) {
-        const node = activePointerDragNode;
-        activePointerDragNode = null;
+    const onWindowPointerUp = (e) => {
+      activePointers2.delete(e.pointerId);
+      if (activeDragNode) {
+        const node = activeDragNode;
+        activeDragNode = null;
         try {
           node.releasePointerCapture(e.pointerId);
         } catch (_) {
         }
         node.classList.remove("is-node-dragging");
-        if (nodePointerHasMoved) {
+        if (dragNodeHasMoved) {
           node._dragMoved = true;
           window._islandNodeDragMoved = true;
           setTimeout(() => {
@@ -5700,8 +5676,11 @@ function bootPrototypeRuntime() {
           }, 220);
         }
       }
-      if (isPointerPanning) {
-        isPointerPanning = false;
+      if (activePointers2.size < 2 && isPinching2) {
+        isPinching2 = false;
+      }
+      if (activePointers2.size === 0) {
+        isPanning = false;
         try {
           stage.releasePointerCapture(e.pointerId);
         } catch (_) {
@@ -5709,16 +5688,17 @@ function bootPrototypeRuntime() {
         stage.classList.remove("is-canvas-dragging");
       }
     };
-    stage.addEventListener("pointermove", onStagePointerMove);
-    window.addEventListener("pointermove", onStagePointerMove);
-    stage.addEventListener("pointerup", onPointerUp);
-    stage.addEventListener("pointercancel", onPointerUp);
-    window.addEventListener("pointerup", onPointerUp);
-    window.addEventListener("pointercancel", onPointerUp);
-    stage.addEventListener("touchend", onIslandTouchEnd, { passive: false });
-    stage.addEventListener("touchcancel", onIslandTouchEnd, { passive: false });
-    window.addEventListener("touchend", onIslandTouchEnd, { passive: false });
-    window.addEventListener("touchcancel", onIslandTouchEnd, { passive: false });
+    window.addEventListener("pointermove", onWindowPointerMove);
+    window.addEventListener("pointerup", onWindowPointerUp);
+    window.addEventListener("pointercancel", onWindowPointerUp);
+    stage.addEventListener("touchstart", (e) => {
+      e.stopPropagation();
+    }, { passive: true });
+    stage.addEventListener("touchmove", (e) => {
+      e.stopPropagation();
+      if (e.cancelable)
+        e.preventDefault();
+    }, { passive: false });
     stage.addEventListener("click", (e) => {
       if (window._islandNodeDragMoved && e.target.closest(".pavilion-node")) {
         e.preventDefault();
@@ -9648,171 +9628,132 @@ function bootPrototypeRuntime() {
     stage._tertiaryGestureBound = true;
     stage.addEventListener("wheel", (e) => {
       e.preventDefault();
+      e.stopPropagation();
       const rect = stage.getBoundingClientRect();
       const cursorStageX = e.clientX - rect.left;
       const cursorStageY = e.clientY - rect.top;
-      const oldZoom = window.tertiaryZoom || 1;
-      const factor = e.deltaY < 0 ? 1.12 : 0.88;
-      const newZoom = Math.min(3.5, Math.max(0.25, oldZoom * factor));
-      const worldX = (cursorStageX - window.tertiaryPanX) / oldZoom;
-      const worldY = (cursorStageY - window.tertiaryPanY) / oldZoom;
-      window.tertiaryZoom = newZoom;
-      window.tertiaryPanX = cursorStageX - worldX * newZoom;
-      window.tertiaryPanY = cursorStageY - worldY * newZoom;
+      if (e.ctrlKey || !e.shiftKey && Math.abs(e.deltaX) < 2) {
+        const oldZoom = window.tertiaryZoom || 1;
+        const factor = e.deltaY < 0 ? 1.08 : 0.92;
+        const newZoom = Math.min(3.5, Math.max(0.25, oldZoom * factor));
+        const worldX = (cursorStageX - window.tertiaryPanX) / oldZoom;
+        const worldY = (cursorStageY - window.tertiaryPanY) / oldZoom;
+        window.tertiaryZoom = newZoom;
+        window.tertiaryPanX = cursorStageX - worldX * newZoom;
+        window.tertiaryPanY = cursorStageY - worldY * newZoom;
+      } else {
+        window.tertiaryPanX -= e.deltaX || 0;
+        window.tertiaryPanY -= e.deltaY || 0;
+      }
       applyTertiaryTransform();
     }, { passive: false });
-    let touchStartDist = 0;
-    let touchStartZoom = 1;
-    let touchPivotWorldX = 0;
-    let touchPivotWorldY = 0;
-    let isTouchPinching = false;
-    let isTouchPanning = false;
-    let touchPanStartX = 0;
-    let touchPanStartY = 0;
-    let touchPanInitialPanX = 0;
-    let touchPanInitialPanY = 0;
-    stage.addEventListener("touchstart", (e) => {
-      e.stopPropagation();
-      if (e.touches.length === 2) {
-        isTouchPinching = true;
-        isTouchPanning = false;
-        if (view)
-          view.classList.add("is-viewport-moving");
-        const t1 = e.touches[0];
-        const t2 = e.touches[1];
-        touchStartDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-        touchStartZoom = window.tertiaryZoom || 1;
-        const rect = stage.getBoundingClientRect();
-        const midStageX = (t1.clientX + t2.clientX) / 2 - rect.left;
-        const midStageY = (t1.clientY + t2.clientY) / 2 - rect.top;
-        touchPivotWorldX = (midStageX - window.tertiaryPanX) / touchStartZoom;
-        touchPivotWorldY = (midStageY - window.tertiaryPanY) / touchStartZoom;
-        return;
-      }
-      if (e.touches.length === 1) {
-        const touch = e.touches[0];
-        const card = e.target.closest(".tertiary-card");
-        const isInteractive = !!e.target.closest("button, input, select, textarea, .work-card-connect-handle");
-        if (!card && !isInteractive) {
-          isTouchPanning = true;
-          isTouchPinching = false;
-          touchPanStartX = touch.clientX;
-          touchPanStartY = touch.clientY;
-          touchPanInitialPanX = window.tertiaryPanX;
-          touchPanInitialPanY = window.tertiaryPanY;
-          stage.classList.add("is-dragging-canvas");
-          if (view)
-            view.classList.add("is-viewport-moving");
-        }
-      }
-    }, { passive: false });
-    stage.addEventListener("touchmove", (e) => {
-      e.stopPropagation();
-      if (e.cancelable)
-        e.preventDefault();
-      if (isTouchPinching && e.touches.length >= 2) {
-        const t1 = e.touches[0];
-        const t2 = e.touches[1];
-        const currentDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-        if (touchStartDist > 0) {
-          const factor = currentDist / touchStartDist;
-          const newZoom = Math.min(3.5, Math.max(0.25, touchStartZoom * factor));
-          const rect = stage.getBoundingClientRect();
-          const currentMidStageX = (t1.clientX + t2.clientX) / 2 - rect.left;
-          const currentMidStageY = (t1.clientY + t2.clientY) / 2 - rect.top;
-          window.tertiaryZoom = newZoom;
-          window.tertiaryPanX = currentMidStageX - touchPivotWorldX * newZoom;
-          window.tertiaryPanY = currentMidStageY - touchPivotWorldY * newZoom;
-          applyTertiaryTransform();
-        }
-        return;
-      }
-      if (isTouchPanning && e.touches.length === 1) {
-        const touch = e.touches[0];
-        const dx = touch.clientX - touchPanStartX;
-        const dy = touch.clientY - touchPanStartY;
-        window.tertiaryPanX = touchPanInitialPanX + dx;
-        window.tertiaryPanY = touchPanInitialPanY + dy;
-        applyTertiaryTransform();
-      }
-    }, { passive: false });
-    const onTouchEnd = (e) => {
-      e.stopPropagation();
-      if (e.touches.length < 2 && isTouchPinching) {
-        isTouchPinching = false;
-        if (view)
-          view.classList.remove("is-viewport-moving");
-      }
-      if (e.touches.length === 0) {
-        isTouchPanning = false;
-        stage.classList.remove("is-dragging-canvas");
-        if (view)
-          view.classList.remove("is-viewport-moving");
-      }
-    };
-    stage.addEventListener("touchend", onTouchEnd, { passive: false });
-    stage.addEventListener("touchcancel", onTouchEnd, { passive: false });
+    const activePointers2 = /* @__PURE__ */ new Map();
+    let pinchStartDist = 0;
+    let pinchStartZoom2 = 1;
+    let pinchPivotWorldX = 0;
+    let pinchPivotWorldY = 0;
+    let isPinching2 = false;
+    let isPanning = false;
+    let panStartX2 = 0;
+    let panStartY = 0;
+    let panInitialX = 0;
+    let panInitialY = 0;
     stage.addEventListener("pointerdown", (e) => {
-      if (e.pointerType === "touch")
-        return;
       if (e.target.closest(".a-my-island-work-minimap"))
         return;
       const isInteractive = !!e.target.closest("button, input, select, textarea, .work-card-connect-handle");
       if (isInteractive)
         return;
-      const card = e.target.closest(".tertiary-card");
-      if (card) {
-        activeDraggingCard = card;
-        cardDragHasMoved = false;
-        cardDragStartClientX = e.clientX;
-        cardDragStartClientY = e.clientY;
-        cardDragInitialLeft = parseInt(card.style.left, 10) || card.offsetLeft;
-        cardDragInitialTop = parseInt(card.style.top, 10) || card.offsetTop;
-        cardFollowerInitialPositions = [];
-        if (typeof childrenFollowEnabled !== "undefined" && childrenFollowEnabled && card.id) {
-          getDownstreamChildCardIds(card.id).forEach((cid) => {
-            const childEl = document.getElementById(cid);
-            if (childEl) {
-              cardFollowerInitialPositions.push({
-                el: childEl,
-                left: parseInt(childEl.style.left, 10) || childEl.offsetLeft,
-                top: parseInt(childEl.style.top, 10) || childEl.offsetTop
-              });
-            }
-          });
+      e.stopPropagation();
+      activePointers2.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+      if (activePointers2.size === 2) {
+        isPinching2 = true;
+        isPanning = false;
+        if (activeDraggingCard) {
+          try {
+            activeDraggingCard.releasePointerCapture(e.pointerId);
+          } catch (_) {
+          }
+          activeDraggingCard.classList.remove("is-card-dragging");
+          activeDraggingCard = null;
         }
-        card.classList.add("is-card-dragging");
+        if (view)
+          view.classList.add("is-viewport-moving");
+        const pts = Array.from(activePointers2.values());
+        pinchStartDist = Math.hypot(pts[1].clientX - pts[0].clientX, pts[1].clientY - pts[0].clientY);
+        pinchStartZoom2 = window.tertiaryZoom || 1;
+        const rect = stage.getBoundingClientRect();
+        const midStageX = (pts[0].clientX + pts[1].clientX) / 2 - rect.left;
+        const midStageY = (pts[0].clientY + pts[1].clientY) / 2 - rect.top;
+        pinchPivotWorldX = (midStageX - window.tertiaryPanX) / pinchStartZoom2;
+        pinchPivotWorldY = (midStageY - window.tertiaryPanY) / pinchStartZoom2;
+        return;
+      }
+      if (activePointers2.size === 1) {
+        const card = e.target.closest(".tertiary-card");
+        if (card) {
+          activeDraggingCard = card;
+          cardDragHasMoved = false;
+          cardDragStartClientX = e.clientX;
+          cardDragStartClientY = e.clientY;
+          cardDragInitialLeft = parseInt(card.style.left, 10) || card.offsetLeft;
+          cardDragInitialTop = parseInt(card.style.top, 10) || card.offsetTop;
+          cardFollowerInitialPositions = [];
+          if (typeof childrenFollowEnabled !== "undefined" && childrenFollowEnabled && card.id) {
+            getDownstreamChildCardIds(card.id).forEach((cid) => {
+              const childEl = document.getElementById(cid);
+              if (childEl) {
+                cardFollowerInitialPositions.push({
+                  el: childEl,
+                  left: parseInt(childEl.style.left, 10) || childEl.offsetLeft,
+                  top: parseInt(childEl.style.top, 10) || childEl.offsetTop
+                });
+              }
+            });
+          }
+          card.classList.add("is-card-dragging");
+          try {
+            card.setPointerCapture(e.pointerId);
+          } catch (_) {
+          }
+          return;
+        }
+        isPanning = true;
+        isPinching2 = false;
+        panStartX2 = e.clientX;
+        panStartY = e.clientY;
+        panInitialX = window.tertiaryPanX;
+        panInitialY = window.tertiaryPanY;
+        stage.classList.add("is-dragging-canvas");
+        if (view)
+          view.classList.add("is-viewport-moving");
         try {
-          card.setPointerCapture(e.pointerId);
+          stage.setPointerCapture(e.pointerId);
         } catch (_) {
         }
-        return;
-      }
-      isStagePanning = true;
-      stagePanStartClientX = e.clientX;
-      stagePanStartClientY = e.clientY;
-      stagePanStartPanX = window.tertiaryPanX;
-      stagePanStartPanY = window.tertiaryPanY;
-      stage.classList.add("is-dragging-canvas");
-      if (view)
-        view.classList.add("is-viewport-moving");
-      try {
-        stage.setPointerCapture(e.pointerId);
-      } catch (_) {
       }
     });
-    stage.addEventListener("pointermove", (e) => {
-      if (e.pointerType === "touch")
+    const onWindowPointerMove = (e) => {
+      if (!activePointers2.has(e.pointerId))
         return;
-      if (isStagePanning) {
-        const dx = e.clientX - stagePanStartClientX;
-        const dy = e.clientY - stagePanStartClientY;
-        window.tertiaryPanX = stagePanStartPanX + dx;
-        window.tertiaryPanY = stagePanStartPanY + dy;
-        applyTertiaryTransform();
+      activePointers2.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+      if (isPinching2 && activePointers2.size >= 2) {
+        const pts = Array.from(activePointers2.values());
+        const currentDist = Math.hypot(pts[1].clientX - pts[0].clientX, pts[1].clientY - pts[0].clientY);
+        if (pinchStartDist > 0) {
+          const factor = currentDist / pinchStartDist;
+          const newZoom = Math.min(3.5, Math.max(0.25, pinchStartZoom2 * factor));
+          const rect = stage.getBoundingClientRect();
+          const currentMidStageX = (pts[0].clientX + pts[1].clientX) / 2 - rect.left;
+          const currentMidStageY = (pts[0].clientY + pts[1].clientY) / 2 - rect.top;
+          window.tertiaryZoom = newZoom;
+          window.tertiaryPanX = currentMidStageX - pinchPivotWorldX * newZoom;
+          window.tertiaryPanY = currentMidStageY - pinchPivotWorldY * newZoom;
+          applyTertiaryTransform();
+        }
         return;
       }
-      if (activeDraggingCard) {
+      if (activeDraggingCard && activePointers2.size === 1) {
         const zoom = window.tertiaryZoom || 1;
         const dx = (e.clientX - cardDragStartClientX) / zoom;
         const dy = (e.clientY - cardDragStartClientY) / zoom;
@@ -9828,9 +9769,19 @@ function bootPrototypeRuntime() {
           f.el.style.top = Math.max(10, f.top + dy) + "px";
         });
         updateTertiaryEdgesFast();
+        return;
       }
-    });
-    const onPointerEnd = (e) => {
+      if (isPanning && activePointers2.size === 1) {
+        const dx = e.clientX - panStartX2;
+        const dy = e.clientY - panStartY;
+        window.tertiaryPanX = panInitialX + dx;
+        window.tertiaryPanY = panInitialY + dy;
+        applyTertiaryTransform();
+        return;
+      }
+    };
+    const onWindowPointerUp = (e) => {
+      activePointers2.delete(e.pointerId);
       if (activeDraggingCard) {
         try {
           activeDraggingCard.releasePointerCapture(e.pointerId);
@@ -9840,19 +9791,33 @@ function bootPrototypeRuntime() {
         activeDraggingCard = null;
         updateTertiaryEdgesFast();
       }
-      if (isStagePanning) {
+      if (activePointers2.size < 2 && isPinching2) {
+        isPinching2 = false;
+        if (view)
+          view.classList.remove("is-viewport-moving");
+      }
+      if (activePointers2.size === 0) {
+        isPanning = false;
         try {
           stage.releasePointerCapture(e.pointerId);
         } catch (_) {
         }
-        isStagePanning = false;
         stage.classList.remove("is-dragging-canvas");
         if (view)
           view.classList.remove("is-viewport-moving");
       }
     };
-    stage.addEventListener("pointerup", onPointerEnd);
-    stage.addEventListener("pointercancel", onPointerEnd);
+    window.addEventListener("pointermove", onWindowPointerMove);
+    window.addEventListener("pointerup", onWindowPointerUp);
+    window.addEventListener("pointercancel", onWindowPointerUp);
+    stage.addEventListener("touchstart", (e) => {
+      e.stopPropagation();
+    }, { passive: true });
+    stage.addEventListener("touchmove", (e) => {
+      e.stopPropagation();
+      if (e.cancelable)
+        e.preventDefault();
+    }, { passive: false });
   }
   let isAllTertiaryCardsMinimized = false;
   function toggleTertiaryCardMinimize(cardId, event) {
@@ -14510,6 +14475,10 @@ function bootPrototypeRuntime() {
   }
   if (typeof applyIslandTransform === "function")
     window.applyIslandTransform = applyIslandTransform;
+  if (typeof zoomIslandCanvas === "function")
+    window.zoomIslandCanvas = zoomIslandCanvas;
+  if (typeof resetIslandCanvasZoom === "function")
+    window.resetIslandCanvasZoom = resetIslandCanvasZoom;
   if (typeof updateIslandMinimap === "function")
     window.updateIslandMinimap = updateIslandMinimap;
   if (typeof initIslandMinimapEvents === "function")
@@ -15416,6 +15385,24 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
       cls: "youth-island-plugin-root youth-island-obsidian-view-root"
     });
     rootWrapper.innerHTML = ISLAND_UI_HTML;
+    const appAny = this.app;
+    if (appAny?.workspace) {
+      const workspaceProto = Object.getPrototypeOf(appAny.workspace);
+      if (workspaceProto && !workspaceProto.__youthIslandSwipePatched) {
+        const originalTrigger = workspaceProto.trigger;
+        workspaceProto.trigger = function(eventName, ...args) {
+          if (eventName === "swipe") {
+            const activeLeaf = appAny.workspace?.activeLeaf;
+            const isOurView = activeLeaf?.view?.getViewType?.() === VIEW_TYPE_YOUTH_ISLAND || document.activeElement?.closest(".youth-island-plugin-root") || document.querySelector(".youth-island-plugin-root");
+            if (isOurView) {
+              return;
+            }
+          }
+          return originalTrigger.apply(this, [eventName, ...args]);
+        };
+        workspaceProto.__youthIslandSwipePatched = true;
+      }
+    }
     const blockObsidianSidebarBubble = (e) => {
       e.stopPropagation();
     };
@@ -15423,21 +15410,6 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
     rootWrapper.addEventListener("touchmove", blockObsidianSidebarBubble, { passive: true });
     rootWrapper.addEventListener("touchend", blockObsidianSidebarBubble, { passive: true });
     rootWrapper.addEventListener("touchcancel", blockObsidianSidebarBubble, { passive: true });
-    const blockSidebarEdgeGestures = (e) => {
-      const target = e.target;
-      if (!target || !target.closest(".youth-island-plugin-root"))
-        return;
-      if (e.touches && e.touches.length > 0) {
-        const touch = e.touches[0];
-        const screenW = window.innerWidth || document.documentElement.clientWidth;
-        if (touch.clientX < 28 || touch.clientX > screenW - 28) {
-          if (e.cancelable && e.type === "touchmove") {
-            e.preventDefault();
-          }
-        }
-      }
-    };
-    window.addEventListener("touchmove", blockSidebarEdgeGestures, { capture: true, passive: false });
     bootPrototypeRuntime();
     await this.plugin.vaultStorage.hydrateRuntimeFromVault();
     const win = window;

@@ -103,9 +103,31 @@ export class YouthIslandView extends ItemView {
     });
     rootWrapper.innerHTML = ISLAND_UI_HTML;
 
-    // 彻底屏蔽在海岛插件视图（特别是脑图画布、全景沙盘和执行中心）内左右滑动手势误触发 Obsidian 侧边栏
-    // 关键优化：在海岛视图根节点拦截向上冒泡，绝不截断海岛内部各组件的正常 touchstart/touchmove 响应
-    const blockObsidianSidebarBubble = (e: TouchEvent) => {
+    // 彻底拦截 Obsidian 移动端横向滑动手势误打开侧边栏 (由顶栏左右侧边栏按钮精准接管)
+    const appAny = this.app as any;
+    if (appAny?.workspace) {
+      const workspaceProto = Object.getPrototypeOf(appAny.workspace);
+      if (workspaceProto && !workspaceProto.__youthIslandSwipePatched) {
+        const originalTrigger = workspaceProto.trigger;
+        workspaceProto.trigger = function (eventName: string, ...args: any[]) {
+          if (eventName === "swipe") {
+            const activeLeaf = appAny.workspace?.activeLeaf;
+            const isOurView =
+              activeLeaf?.view?.getViewType?.() === VIEW_TYPE_YOUTH_ISLAND ||
+              document.activeElement?.closest(".youth-island-plugin-root") ||
+              document.querySelector(".youth-island-plugin-root");
+            if (isOurView) {
+              return; // 屏蔽原生滑出侧边栏，保障脑图与规划沙盘自由平移
+            }
+          }
+          return originalTrigger.apply(this, [eventName, ...args]);
+        };
+        workspaceProto.__youthIslandSwipePatched = true;
+      }
+    }
+
+    // 在海岛视图根节点拦截向上冒泡，绝不截断海岛内部各组件的正常 touchstart/touchmove 响应
+    const blockObsidianSidebarBubble = (e: Event) => {
       e.stopPropagation();
     };
 
@@ -113,22 +135,6 @@ export class YouthIslandView extends ItemView {
     rootWrapper.addEventListener("touchmove", blockObsidianSidebarBubble, { passive: true });
     rootWrapper.addEventListener("touchend", blockObsidianSidebarBubble, { passive: true });
     rootWrapper.addEventListener("touchcancel", blockObsidianSidebarBubble, { passive: true });
-
-    // 针对 Obsidian 移动端边缘抽屉手势（屏幕极边缘 < 28px 或 > 宽度 - 28px），阻止原生滑出侧边栏
-    const blockSidebarEdgeGestures = (e: TouchEvent) => {
-      const target = e.target as HTMLElement | null;
-      if (!target || !target.closest(".youth-island-plugin-root")) return;
-      if (e.touches && e.touches.length > 0) {
-        const touch = e.touches[0];
-        const screenW = window.innerWidth || document.documentElement.clientWidth;
-        if (touch.clientX < 28 || touch.clientX > screenW - 28) {
-          if (e.cancelable && e.type === "touchmove") {
-            e.preventDefault();
-          }
-        }
-      }
-    };
-    window.addEventListener("touchmove", blockSidebarEdgeGestures, { capture: true, passive: false });
 
     // Boot interactive runtime
     bootPrototypeRuntime();

@@ -12307,6 +12307,19 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
             <span class="a-my-island-graph-tool-icon">⊙</span>
             <span class="a-my-island-graph-tool-label">居中节点</span>
           </button>
+          <div class="top-tool-divider"></div>
+          <button class="a-my-island-graph-tool" onclick="zoomIslandCanvas(1.18)" title="放大规划沙盘 (或使用滚轮上滚 / 双指捏合放大)">
+            <span class="a-my-island-graph-tool-icon">➕</span>
+            <span class="a-my-island-graph-tool-label">放大</span>
+          </button>
+          <button class="a-my-island-graph-tool" onclick="zoomIslandCanvas(0.85)" title="缩小规划沙盘 (或使用滚轮下滚 / 双指捏合缩小)">
+            <span class="a-my-island-graph-tool-icon">➖</span>
+            <span class="a-my-island-graph-tool-label">缩小</span>
+          </button>
+          <button class="a-my-island-graph-tool" onclick="resetIslandCanvasZoom()" title="恢复 100% 原始比例">
+            <span class="a-my-island-graph-tool-icon" id="island-zoom-badge" style="font-size:10.5px; font-weight:900; color:#b45309;">100%</span>
+            <span class="a-my-island-graph-tool-label">还原</span>
+          </button>
         </div>
       </div>
 
@@ -15382,7 +15395,32 @@ function applyIslandTransform() {
   window.islandPanX = islandPanX;
   window.islandPanY = islandPanY;
   window.islandZoom = islandZoom;
+  const badge = document.getElementById('island-zoom-badge');
+  if (badge) badge.textContent = Math.round(islandZoom * 100) + '%';
   updateIslandMinimap();
+}
+
+function zoomIslandCanvas(factor) {
+  const stage = document.getElementById('island-canvas-stage');
+  if (!stage) return;
+  const oldZoom = islandZoom || 1.0;
+  const newZoom = Math.min(3.0, Math.max(0.35, oldZoom * factor));
+  const centerX = stage.clientWidth / 2;
+  const centerY = stage.clientHeight / 2;
+  const worldX = (centerX - islandPanX) / oldZoom;
+  const worldY = (centerY - islandPanY) / oldZoom;
+  islandZoom = newZoom;
+  islandPanX = centerX - worldX * newZoom;
+  islandPanY = centerY - worldY * newZoom;
+  applyIslandTransform();
+}
+
+function resetIslandCanvasZoom() {
+  islandZoom = 1.0;
+  islandPanX = 0;
+  islandPanY = 0;
+  applyIslandTransform();
+  showIslandToast('🔍 规划沙盘已恢复 100% 原始比例');
 }
 
 function updateIslandMinimap() {
@@ -15919,7 +15957,6 @@ function initCanvasPanZoomAndDrag() {
   const canvasWorld = document.getElementById('island-world-canvas');
   if (!stage || !canvasWorld) return;
 
-  // 确保世界容器 transform-origin 为 0 0 且硬件加速
   canvasWorld.style.transformOrigin = '0 0';
 
   if (stage._islandGestureEngineBound) {
@@ -15929,241 +15966,177 @@ function initCanvasPanZoomAndDrag() {
   stage._islandGestureEngineBound = true;
 
   // -------------------------------------------------------------
-  // A. 鼠标滚轮自由无级缩放 (以鼠标光标所在点为缩放中心)
+  // A. 鼠标滚轮 & 触控板自由缩放与漫游
   // -------------------------------------------------------------
   stage.addEventListener('wheel', (e) => {
     if (typeof currentGlobalView !== 'undefined' && currentGlobalView !== 'plan') return;
     e.preventDefault();
+    e.stopPropagation();
+
     const rect = stage.getBoundingClientRect();
     const cursorStageX = e.clientX - rect.left;
     const cursorStageY = e.clientY - rect.top;
-    const oldZoom = islandZoom || 1.0;
-    const factor = e.deltaY < 0 ? 1.12 : 0.88;
-    const newZoom = Math.min(3.0, Math.max(0.35, oldZoom * factor));
-    const worldX = (cursorStageX - islandPanX) / oldZoom;
-    const worldY = (cursorStageY - islandPanY) / oldZoom;
-    islandZoom = newZoom;
-    islandPanX = cursorStageX - worldX * newZoom;
-    islandPanY = cursorStageY - worldY * newZoom;
+
+    // 触控板捏合 (e.ctrlKey) 或 普通鼠标垂直滚轮 -> 以光标为中心缩放
+    if (e.ctrlKey || (!e.shiftKey && Math.abs(e.deltaX) < 2)) {
+      const oldZoom = islandZoom || 1.0;
+      const factor = e.deltaY < 0 ? 1.08 : 0.92;
+      const newZoom = Math.min(3.0, Math.max(0.35, oldZoom * factor));
+      const worldX = (cursorStageX - islandPanX) / oldZoom;
+      const worldY = (cursorStageY - islandPanY) / oldZoom;
+      islandZoom = newZoom;
+      islandPanX = cursorStageX - worldX * newZoom;
+      islandPanY = cursorStageY - worldY * newZoom;
+    } else {
+      // 触控板双指滑动平移 或 Shift+滚轮横向平移
+      islandPanX -= e.deltaX || 0;
+      islandPanY -= e.deltaY || 0;
+    }
     applyIslandTransform();
     if (typeof bindPavilionNodesClickGuards === 'function') bindPavilionNodesClickGuards();
   }, { passive: false });
 
   // -------------------------------------------------------------
-  // B. 移动平板 (iPad/Android) 原生触控引擎: 双指捏合自由缩放 + 单指漫游抓手 + 节点触控拖拽
+  // B. 现代统一 Pointer 引擎：精准支持鼠标拖拽、触屏单指平移、双指自由捏合缩放、节点卡片拖拽
   // -------------------------------------------------------------
-  stage.addEventListener('touchstart', (e) => {
-    if (typeof currentGlobalView !== 'undefined' && currentGlobalView !== 'plan') return;
-    // 关键：阻断向全局冒泡，防止触发 Obsidian 侧边栏抽屉手势
-    e.stopPropagation();
+  const activePointers = new Map();
+  let pinchStartDist = 0;
+  let pinchStartZoom = 1.0;
+  let pinchPivotWorldX = 0;
+  let pinchPivotWorldY = 0;
+  let isPinching = false;
+  let isPanning = false;
+  let panStartX = 0;
+  let panStartY = 0;
+  let panInitialX = 0;
+  let panInitialY = 0;
 
-    // 1. 双指触控 -> 启动双指自由捏合无级缩放
-    if (e.touches.length === 2) {
-      isIslandPinching = true;
-      isIslandPanning = false;
-      if (activeTouchDragPavilionNode) {
-        activeTouchDragPavilionNode.classList.remove('is-node-dragging');
-        activeTouchDragPavilionNode = null;
-      }
-      const t1 = e.touches[0];
-      const t2 = e.touches[1];
-      islandPinchStartDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-      islandPinchStartZoom = islandZoom || 1.0;
+  let activeDragNode = null;
+  let dragNodeStartX = 0;
+  let dragNodeStartY = 0;
+  let dragNodeInitLeft = 0;
+  let dragNodeInitTop = 0;
+  let dragNodeHasMoved = false;
 
-      const rect = stage.getBoundingClientRect();
-      const midStageX = (t1.clientX + t2.clientX) / 2 - rect.left;
-      const midStageY = (t1.clientY + t2.clientY) / 2 - rect.top;
-      islandPinchPivotWorldX = (midStageX - islandPanX) / islandPinchStartZoom;
-      islandPinchPivotWorldY = (midStageY - islandPanY) / islandPinchStartZoom;
-      return;
-    }
-
-    // 2. 单指触控 -> 检查触控点命中目标
-    if (e.touches.length === 1) {
-      const touch = e.touches[0];
-      const node = e.target.closest('.pavilion-node');
-      const isInteractive = !!e.target.closest('button, input, select, textarea, .a-my-island-plugin-launcher, .a-my-island-graph-toolbar, .a-my-island-work-navigation-dock, .hud-profile-container, .parent-bounty-billboard, .a-my-island-island-settings-panel');
-
-      if (node) {
-        // 单指触控功能馆卡片 -> 准备自由拖拽
-        activeTouchDragPavilionNode = node;
-        nodeTouchHasMoved = false;
-        nodeTouchDragStartX = touch.clientX;
-        nodeTouchDragStartY = touch.clientY;
-        nodeTouchInitLeft = node.offsetLeft;
-        nodeTouchInitTop = node.offsetTop;
-        node.classList.add('is-node-dragging');
-        return;
-      }
-
-      if (!isInteractive) {
-        // 单指触控空白海岛背景 -> 启动画布漫游平移
-        isIslandPanning = true;
-        isIslandPinching = false;
-        islandTouchPanStartX = touch.clientX;
-        islandTouchPanStartY = touch.clientY;
-        islandTouchPanInitialPanX = islandPanX;
-        islandTouchPanInitialPanY = islandPanY;
-        stage.classList.add('is-canvas-dragging');
-      }
-    }
-  }, { passive: false });
-
-  stage.addEventListener('touchmove', (e) => {
-    if (typeof currentGlobalView !== 'undefined' && currentGlobalView !== 'plan') return;
-    e.stopPropagation();
-    if (e.cancelable) e.preventDefault();
-
-    // 1. 处理双指无级自由缩放 (Pinch-to-zoom)
-    if (isIslandPinching && e.touches.length >= 2) {
-      const t1 = e.touches[0];
-      const t2 = e.touches[1];
-      const currentDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-      if (islandPinchStartDist > 0) {
-        const factor = currentDist / islandPinchStartDist;
-        const newZoom = Math.min(3.0, Math.max(0.35, islandPinchStartZoom * factor));
-        const rect = stage.getBoundingClientRect();
-        const currentMidStageX = (t1.clientX + t2.clientX) / 2 - rect.left;
-        const currentMidStageY = (t1.clientY + t2.clientY) / 2 - rect.top;
-        islandZoom = newZoom;
-        islandPanX = currentMidStageX - islandPinchPivotWorldX * newZoom;
-        islandPanY = currentMidStageY - islandPinchPivotWorldY * newZoom;
-        applyIslandTransform();
-    if (typeof bindPavilionNodesClickGuards === 'function') bindPavilionNodesClickGuards();
-      }
-      return;
-    }
-
-    // 2. 处理单指节点拖拽
-    if (activeTouchDragPavilionNode && e.touches.length === 1) {
-      const touch = e.touches[0];
-      const dx = (touch.clientX - nodeTouchDragStartX) / islandZoom;
-      const dy = (touch.clientY - nodeTouchDragStartY) / islandZoom;
-      if (!nodeTouchHasMoved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
-        nodeTouchHasMoved = true;
-        activeTouchDragPavilionNode._dragMoved = true;
-        window._islandNodeDragMoved = true;
-      }
-      if (nodeTouchHasMoved) {
-        activeTouchDragPavilionNode.style.left = (nodeTouchInitLeft + dx) + 'px';
-        activeTouchDragPavilionNode.style.top = (nodeTouchInitTop + dy) + 'px';
-        updateIslandMinimap();
-      }
-      return;
-    }
-
-    // 3. 处理单指画布自由漫游平移
-    if (isIslandPanning && e.touches.length === 1) {
-      const touch = e.touches[0];
-      const dx = touch.clientX - islandTouchPanStartX;
-      const dy = touch.clientY - islandTouchPanStartY;
-      islandPanX = islandTouchPanInitialPanX + dx;
-      islandPanY = islandTouchPanInitialPanY + dy;
-      applyIslandTransform();
-    if (typeof bindPavilionNodesClickGuards === 'function') bindPavilionNodesClickGuards();
-      return;
-    }
-  }, { passive: false });
-
-  const onIslandTouchEnd = (e) => {
-    e.stopPropagation();
-    if (e.touches.length < 2 && isIslandPinching) {
-      isIslandPinching = false;
-    }
-    if (e.touches.length === 0) {
-      isIslandPanning = false;
-      stage.classList.remove('is-canvas-dragging');
-    }
-    if (activeTouchDragPavilionNode) {
-      const node = activeTouchDragPavilionNode;
-      activeTouchDragPavilionNode = null;
-      node.classList.remove('is-node-dragging');
-      if (nodeTouchHasMoved) {
-        node._dragMoved = true;
-        window._islandNodeDragMoved = true;
-        setTimeout(() => {
-          node._dragMoved = false;
-          window._islandNodeDragMoved = false;
-        }, 220);
-      }
-    }
-  };
-  stage.addEventListener('touchend', onIslandTouchEnd, { passive: false });
-  stage.addEventListener('touchcancel', onIslandTouchEnd, { passive: false });
-
-  // -------------------------------------------------------------
-  // C. Pointer 事件处理桌面鼠标与手写笔 (精准抓取与实时漫游)
-  // -------------------------------------------------------------
   stage.addEventListener('pointerdown', (e) => {
-    if (e.pointerType === 'touch') return; // 触屏手势已由 TouchEvent 引擎精准承接
     if (typeof currentGlobalView !== 'undefined' && currentGlobalView !== 'plan') return;
     if (e.target.closest('.a-my-island-work-navigation-dock')) return;
 
     const isInteractive = !!e.target.closest('button, input, select, textarea, .a-my-island-plugin-launcher, .a-my-island-graph-toolbar, .hud-profile-container, .parent-bounty-billboard, .a-my-island-island-settings-panel');
     if (isInteractive) return;
 
-    const node = e.target.closest('.pavilion-node');
-    if (node) {
-      activePointerDragNode = node;
-      nodePointerHasMoved = false;
-      nodePointerDragStartX = e.clientX;
-      nodePointerDragStartY = e.clientY;
-      nodePointerInitLeft = node.offsetLeft;
-      nodePointerInitTop = node.offsetTop;
-      node.classList.add('is-node-dragging');
-      try { node.setPointerCapture(e.pointerId); } catch (_) {}
+    e.stopPropagation();
+    activePointers.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
+
+    // 1. 双指触控模式 -> 启动双指自由捏合缩放
+    if (activePointers.size === 2) {
+      isPinching = true;
+      isPanning = false;
+      if (activeDragNode) {
+        try { activeDragNode.releasePointerCapture(e.pointerId); } catch (_) {}
+        activeDragNode.classList.remove('is-node-dragging');
+        activeDragNode = null;
+      }
+      const pts = Array.from(activePointers.values());
+      pinchStartDist = Math.hypot(pts[1].clientX - pts[0].clientX, pts[1].clientY - pts[0].clientY);
+      pinchStartZoom = islandZoom || 1.0;
+
+      const rect = stage.getBoundingClientRect();
+      const midStageX = (pts[0].clientX + pts[1].clientX) / 2 - rect.left;
+      const midStageY = (pts[0].clientY + pts[1].clientY) / 2 - rect.top;
+      pinchPivotWorldX = (midStageX - islandPanX) / pinchStartZoom;
+      pinchPivotWorldY = (midStageY - islandPanY) / pinchStartZoom;
       return;
     }
 
-    // 鼠标点击空白背景平移
-    isPointerPanning = true;
-    pointerPanStartX = e.clientX;
-    pointerPanStartY = e.clientY;
-    pointerPanInitialPanX = islandPanX;
-    pointerPanInitialPanY = islandPanY;
-    stage.classList.add('is-canvas-dragging');
-    try { stage.setPointerCapture(e.pointerId); } catch (_) {}
+    // 2. 单指触控 / 鼠标点击
+    if (activePointers.size === 1) {
+      const node = e.target.closest('.pavilion-node');
+      if (node) {
+        activeDragNode = node;
+        dragNodeHasMoved = false;
+        dragNodeStartX = e.clientX;
+        dragNodeStartY = e.clientY;
+        dragNodeInitLeft = node.offsetLeft;
+        dragNodeInitTop = node.offsetTop;
+        node.classList.add('is-node-dragging');
+        try { node.setPointerCapture(e.pointerId); } catch (_) {}
+        return;
+      }
+
+      // 点击空白背景 -> 启动画布平移
+      isPanning = true;
+      isPinching = false;
+      panStartX = e.clientX;
+      panStartY = e.clientY;
+      panInitialX = islandPanX;
+      panInitialY = islandPanY;
+      stage.classList.add('is-canvas-dragging');
+      try { stage.setPointerCapture(e.pointerId); } catch (_) {}
+    }
   });
 
-  const onStagePointerMove = (e) => {
-    if (e.pointerType === 'touch') return;
-    if (typeof currentGlobalView !== 'undefined' && currentGlobalView !== 'plan') return;
+  const onWindowPointerMove = (e) => {
+    if (!activePointers.has(e.pointerId)) return;
+    activePointers.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
 
-    if (activePointerDragNode) {
-      const dx = (e.clientX - nodePointerDragStartX) / islandZoom;
-      const dy = (e.clientY - nodePointerDragStartY) / islandZoom;
-      if (!nodePointerHasMoved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
-        nodePointerHasMoved = true;
-        activePointerDragNode._dragMoved = true;
+    // 1. 处理双指捏合缩放
+    if (isPinching && activePointers.size >= 2) {
+      const pts = Array.from(activePointers.values());
+      const currentDist = Math.hypot(pts[1].clientX - pts[0].clientX, pts[1].clientY - pts[0].clientY);
+      if (pinchStartDist > 0) {
+        const factor = currentDist / pinchStartDist;
+        const newZoom = Math.min(3.0, Math.max(0.35, pinchStartZoom * factor));
+        const rect = stage.getBoundingClientRect();
+        const currentMidStageX = (pts[0].clientX + pts[1].clientX) / 2 - rect.left;
+        const currentMidStageY = (pts[0].clientY + pts[1].clientY) / 2 - rect.top;
+        islandZoom = newZoom;
+        islandPanX = currentMidStageX - pinchPivotWorldX * newZoom;
+        islandPanY = currentMidStageY - pinchPivotWorldY * newZoom;
+        applyIslandTransform();
+        if (typeof bindPavilionNodesClickGuards === 'function') bindPavilionNodesClickGuards();
+      }
+      return;
+    }
+
+    // 2. 处理场馆节点卡片拖拽
+    if (activeDragNode && activePointers.size === 1) {
+      const dx = (e.clientX - dragNodeStartX) / islandZoom;
+      const dy = (e.clientY - dragNodeStartY) / islandZoom;
+      if (!dragNodeHasMoved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
+        dragNodeHasMoved = true;
+        activeDragNode._dragMoved = true;
         window._islandNodeDragMoved = true;
       }
-      if (nodePointerHasMoved) {
-        activePointerDragNode.style.left = (nodePointerInitLeft + dx) + 'px';
-        activePointerDragNode.style.top = (nodePointerInitTop + dy) + 'px';
+      if (dragNodeHasMoved) {
+        activeDragNode.style.left = (dragNodeInitLeft + dx) + 'px';
+        activeDragNode.style.top = (dragNodeInitTop + dy) + 'px';
         updateIslandMinimap();
       }
       return;
     }
 
-    if (isPointerPanning) {
-      const dx = e.clientX - pointerPanStartX;
-      const dy = e.clientY - pointerPanStartY;
-      islandPanX = pointerPanInitialPanX + dx;
-      islandPanY = pointerPanInitialPanY + dy;
+    // 3. 处理单指/鼠标空白背景平移漫游
+    if (isPanning && activePointers.size === 1) {
+      const dx = e.clientX - panStartX;
+      const dy = e.clientY - panStartY;
+      islandPanX = panInitialX + dx;
+      islandPanY = panInitialY + dy;
       applyIslandTransform();
       if (typeof bindPavilionNodesClickGuards === 'function') bindPavilionNodesClickGuards();
       return;
     }
   };
 
-  const onPointerUp = (e) => {
-    if (e.pointerType === 'touch') return;
-    if (activePointerDragNode) {
-      const node = activePointerDragNode;
-      activePointerDragNode = null;
+  const onWindowPointerUp = (e) => {
+    activePointers.delete(e.pointerId);
+
+    if (activeDragNode) {
+      const node = activeDragNode;
+      activeDragNode = null;
       try { node.releasePointerCapture(e.pointerId); } catch (_) {}
       node.classList.remove('is-node-dragging');
-      if (nodePointerHasMoved) {
+      if (dragNodeHasMoved) {
         node._dragMoved = true;
         window._islandNodeDragMoved = true;
         setTimeout(() => {
@@ -16172,27 +16145,35 @@ function initCanvasPanZoomAndDrag() {
         }, 220);
       }
     }
-    if (isPointerPanning) {
-      isPointerPanning = false;
+
+    if (activePointers.size < 2 && isPinching) {
+      isPinching = false;
+    }
+    if (activePointers.size === 0) {
+      isPanning = false;
       try { stage.releasePointerCapture(e.pointerId); } catch (_) {}
       stage.classList.remove('is-canvas-dragging');
     }
   };
 
-  stage.addEventListener('pointermove', onStagePointerMove);
-  window.addEventListener('pointermove', onStagePointerMove);
-  stage.addEventListener('pointerup', onPointerUp);
-  stage.addEventListener('pointercancel', onPointerUp);
-  window.addEventListener('pointerup', onPointerUp);
-  window.addEventListener('pointercancel', onPointerUp);
-
-  stage.addEventListener('touchend', onIslandTouchEnd, { passive: false });
-  stage.addEventListener('touchcancel', onIslandTouchEnd, { passive: false });
-  window.addEventListener('touchend', onIslandTouchEnd, { passive: false });
-  window.addEventListener('touchcancel', onIslandTouchEnd, { passive: false });
+  window.addEventListener('pointermove', onWindowPointerMove);
+  window.addEventListener('pointerup', onWindowPointerUp);
+  window.addEventListener('pointercancel', onWindowPointerUp);
 
   // -------------------------------------------------------------
-  // D. 捕获阶段防御：严防节点拖拽结束误触发 handlePavilionClick 路由 (仅限场馆节点)
+  // C. 移动端原生 TouchEvents 兜底：强力阻断原生滚动与侧边栏误触
+  // -------------------------------------------------------------
+  stage.addEventListener('touchstart', (e) => {
+    e.stopPropagation();
+  }, { passive: true });
+
+  stage.addEventListener('touchmove', (e) => {
+    e.stopPropagation();
+    if (e.cancelable) e.preventDefault();
+  }, { passive: false });
+
+  // -------------------------------------------------------------
+  // D. 捕获阶段防御：严防节点拖拽结束误触发 handlePavilionClick 路由
   // -------------------------------------------------------------
   stage.addEventListener('click', (e) => {
     if (window._islandNodeDragMoved && e.target.closest('.pavilion-node')) {
@@ -20270,190 +20251,142 @@ function initTertiaryCanvasPanZoom() {
   stage._tertiaryGestureBound = true;
 
   // -------------------------------------------------------------
-  // A. 鼠标滚轮自由无级缩放 (以鼠标光标所在点为缩放中心)
+  // A. 鼠标滚轮 & 触控板自由缩放与漫游
   // -------------------------------------------------------------
   stage.addEventListener('wheel', (e) => {
     e.preventDefault();
+    e.stopPropagation();
     const rect = stage.getBoundingClientRect();
     const cursorStageX = e.clientX - rect.left;
     const cursorStageY = e.clientY - rect.top;
-    const oldZoom = window.tertiaryZoom || 1.0;
-    const factor = e.deltaY < 0 ? 1.12 : 0.88;
-    const newZoom = Math.min(3.5, Math.max(0.25, oldZoom * factor));
-    const worldX = (cursorStageX - window.tertiaryPanX) / oldZoom;
-    const worldY = (cursorStageY - window.tertiaryPanY) / oldZoom;
-    window.tertiaryZoom = newZoom;
-    window.tertiaryPanX = cursorStageX - worldX * newZoom;
-    window.tertiaryPanY = cursorStageY - worldY * newZoom;
+
+    if (e.ctrlKey || (!e.shiftKey && Math.abs(e.deltaX) < 2)) {
+      const oldZoom = window.tertiaryZoom || 1.0;
+      const factor = e.deltaY < 0 ? 1.08 : 0.92;
+      const newZoom = Math.min(3.5, Math.max(0.25, oldZoom * factor));
+      const worldX = (cursorStageX - window.tertiaryPanX) / oldZoom;
+      const worldY = (cursorStageY - window.tertiaryPanY) / oldZoom;
+      window.tertiaryZoom = newZoom;
+      window.tertiaryPanX = cursorStageX - worldX * newZoom;
+      window.tertiaryPanY = cursorStageY - worldY * newZoom;
+    } else {
+      window.tertiaryPanX -= e.deltaX || 0;
+      window.tertiaryPanY -= e.deltaY || 0;
+    }
     applyTertiaryTransform();
   }, { passive: false });
 
   // -------------------------------------------------------------
-  // B. 原生移动端触控引擎 (TouchEvents): 完美支持双指捏合无级缩放与平移
+  // B. 现代统一 Pointer 引擎：精准支持鼠标拖拽、触屏单指平移、双指自由捏合缩放、卡片与下级连线联动拖拽
   // -------------------------------------------------------------
-  let touchStartDist = 0;
-  let touchStartZoom = 1.0;
-  let touchPivotWorldX = 0;
-  let touchPivotWorldY = 0;
-  let isTouchPinching = false;
-  let isTouchPanning = false;
-  let touchPanStartX = 0;
-  let touchPanStartY = 0;
-  let touchPanInitialPanX = 0;
-  let touchPanInitialPanY = 0;
+  const activePointers = new Map();
+  let pinchStartDist = 0;
+  let pinchStartZoom = 1.0;
+  let pinchPivotWorldX = 0;
+  let pinchPivotWorldY = 0;
+  let isPinching = false;
+  let isPanning = false;
+  let panStartX = 0;
+  let panStartY = 0;
+  let panInitialX = 0;
+  let panInitialY = 0;
 
-  stage.addEventListener('touchstart', (e) => {
-    // 关键：在脑图舞台内无条件阻断向全局冒泡，防止 Obsidian 侧边栏抽屉触发
+  stage.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('.a-my-island-work-minimap')) return;
+    const isInteractive = !!e.target.closest('button, input, select, textarea, .work-card-connect-handle');
+    if (isInteractive) return;
+
     e.stopPropagation();
+    activePointers.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
 
-    // 双指触控 -> 启动双指捏合缩放
-    if (e.touches.length === 2) {
-      isTouchPinching = true;
-      isTouchPanning = false;
+    // 1. 双指触控 -> 启动捏合缩放
+    if (activePointers.size === 2) {
+      isPinching = true;
+      isPanning = false;
+      if (activeDraggingCard) {
+        try { activeDraggingCard.releasePointerCapture(e.pointerId); } catch (_) {}
+        activeDraggingCard.classList.remove('is-card-dragging');
+        activeDraggingCard = null;
+      }
       if (view) view.classList.add('is-viewport-moving');
 
-      const t1 = e.touches[0];
-      const t2 = e.touches[1];
-      touchStartDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-      touchStartZoom = window.tertiaryZoom || 1.0;
+      const pts = Array.from(activePointers.values());
+      pinchStartDist = Math.hypot(pts[1].clientX - pts[0].clientX, pts[1].clientY - pts[0].clientY);
+      pinchStartZoom = window.tertiaryZoom || 1.0;
 
       const rect = stage.getBoundingClientRect();
-      const midStageX = (t1.clientX + t2.clientX) / 2 - rect.left;
-      const midStageY = (t1.clientY + t2.clientY) / 2 - rect.top;
-      touchPivotWorldX = (midStageX - window.tertiaryPanX) / touchStartZoom;
-      touchPivotWorldY = (midStageY - window.tertiaryPanY) / touchStartZoom;
+      const midStageX = (pts[0].clientX + pts[1].clientX) / 2 - rect.left;
+      const midStageY = (pts[0].clientY + pts[1].clientY) / 2 - rect.top;
+      pinchPivotWorldX = (midStageX - window.tertiaryPanX) / pinchStartZoom;
+      pinchPivotWorldY = (midStageY - window.tertiaryPanY) / pinchStartZoom;
       return;
     }
 
-    // 单指触控 -> 检查是否落在卡片上
-    if (e.touches.length === 1) {
-      const touch = e.touches[0];
+    // 2. 单指/鼠标点击
+    if (activePointers.size === 1) {
       const card = e.target.closest('.tertiary-card');
-      const isInteractive = !!e.target.closest('button, input, select, textarea, .work-card-connect-handle');
-
-      if (!card && !isInteractive) {
-        // 单指落在空白画布背景 -> 启动平移
-        isTouchPanning = true;
-        isTouchPinching = false;
-        touchPanStartX = touch.clientX;
-        touchPanStartY = touch.clientY;
-        touchPanInitialPanX = window.tertiaryPanX;
-        touchPanInitialPanY = window.tertiaryPanY;
-        stage.classList.add('is-dragging-canvas');
-        if (view) view.classList.add('is-viewport-moving');
+      if (card) {
+        activeDraggingCard = card;
+        cardDragHasMoved = false;
+        cardDragStartClientX = e.clientX;
+        cardDragStartClientY = e.clientY;
+        cardDragInitialLeft = parseInt(card.style.left, 10) || card.offsetLeft;
+        cardDragInitialTop = parseInt(card.style.top, 10) || card.offsetTop;
+        cardFollowerInitialPositions = [];
+        if (typeof childrenFollowEnabled !== 'undefined' && childrenFollowEnabled && card.id) {
+          getDownstreamChildCardIds(card.id).forEach(cid => {
+            const childEl = document.getElementById(cid);
+            if (childEl) {
+              cardFollowerInitialPositions.push({
+                el: childEl,
+                left: parseInt(childEl.style.left, 10) || childEl.offsetLeft,
+                top: parseInt(childEl.style.top, 10) || childEl.offsetTop
+              });
+            }
+          });
+        }
+        card.classList.add('is-card-dragging');
+        try { card.setPointerCapture(e.pointerId); } catch (_) {}
+        return;
       }
+
+      // 点击空白画布背景 -> 启动漫游平移
+      isPanning = true;
+      isPinching = false;
+      panStartX = e.clientX;
+      panStartY = e.clientY;
+      panInitialX = window.tertiaryPanX;
+      panInitialY = window.tertiaryPanY;
+      stage.classList.add('is-dragging-canvas');
+      if (view) view.classList.add('is-viewport-moving');
+      try { stage.setPointerCapture(e.pointerId); } catch (_) {}
     }
-  }, { passive: false });
+  });
 
-  stage.addEventListener('touchmove', (e) => {
-    // 只要在脑图画布内滑动，无条件阻断向外冒泡并阻止原生页面滚动/侧边栏手势
-    e.stopPropagation();
-    if (e.cancelable) e.preventDefault();
+  const onWindowPointerMove = (e) => {
+    if (!activePointers.has(e.pointerId)) return;
+    activePointers.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
 
-    // 1. 处理双指无级自由缩放 (Pinch-to-zoom)
-    if (isTouchPinching && e.touches.length >= 2) {
-      const t1 = e.touches[0];
-      const t2 = e.touches[1];
-      const currentDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-      if (touchStartDist > 0) {
-        const factor = currentDist / touchStartDist;
-        const newZoom = Math.min(3.5, Math.max(0.25, touchStartZoom * factor));
+    // 1. 双指捏合自由缩放
+    if (isPinching && activePointers.size >= 2) {
+      const pts = Array.from(activePointers.values());
+      const currentDist = Math.hypot(pts[1].clientX - pts[0].clientX, pts[1].clientY - pts[0].clientY);
+      if (pinchStartDist > 0) {
+        const factor = currentDist / pinchStartDist;
+        const newZoom = Math.min(3.5, Math.max(0.25, pinchStartZoom * factor));
         const rect = stage.getBoundingClientRect();
-        const currentMidStageX = (t1.clientX + t2.clientX) / 2 - rect.left;
-        const currentMidStageY = (t1.clientY + t2.clientY) / 2 - rect.top;
+        const currentMidStageX = (pts[0].clientX + pts[1].clientX) / 2 - rect.left;
+        const currentMidStageY = (pts[0].clientY + pts[1].clientY) / 2 - rect.top;
         window.tertiaryZoom = newZoom;
-        window.tertiaryPanX = currentMidStageX - touchPivotWorldX * newZoom;
-        window.tertiaryPanY = currentMidStageY - touchPivotWorldY * newZoom;
+        window.tertiaryPanX = currentMidStageX - pinchPivotWorldX * newZoom;
+        window.tertiaryPanY = currentMidStageY - pinchPivotWorldY * newZoom;
         applyTertiaryTransform();
       }
       return;
     }
 
-    // 2. 处理单指画布自由漫游抓手平移
-    if (isTouchPanning && e.touches.length === 1) {
-      const touch = e.touches[0];
-      const dx = touch.clientX - touchPanStartX;
-      const dy = touch.clientY - touchPanStartY;
-      window.tertiaryPanX = touchPanInitialPanX + dx;
-      window.tertiaryPanY = touchPanInitialPanY + dy;
-      applyTertiaryTransform();
-    }
-  }, { passive: false });
-
-  const onTouchEnd = (e) => {
-    e.stopPropagation();
-    if (e.touches.length < 2 && isTouchPinching) {
-      isTouchPinching = false;
-      if (view) view.classList.remove('is-viewport-moving');
-    }
-    if (e.touches.length === 0) {
-      isTouchPanning = false;
-      stage.classList.remove('is-dragging-canvas');
-      if (view) view.classList.remove('is-viewport-moving');
-    }
-  };
-  stage.addEventListener('touchend', onTouchEnd, { passive: false });
-  stage.addEventListener('touchcancel', onTouchEnd, { passive: false });
-
-  // -------------------------------------------------------------
-  // C. Pointer 事件处理卡片拖拽与鼠标画布漫游 (桌面与手写笔)
-  // -------------------------------------------------------------
-  stage.addEventListener('pointerdown', (e) => {
-    if (e.pointerType === 'touch') return; // 触屏已由上方 TouchEvent 引擎专属处理
-    if (e.target.closest('.a-my-island-work-minimap')) return;
-    const isInteractive = !!e.target.closest('button, input, select, textarea, .work-card-connect-handle');
-    if (isInteractive) return;
-
-    const card = e.target.closest('.tertiary-card');
-    if (card) {
-      activeDraggingCard = card;
-      cardDragHasMoved = false;
-      cardDragStartClientX = e.clientX;
-      cardDragStartClientY = e.clientY;
-      cardDragInitialLeft = parseInt(card.style.left, 10) || card.offsetLeft;
-      cardDragInitialTop = parseInt(card.style.top, 10) || card.offsetTop;
-      cardFollowerInitialPositions = [];
-      if (typeof childrenFollowEnabled !== 'undefined' && childrenFollowEnabled && card.id) {
-        getDownstreamChildCardIds(card.id).forEach(cid => {
-          const childEl = document.getElementById(cid);
-          if (childEl) {
-            cardFollowerInitialPositions.push({
-              el: childEl,
-              left: parseInt(childEl.style.left, 10) || childEl.offsetLeft,
-              top: parseInt(childEl.style.top, 10) || childEl.offsetTop
-            });
-          }
-        });
-      }
-      card.classList.add('is-card-dragging');
-      try { card.setPointerCapture(e.pointerId); } catch (_) {}
-      return;
-    }
-
-    // 鼠标点击空白处平移
-    isStagePanning = true;
-    stagePanStartClientX = e.clientX;
-    stagePanStartClientY = e.clientY;
-    stagePanStartPanX = window.tertiaryPanX;
-    stagePanStartPanY = window.tertiaryPanY;
-    stage.classList.add('is-dragging-canvas');
-    if (view) view.classList.add('is-viewport-moving');
-    try { stage.setPointerCapture(e.pointerId); } catch (_) {}
-  });
-
-  stage.addEventListener('pointermove', (e) => {
-    if (e.pointerType === 'touch') return;
-
-    if (isStagePanning) {
-      const dx = e.clientX - stagePanStartClientX;
-      const dy = e.clientY - stagePanStartClientY;
-      window.tertiaryPanX = stagePanStartPanX + dx;
-      window.tertiaryPanY = stagePanStartPanY + dy;
-      applyTertiaryTransform();
-      return;
-    }
-
-    if (activeDraggingCard) {
+    // 2. 单指/鼠标卡片拖拽
+    if (activeDraggingCard && activePointers.size === 1) {
       const zoom = window.tertiaryZoom || 1.0;
       const dx = (e.clientX - cardDragStartClientX) / zoom;
       const dy = (e.clientY - cardDragStartClientY) / zoom;
@@ -20468,25 +20401,57 @@ function initTertiaryCanvasPanZoom() {
         f.el.style.top = Math.max(10, f.top + dy) + 'px';
       });
       updateTertiaryEdgesFast();
+      return;
     }
-  });
 
-  const onPointerEnd = (e) => {
+    // 3. 单指/鼠标空白画布平移
+    if (isPanning && activePointers.size === 1) {
+      const dx = e.clientX - panStartX;
+      const dy = e.clientY - panStartY;
+      window.tertiaryPanX = panInitialX + dx;
+      window.tertiaryPanY = panInitialY + dy;
+      applyTertiaryTransform();
+      return;
+    }
+  };
+
+  const onWindowPointerUp = (e) => {
+    activePointers.delete(e.pointerId);
+
     if (activeDraggingCard) {
       try { activeDraggingCard.releasePointerCapture(e.pointerId); } catch (_) {}
       activeDraggingCard.classList.remove('is-card-dragging');
       activeDraggingCard = null;
       updateTertiaryEdgesFast();
     }
-    if (isStagePanning) {
+
+    if (activePointers.size < 2 && isPinching) {
+      isPinching = false;
+      if (view) view.classList.remove('is-viewport-moving');
+    }
+    if (activePointers.size === 0) {
+      isPanning = false;
       try { stage.releasePointerCapture(e.pointerId); } catch (_) {}
-      isStagePanning = false;
       stage.classList.remove('is-dragging-canvas');
       if (view) view.classList.remove('is-viewport-moving');
     }
   };
-  stage.addEventListener('pointerup', onPointerEnd);
-  stage.addEventListener('pointercancel', onPointerEnd);
+
+  window.addEventListener('pointermove', onWindowPointerMove);
+  window.addEventListener('pointerup', onWindowPointerUp);
+  window.addEventListener('pointercancel', onWindowPointerUp);
+
+  // -------------------------------------------------------------
+  // C. 移动端原生 TouchEvents 兜底
+  // -------------------------------------------------------------
+  stage.addEventListener('touchstart', (e) => {
+    e.stopPropagation();
+  }, { passive: true });
+
+  stage.addEventListener('touchmove', (e) => {
+    e.stopPropagation();
+    if (e.cancelable) e.preventDefault();
+  }, { passive: false });
 }
 
 // 全局一键最小化 / 展开全部三级卡片
