@@ -174,15 +174,17 @@ body.youth-island-tablet-fullscreen .titlebar {
   box-sizing: border-box;
 }
 
-/* 1. 小岛底部发射台按键：横向充满屏幕、自适应等分拉伸、保证不超出屏幕 */
+/* 1. 小岛底部发射台：正方形按键固定尺寸、外层背景框随按钮多少自适应宽度并在屏幕底部水平居中 */
 .youth-island-plugin-root .a-my-island-plugin-launcher,
 .youth-island-obsidian-view-root .a-my-island-plugin-launcher {
-  left: 14px !important;
-  right: 14px !important;
-  width: calc(100% - 28px) !important;
-  max-width: none !important;
+  left: 0 !important;
+  right: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  width: fit-content !important;
+  max-width: min(calc(100% - 28px), 100%) !important;
   display: flex !important;
-  justify-content: space-between !important;
+  justify-content: center !important;
   bottom: max(48px, calc(34px + env(safe-area-inset-bottom, 0px))) !important;
 }
 
@@ -192,10 +194,14 @@ body.youth-island-tablet-fullscreen .titlebar {
   box-sizing: border-box !important;
   place-items: center !important;
   align-content: center !important;
-  flex: 1 1 0% !important;
-  width: auto !important;
-  min-width: 48px !important;
-  max-width: none !important;
+  flex: 0 0 58px !important;
+  width: 58px !important;
+  min-width: 58px !important;
+  max-width: 58px !important;
+  height: 58px !important;
+  min-height: 58px !important;
+  max-height: 58px !important;
+  aspect-ratio: 1 / 1 !important;
 }
 
 .youth-island-plugin-root .a-my-island-work-navigation-dock,

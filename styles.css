@@ -124,15 +124,17 @@ body.youth-island-tablet-fullscreen .titlebar {
   box-sizing: border-box;
 }
 
-/* 1. 小岛底部发射台按键：横向充满屏幕、自适应等分拉伸、保证不超出屏幕 */
+/* 1. 小岛底部发射台：正方形按键固定尺寸、外层背景框随按钮多少自适应宽度并在屏幕底部水平居中 */
 .youth-island-plugin-root .a-my-island-plugin-launcher,
 .youth-island-obsidian-view-root .a-my-island-plugin-launcher {
-  left: 14px !important;
-  right: 14px !important;
-  width: calc(100% - 28px) !important;
-  max-width: none !important;
+  left: 0 !important;
+  right: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  width: fit-content !important;
+  max-width: min(calc(100% - 28px), 100%) !important;
   display: flex !important;
-  justify-content: space-between !important;
+  justify-content: center !important;
   bottom: max(48px, calc(34px + env(safe-area-inset-bottom, 0px))) !important;
 }
 
@@ -142,10 +144,14 @@ body.youth-island-tablet-fullscreen .titlebar {
   box-sizing: border-box !important;
   place-items: center !important;
   align-content: center !important;
-  flex: 1 1 0% !important;
-  width: auto !important;
-  min-width: 48px !important;
-  max-width: none !important;
+  flex: 0 0 58px !important;
+  width: 58px !important;
+  min-width: 58px !important;
+  max-width: 58px !important;
+  height: 58px !important;
+  min-height: 58px !important;
+  max-height: 58px !important;
+  aspect-ratio: 1 / 1 !important;
 }
 
 .youth-island-plugin-root .a-my-island-work-navigation-dock,
@@ -1959,27 +1965,29 @@ body.is-immersive .immersive-exit-pill {
    1:1 终身岛民小岛设置发射器 (.a-my-island-plugin-launcher) 与原版设置弹窗体系
    ========================================================================== */
 
-/* 1. 小岛发射器容器 (横向充满屏幕，均匀等分分布，安全边距保障绝不溢出) */
+/* 1. 小岛发射器容器 (正方形按键固定尺寸，外框随按钮数量自适应宽度并在屏幕底部水平居中) */
 .a-my-island-plugin-launcher {
   position: absolute;
   bottom: max(48px, calc(34px + env(safe-area-inset-bottom, 0px)));
-  left: 14px;
-  right: 14px;
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
   transform: none;
   z-index: 10003;
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 6px;
-  padding: 4px 8px;
+  padding: 5px 8px;
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   border: 0;
   background: transparent;
-  width: calc(100% - 28px);
-  max-width: none;
+  width: fit-content;
+  max-width: min(calc(100% - 28px), 100%);
   box-sizing: border-box;
   scrollbar-width: none;
   touch-action: pan-x;
@@ -1989,21 +1997,23 @@ body.is-immersive .immersive-exit-pill {
   display: none;
 }
 
-/* 发射器按钮 (3D 触觉质感，横向等分自适应拉伸，饱满易点击) */
+/* 发射器按钮 (3D 触觉质感，正方形固定尺寸，精致饱满) */
 .a-my-island-plugin-launcher-button {
   position: relative;
   display: grid;
-  flex: 1 1 0%;
-  width: auto;
-  min-width: 48px;
-  max-width: none;
-  min-height: 58px;
+  flex: 0 0 58px;
+  width: 58px;
+  min-width: 58px;
+  max-width: 58px;
   height: 58px;
-  grid-template-rows: 32px 16px;
+  min-height: 58px;
+  max-height: 58px;
+  aspect-ratio: 1 / 1;
+  grid-template-rows: 30px 16px;
   place-items: center;
   align-content: center;
   gap: 2px;
-  padding: 3px 4px 2px;
+  padding: 3px 2px 2px;
   border: 1.5px solid #b8b68e;
   border-radius: 13px;
   background: linear-gradient(155deg, #fffef4 0%, #fffbea 58%, #f4edd5 100%);
@@ -2052,27 +2062,27 @@ body.is-immersive .immersive-exit-pill {
 
 .a-my-island-plugin-launcher-icon {
   display: grid;
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   place-items: center;
-  font-size: 24px;
+  font-size: 22px;
   line-height: 1;
   filter: drop-shadow(0 2px 1px rgb(82 52 24 / 22%));
 }
 
 .a-my-island-plugin-launcher-icon > svg {
   display: block;
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
 }
 
 .a-my-island-plugin-launcher-label {
   display: block;
   width: 100%;
-  max-width: 100%;
+  max-width: 54px;
   overflow: hidden;
   color: #60401f;
-  font-size: 11.5px;
+  font-size: 10.5px;
   font-weight: 850;
   line-height: 1.15;
   text-align: center;
@@ -2097,26 +2107,31 @@ body.is-immersive .immersive-exit-pill {
   display: none !important;
 }
 
-/* 超窄屏下发射器自适应滚动保底 */
+/* 超窄屏下发射器自适应滚动保底 (仍保持正方形按键) */
 @media (max-width: 580px) {
   .a-my-island-plugin-launcher {
     bottom: max(44px, calc(28px + env(safe-area-inset-bottom, 0px)));
-    left: 8px;
-    right: 8px;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
     transform: none;
     justify-content: flex-start;
-    width: calc(100% - 16px);
+    width: fit-content;
     max-width: calc(100% - 16px);
     padding: 3px 6px;
     gap: 4px;
   }
   .a-my-island-plugin-launcher-button {
     flex: 0 0 54px;
-    min-width: 50px;
-    max-width: 60px;
+    width: 54px;
+    min-width: 54px;
+    max-width: 54px;
     height: 54px;
     min-height: 54px;
-    grid-template-rows: 26px 14px;
+    max-height: 54px;
+    aspect-ratio: 1 / 1;
+    grid-template-rows: 28px 14px;
   }
   .a-my-island-plugin-launcher-icon {
     width: 24px;
@@ -2124,8 +2139,8 @@ body.is-immersive .immersive-exit-pill {
     font-size: 19px;
   }
   .a-my-island-plugin-launcher-icon > svg {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
   }
   .a-my-island-plugin-launcher-label {
     font-size: 10px;
@@ -2852,27 +2867,29 @@ body.is-immersive .immersive-exit-pill {
   -webkit-user-select: none !important;
 }
 
-/* 首页下方小岛发射器：全部采用小岛设置按钮样式，按类别一行展示 (横向充满屏幕，均匀等分分布) */
+/* 首页下方小岛发射器：全部采用小岛设置按钮样式，按类别一行展示 (外框随按钮多少自适应宽度并在屏幕底部横向居中) */
 .a-my-island-plugin-launcher {
   position: absolute;
   bottom: max(48px, calc(34px + env(safe-area-inset-bottom, 0px)));
-  left: 14px;
-  right: 14px;
-  margin: 0;
-  width: calc(100% - 28px);
-  max-width: none;
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
+  width: fit-content;
+  max-width: min(calc(100% - 28px), 100%);
   z-index: 10003;
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 6px;
-  padding: 4px 8px;
+  padding: 5px 8px;
   background: rgba(255, 254, 244, 0.94);
   backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border: 2px solid #ecd9b8;
   border-radius: 18px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
@@ -12246,23 +12263,30 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 
 
 /* ==========================================================================
-   平板适配补丁：底部发射台横向充满屏幕、等分均匀分布、安全边距自适应 (彻底杜绝按钮跑出屏幕)
+   平板适配补丁：底部发射台正方形按键固定尺寸、外框随按钮数量自适应宽度并在屏幕底部水平居中
    ========================================================================== */
 .a-my-island-plugin-launcher {
   position: absolute !important;
   bottom: max(48px, calc(34px + env(safe-area-inset-bottom, 0px))) !important;
-  left: 14px !important;
-  right: 14px !important;
+  left: 0 !important;
+  right: 0 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
   transform: none !important;
-  width: calc(100% - 28px) !important;
-  max-width: none !important;
-  margin: 0 !important;
+  width: fit-content !important;
+  max-width: min(calc(100% - 28px), 100%) !important;
   display: flex !important;
   flex-wrap: nowrap !important;
   align-items: center !important;
-  justify-content: space-between !important;
+  justify-content: center !important;
   gap: 6px !important;
-  padding: 4px 8px !important;
+  padding: 5px 8px !important;
+  background: rgba(255, 254, 244, 0.94) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  border: 2px solid #ecd9b8 !important;
+  border-radius: 18px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28) !important;
   overflow-x: auto !important;
   overflow-y: hidden !important;
   -webkit-overflow-scrolling: touch !important;
@@ -12279,18 +12303,19 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 .a-my-island-plugin-launcher .a-my-island-plugin-launcher-button {
   position: relative !important;
   display: grid !important;
-  flex: 1 1 0% !important;
-  width: auto !important;
-  min-width: 48px !important;
-  max-width: none !important;
+  flex: 0 0 58px !important;
+  width: 58px !important;
+  min-width: 58px !important;
+  max-width: 58px !important;
   height: 58px !important;
   min-height: 58px !important;
   max-height: 58px !important;
-  grid-template-rows: 32px 16px !important;
+  aspect-ratio: 1 / 1 !important;
+  grid-template-rows: 30px 16px !important;
   place-items: center !important;
   align-content: center !important;
   gap: 2px !important;
-  padding: 3px 4px 2px !important;
+  padding: 3px 2px 2px !important;
   border: 1.5px solid #b8b68e !important;
   border-radius: 13px !important;
   box-sizing: border-box !important;
@@ -12298,27 +12323,27 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 
 .a-my-island-plugin-launcher .a-my-island-plugin-launcher-icon {
   display: grid !important;
-  width: 30px !important;
-  height: 30px !important;
+  width: 28px !important;
+  height: 28px !important;
   place-items: center !important;
-  font-size: 24px !important;
+  font-size: 22px !important;
   line-height: 1 !important;
   filter: drop-shadow(0 2px 1px rgb(82 52 24 / 22%)) !important;
 }
 
 .a-my-island-plugin-launcher .a-my-island-plugin-launcher-icon > svg {
   display: block !important;
-  width: 26px !important;
-  height: 26px !important;
+  width: 24px !important;
+  height: 24px !important;
 }
 
 .a-my-island-plugin-launcher .a-my-island-plugin-launcher-label {
   display: block !important;
   width: 100% !important;
-  max-width: 100% !important;
+  max-width: 54px !important;
   overflow: hidden !important;
   color: #60401f !important;
-  font-size: 11.5px !important;
+  font-size: 10.5px !important;
   font-weight: 850 !important;
   line-height: 1.15 !important;
   text-align: center !important;
