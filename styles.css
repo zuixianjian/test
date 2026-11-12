@@ -2198,17 +2198,70 @@ body.is-immersive .immersive-exit-pill {
     inset 0 1px 0 rgb(255 255 255 / 80%);
 }
 
-/* 强制阻断画布与根容器滑动穿透 */
-.youth-island-plugin-root,
-.youth-island-obsidian-view-root,
+/* 专属画布与沙盘阻断手势穿透，其余视图与容器完全释放原生平移与滑动能力 */
+#island-world-canvas,
 #tertiary-mindmap-stage,
 .tertiary-canvas-viewport,
-.tertiary-canvas-world,
-#island-canvas-stage,
-#exec-carousel-stage {
+.tertiary-canvas-world {
   touch-action: none !important;
   overscroll-behavior: none !important;
   -webkit-user-drag: none !important;
+}
+
+/* 插件根容器与常规视口：支持全局触摸操作 */
+.youth-island-plugin-root,
+.youth-island-obsidian-view-root {
+  touch-action: manipulation;
+  overscroll-behavior: contain;
+}
+
+/* 执行中心 3D 卡片轮播舞台：支持横向滑动手势，允许卡片内部纵向滚动 */
+#exec-carousel-stage {
+  touch-action: pan-y pinch-zoom;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.exec-card-deck {
+  touch-action: pan-y pinch-zoom;
+}
+
+.exec-task-card {
+  touch-action: pan-y !important;
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+/* 规划沙盘舞台容器：当处于规划模式时由 JS 引擎精准接管 */
+#island-canvas-stage {
+  touch-action: pan-x pan-y pinch-zoom;
+  overscroll-behavior: contain;
+}
+
+/* 周看板、月日历、目标卡片栏、发射器及所有弹窗内容区：完全支持原生触控平移滚动 */
+#exec-view-week-container,
+.week-board-scroll-container,
+#exec-view-month-container,
+.month-calendar-body,
+#island-goal-cards-dock,
+#island-goal-cards-list,
+.a-my-island-plugin-launcher,
+.modal-content,
+.modal-body,
+#family-pact-modal-body,
+#bounty-modal-body,
+#daxue-item-modal-body,
+#achievement-detail-modal-body,
+.a-my-island-settings-panel,
+.a-my-island-island-settings-panel,
+.a-my-island-background-settings-panel,
+.a-my-island-character-settings-panel,
+.a-my-island-environment-settings-panel,
+.a-my-island-scene-settings-panel,
+.a-my-island-immersive-settings-panel {
+  touch-action: pan-x pan-y !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior: contain !important;
 }
 
 /* 2. 终身岛民 6 大设置弹窗通用样式基底 */
@@ -12415,7 +12468,6 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 .a-my-island-work-edge-labels-layer {
   overflow: visible !important;
 }
-#tertiary-workspace-view,
 #tertiary-canvas-stage,
 .tertiary-card {
   touch-action: none !important;

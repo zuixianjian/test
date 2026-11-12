@@ -689,14 +689,15 @@ function initCanvasPanZoomAndDrag() {
   let dragNodeInitTop = 0;
   let dragNodeHasMoved = false;
 
+  const isInteractiveTarget = (t) => {
+    if (!t) return false;
+    return !!t.closest('button, input, select, textarea, .a-my-island-plugin-launcher, .a-my-island-graph-toolbar, .hud-profile-container, .parent-bounty-billboard, .a-my-island-island-settings-panel, .a-my-island-work-navigation-dock');
+  };
+
   stage.addEventListener('pointerdown', (e) => {
     if (typeof currentGlobalView !== 'undefined' && currentGlobalView !== 'plan') return;
-    if (e.target.closest('.a-my-island-work-navigation-dock')) return;
+    if (isInteractiveTarget(e.target)) return;
 
-    const isInteractive = !!e.target.closest('button, input, select, textarea, .a-my-island-plugin-launcher, .a-my-island-graph-toolbar, .hud-profile-container, .parent-bounty-billboard, .a-my-island-island-settings-panel');
-    if (isInteractive) return;
-
-    e.stopPropagation();
     activePointers.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
 
     // 1. 双指触控模式 -> 启动双指自由捏合缩放
@@ -747,7 +748,8 @@ function initCanvasPanZoomAndDrag() {
     }
   });
 
-  const onWindowPointerMove = (e) => {
+  const onPointerMove = (e) => {
+    if (typeof currentGlobalView !== 'undefined' && currentGlobalView !== 'plan') return;
     if (!activePointers.has(e.pointerId)) return;
     activePointers.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
 
@@ -799,7 +801,7 @@ function initCanvasPanZoomAndDrag() {
     }
   };
 
-  const onWindowPointerUp = (e) => {
+  const onPointerUp = (e) => {
     activePointers.delete(e.pointerId);
 
     if (activeDragNode) {
@@ -827,21 +829,153 @@ function initCanvasPanZoomAndDrag() {
     }
   };
 
-  window.addEventListener('pointermove', onWindowPointerMove);
-  window.addEventListener('pointerup', onWindowPointerUp);
-  window.addEventListener('pointercancel', onWindowPointerUp);
+  stage.addEventListener('pointermove', onPointerMove);
+  window.addEventListener('pointermove', onPointerMove);
+  stage.addEventListener('pointerup', onPointerUp);
+  stage.addEventListener('pointercancel', onPointerUp);
+  window.addEventListener('pointerup', onPointerUp);
 
   // -------------------------------------------------------------
-  // C. 移动端原生 TouchEvents 兜底：强力阻断原生滚动与侧边栏误触
+  // C. 移动端原生 TouchEvents 完整支持：单指平移、双指双向缩放、节点拖拽
   // -------------------------------------------------------------
+  let touchPinchStartDist = 0;
+  let touchPinchStartZoom = 1.0;
+  let touchPinchPivotWorldX = 0;
+  let touchPinchPivotWorldY = 0;
+  let isTouchPinching = false;
+  let isTouchPanning = false;
+  let touchPanStartX = 0;
+  let touchPanStartY = 0;
+  let touchPanInitialX = 0;
+  let touchPanInitialY = 0;
+  let activeTouchNode = null;
+  let touchNodeStartX = 0;
+  let touchNodeStartY = 0;
+  let touchNodeInitLeft = 0;
+  let touchNodeInitTop = 0;
+  let touchNodeHasMoved = false;
+
   stage.addEventListener('touchstart', (e) => {
-    e.stopPropagation();
+    if (typeof currentGlobalView !== 'undefined' && currentGlobalView !== 'plan') return;
+    if (isInteractiveTarget(e.target)) return;
+
+    if (e.touches.length === 2) {
+      isTouchPinching = true;
+      isTouchPanning = false;
+      if (activeTouchNode) {
+        activeTouchNode.classList.remove('is-node-dragging');
+        activeTouchNode = null;
+      }
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      touchPinchStartDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      touchPinchStartZoom = islandZoom || 1.0;
+      const rect = stage.getBoundingClientRect();
+      const midX = (t1.clientX + t2.clientX) / 2 - rect.left;
+      const midY = (t1.clientY + t2.clientY) / 2 - rect.top;
+      touchPinchPivotWorldX = (midX - islandPanX) / touchPinchStartZoom;
+      touchPinchPivotWorldY = (midY - islandPanY) / touchPinchStartZoom;
+      return;
+    }
+
+    if (e.touches.length === 1) {
+      const node = e.target.closest('.pavilion-node');
+      if (node) {
+        activeTouchNode = node;
+        touchNodeHasMoved = false;
+        touchNodeStartX = e.touches[0].clientX;
+        touchNodeStartY = e.touches[0].clientY;
+        touchNodeInitLeft = node.offsetLeft;
+        touchNodeInitTop = node.offsetTop;
+        node.classList.add('is-node-dragging');
+        return;
+      }
+
+      isTouchPanning = true;
+      isTouchPinching = false;
+      touchPanStartX = e.touches[0].clientX;
+      touchPanStartY = e.touches[0].clientY;
+      touchPanInitialX = islandPanX;
+      touchPanInitialY = islandPanY;
+      stage.classList.add('is-canvas-dragging');
+    }
   }, { passive: true });
 
   stage.addEventListener('touchmove', (e) => {
-    e.stopPropagation();
-    if (e.cancelable) e.preventDefault();
+    if (typeof currentGlobalView !== 'undefined' && currentGlobalView !== 'plan') return;
+    if (!isTouchPinching && !isTouchPanning && !activeTouchNode) return;
+
+    // 1. 双指触控捏合缩放
+    if (isTouchPinching && e.touches.length === 2) {
+      if (e.cancelable) e.preventDefault();
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const currentDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      if (touchPinchStartDist > 0) {
+        const factor = currentDist / touchPinchStartDist;
+        const newZoom = Math.min(3.0, Math.max(0.35, touchPinchStartZoom * factor));
+        const rect = stage.getBoundingClientRect();
+        const midX = (t1.clientX + t2.clientX) / 2 - rect.left;
+        const midY = (t1.clientY + t2.clientY) / 2 - rect.top;
+        islandZoom = newZoom;
+        islandPanX = midX - touchPinchPivotWorldX * newZoom;
+        islandPanY = midY - touchPinchPivotWorldY * newZoom;
+        applyIslandTransform();
+      }
+      return;
+    }
+
+    // 2. 节点拖拽
+    if (activeTouchNode && e.touches.length === 1) {
+      if (e.cancelable) e.preventDefault();
+      const dx = (e.touches[0].clientX - touchNodeStartX) / islandZoom;
+      const dy = (e.touches[0].clientY - touchNodeStartY) / islandZoom;
+      if (!touchNodeHasMoved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
+        touchNodeHasMoved = true;
+        activeTouchNode._dragMoved = true;
+        window._islandNodeDragMoved = true;
+      }
+      if (touchNodeHasMoved) {
+        activeTouchNode.style.left = (touchNodeInitLeft + dx) + 'px';
+        activeTouchNode.style.top = (touchNodeInitTop + dy) + 'px';
+        updateIslandMinimap();
+      }
+      return;
+    }
+
+    // 3. 画布单指平移
+    if (isTouchPanning && e.touches.length === 1) {
+      if (e.cancelable) e.preventDefault();
+      const dx = e.touches[0].clientX - touchPanStartX;
+      const dy = e.touches[0].clientY - touchPanStartY;
+      islandPanX = touchPanInitialX + dx;
+      islandPanY = touchPanInitialY + dy;
+      applyIslandTransform();
+      return;
+    }
   }, { passive: false });
+
+  const endTouch = () => {
+    if (activeTouchNode) {
+      const node = activeTouchNode;
+      activeTouchNode = null;
+      node.classList.remove('is-node-dragging');
+      if (touchNodeHasMoved) {
+        node._dragMoved = true;
+        window._islandNodeDragMoved = true;
+        setTimeout(() => {
+          node._dragMoved = false;
+          window._islandNodeDragMoved = false;
+        }, 220);
+      }
+    }
+    isTouchPinching = false;
+    isTouchPanning = false;
+    stage.classList.remove('is-canvas-dragging');
+  };
+
+  stage.addEventListener('touchend', endTouch, { passive: true });
+  stage.addEventListener('touchcancel', endTouch, { passive: true });
 
   // -------------------------------------------------------------
   // D. 捕获阶段防御：严防节点拖拽结束误触发 handlePavilionClick 路由
@@ -4962,12 +5096,14 @@ function initTertiaryCanvasPanZoom() {
   let panInitialX = 0;
   let panInitialY = 0;
 
-  stage.addEventListener('pointerdown', (e) => {
-    if (e.target.closest('.a-my-island-work-minimap')) return;
-    const isInteractive = !!e.target.closest('button, input, select, textarea, .work-card-connect-handle');
-    if (isInteractive) return;
+  const isTertiaryInteractive = (t) => {
+    if (!t) return false;
+    return !!t.closest('button, input, select, textarea, .work-card-connect-handle, .a-my-island-work-minimap');
+  };
 
-    e.stopPropagation();
+  stage.addEventListener('pointerdown', (e) => {
+    if (isTertiaryInteractive(e.target)) return;
+
     activePointers.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
 
     // 1. 双指触控 -> 启动捏合缩放
@@ -5034,7 +5170,7 @@ function initTertiaryCanvasPanZoom() {
     }
   });
 
-  const onWindowPointerMove = (e) => {
+  const onPointerMove = (e) => {
     if (!activePointers.has(e.pointerId)) return;
     activePointers.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
 
@@ -5086,7 +5222,7 @@ function initTertiaryCanvasPanZoom() {
     }
   };
 
-  const onWindowPointerUp = (e) => {
+  const onPointerUp = (e) => {
     activePointers.delete(e.pointerId);
 
     if (activeDraggingCard) {
@@ -5108,21 +5244,164 @@ function initTertiaryCanvasPanZoom() {
     }
   };
 
-  window.addEventListener('pointermove', onWindowPointerMove);
-  window.addEventListener('pointerup', onWindowPointerUp);
-  window.addEventListener('pointercancel', onWindowPointerUp);
+  stage.addEventListener('pointermove', onPointerMove);
+  window.addEventListener('pointermove', onPointerMove);
+  stage.addEventListener('pointerup', onPointerUp);
+  stage.addEventListener('pointercancel', onPointerUp);
+  window.addEventListener('pointerup', onPointerUp);
 
   // -------------------------------------------------------------
-  // C. 移动端原生 TouchEvents 兜底
+  // C. 移动端原生 TouchEvents 完整支持：单指画布平移、双指自由捏合缩放、卡片拖拽
   // -------------------------------------------------------------
+  let touchPinchStartDist = 0;
+  let touchPinchStartZoom = 1.0;
+  let touchPinchPivotWorldX = 0;
+  let touchPinchPivotWorldY = 0;
+  let isTouchPinching = false;
+  let isTouchPanning = false;
+  let touchPanStartX = 0;
+  let touchPanStartY = 0;
+  let touchPanInitialX = 0;
+  let touchPanInitialY = 0;
+
+  let activeTouchCard = null;
+  let touchCardStartX = 0;
+  let touchCardStartY = 0;
+  let touchCardInitLeft = 0;
+  let touchCardInitTop = 0;
+  let touchCardHasMoved = false;
+  let touchCardFollowers = [];
+
   stage.addEventListener('touchstart', (e) => {
-    e.stopPropagation();
+    if (isTertiaryInteractive(e.target)) return;
+
+    if (e.touches.length === 2) {
+      isTouchPinching = true;
+      isTouchPanning = false;
+      if (activeTouchCard) {
+        activeTouchCard.classList.remove('is-card-dragging');
+        activeTouchCard = null;
+      }
+      if (view) view.classList.add('is-viewport-moving');
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      touchPinchStartDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      touchPinchStartZoom = window.tertiaryZoom || 1.0;
+      const rect = stage.getBoundingClientRect();
+      const midX = (t1.clientX + t2.clientX) / 2 - rect.left;
+      const midY = (t1.clientY + t2.clientY) / 2 - rect.top;
+      touchPinchPivotWorldX = (midX - window.tertiaryPanX) / touchPinchStartZoom;
+      touchPinchPivotWorldY = (midY - window.tertiaryPanY) / touchPinchStartZoom;
+      return;
+    }
+
+    if (e.touches.length === 1) {
+      const card = e.target.closest('.tertiary-card');
+      if (card) {
+        activeTouchCard = card;
+        touchCardHasMoved = false;
+        touchCardStartX = e.touches[0].clientX;
+        touchCardStartY = e.touches[0].clientY;
+        touchCardInitLeft = parseInt(card.style.left, 10) || card.offsetLeft;
+        touchCardInitTop = parseInt(card.style.top, 10) || card.offsetTop;
+        touchCardFollowers = [];
+        if (typeof childrenFollowEnabled !== 'undefined' && childrenFollowEnabled && card.id) {
+          getDownstreamChildCardIds(card.id).forEach(cid => {
+            const childEl = document.getElementById(cid);
+            if (childEl) {
+              touchCardFollowers.push({
+                el: childEl,
+                left: parseInt(childEl.style.left, 10) || childEl.offsetLeft,
+                top: parseInt(childEl.style.top, 10) || childEl.offsetTop
+              });
+            }
+          });
+        }
+        card.classList.add('is-card-dragging');
+        return;
+      }
+
+      isTouchPanning = true;
+      isTouchPinching = false;
+      touchPanStartX = e.touches[0].clientX;
+      touchPanStartY = e.touches[0].clientY;
+      touchPanInitialX = window.tertiaryPanX;
+      touchPanInitialY = window.tertiaryPanY;
+      stage.classList.add('is-dragging-canvas');
+      if (view) view.classList.add('is-viewport-moving');
+    }
   }, { passive: true });
 
   stage.addEventListener('touchmove', (e) => {
-    e.stopPropagation();
-    if (e.cancelable) e.preventDefault();
+    if (!isTouchPinching && !isTouchPanning && !activeTouchCard) return;
+
+    // 1. 双指捏合缩放
+    if (isTouchPinching && e.touches.length === 2) {
+      if (e.cancelable) e.preventDefault();
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const currentDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+      if (touchPinchStartDist > 0) {
+        const factor = currentDist / touchPinchStartDist;
+        const newZoom = Math.min(3.5, Math.max(0.25, touchPinchStartZoom * factor));
+        const rect = stage.getBoundingClientRect();
+        const midX = (t1.clientX + t2.clientX) / 2 - rect.left;
+        const midY = (t1.clientY + t2.clientY) / 2 - rect.top;
+        window.tertiaryZoom = newZoom;
+        window.tertiaryPanX = midX - touchPinchPivotWorldX * newZoom;
+        window.tertiaryPanY = midY - touchPinchPivotWorldY * newZoom;
+        applyTertiaryTransform();
+      }
+      return;
+    }
+
+    // 2. 卡片拖拽
+    if (activeTouchCard && e.touches.length === 1) {
+      if (e.cancelable) e.preventDefault();
+      const zoom = window.tertiaryZoom || 1.0;
+      const dx = (e.touches[0].clientX - touchCardStartX) / zoom;
+      const dy = (e.touches[0].clientY - touchCardStartY) / zoom;
+      if (!touchCardHasMoved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
+        touchCardHasMoved = true;
+        if (typeof pushTertiaryHistory === 'function') pushTertiaryHistory();
+      }
+      activeTouchCard.style.left = Math.max(10, touchCardInitLeft + dx) + 'px';
+      activeTouchCard.style.top = Math.max(10, touchCardInitTop + dy) + 'px';
+      touchCardFollowers.forEach(f => {
+        f.el.style.left = Math.max(10, f.left + dx) + 'px';
+        f.el.style.top = Math.max(10, f.top + dy) + 'px';
+      });
+      updateTertiaryEdgesFast();
+      return;
+    }
+
+    // 3. 画布平移
+    if (isTouchPanning && e.touches.length === 1) {
+      if (e.cancelable) e.preventDefault();
+      const dx = e.touches[0].clientX - touchPanStartX;
+      const dy = e.touches[0].clientY - touchPanStartY;
+      window.tertiaryPanX = touchPanInitialX + dx;
+      window.tertiaryPanY = touchPanInitialY + dy;
+      applyTertiaryTransform();
+      return;
+    }
   }, { passive: false });
+
+  const endTertiaryTouch = () => {
+    if (activeTouchCard) {
+      activeTouchCard.classList.remove('is-card-dragging');
+      activeTouchCard = null;
+      touchCardFollowers = [];
+      updateTertiaryEdgesFast();
+    }
+    isTouchPinching = false;
+    isTouchPanning = false;
+    stage.classList.remove('is-dragging-canvas');
+    if (view) view.classList.remove('is-viewport-moving');
+  };
+
+  stage.addEventListener('touchend', endTertiaryTouch, { passive: true });
+  stage.addEventListener('touchcancel', endTertiaryTouch, { passive: true });
 }
 
 // 全局一键最小化 / 展开全部三级卡片
@@ -6795,6 +7074,7 @@ function updateDayCarousel() {
   if (dotsWrap) dotsWrap.style.display = 'flex';
   totalDayCards = allCards.length;
   currentDayCardIndex = Math.max(0, Math.min(currentDayCardIndex, totalDayCards - 1));
+  window.currentDayCardIndex = currentDayCardIndex;
   const cards = allCards;
   const dots = document.querySelectorAll('.exec-carousel-pagination .pagination-dot-pill');
 
@@ -6839,52 +7119,139 @@ function goToDayCard(index) {
   updateDayCarousel();
 }
 
-// 触摸手势与桌面拖拽交互
+// 触摸手势与桌面拖拽交互 (支持真机流畅跟手滑动与阻尼反馈)
 function setupCarouselGestures() {
   const stage = document.getElementById('exec-carousel-stage');
-  if (!stage) return;
+  const deck = document.getElementById('day-card-deck');
+  if (!stage || !deck) return;
+  if (stage._carouselGesturesBound) return;
+  stage._carouselGesturesBound = true;
+
   let startX = 0;
   let startY = 0;
-  let isSwiping = false;
+  let currentDeltaX = 0;
+  let isDragging = false;
+  let isHorizontalGesture = false;
+  let isVerticalScroll = false;
+  let pointerId = null;
 
-  stage.addEventListener('touchstart', (e) => {
-    if (e.touches.length === 1) {
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-      isSwiping = true;
+  const resetDeckTransform = (animate = true) => {
+    if (animate) {
+      deck.style.transition = 'transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1)';
+    } else {
+      deck.style.transition = 'none';
     }
-  }, { passive: true });
+    deck.style.transform = '';
+  };
 
-  stage.addEventListener('touchend', (e) => {
-    if (!isSwiping || e.changedTouches.length === 0) return;
-    const deltaX = e.changedTouches[0].clientX - startX;
-    const deltaY = e.changedTouches[0].clientY - startY;
-    isSwiping = false;
+  const handleStart = (clientX, clientY, pId = null) => {
+    startX = clientX;
+    startY = clientY;
+    currentDeltaX = 0;
+    isDragging = true;
+    isHorizontalGesture = false;
+    isVerticalScroll = false;
+    pointerId = pId;
+    resetDeckTransform(false);
+  };
 
-    if (Math.abs(deltaX) > 40 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+  const handleMove = (clientX, clientY, e) => {
+    if (!isDragging) return;
+    const dx = clientX - startX;
+    const dy = clientY - startY;
+
+    if (!isHorizontalGesture && !isVerticalScroll) {
+      if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 6) {
+        isVerticalScroll = true;
+        return;
+      }
+      if (Math.abs(dx) > 6 && Math.abs(dx) > Math.abs(dy)) {
+        isHorizontalGesture = true;
+      }
+    }
+
+    if (isVerticalScroll) return;
+
+    if (isHorizontalGesture) {
+      if (e && e.cancelable) e.preventDefault();
+      currentDeltaX = dx;
+      const resistance = 0.65;
+      const visualX = dx * resistance;
+      deck.style.transition = 'none';
+      deck.style.transform = `translateX(${visualX}px)`;
+    }
+  };
+
+  const handleEnd = () => {
+    if (!isDragging) return;
+    isDragging = false;
+    const deltaX = currentDeltaX;
+    currentDeltaX = 0;
+
+    resetDeckTransform(true);
+
+    if (isHorizontalGesture && Math.abs(deltaX) > 35) {
       if (deltaX < 0) {
         nextDayCard();
       } else {
         prevDayCard();
       }
     }
+    isHorizontalGesture = false;
+    isVerticalScroll = false;
+    pointerId = null;
+  };
+
+  // 移动端 Touch 事件
+  stage.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) {
+      if (e.target.closest('button, input, select, textarea, a, .card-graphic-pill')) return;
+      handleStart(e.touches[0].clientX, e.touches[0].clientY);
+    }
   }, { passive: true });
 
-  let mouseStartX = 0;
-  let isMouseDown = false;
-  stage.addEventListener('mousedown', (e) => {
-    isMouseDown = true;
-    mouseStartX = e.clientX;
-  });
-  window.addEventListener('mouseup', (e) => {
-    if (!isMouseDown) return;
-    isMouseDown = false;
-    const deltaX = e.clientX - mouseStartX;
-    if (Math.abs(deltaX) > 50) {
-      if (deltaX < 0) nextDayCard();
-      else prevDayCard();
+  stage.addEventListener('touchmove', (e) => {
+    if (e.touches.length === 1) {
+      handleMove(e.touches[0].clientX, e.touches[0].clientY, e);
     }
+  }, { passive: false });
+
+  stage.addEventListener('touchend', () => {
+    handleEnd();
+  }, { passive: true });
+
+  stage.addEventListener('touchcancel', () => {
+    handleEnd();
+  }, { passive: true });
+
+  // 桌面端 Pointer/Mouse 事件
+  stage.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'touch') return;
+    if (e.target.closest('button, input, select, textarea, a, .card-graphic-pill')) return;
+    handleStart(e.clientX, e.clientY, e.pointerId);
+    try { stage.setPointerCapture(e.pointerId); } catch (_) {}
   });
+
+  const onPointerMove = (e) => {
+    if (e.pointerType === 'touch') return;
+    if (isDragging && (pointerId === e.pointerId || pointerId === null)) {
+      handleMove(e.clientX, e.clientY, e);
+    }
+  };
+
+  const onPointerUp = (e) => {
+    if (e.pointerType === 'touch') return;
+    if (pointerId === e.pointerId || pointerId === null) {
+      try { stage.releasePointerCapture(e.pointerId); } catch (_) {}
+      handleEnd();
+    }
+  };
+
+  stage.addEventListener('pointermove', onPointerMove);
+  window.addEventListener('pointermove', onPointerMove);
+  stage.addEventListener('pointerup', onPointerUp);
+  stage.addEventListener('pointercancel', onPointerUp);
+  window.addEventListener('pointerup', onPointerUp);
 }
 
 // 打卡完成操作

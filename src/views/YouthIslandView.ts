@@ -126,16 +126,6 @@ export class YouthIslandView extends ItemView {
       }
     }
 
-    // 在海岛视图根节点拦截向上冒泡，绝不截断海岛内部各组件的正常 touchstart/touchmove 响应
-    const blockObsidianSidebarBubble = (e: Event) => {
-      e.stopPropagation();
-    };
-
-    rootWrapper.addEventListener("touchstart", blockObsidianSidebarBubble, { passive: true });
-    rootWrapper.addEventListener("touchmove", blockObsidianSidebarBubble, { passive: true });
-    rootWrapper.addEventListener("touchend", blockObsidianSidebarBubble, { passive: true });
-    rootWrapper.addEventListener("touchcancel", blockObsidianSidebarBubble, { passive: true });
-
     // Boot interactive runtime
     bootPrototypeRuntime();
 
