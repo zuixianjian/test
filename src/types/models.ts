@@ -1,6 +1,6 @@
 /**
  * 终身岛民 · 青少儿全人成长与自主进化系统
- * 全局数据契约与统一实体字典 (Strictly aligned with PRD Chapter 5 & Chapter 6)
+ * 旧版兼容类型与插件配置。schemaVersion 3 权威实体见 ./domain.ts。
  */
 
 export type PavilionId =

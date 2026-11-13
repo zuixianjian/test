@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { scopeCss } from "./scope_css.mjs";
 
 const ROOT = process.cwd();
 const PROTO_PATH = path.join(ROOT, "high_fidelity_ui_preview.html");
@@ -313,7 +314,15 @@ body.youth-island-tablet-fullscreen .titlebar {
 
 `;
 
-fs.writeFileSync(path.join(ROOT, "styles.css"), obsidianHostCss + cssContent + "\n", "utf8");
+const businessCss = `
+.youth-island-plugin-root .island-real-execution-form { width: min(920px, calc(100% - 32px)); max-width: 100%; margin: 24px auto; color: #334155; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 20px; }
+.youth-island-plugin-root .island-real-execution-form > h3 { grid-column: 1 / -1; }
+.youth-island-plugin-root .island-real-execution-entry { min-width: 0; }
+.youth-island-plugin-root .island-real-execution-entry textarea { border: 1px solid #93c5fd; border-radius: 8px; padding: 10px; font: inherit; resize: vertical; }
+.youth-island-plugin-root #island-execution-standard .tertiary-card { min-height: 0 !important; }
+@media (max-width: 720px) { .youth-island-plugin-root .island-real-execution-form { grid-template-columns: minmax(0, 1fr); gap: 12px; } }
+`;
+fs.writeFileSync(path.join(ROOT, "styles.css"), obsidianHostCss + scopeCss(cssContent) + businessCss + "\n", "utf8");
 
 // 2. Extract HTML Template -> src/ui/template.ts
 const htmlPart1 = lines.slice(bodyStart + 1, scriptStart).join("\n");
@@ -330,7 +339,10 @@ fs.writeFileSync(
 );
 
 // 3. Extract Runtime Script -> src/runtime/prototypeScript.ts
-const scriptContent = lines.slice(scriptStart + 1, scriptEnd).join("\n");
+const scriptContent = lines.slice(scriptStart + 1, scriptEnd).join("\n")
+  .replace('const GANTT_TODAY =', 'let GANTT_TODAY =')
+  .replace(/new ResizeObserver\((\(\) => scheduleTertiaryEdgeRefresh\(\))\)/g, 'runtimeScope.observe(new ResizeObserver($1))')
+  .replace(/\(state.todayFocusMinutes \|\| 60\)/g, '(state.todayFocusMinutes || 0)');
 
 // Find all top-level function declarations so we can explicitly attach them to window for inline onclick handlers
 const fnNames = new Set();
@@ -347,13 +359,17 @@ fs.mkdirSync(path.join(ROOT, "src", "runtime"), { recursive: true });
 const runtimeTs = `// @ts-nocheck
 // Auto-extracted 1:1 interactive runtime from high_fidelity_ui_preview.html
 // Bound to window and bridged with Obsidian VaultStorageAdapter & EventBus
+import { RuntimeScope } from "./RuntimeScope";
 
-export function bootPrototypeRuntime(): void {
+export function bootPrototypeRuntime(): () => void {
+  const runtimeScope = new RuntimeScope(globalThis.window);
+  const window = runtimeScope.window;
+  const { setTimeout, clearTimeout, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame } = runtimeScope;
   if ((window as any).__YOUTH_ISLAND_RUNTIME_BOOTED__) {
     if (typeof (window as any).__reinitYouthIslandDom === "function") {
       (window as any).__reinitYouthIslandDom();
     }
-    return;
+    return () => runtimeScope.dispose();
   }
   (window as any).__YOUTH_ISLAND_RUNTIME_BOOTED__ = true;
 
@@ -387,6 +403,7 @@ ${windowExports}
     if (typeof renderMonthCalendar === "function") renderMonthCalendar();
     if (typeof renderHomeSemesterGoalsBanner === "function") renderHomeSemesterGoalsBanner();
     if (typeof recalcAndRenderGlobalHUD === "function") recalcAndRenderGlobalHUD();
+    if (typeof restoreBusinessViews === "function") restoreBusinessViews();
     if (typeof renderBountyModalAndBillboard === "function") renderBountyModalAndBillboard();
     if (typeof renderGanttChart === "function") renderGanttChart();
     if (typeof initTertiaryWorkspace === "function") initTertiaryWorkspace();
@@ -394,6 +411,7 @@ ${windowExports}
   };
 
   (window as any).__reinitYouthIslandDom();
+  return () => runtimeScope.dispose();
 }
 `;
 

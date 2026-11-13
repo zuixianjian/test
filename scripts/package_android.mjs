@@ -1,53 +1,29 @@
-import fs from "fs";
-import path from "path";
-import { execSync } from "child_process";
+import fs from 'node:fs';
+import path from 'node:path';
+import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
 
-const ROOT = process.cwd();
-const RELEASE_DIR = path.join(ROOT, "release");
-const PLUGIN_FOLDER = path.join(RELEASE_DIR, "youth-holistic-growth-island");
-const ZIP_PATH = path.join(RELEASE_DIR, "youth-holistic-growth-island-android.zip");
-const FLAT_ZIP_PATH = path.join(RELEASE_DIR, "youth-holistic-growth-island.zip");
-
-// Clean and recreate release folder
-if (fs.existsSync(RELEASE_DIR)) {
-  fs.rmSync(RELEASE_DIR, { recursive: true, force: true });
+const root=process.cwd();
+const manifest=JSON.parse(fs.readFileSync('manifest.json','utf8'));
+if(!/^\d+\.\d+\.\d+$/.test(manifest.version))throw new Error('Invalid release version');
+const release=path.join(root,'release'),folder=path.join(release,manifest.version,manifest.id);
+fs.mkdirSync(folder,{recursive:true});
+for(const file of ['manifest.json','versions.json','main.js','styles.css'])fs.copyFileSync(path.join(root,file),path.join(folder,file));
+for(const [kind,names] of Object.entries({scenes:['scene-plaza.png','scene-desk.png','scene-board.png'],avatars:['avatar-cat.png','avatar-female.png','avatar-male.png']})){
+  fs.mkdirSync(path.join(folder,'assets',kind),{recursive:true});
+  for(const name of names)fs.copyFileSync(path.join(root,'assets',kind,name),path.join(folder,'assets',kind,name));
 }
-fs.mkdirSync(path.join(PLUGIN_FOLDER, "assets", "scenes"), { recursive: true });
-fs.mkdirSync(path.join(PLUGIN_FOLDER, "assets", "avatars"), { recursive: true });
-
-// Copy core plugin files
-for (const file of ["manifest.json", "versions.json", "main.js", "styles.css"]) {
-  fs.copyFileSync(path.join(ROOT, file), path.join(PLUGIN_FOLDER, file));
+const zip=path.join(release,manifest.id+'-'+manifest.version+'.zip');
+// Preserve other releases. Pass paths as environment values, never shell source.
+execFileSync('powershell.exe',['-NoProfile','-Command','Compress-Archive -LiteralPath $env:YOUTH_ISLAND_PACKAGE_FOLDER -DestinationPath $env:YOUTH_ISLAND_PACKAGE_ZIP -Force'],{
+  windowsHide:true,stdio:'inherit',env:{...process.env,YOUTH_ISLAND_PACKAGE_FOLDER:folder,YOUTH_ISLAND_PACKAGE_ZIP:zip}
+});
+const hashes={version:manifest.version,files:{}};
+for(const file of ['manifest.json','versions.json','main.js','styles.css']){
+  const input=fs.readFileSync(path.join(root,file)),output=fs.readFileSync(path.join(folder,file));
+  if(!input.equals(output))throw new Error('Package mismatch: '+file);
+  hashes.files[file]=createHash('sha256').update(output).digest('hex');
 }
-
-// Copy ASCII-named scenes & avatars (prevents any Android ZIP GBK/UTF-8 garbled filename issues)
-for (const scene of ["scene-plaza.png", "scene-desk.png", "scene-board.png"]) {
-  const p = path.join(ROOT, "assets", "scenes", scene);
-  if (fs.existsSync(p)) {
-    fs.copyFileSync(p, path.join(PLUGIN_FOLDER, "assets", "scenes", scene));
-  }
-}
-for (const avatar of ["avatar-cat.png", "avatar-female.png", "avatar-male.png"]) {
-  const p = path.join(ROOT, "assets", "avatars", avatar);
-  if (fs.existsSync(p)) {
-    fs.copyFileSync(p, path.join(PLUGIN_FOLDER, "assets", "avatars", avatar));
-  }
-}
-
-// 1. Create ZIP archive containing folder structure (for extracting into .obsidian/plugins)
-execSync(
-  `powershell -NoProfile -Command "Compress-Archive -Path '${PLUGIN_FOLDER}' -DestinationPath '${ZIP_PATH}' -Force"`,
-  { stdio: "inherit" }
-);
-
-// 2. Create flat ZIP archive (for users who extract inside .obsidian/plugins/youth-holistic-growth-island)
-execSync(
-  `powershell -NoProfile -Command "Compress-Archive -Path '${PLUGIN_FOLDER}/*' -DestinationPath '${FLAT_ZIP_PATH}' -Force"`,
-  { stdio: "inherit" }
-);
-
-const stat = fs.statSync(ZIP_PATH);
-const statFlat = fs.statSync(FLAT_ZIP_PATH);
-console.log(
-  `✅ Android & Desktop packages ready:\n  Folder:     ${PLUGIN_FOLDER}\n  Folder Zip: ${ZIP_PATH} (${(stat.size / 1024 / 1024).toFixed(2)} MB)\n  Flat Zip:   ${FLAT_ZIP_PATH} (${(statFlat.size / 1024 / 1024).toFixed(2)} MB)`
-);
+hashes.zipSha256=createHash('sha256').update(fs.readFileSync(zip)).digest('hex');
+fs.writeFileSync(path.join(release,'hashes-'+manifest.version+'.json'),JSON.stringify(hashes,null,2));
+console.log('Packaged '+manifest.version+' ('+(fs.statSync(zip).size/1048576).toFixed(2)+' MB): '+zip);

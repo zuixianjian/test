@@ -18,6 +18,18 @@ export default class YouthGrowthIslandPlugin extends Plugin {
     await this.loadSettings();
 
     this.vaultStorage = new VaultStorageAdapter(this.app, () => this.settings);
+    (window as any).__saveIslandAttachment = (file: File) => this.vaultStorage.saveAttachment(file);
+    (window as any).__islandAttachmentUrl = (path: string) => this.vaultStorage.attachmentUrl(path);
+    (window as any).__exportIslandDocument = (path: string, content: string) => this.vaultStorage.exportDocument(path, content);
+    (window as any).__importIslandCanvas = (id: string) => this.vaultStorage.importProjectCanvas(id);
+    this.register(() => {
+      delete (window as any).__saveIslandAttachment;
+      delete (window as any).__islandAttachmentUrl;
+      delete (window as any).__exportIslandDocument;
+      delete (window as any).__importIslandCanvas;
+      delete (window as any).__openProjectInObsidianCanvas;
+      delete (window as any).__toggleObsidianSidebar;
+    });
 
     // Bind Obsidian Native Canvas Bridge to window
     (window as any).__openProjectInObsidianCanvas = async (projId: string) => {
@@ -143,6 +155,7 @@ export default class YouthGrowthIslandPlugin extends Plugin {
       id: "sync-youth-island-vault",
       name: "立即同步本地 Vault 知识库目录树与双链 Markdown",
       callback: async () => {
+        await this.activateIslandView();
         await this.vaultStorage.syncRuntimeToVault();
         new Notice("✅ 终身岛民：已同步本地 Vault 十大目录树与双链 Markdown 档案！");
       },
@@ -154,6 +167,7 @@ export default class YouthGrowthIslandPlugin extends Plugin {
     // Ensure Vault directory structure on layout ready
     this.app.workspace.onLayoutReady(async () => {
       await this.vaultStorage.ensureVaultStructure();
+      if (this.settings.openOnStartup) await this.activateIslandView();
     });
   }
 
@@ -173,7 +187,7 @@ export default class YouthGrowthIslandPlugin extends Plugin {
     }
 
     if (leaf) {
-      workspace.revealLeaf(leaf);
+      await workspace.revealLeaf(leaf);
     }
 
     if (mode) {
@@ -201,5 +215,7 @@ export default class YouthGrowthIslandPlugin extends Plugin {
 
   public async onunload(): Promise<void> {
     await this.vaultStorage.syncRuntimeToVault();
+    this.app.workspace.detachLeavesOfType(VIEW_TYPE_YOUTH_ISLAND);
+    await this.vaultStorage.dispose();
   }
 }

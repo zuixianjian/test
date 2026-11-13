@@ -1,0 +1,621 @@
+[
+  {
+    "name": "cycleHomeLayout",
+    "kind": "declaration",
+    "line": 292,
+    "endLine": 340,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [
+      "currentHomeLayoutIndex",
+      "lbl.innerText",
+      "el.style.top",
+      "el.style.left"
+    ],
+    "code": "function cycleHomeLayout() {\n  currentHomeLayoutIndex = (currentHomeLayoutIndex + 1) % 3;\n  const lbl = document.getElementById('lbl-home-layout');\n  const btn = document.getElementById('btn-home-layout');\n  if (lbl) lbl.innerText = homeLayoutNames[currentHomeLayoutIndex];\n  if (btn) btn.classList.toggle('is-active', currentHomeLayoutIndex === 0);\n\n  const nodes = Array.from(document.querySelectorAll('#island-pavilion-grid .pavilion-node'));\n  const count = nodes.length || 4;\n\n  if (currentHomeLayoutIndex === 1) {\n    // 网格布局 (2列对称规整矩阵)\n    const cols = count <= 4 ? 2 : 3;\n    nodes.forEach((el, idx) => {\n      const r = Math.floor(idx / cols);\n      const c = idx % cols;\n      const leftStep = cols === 2 ? [28, 72] : [22, 50, 78];\n      el.style.top = (28 + r * 36) + '%';\n      el.style.left = leftStep[c] + '%';\n    });\n    showIslandToast('▦ 网格布局：已将 ' + count + ' 大规划场馆智能对齐为规整矩阵');\n  } else if (currentHomeLayoutIndex === 2) {\n    // 环形布局 (以小岛中心环绕排布)\n    const r = 26;\n    const centerX = 50;\n    const centerY = 46;\n    nodes.forEach((el, idx) => {\n      const angle = ((idx * (360 / count)) - 90) * (Math.PI / 180);\n      const top = centerY + r * Math.sin(angle);\n      const left = centerX + (r * 1.25) * Math.cos(angle);\n      el.style.top = top.toFixed(1) + '%';\n      el.style.left = left.toFixed(1) + '%';\n    });\n    showIslandToast('⭕ 环形布局：已将 ' + count + ' 大规划场馆以小岛为中心环绕排布');\n  } else {\n    // 恢复自由对称布局\n    const freePos = [\n      { top: '27%', left: '26%' }, { top: '27%', left: '74%' },\n      { top: '63%', left: '26%' }, { top: '63%', left: '74%' },\n      { top: '24%', left: '50%' }, { top: '66%', left: '50%' }\n    ];\n    nodes.forEach((el, idx) => {\n      const p = freePos[idx % freePos.length];\n      el.style.top = p.top;\n      el.style.left = p.left;\n    });\n    showIslandToast('🌱 自由布局：已恢复 ' + count + ' 大规划场馆生机漫游分布');\n  }\n}"
+  },
+  {
+    "name": "toggleHomeViewScope",
+    "kind": "declaration",
+    "line": 388,
+    "endLine": 412,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [
+      "homeScopeIndex",
+      "p.style.opacity",
+      "el.style.opacity"
+    ],
+    "code": "function toggleHomeViewScope() {\n  homeScopeIndex = (homeScopeIndex + 1) % 3;\n  const scopes = [\n    '全部 9 大全息生命功能馆',\n    '⚡ 今日学业冲刺与德行考验 (高亮校史馆·修身阁·底线树)',\n    '🧭 战略认知与财商进阶 (高亮认知台·藏金屋·成就馆)'\n  ];\n\n  const pavilions = document.querySelectorAll('.pavilion-node');\n  pavilions.forEach(p => p.style.opacity = '1');\n\n  if (homeScopeIndex === 1) {\n    ['node-dojo', 'node-cognition', 'node-treasury'].forEach(id => {\n      const el = document.getElementById(id);\n      if (el) el.style.opacity = '0.35';\n    });\n  } else if (homeScopeIndex === 2) {\n    ['node-study', 'node-dojo', 'node-cultivation'].forEach(id => {\n      const el = document.getElementById(id);\n      if (el) el.style.opacity = '0.35';\n    });\n  }\n\n  showIslandToast('🔍 查看范围已切换为：' + scopes[homeScopeIndex]);\n}"
+  },
+  {
+    "name": "toggleBrowseMode",
+    "kind": "declaration",
+    "line": 1163,
+    "endLine": 1173,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [
+      "window.isBrowseMode"
+    ],
+    "code": "function toggleBrowseMode() {\n  window.isBrowseMode = !window.isBrowseMode;\n  const btn = document.getElementById('launcher-btn-browse');\n  if (btn) btn.classList.toggle('is-active', window.isBrowseMode);\n\n  if (window.isBrowseMode) {\n    showIslandToast('👁️ 浏览模式已开启：移动平板单击功能馆即可直接进入二级工作台！');\n  } else {\n    showIslandToast('🔒 浏览模式已关闭：双击进入工作台，单击为选中聚焦。');\n  }\n}"
+  },
+  {
+    "name": "toggleImmersiveMode",
+    "kind": "declaration",
+    "line": 1430,
+    "endLine": 1435,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function toggleImmersiveMode() {\n  const isNowImmersive = document.body.classList.toggle('is-immersive');\n  if (!isNowImmersive) {\n    showIslandToast('已退出沉浸模式，恢复全能操作界面。');\n  }\n}"
+  },
+  {
+    "name": "handleTertiaryModuleFileUpload",
+    "kind": "declaration",
+    "line": 3208,
+    "endLine": 3234,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [
+      "reader.onload",
+      "window.tertiaryModuleUploadedImageSrc",
+      "thumb.src",
+      "filenameEl.textContent",
+      "previewContainer.style.display",
+      "iconInput.value"
+    ],
+    "code": "function handleTertiaryModuleFileUpload(input) {\n  if (!input || !input.files || !input.files[0]) return;\n  const file = input.files[0];\n  const reader = new FileReader();\n\n  reader.onload = function(e) {\n    window.tertiaryModuleUploadedImageSrc = e.target.result;\n    const previewContainer = document.getElementById('tertiary-module-upload-preview-container');\n    const thumb = document.getElementById('tertiary-module-upload-thumb');\n    const filenameEl = document.getElementById('tertiary-module-upload-filename');\n    const iconInput = document.getElementById('input-tertiary-module-icon');\n\n    if (thumb) thumb.src = e.target.result;\n    if (filenameEl) filenameEl.textContent = file.name;\n    if (previewContainer) previewContainer.style.display = 'flex';\n    if (iconInput) iconInput.value = '[本地图片]';\n\n    const grid = document.getElementById('tertiary-module-icon-preset-grid');\n    if (grid) {\n      grid.querySelectorAll('.icon-preset-btn').forEach(b => b.classList.remove('is-active'));\n    }\n\n    showIslandToast('📷 成功载入设备图片：' + file.name);\n  };\n\n  reader.readAsDataURL(file);\n}"
+  },
+  {
+    "name": "removeTertiaryModuleUploadedFile",
+    "kind": "declaration",
+    "line": 3236,
+    "endLine": 3253,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [
+      "window.tertiaryModuleUploadedImageSrc",
+      "previewContainer.style.display",
+      "fileInput.value",
+      "iconInput.value"
+    ],
+    "code": "function removeTertiaryModuleUploadedFile() {\n  window.tertiaryModuleUploadedImageSrc = '';\n  const previewContainer = document.getElementById('tertiary-module-upload-preview-container');\n  const fileInput = document.getElementById('input-tertiary-module-file');\n  const iconInput = document.getElementById('input-tertiary-module-icon');\n\n  if (previewContainer) previewContainer.style.display = 'none';\n  if (fileInput) fileInput.value = '';\n  if (iconInput) iconInput.value = '⚡';\n\n  const grid = document.getElementById('tertiary-module-icon-preset-grid');\n  if (grid) {\n    const firstBtn = grid.querySelector('.icon-preset-btn');\n    if (firstBtn) firstBtn.classList.add('is-active');\n  }\n\n  showIslandToast('ℹ️ 已移除已选设备图片，恢复预设图标');\n}"
+  },
+  {
+    "name": "centerActiveNode",
+    "kind": "declaration",
+    "line": 4362,
+    "endLine": 4369,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function centerActiveNode() {\n  const cards = document.querySelectorAll('#tertiary-canvas-world .tertiary-card');\n  const midCard = cards[Math.floor(cards.length / 2)] || cards[0];\n  if (midCard && typeof midCard.scrollIntoView === 'function') {\n    midCard.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });\n  }\n  showIslandToast('⊙ 已将核心卡片平移至视口中央');\n}"
+  },
+  {
+    "name": "openZoomScopeModal",
+    "kind": "declaration",
+    "line": 4371,
+    "endLine": 4373,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function openZoomScopeModal() {\n  showIslandToast('🔍 查看范围已切换为：【本日关键任务拓扑】');\n}"
+  },
+  {
+    "name": "toggleChildrenFollowToolbar",
+    "kind": "declaration",
+    "line": 4394,
+    "endLine": 4401,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [
+      "childrenFollowEnabled"
+    ],
+    "code": "function toggleChildrenFollowToolbar() {\n  childrenFollowEnabled = !childrenFollowEnabled;\n  const btn1 = document.getElementById('btn-ws-children-follow');\n  const btn2 = document.getElementById('btn-tertiary-children-follow');\n  if (btn1) btn1.classList.toggle('is-active', childrenFollowEnabled);\n  if (btn2) btn2.classList.toggle('is-active', childrenFollowEnabled);\n  showIslandToast('🔗 子级跟随 (Children Follow)：' + (childrenFollowEnabled ? '已开启' : '已关闭'));\n}"
+  },
+  {
+    "name": "openCameraSettings",
+    "kind": "declaration",
+    "line": 4409,
+    "endLine": 4411,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function openCameraSettings() {\n  showIslandToast('🎥 镜头平滑度：平滑插值 (140ms) · 1:1 平板视口');\n}"
+  },
+  {
+    "name": "toggleTertiaryRouteSetup",
+    "kind": "declaration",
+    "line": 4484,
+    "endLine": 4486,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function toggleTertiaryRouteSetup() {\n  showIslandToast('🔀 已开启拓扑连线模式：点击标签切换关系，拖拽端口重新连线！');\n}"
+  },
+  {
+    "name": "playNodeVideo",
+    "kind": "declaration",
+    "line": 5880,
+    "endLine": 5882,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function playNodeVideo(title) {\n  showIslandToast('▶️ 正在播放：' + title + ' (1080P 高清微课)');\n}"
+  },
+  {
+    "name": "viewNodeImage",
+    "kind": "declaration",
+    "line": 5884,
+    "endLine": 5886,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function viewNodeImage() {\n  showIslandToast('🔍 已全屏查看验算草稿高清原图');\n}"
+  },
+  {
+    "name": "handleRenameCardTitle",
+    "kind": "declaration",
+    "line": 6669,
+    "endLine": 6678,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [
+      "card.dataset.label",
+      "taskEl.innerText"
+    ],
+    "code": "function handleRenameCardTitle(el, cardId) {\n  if (!el) return;\n  const clean = el.innerText.trim();\n  if (!clean) return;\n  const card = document.getElementById(cardId);\n  if (card) card.dataset.label = clean;\n  const taskEl = document.getElementById('checkin-name-text-' + cardId);\n  if (taskEl) taskEl.innerText = clean;\n  showIslandToast('✓ 已保存自定义打卡项名称：【' + clean + '】');\n}"
+  },
+  {
+    "name": "handleRenameNodeTask",
+    "kind": "declaration",
+    "line": 6680,
+    "endLine": 6689,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [
+      "card.dataset.label",
+      "titleEl.innerText"
+    ],
+    "code": "function handleRenameNodeTask(el, cardId) {\n  if (!el) return;\n  const clean = el.innerText.trim();\n  if (!clean) return;\n  const card = document.getElementById(cardId);\n  if (card) card.dataset.label = clean;\n  const titleEl = document.getElementById('node-title-display-' + cardId);\n  if (titleEl) titleEl.innerText = clean;\n  showIslandToast('✓ 已保存自定义打卡项名称：【' + clean + '】');\n}"
+  },
+  {
+    "name": "handleRenameCheckinItem",
+    "kind": "declaration",
+    "line": 6704,
+    "endLine": 6710,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function handleRenameCheckinItem(el) {\n  if (!el) return;\n  const clean = el.innerText.trim();\n  if (clean) {\n    showIslandToast('✓ 已保存自定义打卡项名称：' + clean);\n  }\n}"
+  },
+  {
+    "name": "toggleFocusMode",
+    "kind": "declaration",
+    "line": 6799,
+    "endLine": 6802,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function toggleFocusMode() {\n  document.querySelectorAll('.tertiary-dropdown-panel').forEach(p => p.classList.remove('is-open'));\n  showIslandToast('🔍 聚焦模式：已将视口镜头锁定至当前核心攻坚序列');\n}"
+  },
+  {
+    "name": "toggleLockNodes",
+    "kind": "declaration",
+    "line": 6804,
+    "endLine": 6807,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function toggleLockNodes() {\n  document.querySelectorAll('.tertiary-dropdown-panel').forEach(p => p.classList.remove('is-open'));\n  showIslandToast('🔒 节点锁定状态已切换：画布当前卡片已就位');\n}"
+  },
+  {
+    "name": "toggleFixedNodes",
+    "kind": "declaration",
+    "line": 6809,
+    "endLine": 6812,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function toggleFixedNodes() {\n  document.querySelectorAll('.tertiary-dropdown-panel').forEach(p => p.classList.remove('is-open'));\n  showIslandToast('📌 视口固定状态已切换：卡片坐标已锁定');\n}"
+  },
+  {
+    "name": "toggleStatusFilterMenu",
+    "kind": "declaration",
+    "line": 6814,
+    "endLine": 6817,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function toggleStatusFilterMenu() {\n  document.querySelectorAll('.tertiary-dropdown-panel').forEach(p => p.classList.remove('is-open'));\n  showIslandToast('🏷️ 状态筛选：已显示全部学业攻坚课题');\n}"
+  },
+  {
+    "name": "toggleOperationTools",
+    "kind": "declaration",
+    "line": 6819,
+    "endLine": 6822,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function toggleOperationTools() {\n  document.querySelectorAll('.tertiary-dropdown-panel').forEach(p => p.classList.remove('is-open'));\n  showIslandToast('🛠️ 操作工具栏显示状态已切换');\n}"
+  },
+  {
+    "name": "toggleChildDetails",
+    "kind": "declaration",
+    "line": 6824,
+    "endLine": 6827,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function toggleChildDetails() {\n  document.querySelectorAll('.tertiary-dropdown-panel').forEach(p => p.classList.remove('is-open'));\n  showIslandToast('📂 子级详情抽屉状态已切换');\n}"
+  },
+  {
+    "name": "toggleEdgeLabels",
+    "kind": "declaration",
+    "line": 6829,
+    "endLine": 6838,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [
+      "isHidden",
+      "l.style.display"
+    ],
+    "code": "function toggleEdgeLabels() {\n  document.querySelectorAll('.tertiary-dropdown-panel').forEach(p => p.classList.remove('is-open'));\n  const labels = document.querySelectorAll('.a-my-island-work-edge-label');\n  let isHidden = false;\n  labels.forEach(l => {\n    isHidden = l.style.display === 'none';\n    l.style.display = isHidden ? 'block' : 'none';\n  });\n  showIslandToast('🔤 连线文字显示：' + (isHidden ? '已开启' : '已关闭'));\n}"
+  },
+  {
+    "name": "uploadTaskEvidence",
+    "kind": "declaration",
+    "line": 7294,
+    "endLine": 7296,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function uploadTaskEvidence(taskId) {\n  showIslandToast('📷 已打开真实物证相册！查看上传的草稿演算草稿纸原件与防伪时间戳。');\n}"
+  },
+  {
+    "name": "openClassicLookup",
+    "kind": "declaration",
+    "line": 7298,
+    "endLine": 7300,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function openClassicLookup(taskId) {\n  showIslandToast('📖 古籍问道池：《大学》“知止而后有定，定而后能静”；书单已关联《中庸》《传习录》');\n}"
+  },
+  {
+    "name": "askParentHelp",
+    "kind": "declaration",
+    "line": 7302,
+    "endLine": 7304,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function askParentHelp(taskId) {\n  showIslandToast('💡 爸爸解惑提示：“熟记破十法口诀，先拆十再减，红笔标出借位点”');\n}"
+  },
+  {
+    "name": "toggleTaskCheck",
+    "kind": "declaration",
+    "line": 7306,
+    "endLine": 7308,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function toggleTaskCheck(taskId, checkIdx) {\n  showIslandToast('✓ 检查清单已更新打卡状态');\n}"
+  },
+  {
+    "name": "nourishBaselineTree",
+    "kind": "declaration",
+    "line": 7324,
+    "endLine": 7326,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function nourishBaselineTree() {\n  showIslandToast('📜 恪守知止戒律，已为《个人行为规范》增添一枚笃行印记！');\n}"
+  },
+  {
+    "name": "addCustomDynamicFieldRow",
+    "kind": "declaration",
+    "line": 7333,
+    "endLine": 7348,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [
+      "row.className",
+      "row.style.cssText",
+      "row.innerHTML"
+    ],
+    "code": "function addCustomDynamicFieldRow(containerId) {\n  const container = document.getElementById(containerId);\n  if (!container) {\n    showIslandToast('⚠️ 未找到自定义字段容器：' + containerId);\n    return;\n  }\n  const row = document.createElement('div');\n  row.className = 'picker-custom-field-row';\n  row.style.cssText = 'display:grid; grid-template-columns:72px 1fr 22px; align-items:center; gap:6px; margin-top:4px; animation:fadeIn 0.2s ease;';\n  row.innerHTML = \n    '<input type=\"text\" class=\"add-module-text-input picker-field-key\" placeholder=\"业务维度\" value=\"指标维度\" style=\"font-size:10px; padding:3px 6px; border:1px solid #cbd5e1; border-radius:4px; font-weight:700; color:#334155; background:#fff;\">' +\n    '<input type=\"text\" class=\"add-module-text-input picker-field-val\" placeholder=\"填写交付物说明或验收指标\" style=\"font-size:10px; padding:3px 6px; border:1px solid #cbd5e1; border-radius:4px; color:#475569; background:#fff;\">' +\n    '<button type=\"button\" onclick=\"this.parentElement.remove()\" style=\"background:#fee2e2; color:#ef4444; border:1px solid #fca5a5; border-radius:4px; width:22px; height:22px; cursor:pointer; font-size:11px; font-weight:bold; display:flex; align-items:center; justify-content:center; transition:all 0.15s ease;\" title=\"删除此字段\">✕</button>';\n  container.appendChild(row);\n  showIslandToast('➕ 已新增自定义动态业务字段行');\n}"
+  },
+  {
+    "name": "openStudyMakeUpModal",
+    "kind": "declaration",
+    "line": 7872,
+    "endLine": 7874,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function openStudyMakeUpModal() {\n  showIslandToast('🏫 已进入校史馆错题补卡通道：填写反思后由家长见证盖章！');\n}"
+  },
+  {
+    "name": "openMoralTestModal",
+    "kind": "declaration",
+    "line": 7876,
+    "endLine": 7878,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function openMoralTestModal() {\n  showIslandToast('⚖️ 进入底线大拷问情景沙盘：登记生活诱惑与原则考验！');\n}"
+  },
+  {
+    "name": "switchNoteEnergy",
+    "kind": "declaration",
+    "line": 9848,
+    "endLine": 9860,
+    "calls": [
+      "parseInt",
+      "showIslandToast"
+    ],
+    "writes": [
+      "window.NOTE_STATE.currentEnergy",
+      "html",
+      "box.innerHTML"
+    ],
+    "code": "function switchNoteEnergy(stars) {\n  const val = Math.max(1, Math.min(5, parseInt(stars, 10) || 4));\n  window.NOTE_STATE.currentEnergy = val;\n  const box = document.getElementById('note-energy-stars-box');\n  if (box) {\n    let html = '';\n    for (let s = 1; s <= 5; s++) {\n      html += '<button type=\"button\" onclick=\"switchNoteEnergy(' + s + ')\" style=\"background:none; border:none; padding:0 2px; font-size:15px; cursor:pointer; color:' + (s <= val ? '#f59e0b' : '#cbd5e1') + '; line-height:1;\" title=\"精力 ' + s + ' 星\">★</button>';\n    }\n    box.innerHTML = html;\n  }\n  showIslandToast('⚡ 今日心流精力状态已标记为 ' + val + ' 颗星！');\n}"
+  },
+  {
+    "name": "addNoteDemoMedia",
+    "kind": "override",
+    "line": 12377,
+    "endLine": 12377,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function () { showIslandToast('请使用拍照或上传按钮添加真实物证'); }"
+  },
+  {
+    "name": "handleSquareReadOnlyClick",
+    "kind": "declaration",
+    "line": 10252,
+    "endLine": 10257,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function handleSquareReadOnlyClick(el) {\n  const projTitle = el.dataset.title || '成长项目';\n  const dateStr = el.dataset.date || '';\n  const isDone = el.dataset.done === 'true';\n  showIslandToast('💡 [' + projTitle + '] ' + dateStr + (isDone ? ' 已执行达成 ✓' : ' 待推进') + '（甘特图小方格仅供全景查阅，不可在此直接编辑）');\n}"
+  },
+  {
+    "name": "addPickerCustomDynamicField",
+    "kind": "declaration",
+    "line": 10901,
+    "endLine": 10913,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [
+      "row.className",
+      "row.style.cssText",
+      "row.innerHTML"
+    ],
+    "code": "function addPickerCustomDynamicField(k = '', v = '') {\n  const container = document.getElementById('picker-custom-fields-list');\n  if (!container) return;\n  const row = document.createElement('div');\n  row.className = 'picker-custom-field-row';\n  row.style.cssText = 'display:flex; gap:6px; align-items:center;';\n  row.innerHTML = \n    '<input type=\"text\" class=\"picker-field-key add-module-text-input\" value=\"' + (k || '自定义要点') + '\" placeholder=\"字段名\" style=\"width:80px; height:28px; font-size:10.5px; font-weight:800; border:1px solid #86efac; border-radius:4px; padding:0 6px;\">' +\n    '<input type=\"text\" class=\"picker-field-val add-module-text-input\" value=\"' + (v || '') + '\" placeholder=\"字段说明内容\" style=\"flex:1; height:28px; font-size:10.5px; border:1px solid #86efac; border-radius:4px; padding:0 6px;\">' +\n    '<button type=\"button\" onclick=\"removePickerCustomDynamicField(this)\" style=\"background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; border-radius:4px; width:22px; height:22px; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center;\" title=\"删除此字段\">✕</button>';\n  container.appendChild(row);\n  showIslandToast('✓ 已为原型库自定义卡片追加新字段');\n}"
+  },
+  {
+    "name": "removePickerCustomDynamicField",
+    "kind": "declaration",
+    "line": 10915,
+    "endLine": 10922,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function removePickerCustomDynamicField(btn) {\n  if (!btn) return;\n  const row = btn.closest('.picker-custom-field-row');\n  if (row) {\n    row.remove();\n    showIslandToast('✓ 已删除该字段');\n  }\n}"
+  },
+  {
+    "name": "removeGoalMetricModalRow",
+    "kind": "declaration",
+    "line": 10943,
+    "endLine": 10953,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function removeGoalMetricModalRow(btn) {\n  if (!btn) return;\n  const row = btn.closest('.goal-metric-row');\n  if (!row) return;\n  const list = row.parentElement;\n  if (list && list.querySelectorAll('.goal-metric-row').length <= 1) {\n    showIslandToast('⚠️ 至少需保留 1 项量化通关指标！');\n    return;\n  }\n  row.remove();\n}"
+  },
+  {
+    "name": "removeCardGoalMetricItem",
+    "kind": "declaration",
+    "line": 10971,
+    "endLine": 10982,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function removeCardGoalMetricItem(btn, event) {\n  if (event) event.stopPropagation();\n  if (!btn) return;\n  const item = btn.closest('.card-goal-metric-item');\n  if (!item) return;\n  const container = item.parentElement;\n  if (container && container.querySelectorAll('.card-goal-metric-item').length <= 1) {\n    showIslandToast('⚠️ 目标分解卡至少需保留 1 项量化通关指标！');\n    return;\n  }\n  item.remove();\n}"
+  },
+  {
+    "name": "removeHabitChecklistModalRow",
+    "kind": "declaration",
+    "line": 11004,
+    "endLine": 11014,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function removeHabitChecklistModalRow(btn) {\n  if (!btn) return;\n  const row = btn.closest('.habit-checklist-row');\n  if (!row) return;\n  const list = row.parentElement;\n  if (list && list.querySelectorAll('.habit-checklist-row').length <= 1) {\n    showIslandToast('⚠️ 至少需保留 1 项践行防守清单项！');\n    return;\n  }\n  row.remove();\n}"
+  },
+  {
+    "name": "removeCardHabitChecklistItem",
+    "kind": "declaration",
+    "line": 11036,
+    "endLine": 11047,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function removeCardHabitChecklistItem(btn, event) {\n  if (event) event.stopPropagation();\n  if (!btn) return;\n  const item = btn.closest('.card-habit-checklist-item');\n  if (!item) return;\n  const container = item.parentElement;\n  if (container && container.querySelectorAll('.card-habit-checklist-item').length <= 1) {\n    showIslandToast('⚠️ 习惯践行卡至少需保留 1 项践行防守清单项！');\n    return;\n  }\n  item.remove();\n}"
+  },
+  {
+    "name": "removeReflectionImprovementModalRow",
+    "kind": "declaration",
+    "line": 11069,
+    "endLine": 11079,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function removeReflectionImprovementModalRow(btn) {\n  if (!btn) return;\n  const row = btn.closest('.reflection-improvement-row');\n  if (!row) return;\n  const list = row.parentElement;\n  if (list && list.querySelectorAll('.reflection-improvement-row').length <= 1) {\n    showIslandToast('⚠️ 至少需保留 1 项提升清单项！');\n    return;\n  }\n  row.remove();\n}"
+  },
+  {
+    "name": "removeCardReflectionImprovementItem",
+    "kind": "declaration",
+    "line": 11101,
+    "endLine": 11112,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function removeCardReflectionImprovementItem(btn, event) {\n  if (event) event.stopPropagation();\n  if (!btn) return;\n  const item = btn.closest('.card-reflection-improvement-item');\n  if (!item) return;\n  const container = item.parentElement;\n  if (container && container.querySelectorAll('.card-reflection-improvement-item').length <= 1) {\n    showIslandToast('⚠️ 评估复盘卡至少需保留 1 项提升项！');\n    return;\n  }\n  item.remove();\n}"
+  },
+  {
+    "name": "switchGoalDeliverableMode",
+    "kind": "declaration",
+    "line": 11129,
+    "endLine": 11149,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [
+      "mediaBox.style.display",
+      "textEl.style.display",
+      "mediaBox.innerHTML"
+    ],
+    "code": "function switchGoalDeliverableMode(cardId, mode) {\n  const mediaBox = document.getElementById('goal-media-box-' + cardId);\n  const textEl = document.getElementById('goal-deliverable-text-' + cardId);\n  if (mode === 'text') {\n    if (mediaBox) mediaBox.style.display = 'none';\n    if (textEl) {\n      textEl.style.display = 'block';\n      textEl.focus();\n    }\n    showIslandToast('✍️ 已切换为【文字记录提交】模式');\n  } else {\n    if (textEl) textEl.style.display = 'none';\n    if (mediaBox) {\n      mediaBox.style.display = 'block';\n      if (mediaBox.dataset.uploaded !== 'true') {\n        mediaBox.innerHTML = mode === 'video' ? '🎥 点击录制或上传交付物视频' : '📷 点击拍照或上传交付物照片';\n      }\n    }\n    showIslandToast(mode === 'video' ? '🎥 已切换为【视频提交】模式' : '📷 已切换为【拍照提交】模式');\n  }\n}"
+  },
+  {
+    "name": "updateDrillCardDuration",
+    "kind": "declaration",
+    "line": 11305,
+    "endLine": 11311,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [
+      "footerDur.innerText"
+    ],
+    "code": "function updateDrillCardDuration(cardId, val) {\n  const footerDur = document.getElementById('drill-footer-dur-' + cardId);\n  if (footerDur) {\n    footerDur.innerText = '预计专注：⏱️ ' + val + ' 分钟';\n  }\n  showIslandToast('⏱️ 已将当前攻坚实训卡计划专注时长设为 ' + val + ' 分钟');\n}"
+  },
+  {
+    "name": "triggerDrillCardImage",
+    "kind": "declaration",
+    "line": 11313,
+    "endLine": 11340,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [
+      "fileInput",
+      "fileInput.type",
+      "fileInput.id",
+      "fileInput.accept",
+      "fileInput.style.display",
+      "fileInput.onchange",
+      "box.style.background",
+      "box.style.borderColor",
+      "box.innerHTML"
+    ],
+    "code": "function triggerDrillCardImage(cardId, event) {\n  if (event) event.stopPropagation();\n  let fileInput = document.getElementById('drill-hidden-media-input');\n  if (!fileInput) {\n    fileInput = document.createElement('input');\n    fileInput.type = 'file';\n    fileInput.id = 'drill-hidden-media-input';\n    fileInput.accept = 'image/*,video/*';\n    fileInput.style.display = 'none';\n    document.body.appendChild(fileInput);\n  }\n  fileInput.onchange = function(ev) {\n    const file = ev.target.files && ev.target.files[0];\n    const box = document.getElementById('drill-img-box-' + cardId);\n    const descInput = document.getElementById('drill-img-desc-' + cardId);\n    if (box) {\n      const isVideo = file && file.type && file.type.startsWith('video/');\n      const fileName = file ? file.name : '实训素材文件';\n      box.style.background = '#ecfdf5';\n      box.style.borderColor = '#10b981';\n      box.innerHTML =\n        '<span style=\"font-size:10.5px; font-weight:800; color:#047857;\">' + (isVideo ? '🎬 已上传视频: ' : '🖼️ 已上传图片: ') + fileName + ' (点击更换)</span>';\n    }\n    showIslandToast('✅ 已上传实训图片/视频！可在下方输入框补充说明');\n    if (descInput) descInput.focus();\n  };\n  fileInput.click();\n}"
+  },
+  {
+    "name": "uploadCustomCardEvidence",
+    "kind": "declaration",
+    "line": 11721,
+    "endLine": 11732,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [
+      "box.style.background",
+      "box.style.borderColor",
+      "previewText.innerHTML"
+    ],
+    "code": "function uploadCustomCardEvidence(cardId) {\n  const previewText = document.getElementById('preview-text-' + cardId);\n  const box = document.getElementById('preview-box-' + cardId);\n  if (box) {\n    box.style.background = '#ecfdf5';\n    box.style.borderColor = '#10b981';\n  }\n  if (previewText) {\n    previewText.innerHTML = '<span style=\"color:#059669; font-weight:800;\">📷 已选取手稿图片：math_draft_2026.png (4.2MB)</span>';\n  }\n  showIslandToast('📸 已选取物证照片，可点击下方打卡按钮提交存证！');\n}"
+  },
+  {
+    "name": "recordCustomCardVideo",
+    "kind": "declaration",
+    "line": 11734,
+    "endLine": 11740,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [
+      "previewText.innerHTML"
+    ],
+    "code": "function recordCustomCardVideo(cardId) {\n  const previewText = document.getElementById('preview-text-' + cardId);\n  if (previewText) {\n    previewText.innerHTML = '<span style=\"color:#e11d48; font-weight:800;\">🎥 已录制切片视频：action_clip_45s.mp4</span>';\n  }\n  showIslandToast('🎬 已成功录制 45 秒动作切片！');\n}"
+  },
+  {
+    "name": "deriveEbbinghausDemo",
+    "kind": "declaration",
+    "line": 11956,
+    "endLine": 11958,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function deriveEbbinghausDemo() {\n  showIslandToast('⚡ 已根据艾宾浩斯记忆遗忘曲线派生未来 7 天专项训练链！');\n}"
+  },
+  {
+    "name": "incrementDojoReps",
+    "kind": "declaration",
+    "line": 11960,
+    "endLine": 11962,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function incrementDojoReps(count) {\n  showIslandToast((count > 0 ? '🔥 实训完成 +' : '↩️ 调整计数 ') + Math.abs(count) + ' 次，已累入万次突破大盘！');\n}"
+  },
+  {
+    "name": "recordTreeTestDemo",
+    "kind": "declaration",
+    "line": 11964,
+    "endLine": 11966,
+    "calls": [
+      "showIslandToast"
+    ],
+    "writes": [],
+    "code": "function recordTreeTestDemo() {\n  showIslandToast('🏆 成功盖上【百炼成金】品格印章，今日防守考验 +1！');\n}"
+  }
+]

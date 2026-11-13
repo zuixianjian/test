@@ -1,0 +1,209 @@
+{
+  "resolvedFunctions": 492,
+  "functionDeclarationsAndOverrides": 565,
+  "inlineEventInstances": 426,
+  "uniqueInlineFunctions": 171,
+  "unresolved": [],
+  "toastOnlyCandidates": [
+    {
+      "name": "cycleHomeLayout",
+      "line": 292
+    },
+    {
+      "name": "toggleHomeViewScope",
+      "line": 388
+    },
+    {
+      "name": "toggleBrowseMode",
+      "line": 1163
+    },
+    {
+      "name": "toggleImmersiveMode",
+      "line": 1430
+    },
+    {
+      "name": "handleTertiaryModuleFileUpload",
+      "line": 3208
+    },
+    {
+      "name": "removeTertiaryModuleUploadedFile",
+      "line": 3236
+    },
+    {
+      "name": "centerActiveNode",
+      "line": 4362
+    },
+    {
+      "name": "openZoomScopeModal",
+      "line": 4371
+    },
+    {
+      "name": "toggleChildrenFollowToolbar",
+      "line": 4394
+    },
+    {
+      "name": "openCameraSettings",
+      "line": 4409
+    },
+    {
+      "name": "toggleTertiaryRouteSetup",
+      "line": 4484
+    },
+    {
+      "name": "playNodeVideo",
+      "line": 5880
+    },
+    {
+      "name": "viewNodeImage",
+      "line": 5884
+    },
+    {
+      "name": "handleRenameCardTitle",
+      "line": 6669
+    },
+    {
+      "name": "handleRenameNodeTask",
+      "line": 6680
+    },
+    {
+      "name": "handleRenameCheckinItem",
+      "line": 6704
+    },
+    {
+      "name": "toggleFocusMode",
+      "line": 6799
+    },
+    {
+      "name": "toggleLockNodes",
+      "line": 6804
+    },
+    {
+      "name": "toggleFixedNodes",
+      "line": 6809
+    },
+    {
+      "name": "toggleStatusFilterMenu",
+      "line": 6814
+    },
+    {
+      "name": "toggleOperationTools",
+      "line": 6819
+    },
+    {
+      "name": "toggleChildDetails",
+      "line": 6824
+    },
+    {
+      "name": "toggleEdgeLabels",
+      "line": 6829
+    },
+    {
+      "name": "uploadTaskEvidence",
+      "line": 7294
+    },
+    {
+      "name": "openClassicLookup",
+      "line": 7298
+    },
+    {
+      "name": "askParentHelp",
+      "line": 7302
+    },
+    {
+      "name": "toggleTaskCheck",
+      "line": 7306
+    },
+    {
+      "name": "nourishBaselineTree",
+      "line": 7324
+    },
+    {
+      "name": "addCustomDynamicFieldRow",
+      "line": 7333
+    },
+    {
+      "name": "openStudyMakeUpModal",
+      "line": 7872
+    },
+    {
+      "name": "openMoralTestModal",
+      "line": 7876
+    },
+    {
+      "name": "switchNoteEnergy",
+      "line": 9848
+    },
+    {
+      "name": "addNoteDemoMedia",
+      "line": 12377
+    },
+    {
+      "name": "handleSquareReadOnlyClick",
+      "line": 10252
+    },
+    {
+      "name": "addPickerCustomDynamicField",
+      "line": 10901
+    },
+    {
+      "name": "removePickerCustomDynamicField",
+      "line": 10915
+    },
+    {
+      "name": "removeGoalMetricModalRow",
+      "line": 10943
+    },
+    {
+      "name": "removeCardGoalMetricItem",
+      "line": 10971
+    },
+    {
+      "name": "removeHabitChecklistModalRow",
+      "line": 11004
+    },
+    {
+      "name": "removeCardHabitChecklistItem",
+      "line": 11036
+    },
+    {
+      "name": "removeReflectionImprovementModalRow",
+      "line": 11069
+    },
+    {
+      "name": "removeCardReflectionImprovementItem",
+      "line": 11101
+    },
+    {
+      "name": "switchGoalDeliverableMode",
+      "line": 11129
+    },
+    {
+      "name": "updateDrillCardDuration",
+      "line": 11305
+    },
+    {
+      "name": "triggerDrillCardImage",
+      "line": 11313
+    },
+    {
+      "name": "uploadCustomCardEvidence",
+      "line": 11721
+    },
+    {
+      "name": "recordCustomCardVideo",
+      "line": 11734
+    },
+    {
+      "name": "deriveEbbinghausDemo",
+      "line": 11956
+    },
+    {
+      "name": "incrementDojoReps",
+      "line": 11960
+    },
+    {
+      "name": "recordTreeTestDemo",
+      "line": 11964
+    }
+  ]
+}

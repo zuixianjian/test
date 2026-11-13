@@ -1,0 +1,176 @@
+[
+  {
+    "page": "home-exec",
+    "method": "top-level",
+    "controls": 27,
+    "displayItems": 54
+  },
+  {
+    "page": "home-plan",
+    "method": "top-level",
+    "controls": 28,
+    "displayItems": 54
+  },
+  {
+    "page": "home-week",
+    "method": "switchExecSubView",
+    "controls": 25,
+    "displayItems": 65
+  },
+  {
+    "page": "home-month",
+    "method": "switchExecSubView",
+    "controls": 51,
+    "displayItems": 132
+  },
+  {
+    "page": "study-main",
+    "method": "enterSecondaryWorkspace",
+    "controls": 21,
+    "displayItems": 35
+  },
+  {
+    "page": "dojo-main",
+    "method": "enterSecondaryWorkspace",
+    "controls": 21,
+    "displayItems": 35
+  },
+  {
+    "page": "cognition-main",
+    "method": "enterSecondaryWorkspace",
+    "controls": 21,
+    "displayItems": 35
+  },
+  {
+    "page": "cultivation-main",
+    "method": "enterSecondaryWorkspace",
+    "controls": 21,
+    "displayItems": 35
+  },
+  {
+    "page": "treasury-main",
+    "method": "enterSecondaryWorkspace",
+    "controls": 20,
+    "displayItems": 25
+  },
+  {
+    "page": "tree-main",
+    "method": "enterSecondaryWorkspace",
+    "controls": 25,
+    "displayItems": 103
+  },
+  {
+    "page": "note-main",
+    "method": "enterSecondaryWorkspace",
+    "controls": 22,
+    "displayItems": 31
+  },
+  {
+    "page": "achieve-main",
+    "method": "enterSecondaryWorkspace",
+    "controls": 12,
+    "displayItems": 50
+  },
+  {
+    "page": "settings-bg",
+    "method": "openOriginalSettingsPanel",
+    "controls": 20,
+    "displayItems": 33
+  },
+  {
+    "page": "settings-char",
+    "method": "openOriginalSettingsPanel",
+    "controls": 20,
+    "displayItems": 33
+  },
+  {
+    "page": "settings-env",
+    "method": "openOriginalSettingsPanel",
+    "controls": 20,
+    "displayItems": 33
+  },
+  {
+    "page": "settings-immersive",
+    "method": "openOriginalSettingsPanel",
+    "controls": 20,
+    "displayItems": 33
+  },
+  {
+    "page": "daxue-item",
+    "method": "openDaxueItemDetailModal",
+    "controls": 23,
+    "displayItems": 52
+  },
+  {
+    "page": "bounty",
+    "method": "openBountyModal",
+    "controls": 36,
+    "displayItems": 53
+  },
+  {
+    "page": "inquiry",
+    "method": "openInquiryModal",
+    "controls": 28,
+    "displayItems": 47
+  },
+  {
+    "page": "pact",
+    "method": "openFamilyPactModal",
+    "controls": 27,
+    "displayItems": 52
+  },
+  {
+    "page": "daxue",
+    "method": "openDaxuePhilosophyModal",
+    "controls": 23,
+    "displayItems": 51
+  },
+  {
+    "page": "accidental",
+    "method": "openRegisterAccidentalAchievementModal",
+    "controls": 32,
+    "displayItems": 37
+  },
+  {
+    "page": "freeze",
+    "method": "openStreakFreezeDialog",
+    "controls": 25,
+    "displayItems": 35
+  },
+  {
+    "page": "add-project",
+    "method": "openAddProjectModal",
+    "controls": 38,
+    "displayItems": 45
+  },
+  {
+    "page": "tertiary-planning",
+    "method": "enterTertiaryWorkspace",
+    "controls": 39,
+    "displayItems": 58
+  },
+  {
+    "page": "add-node",
+    "method": "openTertiaryAddNodeModal",
+    "controls": 126,
+    "displayItems": 86
+  },
+  {
+    "page": "create-node-module",
+    "method": "openTertiaryCreateModuleModal",
+    "controls": 59,
+    "displayItems": 65
+  },
+  {
+    "page": "actual-execution",
+    "method": "openExecCardPopupView with bound card",
+    "controls": 37,
+    "displayItems": 57
+  },
+  {
+    "page": "week-task-detail",
+    "method": "showWeekTaskDetail",
+    "controls": 31,
+    "displayItems": 82
+  }
+]

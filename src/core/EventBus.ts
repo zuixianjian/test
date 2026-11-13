@@ -10,6 +10,7 @@
  */
 
 export type IslandEventName =
+  | "domain:committed"
   | "canvas:zoom"
   | "node:drag"
   | "edge:redraw"

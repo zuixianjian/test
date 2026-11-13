@@ -76,662 +76,547 @@ var IslandEventBus = class {
 };
 var globalIslandEventBus = new IslandEventBus();
 
+// src/core/GrowthMetrics.ts
+function localDateKey(date = /* @__PURE__ */ new Date()) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+function safeFileStem(value) {
+  const stem = String(value ?? "").replace(/[\\/:*?"<>|\[\]#^\x00-\x1f]/g, "_").replace(/\.+/g, "_").trim().replace(/[. ]+$/g, "");
+  return stem && !/^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i.test(stem) ? stem.slice(0, 100) : `_${stem || "untitled"}`;
+}
+function validateVaultRoot(value) {
+  const path = value.trim().replace(/\\/g, "/");
+  if (/^(\/|[a-z]:)/i.test(path) || path.split("/").some((p) => p === ".." || p === ".obsidian" || p === ".git")) {
+    throw new Error("\u6570\u636E\u76EE\u5F55\u5FC5\u987B\u662F\u4ED3\u5E93\u5185\u7684\u76F8\u5BF9\u8DEF\u5F84\uFF0C\u4E0D\u80FD\u5305\u542B ..\u3001.obsidian \u6216 .git");
+  }
+  return path.replace(/\/+$/g, "");
+}
+
 // src/storage/VaultStorageAdapter.ts
-var PAVILION_DIR_MAP = {
+var PAVILIONS = {
   study: "01_School_\u6821\u53F2\u9986",
   dojo: "02_Dojo_\u6B66\u9053\u9986",
   cognition: "03_Cognition_\u601D\u8FA8\u9986",
   cultivation: "04_Classics_\u4FEE\u8EAB\u9601"
 };
+var SNAPSHOT = "00_Island_Core/app_state_snapshot.json";
+var STORES = ["USER_PROFILE_STATE", "DOMAIN_STATE", "GANTT_PROJECTS", "PROJECT_CANVAS_STORE", "PAVILION_META", "WEEK_BOARD_DATA", "TASK_HISTORY_BY_DATE", "TREASURY_STATE", "ACHIEVEMENT_STATE", "NOTE_STATE", "BOUNTY_STATE", "INQUIRY_POOL_STATE"];
 var VaultStorageAdapter = class {
   constructor(app, getSettings) {
-    this.syncTimer = null;
     this.app = app;
     this.getSettings = getSettings;
+    this.syncTimer = null;
+    this.queue = Promise.resolve();
+    this.hydrated = false;
+    this.disposed = false;
+    this.blocked = false;
+    this.capturing = false;
   }
-  resolvePath(relPath) {
-    const root = (this.getSettings().vaultRootFolder || "").trim().replace(/^\/+|\/+$/g, "");
-    return (0, import_obsidian.normalizePath)(root ? `${root}/${relPath}` : relPath);
+  resolvePath(relative) {
+    const root = validateVaultRoot(this.getSettings().vaultRootFolder || "");
+    return (0, import_obsidian.normalizePath)(root ? `${root}/${relative}` : relative);
   }
-  async ensureFolder(folderPath) {
-    const norm = (0, import_obsidian.normalizePath)(folderPath);
-    if (!norm || norm === ".")
-      return;
-    const parts = norm.split("/");
+  pavilionDir(key) {
+    return PAVILIONS[key] || `10_Custom_\u81EA\u5B9A\u4E49\u573A\u9986/${safeFileStem(key)}`;
+  }
+  async ensureFolder(path) {
     let current = "";
-    for (const part of parts) {
+    for (const part of (0, import_obsidian.normalizePath)(path).split("/")) {
+      if (!part)
+        continue;
       current = current ? `${current}/${part}` : part;
-      const exists = await this.app.vault.adapter.exists(current);
-      if (!exists) {
+      if (!await this.app.vault.adapter.exists(current)) {
         try {
           await this.app.vault.createFolder(current);
-        } catch {
+        } catch (error) {
+          if (!await this.app.vault.adapter.exists(current))
+            throw error;
         }
       }
     }
   }
-  async writeJson(relPath, data) {
-    const fullPath = this.resolvePath(relPath);
-    const parentDir = fullPath.includes("/") ? fullPath.slice(0, fullPath.lastIndexOf("/")) : "";
-    if (parentDir)
-      await this.ensureFolder(parentDir);
-    await this.app.vault.adapter.write(fullPath, JSON.stringify(data, null, 2));
+  async writeText(relative, text) {
+    const path = this.resolvePath(relative);
+    await this.ensureFolder(path.slice(0, path.lastIndexOf("/")));
+    const adapter = this.app.vault.adapter;
+    if (await adapter.exists(path) && await adapter.read(path) === text)
+      return;
+    await adapter.write(path, text);
   }
-  async readJson(relPath) {
-    const fullPath = this.resolvePath(relPath);
-    try {
-      if (!await this.app.vault.adapter.exists(fullPath))
-        return null;
-      const text = await this.app.vault.adapter.read(fullPath);
-      return JSON.parse(text);
-    } catch {
-      return null;
-    }
+  async writeJson(path, value) {
+    await this.writeText(path, JSON.stringify(value, null, 2));
   }
-  async writeMarkdown(relPath, content) {
-    const fullPath = this.resolvePath(relPath);
-    const parentDir = fullPath.includes("/") ? fullPath.slice(0, fullPath.lastIndexOf("/")) : "";
-    if (parentDir)
-      await this.ensureFolder(parentDir);
-    await this.app.vault.adapter.write(fullPath, content);
+  async readJson(path) {
+    const full = this.resolvePath(path);
+    if (!await this.app.vault.adapter.exists(full))
+      return void 0;
+    return JSON.parse(await this.app.vault.adapter.read(full));
   }
-  /**
-   * PRD 6.1: 初始化本地 Vault 十大标准目录树
-   */
   async ensureVaultStructure() {
     const dirs = [
       "00_Island_Core",
-      "01_School_\u6821\u53F2\u9986",
+      ...Object.values(PAVILIONS),
       "01_School_\u6821\u53F2\u9986/01_Exam_Papers",
-      "01_School_\u6821\u53F2\u9986/02_Projects",
-      "02_Dojo_\u6B66\u9053\u9986",
       "02_Dojo_\u6B66\u9053\u9986/01_Action_Clips",
-      "02_Dojo_\u6B66\u9053\u9986/02_Projects",
-      "03_Cognition_\u601D\u8FA8\u9986",
-      "03_Cognition_\u601D\u8FA8\u9986/02_Projects",
-      "04_Classics_\u4FEE\u8EAB\u9601",
       "04_Classics_\u4FEE\u8EAB\u9601/01_Inquiry_Pool",
-      "04_Classics_\u4FEE\u8EAB\u9601/02_Projects",
       "05_Treasury_\u85CF\u91D1\u5C4B",
       "06_Achievements_\u6210\u5C31\u9986",
       "07_Baseline_\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303",
       "08_Daily_\u6BCF\u65E5\u968F\u8BB0",
-      "09_Bounties_\u60AC\u8D4F\u516C\u544A"
+      "09_Bounties_\u60AC\u8D4F\u516C\u544A",
+      "attachments"
     ];
-    for (const dir of dirs) {
+    for (const dir of dirs)
       await this.ensureFolder(this.resolvePath(dir));
-    }
   }
-  /**
-   * 从本地 Vault 读取已有 JSON 档案并注入运行时状态机
-   */
   async hydrateRuntimeFromVault() {
+    this.hydrated = false;
+    this.blocked = false;
     const win = window;
-    const appSnapshot = await this.readJson(
-      "00_Island_Core/app_state_snapshot.json"
-    );
-    if (appSnapshot) {
-      if (appSnapshot.USER_PROFILE_STATE && win.USER_PROFILE_STATE) {
-        Object.assign(win.USER_PROFILE_STATE, appSnapshot.USER_PROFILE_STATE);
-      }
-      if (Array.isArray(appSnapshot.GANTT_PROJECTS) && Array.isArray(win.GANTT_PROJECTS)) {
-        win.GANTT_PROJECTS.splice(0, win.GANTT_PROJECTS.length, ...appSnapshot.GANTT_PROJECTS);
-      }
-      if (appSnapshot.PROJECT_CANVAS_STORE && win.PROJECT_CANVAS_STORE) {
-        Object.assign(win.PROJECT_CANVAS_STORE, appSnapshot.PROJECT_CANVAS_STORE);
-      }
-      if (appSnapshot.PAVILION_META && win.PAVILION_META) {
-        Object.assign(win.PAVILION_META, appSnapshot.PAVILION_META);
-      }
-      if (Array.isArray(appSnapshot.WEEK_BOARD_DATA) && Array.isArray(win.WEEK_BOARD_DATA)) {
-        win.WEEK_BOARD_DATA.splice(0, win.WEEK_BOARD_DATA.length, ...appSnapshot.WEEK_BOARD_DATA);
-      }
-      if (appSnapshot.TASK_HISTORY_BY_DATE && typeof appSnapshot.TASK_HISTORY_BY_DATE === "object") {
-        win.TASK_HISTORY_BY_DATE = appSnapshot.TASK_HISTORY_BY_DATE;
-      }
-      if (appSnapshot.TREASURY_STATE && win.TREASURY_STATE) {
-        Object.assign(win.TREASURY_STATE, appSnapshot.TREASURY_STATE);
-      }
-      if (appSnapshot.ACHIEVEMENT_STATE && win.ACHIEVEMENT_STATE) {
-        Object.assign(win.ACHIEVEMENT_STATE, appSnapshot.ACHIEVEMENT_STATE);
-      }
-      if (appSnapshot.NOTE_STATE && win.NOTE_STATE) {
-        Object.assign(win.NOTE_STATE, appSnapshot.NOTE_STATE);
-      }
-      if (appSnapshot.BOUNTY_STATE && win.BOUNTY_STATE) {
-        Object.assign(win.BOUNTY_STATE, appSnapshot.BOUNTY_STATE);
-      }
-      if (appSnapshot.INQUIRY_POOL_STATE && win.INQUIRY_POOL_STATE) {
-        Object.assign(win.INQUIRY_POOL_STATE, appSnapshot.INQUIRY_POOL_STATE);
-      }
-      if (typeof appSnapshot.dayCardDeckHtml === "string" && appSnapshot.dayCardDeckHtml.trim().length > 0) {
-        const deck = typeof document !== "undefined" ? document.getElementById("day-card-deck") : null;
-        if (deck) {
-          deck.innerHTML = appSnapshot.dayCardDeckHtml;
-        }
-      }
-    }
-    const savedProfile = await this.readJson("00_Island_Core/user_profile.json");
-    if (savedProfile && win.USER_PROFILE_STATE) {
-      Object.assign(win.USER_PROFILE_STATE, savedProfile);
-    }
-    const savedSettings = await this.readJson("00_Island_Core/island_settings.json");
-    if (savedSettings && win.USER_PROFILE_STATE) {
-      win.USER_PROFILE_STATE.settings = Object.assign(
-        win.USER_PROFILE_STATE.settings || {},
-        savedSettings
-      );
+    try {
+      const primary = await this.readJson("00_Island_Core/domain_state.json");
+      if (primary && (primary.schemaVersion !== 3 || !Array.isArray(primary.projects) || !Array.isArray(primary.records)))
+        throw new Error("\u9886\u57DF\u6863\u6848\u7ED3\u6784\u4E0D\u6B63\u786E\uFF0C\u5DF2\u6682\u505C\u4FDD\u5B58");
+      let snapshot;
       try {
-        window.localStorage.setItem("island-user-settings-v1", JSON.stringify(win.USER_PROFILE_STATE.settings));
-      } catch {
-      }
-      if (typeof win.initIslandSettings === "function") {
-        win.initIslandSettings();
-      }
-    }
-    const savedTreasury = await this.readJson("05_Treasury_\u85CF\u91D1\u5C4B/ledger.json");
-    if (savedTreasury && win.TREASURY_STATE) {
-      Object.assign(win.TREASURY_STATE, savedTreasury);
-    }
-    const savedAchievements = await this.readJson("06_Achievements_\u6210\u5C31\u9986/achievements.json");
-    if (savedAchievements && win.ACHIEVEMENT_STATE) {
-      Object.assign(win.ACHIEVEMENT_STATE, savedAchievements);
-    }
-    const savedBounty = await this.readJson("09_Bounties_\u60AC\u8D4F\u516C\u544A/bounties.json");
-    if (savedBounty && win.BOUNTY_STATE) {
-      Object.assign(win.BOUNTY_STATE, savedBounty);
-    }
-    this.purgeLegacyDemoData(win);
-  }
-  /**
-   * 清除开发与原型阶段预置的假数据，确保用户环境纯净
-   */
-  purgeLegacyDemoData(win) {
-    if (!win)
-      return;
-    if (Array.isArray(win.GANTT_PROJECTS)) {
-      const demoTitles = [
-        "\u5C0F\u5B66\u6570\u5B66\u53E3\u7B97\u8FBE\u6807\u4E0E\u9006\u5411\u601D\u7EF4\u8BAD\u7EC3",
-        "\u5C11\u513F\u8DF3\u7EF3\u8FDE\u8DF3\u7A81\u7834\u4E0E\u534F\u8C03\u6027\u8BAD\u7EC3",
-        "\u300A\u5927\u5B66\u300B\u7ECF\u5178\u6668\u8BFB\u4E0E\u77E5\u884C\u5408\u4E00\u8DF5\u884C\u8BA1\u5212",
-        "\u5C11\u513F\u591A\u5143\u601D\u7EF4\u4E0E\u4EB2\u5B50\u8BAE\u9898\u601D\u8FA8\u8BAD\u7EC3",
-        "\u5C11\u513F\u6C49\u5B57\u89C4\u8303\u4E66\u5199\u4E0E\u770B\u56FE\u5199\u8BDD\u653B\u575A"
-      ];
-      const filtered = win.GANTT_PROJECTS.filter((p) => {
-        if (!p)
-          return false;
-        if (["p1", "p2", "p3", "p4", "p5"].includes(p.id))
-          return false;
-        if (p.title && demoTitles.some((t) => p.title.includes(t)))
-          return false;
-        return true;
-      });
-      win.GANTT_PROJECTS.splice(0, win.GANTT_PROJECTS.length, ...filtered);
-    }
-    if (win.TREASURY_STATE) {
-      if (Array.isArray(win.TREASURY_STATE.ledger)) {
-        win.TREASURY_STATE.ledger = win.TREASURY_STATE.ledger.filter((item) => {
-          if (!item || !item.id)
-            return false;
-          return !item.id.startsWith("TX-202610");
-        });
-      }
-      if (win.TREASURY_STATE.totalBalance === 3280 && win.TREASURY_STATE.totalIncome === 4200) {
-        win.TREASURY_STATE.totalBalance = 0;
-        win.TREASURY_STATE.totalIncome = 0;
-        win.TREASURY_STATE.totalExpense = 0;
-      }
-    }
-    if (win.ACHIEVEMENT_STATE) {
-      if (Array.isArray(win.ACHIEVEMENT_STATE.cultivationItems)) {
-        win.ACHIEVEMENT_STATE.cultivationItems = win.ACHIEVEMENT_STATE.cultivationItems.filter(
-          (item) => item && item.id && !item.id.startsWith("ACH-CULT-202610")
-        );
-      }
-      if (Array.isArray(win.ACHIEVEMENT_STATE.accidentalItems)) {
-        win.ACHIEVEMENT_STATE.accidentalItems = win.ACHIEVEMENT_STATE.accidentalItems.filter(
-          (item) => item && item.id && !item.id.startsWith("ACH-ACC-202610")
-        );
-      }
-    }
-    if (win.BOUNTY_STATE && win.BOUNTY_STATE.id === "BC-202611-MATH95") {
-      win.BOUNTY_STATE = null;
-    }
-    if (Array.isArray(win.WEEK_BOARD_DATA)) {
-      win.WEEK_BOARD_DATA.forEach((col) => {
-        if (Array.isArray(col.tasks)) {
-          col.tasks = col.tasks.filter((t) => t && t.id && !t.id.startsWith("w-task-"));
+        snapshot = await this.readJson(SNAPSHOT);
+      } catch (error) {
+        if (!primary) {
+          this.blocked = true;
+          throw new Error("\u6210\u957F\u6570\u636E\u5FEB\u7167\u65E0\u6CD5\u8BFB\u53D6\u3002\u5DF2\u6682\u505C\u81EA\u52A8\u5199\u5165\uFF0C\u8BF7\u5148\u5907\u4EFD\u5E76\u68C0\u67E5 app_state_snapshot.json \u548C .previous.json\u3002");
         }
-      });
-    }
-    if (win.USER_PROFILE_STATE) {
-      if (win.USER_PROFILE_STATE.streakDays === 18 && win.USER_PROFILE_STATE.baseFulfillmentRate === 96) {
-        win.USER_PROFILE_STATE.streakDays = 0;
-        win.USER_PROFILE_STATE.baseFulfillmentRate = 100;
-        win.USER_PROFILE_STATE.completedTodayCount = 0;
-        win.USER_PROFILE_STATE.totalTodayCount = 0;
       }
+      if (snapshot && (!Array.isArray(snapshot.GANTT_PROJECTS) || !snapshot.USER_PROFILE_STATE)) {
+        if (!primary)
+          throw new Error("\u6210\u957F\u6570\u636E\u5FEB\u7167\u7ED3\u6784\u4E0D\u5B8C\u6574\uFF0C\u5DF2\u6682\u505C\u5199\u5165\u3002");
+        snapshot = void 0;
+      }
+      const restore = (key, value) => {
+        if (value === void 0)
+          return;
+        if (Array.isArray(value) && Array.isArray(win[key]))
+          win[key].splice(0, win[key].length, ...value);
+        else if (value && typeof value === "object" && !Array.isArray(value) && win[key] && !Array.isArray(win[key])) {
+          for (const old of Object.keys(win[key]))
+            delete win[key][old];
+          Object.assign(win[key], value);
+        } else
+          win[key] = value;
+      };
+      if (snapshot) {
+        if (!Array.isArray(snapshot.GANTT_PROJECTS) || !snapshot.USER_PROFILE_STATE)
+          throw new Error("\u6210\u957F\u6570\u636E\u5FEB\u7167\u7ED3\u6784\u4E0D\u5B8C\u6574\uFF0C\u5DF2\u6682\u505C\u5199\u5165\u3002");
+        for (const key of STORES)
+          if (Object.prototype.hasOwnProperty.call(snapshot, key))
+            restore(key, snapshot[key]);
+        const deck = document.getElementById("day-card-deck");
+        if (deck && typeof snapshot.dayCardDeckHtml === "string")
+          deck.innerHTML = snapshot.dayCardDeckHtml;
+        win.currentTertiaryProjId = snapshot.currentTertiaryProjId || null;
+        win.__restoredCanvasProjectId = win.currentTertiaryProjId;
+      } else {
+        const files = {
+          USER_PROFILE_STATE: "00_Island_Core/user_profile.json",
+          PAVILION_META: "00_Island_Core/island_topology.json",
+          TREASURY_STATE: "05_Treasury_\u85CF\u91D1\u5C4B/ledger.json",
+          ACHIEVEMENT_STATE: "06_Achievements_\u6210\u5C31\u9986/achievements.json",
+          NOTE_STATE: "08_Daily_\u6BCF\u65E5\u968F\u8BB0/journal.json",
+          BOUNTY_STATE: "09_Bounties_\u60AC\u8D4F\u516C\u544A/bounties.json",
+          INQUIRY_POOL_STATE: "04_Classics_\u4FEE\u8EAB\u9601/01_Inquiry_Pool/inquiries.json"
+        };
+        for (const [key, path] of Object.entries(files)) {
+          const saved = await this.readJson(path);
+          if (key === "BOUNTY_STATE" && saved?.schemaVersion === 3 && Array.isArray(saved.items)) {
+            restore("BOUNTY_STATE", saved.items.find((b) => b.id === saved.activeId) || null);
+            win.DOMAIN_STATE = { ...win.DOMAIN_STATE || {}, bounties: saved.items };
+          } else
+            restore(key, saved);
+        }
+        const keys2 = /* @__PURE__ */ new Set([...Object.keys(PAVILIONS), ...Object.keys(win.PAVILION_META || {}).filter((key) => key.startsWith("custom-"))]);
+        const projects = [];
+        for (const key of keys2) {
+          const list = await this.readJson(`${this.pavilionDir(key)}/projects.json`);
+          if (list !== void 0 && !Array.isArray(list))
+            throw new Error("\u9879\u76EE\u7D22\u5F15\u683C\u5F0F\u4E0D\u6B63\u786E");
+          for (const project of list || []) {
+            projects.push(project);
+            const data = await this.readJson(`${this.pavilionDir(key)}/02_Projects/nodes_${safeFileStem(project.id)}.json`);
+            if (data)
+              win.PROJECT_CANVAS_STORE[project.id] = data;
+          }
+        }
+        restore("GANTT_PROJECTS", projects);
+        const settings = await this.readJson("00_Island_Core/island_settings.json");
+        if (settings)
+          win.USER_PROFILE_STATE.settings = settings;
+        if (!await this.app.vault.adapter.exists(this.resolvePath(files.USER_PROFILE_STATE))) {
+          restore("INQUIRY_POOL_STATE", []);
+          win.PROJECT_CANVAS_STORE = {};
+          win.currentTertiaryProjId = null;
+        }
+      }
+      if (primary) {
+        for (const [key, value] of Object.entries(primary.stores || {}))
+          if (STORES.includes(key) && !["DOMAIN_STATE", "GANTT_PROJECTS", "PROJECT_CANVAS_STORE"].includes(key))
+            restore(key, value);
+        restore("DOMAIN_STATE", primary);
+        restore("GANTT_PROJECTS", primary.projects);
+        for (const [id, nodes] of Object.entries(primary.nodesByProject || {}))
+          win.PROJECT_CANVAS_STORE[id] = { ...win.PROJECT_CANVAS_STORE[id] || {}, nodes, edges: primary.edgesByProject?.[id] || win.PROJECT_CANVAS_STORE[id]?.edges || [] };
+        win.USER_PROFILE_STATE.checkinRecords = primary.records;
+      }
+      const topology = await this.readJson("00_Island_Core/island_topology.json");
+      if (topology && !primary?.stores)
+        restore("PAVILION_META", topology);
+      const keys = /* @__PURE__ */ new Set([...Object.keys(PAVILIONS), ...Object.keys(win.PAVILION_META || {}).filter((key) => key.startsWith("custom-")), ...(primary?.projects || []).map((p) => p.pavilion)]);
+      const loadedProjects = [];
+      let foundIndex = false;
+      for (const key of keys) {
+        let list = await this.readJson(`${this.pavilionDir(key)}/projects.json`);
+        if (list === void 0) {
+          list = (primary?.projects || []).filter((p) => p.pavilion === key);
+        } else {
+          foundIndex = true;
+          if (!Array.isArray(list))
+            throw new Error("\u9879\u76EE\u5217\u8868\u5FC5\u987B\u662F\u6570\u7EC4");
+        }
+        const indexRevision = await this.readJson(`${this.pavilionDir(key)}/projects.revision.json`);
+        if (primary && indexRevision && indexRevision.storageRevision < primary.storageRevision)
+          list = primary.projects.filter((p) => p.pavilion === key);
+        if (primary && list.some((p) => (p.storageRevision || 0) < (primary.storageRevision || 0)))
+          list = primary.projects.filter((p) => p.pavilion === key);
+        for (const project of list) {
+          loadedProjects.push(project);
+          const data = await this.readJson(`${this.pavilionDir(key)}/02_Projects/nodes_${safeFileStem(project.id)}.json`);
+          if (data && (!primary || (data.storageRevision || 0) >= (primary.storageRevision || 0)))
+            win.PROJECT_CANVAS_STORE[project.id] = data;
+        }
+      }
+      if (foundIndex || primary)
+        restore("GANTT_PROJECTS", loadedProjects);
+      for (const [key, path] of Object.entries({ TREASURY_STATE: "05_Treasury_\u85CF\u91D1\u5C4B/ledger.json", ACHIEVEMENT_STATE: "06_Achievements_\u6210\u5C31\u9986/achievements.json", NOTE_STATE: "08_Daily_\u6BCF\u65E5\u968F\u8BB0/journal.json", INQUIRY_POOL_STATE: "04_Classics_\u4FEE\u8EAB\u9601/01_Inquiry_Pool/inquiries.json" })) {
+        if (primary?.stores && Object.prototype.hasOwnProperty.call(primary.stores, key))
+          continue;
+        const saved = await this.readJson(path);
+        if (saved !== void 0)
+          restore(key, saved);
+      }
+      this.hydrated = true;
+    } catch (error) {
+      this.blocked = true;
+      throw error;
     }
   }
-  /**
-   * 防抖触发全量 Vault 同步
-   */
-  scheduleSync(delayMs = 300) {
+  scheduleSync(delay = 300) {
+    if (this.disposed || !this.hydrated || this.blocked || this.capturing)
+      return;
     if (this.syncTimer)
       clearTimeout(this.syncTimer);
     this.syncTimer = setTimeout(() => {
-      this.syncRuntimeToVault().catch(
-        (err) => console.error("[VaultStorageAdapter] Failed to sync runtime to Vault:", err)
-      );
-    }, delayMs);
+      this.syncTimer = null;
+      void this.syncRuntimeToVault().catch((error) => {
+        console.error("[YouthIsland] \u4FDD\u5B58\u5931\u8D25", error);
+        new import_obsidian.Notice("\u6210\u957F\u6570\u636E\u4FDD\u5B58\u5931\u8D25\uFF0C\u8BF7\u68C0\u67E5\u4ED3\u5E93\u7A7A\u95F4\u4E0E\u6587\u4EF6\u6743\u9650\uFF1B\u5F53\u524D\u5185\u5BB9\u4ECD\u4FDD\u7559\u5728\u754C\u9762\u4E2D\u3002");
+      });
+    }, delay);
   }
-  /**
-   * PRD 6.1, 6.2, 6.3: 将运行时状态全量写入本地 Vault JSON 与 Markdown 双链网络
-   */
   async syncRuntimeToVault() {
-    await this.ensureVaultStructure();
+    if (!this.hydrated || this.blocked)
+      return false;
+    if (this.syncTimer) {
+      clearTimeout(this.syncTimer);
+      this.syncTimer = null;
+    }
     const win = window;
-    if (win.USER_PROFILE_STATE) {
-      await this.writeJson("00_Island_Core/user_profile.json", win.USER_PROFILE_STATE);
-      if (win.USER_PROFILE_STATE.settings) {
-        await this.writeJson("00_Island_Core/island_settings.json", win.USER_PROFILE_STATE.settings);
-      }
-    }
-    if (win.PAVILION_META) {
-      await this.writeJson("00_Island_Core/island_topology.json", win.PAVILION_META);
-    }
-    const allProjects = Array.isArray(win.GANTT_PROJECTS) ? win.GANTT_PROJECTS : [];
-    const canvasStore = win.PROJECT_CANVAS_STORE || {};
-    for (const [pavKey, dirName] of Object.entries(PAVILION_DIR_MAP)) {
-      const pavProjects = allProjects.filter((p) => (p.pavilion || p.moduleKey || "study") === pavKey);
-      await this.writeJson(`${dirName}/projects.json`, pavProjects);
-      for (const proj of pavProjects) {
-        const projId = proj.id || proj.projectId || "default";
-        const canvasData = canvasStore[projId] || canvasStore[pavKey] || { nodes: [], edges: [] };
-        await this.writeJson(`${dirName}/02_Projects/nodes_${projId}.json`, canvasData);
-        const safeTitle = String(proj.title || projId).replace(/[\\/:*?"<>|]/g, "_");
-        const canvasJson = this.buildObsidianCanvasJson(proj, pavKey, canvasData);
-        await this.writeJson(`${dirName}/02_Projects/${safeTitle}.canvas`, canvasJson);
-        if (this.getSettings().autoSyncVaultMarkdown && proj.title) {
-          const md = this.buildProjectMarkdown(proj, pavKey, canvasData);
-          await this.writeMarkdown(`${dirName}/02_Projects/${safeTitle}.md`, md);
-        }
-      }
-    }
-    if (win.TREASURY_STATE) {
-      await this.writeJson("05_Treasury_\u85CF\u91D1\u5C4B/ledger.json", win.TREASURY_STATE);
-    }
-    if (win.ACHIEVEMENT_STATE) {
-      await this.writeJson("06_Achievements_\u6210\u5C31\u9986/achievements.json", win.ACHIEVEMENT_STATE);
-    }
-    if (this.getSettings().autoSyncVaultMarkdown) {
-      await this.writeMarkdown(
-        "07_Baseline_\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303/personal_code.md",
-        this.buildPersonalCodeMarkdown(win.USER_PROFILE_STATE)
-      );
-    }
-    if (win.NOTE_STATE && this.getSettings().autoSyncVaultMarkdown) {
-      const entries = Array.isArray(win.NOTE_STATE.historyEntries) ? win.NOTE_STATE.historyEntries : [];
-      const todayIso = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
-      const todayEntry = entries[0] || {
-        date: todayIso,
-        mood: "focused",
-        energy: 4,
-        autoLogs: [],
-        content: ""
-      };
-      const dateStr = /^\d{4}-\d{2}-\d{2}$/.test(todayEntry.date) ? todayEntry.date : todayIso;
-      const year = dateStr.slice(0, 4);
-      await this.writeMarkdown(
-        `08_Daily_\u6BCF\u65E5\u968F\u8BB0/${year}/${dateStr}.md`,
-        this.buildDailyJournalMarkdown(dateStr, todayEntry, allProjects)
-      );
-    }
-    if (win.BOUNTY_STATE) {
-      await this.writeJson("09_Bounties_\u60AC\u8D4F\u516C\u544A/bounties.json", win.BOUNTY_STATE);
-    }
-    const deckEl = typeof document !== "undefined" ? document.getElementById("day-card-deck") : null;
-    if (deckEl && typeof win.syncFormStateToAttributes === "function") {
-      win.syncFormStateToAttributes(deckEl);
-    }
-    await this.writeJson("00_Island_Core/app_state_snapshot.json", {
-      updatedAt: (/* @__PURE__ */ new Date()).toISOString(),
-      USER_PROFILE_STATE: win.USER_PROFILE_STATE || null,
-      GANTT_PROJECTS: win.GANTT_PROJECTS || null,
-      PROJECT_CANVAS_STORE: win.PROJECT_CANVAS_STORE || null,
-      PAVILION_META: win.PAVILION_META || null,
-      WEEK_BOARD_DATA: win.WEEK_BOARD_DATA || null,
-      TASK_HISTORY_BY_DATE: win.TASK_HISTORY_BY_DATE || null,
-      TREASURY_STATE: win.TREASURY_STATE || null,
-      ACHIEVEMENT_STATE: win.ACHIEVEMENT_STATE || null,
-      NOTE_STATE: win.NOTE_STATE || null,
-      BOUNTY_STATE: win.BOUNTY_STATE || null,
-      INQUIRY_POOL_STATE: win.INQUIRY_POOL_STATE || null,
-      dayCardDeckHtml: deckEl ? deckEl.innerHTML : null
-    });
-    globalIslandEventBus.emit("vault:synced", { timestamp: (/* @__PURE__ */ new Date()).toISOString() });
-  }
-  /**
-   * PRD 6.2 & 6.3: 生成每日随记 Markdown (YAML Frontmatter + 双轨流水 + [[双向链接]])
-   */
-  buildDailyJournalMarkdown(dateStr, entry, projects) {
-    const autoLogs = Array.isArray(entry.autoLogs) ? entry.autoLogs : [];
-    const mood = entry.moodKey || entry.mood || "focused";
-    const energy = Number(entry.energy || entry.energyLevel || 4);
-    const reflection = String(entry.reflection || entry.content || entry.text || "").trim();
-    const mediaList = Array.isArray(entry.mediaList) ? entry.mediaList : [];
-    const yamlLogs = autoLogs.length > 0 ? autoLogs.map((l) => `  - ${JSON.stringify(String(l))}`).join("\n") : `  - "\u{1F305} \u4ECA\u65E5\u6668\u66E6\u5C0F\u5C9B\u81EA\u5F8B\u6863\u6848\u5DF2\u5F00\u542F"`;
-    const yamlMedia = mediaList.length > 0 ? mediaList.map(
-      (m) => `  - type: ${m.type || "image"}
-    path: ${JSON.stringify(m.url || m.path || "")}
-    desc: ${JSON.stringify(m.title || m.desc || "\u5B9E\u8BAD\u7269\u8BC1")}`
-    ).join("\n") : "  []";
-    const projectLinks = projects.slice(0, 6).map((p) => `- [[${String(p.title || p.name || "\u4E13\u9879\u653B\u575A\u8BFE\u9898").replace(/[\\/:*?"<>|]/g, "_")}]]`).join("\n");
-    return `---
-type: daily-journal
-date: ${dateStr}
-mood: "${mood}"
-energy_level: ${energy}
-auto_logs:
-${yamlLogs}
-media_attachments:
-${yamlMedia}
-content_reflection: ${JSON.stringify(reflection || "\u4ECA\u65E5\u4E13\u6CE8\u7B03\u884C\uFF0C\u6C34\u6EF4\u77F3\u7A7F\u3002")}
----
-
-# \u{1F4DD} ${dateStr} \u6BCF\u65E5\u968F\u8BB0\uFF08\u5BA2\u89C2\u771F\u5B9E\u6D41\u6C34 + \u4E3B\u89C2\u5FC3\u6D41\u968F\u7B14\uFF09
-
-## \u4E00\u3001 \u23F1\uFE0F \u5168\u81EA\u52A8\u5BA2\u89C2\u4E8B\u5B9E\u6D41\u6C34\uFF08Upper Track\uFF09
-${autoLogs.map((log) => `- ${log}`).join("\n") || "- \u6682\u65E0\u81EA\u52A8\u6253\u5361\u6D41\u6C34"}
-
-## \u4E8C\u3001 \u270D\uFE0F \u4E3B\u89C2\u5FC3\u6D41\u968F\u7B14\u4E0E\u987F\u609F\uFF08Lower Track\uFF09
-${reflection || "> \u4ECA\u65E5\u4E13\u6CE8\u4E8E\u65E2\u5B9A\u8BFE\u9898\u653B\u575A\uFF0C\u4FDD\u6301\u614E\u72EC\u81EA\u5F8B\u3002"}
-
-## \u4E09\u3001 \u{1F517} \u5173\u8054\u8BFE\u9898\u4E0E\u53CC\u94FE\u751F\u547D\u7F51\u7EDC\uFF08PRD 6.3 \u53CC\u5411\u94FE\u63A5\uFF09
-${projectLinks || "- [[personal_code|\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303\xB7\u5927\u5B66\u516B\u76EE\u6CD5\u5178]]"}
-- [[personal_code|\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303\xB7\u5927\u5B66\u516B\u76EE\u6CD5\u5178]]
-`;
-  }
-  /**
-   * PRD 6.3: 生成规划项目双链 Markdown 档案
-   */
-  buildProjectMarkdown(proj, pavKey, canvasData) {
-    const nodes = Array.isArray(canvasData?.nodes) ? canvasData.nodes : [];
-    const nodeLines = nodes.map(
-      (n) => `- [${n.status === "completed" || n.isCompleted ? "x" : " "}] **${n.title || n.name || n.id}** (\`${n.cardType || n.type || "card-drill"}\`)`
-    ).join("\n");
-    return `---
-type: growth-project
-project_id: "${proj.id || ""}"
-pavilion: "${pavKey}"
-category: "${proj.category || ""}"
-status: "${proj.status || "in_progress"}"
-progress_percent: ${Number(proj.progress ?? proj.progressPercent ?? 0)}
-start_date: "${proj.startDate || ""}"
-end_date: "${proj.endDate || ""}"
----
-
-# \u{1F3AF} ${proj.title || "\u4E13\u9879\u89C4\u5212\u8BFE\u9898"}
-
-- **\u6240\u5C5E\u573A\u9986**\uFF1A\`${pavKey}\`
-- **\u8D77\u6B62\u5468\u671F**\uFF1A${proj.startDate || "2026-10-01"} ~ ${proj.endDate || "2026-11-30"}
-- **\u5F53\u524D\u8FDB\u5EA6**\uFF1A${Number(proj.progress ?? proj.progressPercent ?? 0)}%
-- **\u884C\u4E3A\u51C6\u7EF3**\uFF1A[[personal_code|\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303\xB7\u5927\u5B66\u516B\u76EE\u6CD5\u5178]]
-
-## \u4E09\u7EA7\u8111\u56FE\u4EFB\u52A1\u62D3\u6251\u8282\u70B9
-${nodeLines || "- \u5C1A\u65E0\u62C6\u89E3\u8282\u70B9"}
-`;
-  }
-  /**
-   * PRD 4.9 & 6.1: 生成《个人行为规范 · 大学八目法典》Markdown
-   */
-  buildPersonalCodeMarkdown(profile) {
-    const rate = profile?.fulfillmentRate ?? 98;
-    const days = profile?.streakDays ?? profile?.continuousDays ?? 18;
-    return `---
-type: personal-constitution
-title: "\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303 \xB7 \u5927\u5B66\u516B\u76EE\u751F\u547D\u6CD5\u5178"
-continuous_days: ${days}
-fulfillment_rate: ${rate}
----
-
-# \u{1F4DC} \u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303 \xB7 \u300A\u5927\u5B66\u300B\u4E09\u7EB2\u516B\u76EE\u7ACB\u5BAA\u6CD5\u5178
-
-> **\u201C\u7269\u683C\u800C\u540E\u77E5\u81F3\uFF0C\u77E5\u81F3\u800C\u540E\u610F\u8BDA\uFF0C\u610F\u8BDA\u800C\u540E\u5FC3\u6B63\uFF0C\u5FC3\u6B63\u800C\u540E\u8EAB\u4FEE\uFF0C\u8EAB\u4FEE\u800C\u540E\u5BB6\u9F50\uFF0C\u5BB6\u9F50\u800C\u540E\u56FD\u6CBB\uFF0C\u56FD\u6CBB\u800C\u540E\u5929\u4E0B\u5E73\u3002\u201D**
-
-## \u5185\u5723\u4E4B\u57FA \xB7 \u8BA4\u77E5\u4E0E\u5FC3\u6027\u4FEE\u6301
-1. **\u3010\u683C\u7269 \xB7 \u7A77\u7A76\u4E8B\u7406\u3011**\uFF1A\u505A\u9898\u4E0E\u7814\u4E60\u5FC5\u7A76\u5E95\u5C42\u539F\u7406\uFF0C\u8349\u7A3F\u624B\u7A3F\u89C4\u8303\u7559\u75D5\uFF0C\u7EDD\u4E0D\u76F2\u731C\u6577\u884D\u3002
-2. **\u3010\u81F4\u77E5 \xB7 \u542F\u667A\u535A\u5B66\u3011**\uFF1A\u6BCF\u65E5\u6668\u8BF5\u5723\u8D24\u7ECF\u5178\uFF0C\u5C06\u5148\u8D24\u667A\u6167\u4E0E\u65E5\u5E38\u56F0\u60D1\u76F8\u4E92\u5370\u8BC1\u3002
-3. **\u3010\u8BDA\u610F \xB7 \u614E\u72EC\u4E0D\u6B3A\u3011**\uFF1A\u65E0\u4EBA\u76D1\u7763\u6D4B\u9A8C\u7EDD\u4E0D\u6284\u88AD\u770B\u7B54\u6848\uFF0C\u91CD\u8BFA\u5B88\u4FE1\uFF0C\u4E0D\u81EA\u6B3A\u6B3A\u4EBA\u3002
-4. **\u3010\u6B63\u5FC3 \xB7 \u5B9A\u529B\u514B\u6D6E\u3011**\uFF1A\u8FDB\u5165\u5B9E\u8BAD\u524D\u81EA\u89C9\u5C01\u5B58\u5A31\u4E50\u8BBE\u5907\uFF0C\u80DC\u4E0D\u9A84\u8D25\u4E0D\u9981\uFF0C\u5E73\u5FC3\u9759\u6C14\u590D\u76D8\u3002
-
-## \u5916\u738B\u4E4B\u6210 \xB7 \u5F8B\u5DF1\u4E0E\u62C5\u5F53
-5. **\u3010\u4FEE\u8EAB \xB7 \u5F3A\u5065\u5F8B\u5DF1\u3011**\uFF1A\u6BCF\u665A 21:30 \u51C6\u65F6\u7184\u706F\uFF0C\u6668\u8D77\u5229\u843D\uFF0C\u6BCF\u65E5\u4F53\u80FD\u5B9E\u8BAD\u98CE\u96E8\u65E0\u963B\u3002
-6. **\u3010\u9F50\u5BB6 \xB7 \u5B5D\u4EB2\u62C5\u5F53\u3011**\uFF1A\u51FA\u5FC5\u544A\u3001\u53CD\u5FC5\u9762\uFF0C\u5185\u52A1\u4E66\u684C\u81EA\u4E3B\u6574\u7406\uFF0C\u4E3B\u52A8\u5206\u62C5\u6D17\u7897\u5907\u9910\u5BB6\u52A1\u3002
-7. **\u3010\u6CBB\u56FD \xB7 \u9075\u89C4\u5B88\u7EAA\u3011**\uFF1A\u4E25\u5B88\u6821\u89C4\u73ED\u7EAA\u4E0E\u516C\u5171\u79E9\u5E8F\uFF0C\u7231\u62A4\u96C6\u4F53\u8363\u8A89\u3002
-8. **\u3010\u5E73\u5929\u4E0B \xB7 \u5FD7\u5B58\u9AD8\u8FDC\u3011**\uFF1A\u5389\u884C\u8282\u7EA6\u3001\u53CB\u7231\u4E92\u52A9\uFF0C\u7ACB\u5FD7\u6210\u4E3A\u7B03\u884C\u5B88\u6B63\u4E4B\u5C11\u5E74\u541B\u5B50\u3002
-`;
-  }
-  /**
-   * PRD 3.2.2 & Obsidian Canvas 核心插件集成:
-   * 将三级工作台脑图拓扑数据转换为 Obsidian 原生 .canvas 标准规范 JSON (硬件加速，60/120fps 丝滑拖拽缩放)
-   */
-  buildObsidianCanvasJson(proj, pavKey, canvasData) {
-    const pTitle = proj?.title || "\u4E13\u9879\u89C4\u5212\u8BFE\u9898";
-    const pDesc = proj?.desc || "\u7A33\u6B65\u63A8\u8FDB\u9636\u6BB5\u91CF\u5316\u653B\u575A\u4E0E\u65E5\u5E38\u6253\u5361";
-    const projId = proj?.id || "p1";
-    const canvasNodes = [];
-    const canvasEdges = [];
-    if (Array.isArray(canvasData?.nodes) && canvasData.nodes.length > 0) {
-      canvasData.nodes.forEach((n, idx) => {
-        const type = String(n.cardType || n.type || "drill");
-        let color = "2";
-        if (type.includes("goal"))
-          color = "5";
-        else if (type.includes("reflection"))
-          color = "6";
-        else if (type.includes("habit"))
-          color = "3";
-        else if (type.includes("evidence"))
-          color = "1";
-        else if (type.includes("resource"))
-          color = "4";
-        const textLines = [
-          `### ${n.icon || "\u{1F3AF}"} ${n.title || `\u8282\u70B9 ${idx + 1}`}`,
-          n.status ? `**\u72B6\u6001**\uFF1A\`${n.status}\`` : "",
-          n.desc ? `> ${n.desc}` : "",
-          n.checklist && Array.isArray(n.checklist) ? n.checklist.map((c) => `- [${c.done ? "x" : " "}] ${c.text}`).join("\n") : ""
-        ].filter(Boolean).join("\n\n");
-        canvasNodes.push({
-          id: n.id || `node-${idx + 1}`,
-          x: typeof n.x === "number" ? n.x : 80 + idx * 380,
-          y: typeof n.y === "number" ? n.y : 90,
-          width: n.width || 340,
-          height: n.height || 220,
-          type: "text",
-          text: textLines,
-          color
-        });
-      });
-    } else if (typeof canvasData?.cardsHtml === "string" && canvasData.cardsHtml.trim()) {
-      const cardRegex = /<div\s+class="([^"]*tertiary-card[^"]*)"\s+id="([^"]+)"(?:[^>]*data-label="([^"]*)")?[^>]*style="([^"]*)"[^>]*>([\s\S]*?)<\/div>\s*(?=<div\s+class="[^"]*tertiary-card"|$)/gi;
-      let match;
-      let cardIdx = 0;
-      while ((match = cardRegex.exec(canvasData.cardsHtml)) !== null) {
-        const className = match[1] || "";
-        const cardId = match[2];
-        const styleStr = match[4] || "";
-        const innerHtml = match[5] || "";
-        const topMatch = styleStr.match(/top:\s*(\d+)px/);
-        const leftMatch = styleStr.match(/left:\s*(\d+)px/);
-        const widthMatch = styleStr.match(/width:\s*(\d+)px/);
-        const x = leftMatch ? parseInt(leftMatch[1], 10) : 80 + cardIdx * 380;
-        const y = topMatch ? parseInt(topMatch[1], 10) : 90;
-        const width = widthMatch ? parseInt(widthMatch[1], 10) : 340;
-        let color = "2";
-        let cardTypeName = "\u653B\u575A\u5B9E\u8BAD";
-        if (className.includes("goal")) {
-          color = "5";
-          cardTypeName = "\u76EE\u6807\u5206\u89E3";
-        } else if (className.includes("reflection")) {
-          color = "6";
-          cardTypeName = "\u8BC4\u4F30\u590D\u76D8";
-        } else if (className.includes("drill")) {
-          color = "2";
-          cardTypeName = "\u653B\u575A\u5B9E\u8BAD";
-        } else if (className.includes("resource")) {
-          color = "4";
-          cardTypeName = "\u8D44\u6E90\u652F\u6491";
-        } else if (className.includes("evidence")) {
-          color = "1";
-          cardTypeName = "\u7269\u8BC1\u4EA4\u4ED8";
-        }
-        const titleMatch = innerHtml.match(/class="[^"]*work-node-title[^"]*"[^>]*>([^<]+)<\/span>/);
-        const badgeMatch = innerHtml.match(/class="[^"]*work-node-badge[^"]*"[^>]*>([^<]+)<\/span>/);
-        const cardTitle = titleMatch ? titleMatch[1].trim() : `${pTitle} \xB7 ${cardTypeName}`;
-        const cardBadge = badgeMatch ? badgeMatch[1].trim() : `\u{1F3AF} ${cardTypeName}`;
-        const cleanBody = innerHtml.replace(/<button[\s\S]*?<\/button>/gi, "").replace(/<div class="work-card-connect-handle"[\s\S]*?<\/div>/gi, "").replace(/<span class="work-node-badge"[\s\S]*?<\/span>/gi, "").replace(/<span class="work-node-title"[\s\S]*?<\/span>/gi, "").replace(/<input\s+type="checkbox"[^>]*>/gi, "- [ ] ").replace(/<input\s+type="text"[^>]*value="([^"]*)"[^>]*>/gi, "$1\n").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-        canvasNodes.push({
-          id: cardId,
-          x,
-          y,
-          width,
-          height: 220,
-          type: "text",
-          text: `### ${cardBadge}
-**${cardTitle}**
-
-${cleanBody}`,
-          color
-        });
-        cardIdx++;
-      }
-    }
-    if (canvasNodes.length === 0) {
-      const c1 = `projnode-${projId}-1`;
-      const c2 = `projnode-${projId}-2`;
-      const c3 = `projnode-${projId}-3`;
-      canvasNodes.push(
-        {
-          id: c1,
-          x: 80,
-          y: 90,
-          width: 340,
-          height: 200,
-          type: "text",
-          text: `### \u{1F3AF} \u76EE\u6807\u5206\u89E3 \xB7 \u901A\u5173\u76EE\u6807
-**\u300A${pTitle}\u300B**
-
-> \u{1F4CB} \u9A8C\u6536\u6807\u51C6\uFF1A${pDesc}
-
-- [ ] \u5236\u5B9A\u91CC\u7A0B\u7891\u5206\u89E3\u6307\u6807
-- [ ] \u5F52\u6863\u81F3\u6210\u5C31\u9986`,
-          color: "5"
-        },
-        {
-          id: c2,
-          x: 480,
-          y: 90,
-          width: 340,
-          height: 200,
-          type: "text",
-          text: `### \u26A1 \u653B\u575A\u5B9E\u8BAD \xB7 \u6BCF\u65E5\u6253\u5361
-**\u300A${pTitle}\u300B\u5B9E\u6218\u7A81\u7834**
-
-- \u9884\u8BA1\u4E13\u6CE8\u65F6\u957F\uFF1A\u23F1\uFE0F 20 \u5206\u949F
-- \u6267\u884C\u8981\u9886\uFF1A\u4FDD\u6301\u614E\u72EC\u81EA\u5F8B\uFF0C\u9010\u9879\u63A8\u5BFC\u7559\u75D5
-- [ ] \u4ECA\u65E5\u5B9E\u8BAD\u6253\u5361\u5B8C\u6210`,
-          color: "2"
-        },
-        {
-          id: c3,
-          x: 880,
-          y: 90,
-          width: 340,
-          height: 200,
-          type: "text",
-          text: `### \u{1F4DD} \u8BC4\u4F30\u590D\u76D8 \xB7 \u6539\u8FDB\u6E05\u5355
-**\u300A${pTitle}\u300B\u5468\u671F\u5BA1\u89C6**
-
-> \u3010\u590D\u76D8\u6307\u5F15\u3011\u8BB0\u5F55\u6267\u884C\u5361\u70B9\u4E0E\u987F\u609F\u7ECF\u9A8C
-
-- [x] 1. \u62C6\u89E3\u8584\u5F31\u52A8\u4F5C/\u5361\u70B9\u8FDB\u884C\u4E8C\u6B21\u5F3A\u5316
-- [ ] 2. \u6D3E\u751F\u4E3A\u4E0B\u4E00\u9636\u6BB5\u65B0\u5B9E\u8BAD\u8282\u70B9`,
-          color: "6"
-        }
-      );
-      canvasEdges.push(
-        {
-          id: `edge-${c1}-${c2}`,
-          fromNode: c1,
-          fromSide: "right",
-          toNode: c2,
-          toSide: "left",
-          label: "\u62C6\u89E3\u6267\u884C"
-        },
-        {
-          id: `edge-${c2}-${c3}`,
-          fromNode: c2,
-          fromSide: "right",
-          toNode: c3,
-          toSide: "left",
-          label: "\u590D\u76D8\u7EA0\u504F"
-        }
-      );
-    }
-    const rawEdges = Array.isArray(canvasData?.edges) ? canvasData.edges : [];
-    if (rawEdges.length > 0) {
-      rawEdges.forEach((e, idx) => {
-        canvasEdges.push({
-          id: e.id || `edge-${idx + 1}`,
-          fromNode: e.sourceId || e.fromNode,
-          fromSide: "right",
-          toNode: e.targetId || e.toNode,
-          toSide: "left",
-          label: e.label || "\u5173\u8054"
-        });
-      });
-    }
-    return { nodes: canvasNodes, edges: canvasEdges };
-  }
-  /**
-   * PRD 3.2.2: 在 Obsidian 原生 Canvas 核心插件中打开指定项目画布
-   */
-  async openProjectInCanvas(projId) {
+    if (typeof win.captureDomainLayout === "function")
+      win.captureDomainLayout();
+    this.capturing = true;
     try {
-      const win = window;
-      const allProjects = Array.isArray(win.GANTT_PROJECTS) ? win.GANTT_PROJECTS : [];
-      let proj = allProjects.find((p) => p.id === projId);
-      if (!proj && allProjects.length > 0) {
-        proj = allProjects[0];
+      if (typeof win.saveCurrentProjectCanvasSnapshot === "function" && win.currentTertiaryProjId)
+        win.saveCurrentProjectCanvasSnapshot();
+    } finally {
+      this.capturing = false;
+    }
+    const deck = document.getElementById("day-card-deck");
+    if (deck && typeof win.syncFormStateToAttributes === "function")
+      win.syncFormStateToAttributes(deck);
+    const state = { schemaVersion: 3, updatedAt: (/* @__PURE__ */ new Date()).toISOString(), currentTertiaryProjId: win.currentTertiaryProjId || null, dayCardDeckHtml: "" };
+    for (const key of STORES)
+      state[key] = win[key] ?? null;
+    const copy = JSON.parse(JSON.stringify(state));
+    const root = this.getSettings().vaultRootFolder;
+    const save = this.queue.catch(() => {
+    }).then(async () => {
+      if (root !== this.getSettings().vaultRootFolder)
+        throw new Error("\u4FDD\u5B58\u671F\u95F4\u6570\u636E\u76EE\u5F55\u53D1\u751F\u53D8\u5316\uFF0C\u8BF7\u91CD\u65B0\u540C\u6B65");
+      await this.persist(copy);
+    });
+    this.queue = save;
+    await save;
+    return true;
+  }
+  async persist(state) {
+    await this.ensureVaultStructure();
+    const fullSnapshot = this.resolvePath(SNAPSHOT);
+    const adapter = this.app.vault.adapter;
+    if (state.DOMAIN_STATE) {
+      const previousDomain = await this.readJson("00_Island_Core/domain_state.json");
+      const revision = Math.max(Date.now(), (previousDomain?.storageRevision || 0) + 1);
+      state.DOMAIN_STATE.storageRevision = revision;
+      state.DOMAIN_STATE.projects = state.GANTT_PROJECTS;
+      state.DOMAIN_STATE.nodesByProject = Object.fromEntries(Object.entries(state.PROJECT_CANVAS_STORE || {}).filter(([, data]) => Array.isArray(data.nodes)).map(([id, data]) => [id, data.nodes]));
+      state.DOMAIN_STATE.edgesByProject = Object.fromEntries(Object.entries(state.PROJECT_CANVAS_STORE || {}).map(([id, data]) => [id, data.edges || []]));
+      state.DOMAIN_STATE.stores = Object.fromEntries(STORES.filter((key) => !["DOMAIN_STATE", "GANTT_PROJECTS", "PROJECT_CANVAS_STORE", "WEEK_BOARD_DATA", "TASK_HISTORY_BY_DATE"].includes(key)).map((key) => [key, state[key]]));
+      await this.writeJson("00_Island_Core/domain_state.pending.json", state.DOMAIN_STATE);
+      if (previousDomain)
+        await this.writeJson("00_Island_Core/domain_state.previous.json", previousDomain);
+      await adapter.rename(this.resolvePath("00_Island_Core/domain_state.pending.json"), this.resolvePath("00_Island_Core/domain_state.json"));
+    }
+    if (await adapter.exists(fullSnapshot)) {
+      const previous = await adapter.read(fullSnapshot);
+      try {
+        JSON.parse(previous);
+        await this.writeText("00_Island_Core/app_state_snapshot.previous.json", previous);
+      } catch (error) {
+        if (!state.DOMAIN_STATE)
+          throw error;
+        await this.writeText(`00_Island_Core/app_state_snapshot.corrupt-${Date.now()}.json`, previous);
       }
-      const pavKey = proj?.pavilion || proj?.moduleKey || "study";
-      const dirName = PAVILION_DIR_MAP[pavKey] || "01_School_\u6821\u53F2\u9986";
-      const safeTitle = String(proj?.title || projId || "\u6210\u957F\u89C4\u5212\u9879\u76EE").replace(/[\\/:*?"<>|]/g, "_");
-      const canvasRelPath = `${dirName}/02_Projects/${safeTitle}.canvas`;
-      const fullPath = this.resolvePath(canvasRelPath);
-      const canvasStore = win.PROJECT_CANVAS_STORE || {};
-      const canvasData = proj && proj.id && canvasStore[proj.id] || canvasStore[projId] || { nodes: [], edges: [] };
-      const canvasJson = this.buildObsidianCanvasJson(proj, pavKey, canvasData);
-      await this.writeJson(canvasRelPath, canvasJson);
-      const file = this.app.vault.getAbstractFileByPath(fullPath);
-      if (file instanceof import_obsidian.TFile && file.extension === "canvas") {
-        const leaf = this.app.workspace.getLeaf(true);
-        await leaf.openFile(file);
-        new import_obsidian.Notice(`\u{1F3A8} \u5DF2\u5728 Obsidian \u539F\u751F Canvas \u6838\u5FC3\u753B\u5E03\u4E2D\u6253\u5F00\u300A${proj?.title || safeTitle}\u300B\uFF01`);
-        return true;
-      } else {
-        new import_obsidian.Notice(
-          `\u{1F4A1} \u753B\u5E03\u6587\u4EF6\u5DF2\u5C31\u7EEA\uFF1A${canvasRelPath}
-\u8BF7\u5728 Obsidian \u6587\u4EF6\u5217\u8868\u4E2D\u70B9\u51FB\u6253\u5F00\uFF0C\u6216\u786E\u4FDD\u5728\u3010\u8BBE\u7F6E -> \u6838\u5FC3\u63D2\u4EF6\u3011\u4E2D\u5DF2\u542F\u7528 Canvas \u753B\u5E03\u529F\u80FD\u3002`
-        );
-        return true;
+    }
+    const pending = "00_Island_Core/app_state_snapshot.pending.json";
+    await this.writeJson(pending, state);
+    await adapter.rename(this.resolvePath(pending), fullSnapshot);
+    await this.writeJson("00_Island_Core/user_profile.json", state.USER_PROFILE_STATE);
+    await this.writeJson("00_Island_Core/island_settings.json", state.USER_PROFILE_STATE.settings || {});
+    await this.writeJson("00_Island_Core/island_topology.json", state.PAVILION_META);
+    const projects = state.GANTT_PROJECTS || [];
+    const keys = /* @__PURE__ */ new Set([...Object.keys(PAVILIONS), ...projects.map((p) => p.pavilion || p.moduleKey || "study"), ...Object.keys(state.PAVILION_META || {}).filter((key) => key.startsWith("custom-"))]);
+    for (const key of keys) {
+      const dir = this.pavilionDir(key);
+      const list = projects.filter((p) => (p.pavilion || p.moduleKey || "study") === key);
+      await this.writeJson(`${dir}/projects.json`, list.map((p) => ({ ...p, storageRevision: state.DOMAIN_STATE?.storageRevision || 0 })));
+      await this.writeJson(`${dir}/projects.revision.json`, { storageRevision: state.DOMAIN_STATE?.storageRevision || 0 });
+      for (const project of list) {
+        const data = state.PROJECT_CANVAS_STORE?.[project.id] || { cardsHtml: "", edges: [] };
+        await this.writeJson(`${dir}/02_Projects/nodes_${safeFileStem(project.id)}.json`, { ...data, storageRevision: state.DOMAIN_STATE?.storageRevision || 0 });
+        const stem = `${safeFileStem(project.title)}--${safeFileStem(project.id)}`;
+        const canvas = `${dir}/02_Projects/${stem}.canvas`;
+        if (!await adapter.exists(this.resolvePath(canvas)))
+          await this.writeJson(canvas, this.buildObsidianCanvasJson(project, key, data));
+        if (this.getSettings().autoSyncVaultMarkdown)
+          await this.writeText(`${dir}/02_Projects/${stem}.md`, this.projectMarkdown(project, key, data, state.DOMAIN_STATE));
       }
-    } catch (err) {
-      console.error("[VaultStorageAdapter] Failed to open project in Obsidian Canvas:", err);
-      new import_obsidian.Notice(`\u26A0\uFE0F \u6253\u5F00 Canvas \u753B\u5E03\u5931\u8D25: ${err?.message || err}`);
+    }
+    await this.writeJson("05_Treasury_\u85CF\u91D1\u5C4B/ledger.json", state.TREASURY_STATE);
+    await this.writeJson("06_Achievements_\u6210\u5C31\u9986/achievements.json", state.ACHIEVEMENT_STATE);
+    await this.writeJson("09_Bounties_\u60AC\u8D4F\u516C\u544A/bounties.json", { schemaVersion: 3, activeId: state.BOUNTY_STATE?.id || null, items: state.DOMAIN_STATE?.bounties || [] });
+    await this.writeJson("04_Classics_\u4FEE\u8EAB\u9601/01_Inquiry_Pool/inquiries.json", state.INQUIRY_POOL_STATE);
+    await this.writeJson("08_Daily_\u6BCF\u65E5\u968F\u8BB0/journal.json", state.NOTE_STATE);
+    await this.writeJson("07_Baseline_\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303/family_pact.json", state.DOMAIN_STATE?.family || null);
+    if (this.getSettings().autoSyncVaultMarkdown) {
+      let entries = [...state.NOTE_STATE?.historyEntries || []];
+      const note = state.NOTE_STATE;
+      const date = note?.dateKey || localDateKey();
+      if (note && !entries.some((e) => e.date === date) && (note.journalText || note.todayAutoLogs?.length || note.mediaList?.length)) {
+        entries.push({ date, text: note.journalText, autoLogs: note.todayAutoLogs, media: note.mediaList, mood: note.currentMood, energy: note.currentEnergy });
+      } else if (note) {
+        entries = entries.map((entry) => entry.date === date ? { ...entry, text: note.journalText ?? entry.text, draft: entry.draft || note.journalText !== entry.text, autoLogs: note.todayAutoLogs, media: note.mediaList, mood: note.currentMood, energy: note.currentEnergy } : entry);
+      }
+      const written = /* @__PURE__ */ new Set();
+      for (const entry of entries) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(entry.date) || written.has(entry.date))
+          continue;
+        written.add(entry.date);
+        await this.writeText(`08_Daily_\u6BCF\u65E5\u968F\u8BB0/${entry.date.slice(0, 4)}/${entry.date}.md`, this.dailyMarkdown(entry, state.DOMAIN_STATE));
+      }
+      const code = "07_Baseline_\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303/personal_code.md";
+      if (!await adapter.exists(this.resolvePath(code)))
+        await this.writeText(code, "---\ntype: personal-constitution\n---\n\n# \u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303\n\n\u8BF7\u5728\u4EB2\u5B50\u5171\u540C\u8BA8\u8BBA\u540E\uFF0C\u8BB0\u5F55\u5DF2\u786E\u7ACB\u7684\u884C\u4E3A\u89C4\u8303\u3002\n");
+    }
+    globalIslandEventBus.emit("vault:synced", { timestamp: state.updatedAt });
+  }
+  async saveAttachment(file) {
+    if (!/^(image|video|audio)\//.test(file.type))
+      throw new Error("\u8BF7\u9009\u62E9\u7167\u7247\u3001\u89C6\u9891\u6216\u97F3\u9891\u6587\u4EF6");
+    if (file.size > 200 * 1024 * 1024)
+      throw new Error("\u5355\u4E2A\u9644\u4EF6\u4E0D\u80FD\u8D85\u8FC7 200 MB");
+    const path = this.resolvePath(`attachments/${localDateKey()}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${safeFileStem(file.name.replace(/\.[^.]+$/, ""))}.${file.name.split(".").pop()?.replace(/[^a-z0-9]/gi, "") || "bin"}`);
+    await this.ensureFolder(path.slice(0, path.lastIndexOf("/")));
+    await this.app.vault.adapter.writeBinary(path, await file.arrayBuffer());
+    return { path, url: this.app.vault.adapter.getResourcePath(path) };
+  }
+  attachmentUrl(path) {
+    return this.app.vault.adapter.getResourcePath(path);
+  }
+  async exportDocument(path, content) {
+    await this.writeText(path, content);
+    new import_obsidian.Notice(`\u5DF2\u5BFC\u51FA\u771F\u5B9E\u6863\u6848\uFF1A${path}`);
+  }
+  async importProjectCanvas(id) {
+    const win = window;
+    const project = win.GANTT_PROJECTS.find((p) => p.id === id);
+    if (!project)
+      return false;
+    const relative = `${this.pavilionDir(project.pavilion)}/02_Projects/${safeFileStem(project.title)}--${safeFileStem(id)}.canvas`;
+    const canvas = await this.readJson(relative);
+    if (!canvas || !Array.isArray(canvas.nodes)) {
+      new import_obsidian.Notice("\u8BF7\u5148\u5BFC\u51FA\u9879\u76EECanvas");
       return false;
     }
+    const nodes = win.DOMAIN_STATE.nodesByProject[id] || [];
+    for (const item of canvas.nodes) {
+      const node = nodes.find((n) => n.id === item.id);
+      if (node && Number.isFinite(item.x) && Number.isFinite(item.y)) {
+        node.canvasPosition = { x: item.x, y: item.y };
+        const element = typeof document === "undefined" ? null : document.getElementById(node.id);
+        if (element && win.currentTertiaryProjId === id) {
+          element.style.left = `${item.x}px`;
+          element.style.top = `${item.y}px`;
+        }
+        if (node.nodeType === "text" && typeof item.text === "string")
+          node.cardPayload.textContent = item.text;
+      }
+    }
+    win.PROJECT_CANVAS_STORE[id].nodes = nodes;
+    await this.syncRuntimeToVault();
+    return true;
+  }
+  dailyMarkdown(entry, domain) {
+    const logs = (entry.autoLogs || []).map((log) => {
+      if (typeof log === "string")
+        return log;
+      const project = domain?.projects?.find((p) => p.id === log.projectId);
+      const link = project ? ` [[${this.resolvePath(`${this.pavilionDir(project.pavilion)}/02_Projects/${safeFileStem(project.title)}--${safeFileStem(project.id)}.md`)}|\u6765\u6E90\u9879\u76EE]]` : "";
+      return `${log.time ? `[${log.time}] ` : ""}${log.text || ""}${log.sourceId ? `\uFF08\u6765\u6E90ID: ${log.sourceId}\uFF09` : ""}${link}`;
+    });
+    const media = entry.media || entry.mediaList || [];
+    const text = String(entry.text || entry.reflection || entry.content || "");
+    return `---
+type: daily-journal
+date: ${entry.date}
+mood: ${JSON.stringify(entry.mood || "focused")}
+energy_level: ${entry.energy ?? 4}
+auto_logs: ${JSON.stringify(logs)}
+media_attachments: ${JSON.stringify(media.map((m) => ({ type: m.type, path: m.path || "", desc: m.caption || m.name || "" })))}
+content_reflection: ${JSON.stringify(text)}
+---
+
+# ${entry.date} \u6BCF\u65E5\u968F\u8BB0
+
+## \u5BA2\u89C2\u4E8B\u5B9E\u6D41\u6C34
+${logs.map((l) => `- ${l}`).join("\n")}
+
+## \u5FC3\u6D41\u968F\u7B14
+${text}
+
+## \u5F71\u50CF\u7269\u8BC1
+${media.filter((m) => m.path).map((m) => `![[${m.path}]]`).join("\n")}
+
+[[${this.resolvePath("07_Baseline_\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303/personal_code.md")}|\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303]]
+`;
+  }
+  projectMarkdown(project, key, data, domain) {
+    const canvas = this.buildObsidianCanvasJson(project, key, data);
+    const records = (domain?.records || []).filter((r) => r.projectId === project.id);
+    const executions = records.map((record) => {
+      const actual = [
+        ...(record.metrics || []).map((m) => `- ${m.name}\uFF1A\u76EE\u6807 ${m.targetValue}\uFF1B\u5B9E\u6D4B ${m.actual}`),
+        ...Object.entries(record.customFieldValues || {}).map(([name, value]) => `- ${record.sourceSnapshot?.cardPayload?.customFieldsSchema?.find((f) => f.key === name)?.label || name}\uFF1A${value}`),
+        ...(record.improvementList || []).map((item) => `- \u540E\u7EED\u63D0\u5347\uFF1A${item.actionItem}`)
+      ].join("\n");
+      return `### ${record.title || "\u6267\u884C\u8BB0\u5F55"}
+\u8BB0\u5F55ID: ${record.id}
+\u6E90\u8282\u70B9ID: ${record.nodeId}
+\u8BA1\u5212\u65E5: ${record.scheduledDate || record.date}
+\u5B9E\u9645\u63D0\u4EA4\u65E5: ${record.date}
+\u9A8C\u6536: ${record.validated ? "\u901A\u8FC7" : "\u5386\u53F2\u672A\u6838\u9A8C"}
+\u5B9E\u9645\u4E13\u6CE8: ${record.focusSeconds || 0}\u79D2
+
+${record.reflection || ""}
+
+${actual}
+
+${(record.media || []).filter((m) => m.path).map((m) => `![[${m.path}]]`).join("\n")}
+
+[[${this.resolvePath(`08_Daily_\u6BCF\u65E5\u968F\u8BB0/${record.date.slice(0, 4)}/${record.date}.md`)}|\u5F53\u65E5\u968F\u8BB0]]`;
+    }).join("\n\n");
+    return `---
+type: growth-project
+project_id: ${JSON.stringify(project.id)}
+pavilion: ${JSON.stringify(key)}
+category: ${JSON.stringify(project.category || "")}
+start_date: ${JSON.stringify(project.startDate || "")}
+end_date: ${JSON.stringify(project.endDate || "")}
+---
+
+# ${project.title}
+
+${project.desc || ""}
+
+## \u5F53\u524D\u89C4\u5212
+
+${canvas.nodes.map((n) => n.text).join("\n\n")}
+
+## \u539F\u59CB\u6267\u884C\u8BB0\u5F55
+
+${executions || "\u5C1A\u65E0\u6267\u884C\u8BB0\u5F55"}
+
+[[${this.resolvePath("07_Baseline_\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303/personal_code.md")}|\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303]]
+`;
+  }
+  buildObsidianCanvasJson(project, key, data) {
+    let nodes = [];
+    if (Array.isArray(data?.nodes)) {
+      nodes = data.nodes.map((n, i) => ({ id: n.id || n.nodeId || `node-${i}`, x: n.x ?? n.canvasPosition?.x ?? 80, y: n.y ?? n.canvasPosition?.y ?? 90, width: n.width || 340, height: n.height || 220, type: "text", text: n.nodeType === "text" ? n.cardPayload?.textContent || "" : `### ${n.title || "\u8282\u70B9"}
+${n.desc || n.cardPayload?.description || ""}
+${(n.cardPayload?.metrics || []).map((m) => `${m.name}: ${m.targetValue}`).join("\n")}`, color: "2" }));
+    } else if (data?.cardsHtml && typeof document !== "undefined") {
+      const holder = document.createElement("div");
+      holder.innerHTML = data.cardsHtml;
+      nodes = Array.from(holder.querySelectorAll(".tertiary-card")).map((card, i) => {
+        const clone = card.cloneNode(true);
+        clone.querySelectorAll("button, .work-card-connect-handle").forEach((el) => el.remove());
+        clone.querySelectorAll("input, textarea").forEach((el) => {
+          const text = document.createTextNode(el.type === "checkbox" ? el.checked ? "[x] " : "[ ] " : `${el.value}
+`);
+          el.replaceWith(text);
+        });
+        return { id: card.id || `node-${i}`, x: parseFloat(card.style.left) || 0, y: parseFloat(card.style.top) || 0, width: parseFloat(card.style.width) || 340, height: 240, type: "text", text: clone.textContent?.trim() || "", color: card.className.includes("goal") ? "5" : card.className.includes("reflection") ? "6" : "2" };
+      });
+    }
+    const ids = new Set(nodes.map((n) => n.id));
+    const edges = (data?.edges || []).map((e, i) => ({ id: e.id || `edge-${i}`, fromNode: e.sourceId || e.fromNode, fromSide: "right", toNode: e.targetId || e.toNode, toSide: "left", label: e.label || "\u5173\u8054" })).filter((e) => ids.has(e.fromNode) && ids.has(e.toNode));
+    return { nodes, edges };
+  }
+  async openProjectInCanvas(id) {
+    const win = window;
+    const project = (win.GANTT_PROJECTS || []).find((p) => p.id === id);
+    if (!project) {
+      new import_obsidian.Notice("\u8BF7\u5148\u9009\u62E9\u4E00\u4E2A\u5DF2\u6709\u89C4\u5212\u9879\u76EE");
+      return false;
+    }
+    if (win.currentTertiaryProjId === id)
+      win.saveCurrentProjectCanvasSnapshot?.();
+    const key = project.pavilion || "study";
+    const rel = `${this.pavilionDir(key)}/02_Projects/${safeFileStem(project.title)}--${safeFileStem(id)}.canvas`;
+    const path = this.resolvePath(rel);
+    if (!await this.app.vault.adapter.exists(path))
+      await this.writeJson(rel, this.buildObsidianCanvasJson(project, key, win.PROJECT_CANVAS_STORE?.[id]));
+    const file = this.app.vault.getAbstractFileByPath(path);
+    if (file instanceof import_obsidian.TFile) {
+      await this.app.workspace.getLeaf(true).openFile(file);
+      return true;
+    }
+    new import_obsidian.Notice("\u753B\u5E03\u5DF2\u4FDD\u5B58\uFF0C\u8BF7\u5728\u4ED3\u5E93\u6587\u4EF6\u5217\u8868\u4E2D\u6253\u5F00\uFF1B\u8BF7\u786E\u8BA4\u5DF2\u542F\u7528 Canvas \u6838\u5FC3\u63D2\u4EF6\u3002");
+    return false;
+  }
+  async dispose() {
+    this.disposed = true;
+    if (this.syncTimer) {
+      clearTimeout(this.syncTimer);
+      this.syncTimer = null;
+    }
+    await this.queue;
   }
 };
 
@@ -739,7 +624,8 @@ ${cleanBody}`,
 var import_obsidian2 = require("obsidian");
 
 // src/ui/template.ts
-var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5907\u63A7\u5236\u4E0E\u4E3B\u6A21\u6001\u5207\u6362) -->
+var ISLAND_UI_HTML = `<div class="global-header product-contract-banner" data-product-contract="3">1.1.0 \u95ED\u73AF\u4EA4\u4E92\u9884\u89C8 \xB7 \u6309\u9879\u76EE/\u8282\u70B9/\u6BCF\u65E5\u4EFB\u52A1\u5B9E\u4F8B\u5173\u8054 \xB7 \u672C\u9884\u89C8\u6570\u636E\u4FDD\u5B58\u5728\u5F53\u524D\u6D4F\u89C8\u5668\uFF0C\u7EC4\u4EF6\u753B\u677F\u6837\u4F8B\u4E0D\u8BA1\u4E3A\u5B9E\u9645\u6267\u884C</div>
+  <!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5907\u63A7\u5236\u4E0E\u4E3B\u6A21\u6001\u5207\u6362) -->
   <header class="global-header">
     <div class="system-title-group">
       <div class="system-logo">\u{1F3DD}\uFE0F</div>
@@ -4480,16 +4366,124 @@ var ISLAND_UI_HTML = `<!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5
   </div>
 </div>`;
 
+// src/runtime/RuntimeScope.ts
+var RuntimeScope = class {
+  constructor(host) {
+    this.host = host;
+    this.cleanups = [];
+    this.timers = /* @__PURE__ */ new Set();
+    this.frames = /* @__PURE__ */ new Set();
+    this.disposed = false;
+    this.setTimeout = (callback, delay, ...args) => {
+      if (this.disposed)
+        return 0;
+      const id = this.host.setTimeout(() => {
+        this.timers.delete(id);
+        if (!this.disposed)
+          callback(...args);
+      }, delay);
+      this.timers.add(id);
+      return id;
+    };
+    this.setInterval = (callback, delay, ...args) => {
+      if (this.disposed)
+        return 0;
+      const id = this.host.setInterval(() => {
+        if (!this.disposed)
+          callback(...args);
+      }, delay);
+      this.timers.add(id);
+      return id;
+    };
+    this.clearTimeout = (id) => {
+      this.host.clearTimeout(id);
+      this.host.clearInterval(id);
+      this.timers.delete(id);
+    };
+    this.clearInterval = this.clearTimeout;
+    this.requestAnimationFrame = (callback) => {
+      if (this.disposed)
+        return 0;
+      const id = this.host.requestAnimationFrame((time) => {
+        this.frames.delete(id);
+        if (!this.disposed)
+          callback(time);
+      });
+      this.frames.add(id);
+      return id;
+    };
+    this.cancelAnimationFrame = (id) => {
+      this.host.cancelAnimationFrame(id);
+      this.frames.delete(id);
+    };
+    const originals = /* @__PURE__ */ new Map();
+    this.window = new Proxy(host, {
+      get: (target, key) => {
+        if (key === "addEventListener")
+          return (type, callback, options) => {
+            const listener = type === "keydown" ? (event) => {
+              if (!target.document.body.classList.contains("youth-island-tablet-fullscreen"))
+                return;
+              if (event.target?.closest?.("input, textarea, select, [contenteditable=true]"))
+                return;
+              callback(event);
+            } : callback;
+            target.addEventListener(type, listener, options);
+            this.cleanups.push(() => target.removeEventListener(type, listener, options));
+          };
+        const value = Reflect.get(target, key, target);
+        return typeof value === "function" && /^(dispatchEvent|removeEventListener|matchMedia|print|open|alert|confirm|prompt)$/.test(String(key)) ? value.bind(target) : value;
+      },
+      set: (target, key, value) => {
+        if (!originals.has(key))
+          originals.set(key, Object.getOwnPropertyDescriptor(target, key));
+        return Reflect.set(target, key, value, target);
+      }
+    });
+    this.cleanups.push(() => {
+      for (const [key, descriptor] of originals) {
+        if (descriptor)
+          Object.defineProperty(host, key, descriptor);
+        else
+          Reflect.deleteProperty(host, key);
+      }
+    });
+  }
+  observe(observer) {
+    this.cleanups.push(() => observer.disconnect());
+    return observer;
+  }
+  dispose() {
+    if (this.disposed)
+      return;
+    this.disposed = true;
+    for (const id of this.timers) {
+      this.host.clearTimeout(id);
+      this.host.clearInterval(id);
+    }
+    for (const id of this.frames)
+      this.host.cancelAnimationFrame(id);
+    for (const cleanup of this.cleanups.reverse())
+      cleanup();
+    this.timers.clear();
+    this.frames.clear();
+    this.cleanups = [];
+  }
+};
+
 // src/runtime/prototypeScript.ts
 function bootPrototypeRuntime() {
-  if (window.__YOUTH_ISLAND_RUNTIME_BOOTED__) {
-    if (typeof window.__reinitYouthIslandDom === "function") {
-      window.__reinitYouthIslandDom();
+  const runtimeScope = new RuntimeScope(globalThis.window);
+  const window2 = runtimeScope.window;
+  const { setTimeout: setTimeout2, clearTimeout: clearTimeout2, setInterval, clearInterval, requestAnimationFrame, cancelAnimationFrame } = runtimeScope;
+  if (window2.__YOUTH_ISLAND_RUNTIME_BOOTED__) {
+    if (typeof window2.__reinitYouthIslandDom === "function") {
+      window2.__reinitYouthIslandDom();
     }
-    return;
+    return () => runtimeScope.dispose();
   }
-  window.__YOUTH_ISLAND_RUNTIME_BOOTED__ = true;
-  window.PAVILION_CARDS = { "study": { "name": "\u6821\u53F2\u9986", "icon": "\u{1F3EB}", "sub": "\u5B66\u4E1A\u9519\u9898\u590D\u76D8\u4E0E\u6C89\u6D78\u51B2\u523A\u7279\u8BAD\u4E2D\u5FC3", "cards": { "exec": `
+  window2.__YOUTH_ISLAND_RUNTIME_BOOTED__ = true;
+  window2.PAVILION_CARDS = { "study": { "name": "\u6821\u53F2\u9986", "icon": "\u{1F3EB}", "sub": "\u5B66\u4E1A\u9519\u9898\u590D\u76D8\u4E0E\u6C89\u6D78\u51B2\u523A\u7279\u8BAD\u4E2D\u5FC3", "cards": { "exec": `
         <!-- \u8282\u70B9 1: \u9519\u9898\u539F\u9898\u4E0E\u5F52\u56E0 -->
         <div class="a-my-island-work-node-card">
           <div class="work-node-card-header">
@@ -4721,7 +4715,7 @@ function bootPrototypeRuntime() {
           </div>
         </div>
       `, "plan": '\n        <div class="a-my-island-work-node-card">\n          <div class="work-node-card-header">\n            <span class="work-node-title">\u{1F9ED} \u4E94\u5927\u5143\u8BA4\u77E5\u601D\u7EF4\u6A21\u578B\u7814\u4E60\u8868</span>\n            <span class="work-node-badge" style="background:#ccfbf1; color:#0f766e;">\u5FC3\u667A\u6846\u67B6</span>\n          </div>\n          <div class="work-node-body">\n            <p>1. \u7B2C\u4E00\u6027\u539F\u7406 (\u62C6\u89E3\u6838\u5FC3\u672C\u8D28)</p>\n            <p>2. \u53CC\u76F2\u6D4B\u8BD5\u6CD5 (\u8DF3\u51FA\u4E3B\u89C2\u81C6\u65AD)</p>\n            <p>3. \u9006\u5411\u601D\u8003\u6CD5 (\u5982\u679C\u60F3\u5931\u8D25\uFF0C\u5E94\u8BE5\u600E\u4E48\u505A\uFF1F)</p>\n          </div>\n        </div>\n      ', "rec": '\n        <div class="a-my-island-work-node-card">\n          <div class="work-node-card-header">\n            <span class="work-node-title">\u{1F9E0} \u8BA4\u77E5\u504F\u8BEF\u7EA0\u504F\u5168\u666F\u56FE\u8C31</span>\n            <span class="work-node-badge" style="background:#fef3c7; color:#b45309;">\u8BA4\u77E5\u6210\u957F</span>\n          </div>\n          <div class="work-node-body">\n            <p>\u7D2F\u8BA1\u5B8C\u6210\u6DF1\u5EA6\u601D\u8FA8\u5BF9\u8BDD 36 \u6B21\uFF0C\u8BC6\u522B\u5E76\u6D88\u9664\u201C\u5E78\u5B58\u8005\u504F\u5DEE\u201D\u201C\u786E\u8BA4\u504F\u8BEF\u201D\u7B49 8 \u79CD\u76F2\u533A\u3002</p>\n          </div>\n        </div>\n      ' } }, "achieve": { "name": "\u6210\u5C31\u9986", "icon": "\u{1F3C6}", "sub": "3D\u865A\u62DF\u8363\u8A89\u6BBF\u5802\xB7\u7EAF\u7ED3\u679C\u8BB0\u5F55\u529F\u80FD", "cards": { "rec": '\n        <div class="a-my-island-work-node-card">\n          <div class="work-node-card-header">\n            <span class="work-node-title">\u{1F48E} 3D\u5168\u606F\u8363\u8A89\u5956\u7AE0\u9648\u5217\u53F0</span>\n            <span class="work-node-badge" style="background:#fef3c7; color:#b45309;">\u8363\u8A89\u5C55\u9648</span>\n          </div>\n          <div class="work-node-body">\n            <p>\u5DF2\u70B9\u4EAE 16 \u679A\u7A00\u6709\u52CB\u7AE0\uFF0C\u62E5\u6709\u3010\u7EC8\u8EAB\u5C9B\u6C11\u8363\u8A89\u5B88\u62A4\u8005\u3011\u52CB\u7235\u79F0\u53F7\u3002</p>\n          </div>\n        </div>\n      ' } }, "note": { "name": "\u6BCF\u65E5\u968F\u8BB0", "icon": "\u{1F4DD}", "sub": "\u4E09\u6BB5\u5F0F\u751F\u547D\u65F6\u5149\u6D41\u6C34\u4E0E\u5FC3\u6D41\u987F\u609F\u7B14\u8BB0\u672C", "cards": { "exec": '\n        <div class="a-my-island-work-node-card">\n          <div class="work-node-card-header">\n            <span class="work-node-title">\u{1F4DD} \u6668\u8D77\u7ACB\u5FD7 \xB7 \u65E5\u95F4\u5FC3\u6D41 \xB7 \u665A\u95F4\u590D\u76D8</span>\n            <span class="work-node-badge" style="background:#ffedd5; color:#c2410c;">\u4ECA\u65E5\u968F\u7B14</span>\n          </div>\n          <div class="work-node-body">\n            <div style="background:#fff; border:1px solid #d4c5a9; border-radius:8px; padding:8px; font-size:11px;">\n              <strong>\u65E5\u95F4\u9AD8\u5149\uFF1A</strong> \u72EC\u81EA\u653B\u514B30\u9053\u8FDB\u9000\u4F4D\u53E3\u7B97\u5361\u5168\u5BF9\uFF01\u5FC3\u6D41\u6C89\u6D78 20 \u5206\u949F\uFF01\n            </div>\n            <button class="ui-btn primary" onclick="createTextNotePrompt()">\u270D\uFE0F \u5FEB\u901F\u8BB0\u5F55\u6B64\u65F6\u5FC3\u609F</button>\n          </div>\n        </div>\n      ', "rec": '\n        <div class="a-my-island-work-node-card">\n          <div class="work-node-card-header">\n            <span class="work-node-title">\u2601\uFE0F \u8BA4\u77E5\u6807\u7B7E\u8BCD\u4E91\u4E0E\u751F\u547D\u5E74\u8F6E</span>\n            <span class="work-node-badge" style="background:#fef3c7; color:#b45309;">\u65F6\u5149\u56DE\u6EAF</span>\n          </div>\n          <div class="work-node-body">\n            <p>\u7D2F\u8BA1\u6C89\u6DC0\u968F\u8BB0 365 \u7BC7\uFF0C\u603B\u8BA1 12.8 \u4E07\u5B57\uFF0C\u6838\u5FC3\u9AD8\u9891\u8BCD\u3010\u6C89\u6D78\u3011\u3010\u7A81\u7834\u3011\u3010\u77E5\u884C\u5408\u4E00\u3011\u3002</p>\n          </div>\n        </div>\n      ' } } };
-  window.PAVILION_DATA = { "study": { "name": "\u6821\u53F2\u9986", "icon": "\u{1F3EB}", "sub": "\u5B66\u4E1A\u9519\u9898\u590D\u76D8\u4E0E\u6C89\u6D78\u51B2\u523A\u7279\u8BAD\u4E2D\u5FC3", "plan": `
+  window2.PAVILION_DATA = { "study": { "name": "\u6821\u53F2\u9986", "icon": "\u{1F3EB}", "sub": "\u5B66\u4E1A\u9519\u9898\u590D\u76D8\u4E0E\u6C89\u6D78\u51B2\u523A\u7279\u8BAD\u4E2D\u5FC3", "plan": `
       <div class="ui-card">
         <div class="ui-card-title">
           <span>\u{1F4DD} \u9519\u9898\u6DF1\u5EA6\u590D\u76D8\u4E0E\u6210\u56E0\u5F52\u56E0\u5206\u6790</span>
@@ -4960,7 +4954,7 @@ function bootPrototypeRuntime() {
   let isArchiveDrawerOpen = false;
   let currentParticleMode = "gold";
   let isInTabletFrame = true;
-  window.isBrowseMode = true;
+  window2.isBrowseMode = true;
   let islandControlsExpanded = false;
   let activeOriginalPanel = null;
   let activeSelectedPavilion = "study";
@@ -4987,9 +4981,9 @@ function bootPrototypeRuntime() {
       const bgY = (islandPanY * 0.35).toFixed(1);
       stage.style.backgroundPosition = `calc(50% + ${bgX}px) calc(100% + ${bgY}px)`;
     }
-    window.islandPanX = islandPanX;
-    window.islandPanY = islandPanY;
-    window.islandZoom = islandZoom;
+    window2.islandPanX = islandPanX;
+    window2.islandPanY = islandPanY;
+    window2.islandZoom = islandZoom;
     const badge = document.getElementById("island-zoom-badge");
     if (badge)
       badge.textContent = Math.round(islandZoom * 100) + "%";
@@ -5161,7 +5155,7 @@ function bootPrototypeRuntime() {
         svg.removeEventListener("pointermove", onPointerMove);
         svg.removeEventListener("pointerup", onPointerUp);
         svg.removeEventListener("pointercancel", onPointerUp);
-        setTimeout(() => {
+        setTimeout2(() => {
           isDraggingIslandMinimapVp = false;
         }, 50);
       };
@@ -5317,7 +5311,7 @@ function bootPrototypeRuntime() {
       const input = document.getElementById("input-module-name");
       if (input) {
         input.value = "";
-        setTimeout(() => input.focus(), 120);
+        setTimeout2(() => input.focus(), 120);
       }
     }
   }
@@ -5390,9 +5384,9 @@ function bootPrototypeRuntime() {
     <div class="pavilion-card-label">${name}</div>
     <div class="pavilion-view-badge" style="background:#fef3c7; color:#b45309;">${badgeText}</div>
   `;
-    if (!window.PAVILION_CARDS)
-      window.PAVILION_CARDS = {};
-    window.PAVILION_CARDS[moduleId] = {
+    if (!window2.PAVILION_CARDS)
+      window2.PAVILION_CARDS = {};
+    window2.PAVILION_CARDS[moduleId] = {
       id: moduleId,
       name,
       icon,
@@ -5454,8 +5448,8 @@ function bootPrototypeRuntime() {
     openAddModuleModal();
   }
   function handlePavilionClick(pavilionId) {
-    if (window._islandNodeDragMoved) {
-      window._islandNodeDragMoved = false;
+    if (window2._islandNodeDragMoved) {
+      window2._islandNodeDragMoved = false;
       return;
     }
     activeSelectedPavilion = pavilionId;
@@ -5495,7 +5489,7 @@ function bootPrototypeRuntime() {
   let nodePointerInitLeft = 0;
   let nodePointerInitTop = 0;
   let nodePointerHasMoved = false;
-  window._islandNodeDragMoved = false;
+  window2._islandNodeDragMoved = false;
   function initCanvasPanZoomAndDrag() {
     const stage = document.getElementById("island-canvas-stage");
     const canvasWorld = document.getElementById("island-world-canvas");
@@ -5640,7 +5634,7 @@ function bootPrototypeRuntime() {
         if (!dragNodeHasMoved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
           dragNodeHasMoved = true;
           activeDragNode._dragMoved = true;
-          window._islandNodeDragMoved = true;
+          window2._islandNodeDragMoved = true;
         }
         if (dragNodeHasMoved) {
           activeDragNode.style.left = dragNodeInitLeft + dx + "px";
@@ -5672,10 +5666,10 @@ function bootPrototypeRuntime() {
         node.classList.remove("is-node-dragging");
         if (dragNodeHasMoved) {
           node._dragMoved = true;
-          window._islandNodeDragMoved = true;
-          setTimeout(() => {
+          window2._islandNodeDragMoved = true;
+          setTimeout2(() => {
             node._dragMoved = false;
-            window._islandNodeDragMoved = false;
+            window2._islandNodeDragMoved = false;
           }, 220);
         }
       }
@@ -5692,10 +5686,10 @@ function bootPrototypeRuntime() {
       }
     };
     stage.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointermove", onPointerMove);
+    window2.addEventListener("pointermove", onPointerMove);
     stage.addEventListener("pointerup", onPointerUp);
     stage.addEventListener("pointercancel", onPointerUp);
-    window.addEventListener("pointerup", onPointerUp);
+    window2.addEventListener("pointerup", onPointerUp);
     let touchPinchStartDist = 0;
     let touchPinchStartZoom = 1;
     let touchPinchPivotWorldX = 0;
@@ -5788,7 +5782,7 @@ function bootPrototypeRuntime() {
         if (!touchNodeHasMoved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
           touchNodeHasMoved = true;
           activeTouchNode._dragMoved = true;
-          window._islandNodeDragMoved = true;
+          window2._islandNodeDragMoved = true;
         }
         if (touchNodeHasMoved) {
           activeTouchNode.style.left = touchNodeInitLeft + dx + "px";
@@ -5815,10 +5809,10 @@ function bootPrototypeRuntime() {
         node.classList.remove("is-node-dragging");
         if (touchNodeHasMoved) {
           node._dragMoved = true;
-          window._islandNodeDragMoved = true;
-          setTimeout(() => {
+          window2._islandNodeDragMoved = true;
+          setTimeout2(() => {
             node._dragMoved = false;
-            window._islandNodeDragMoved = false;
+            window2._islandNodeDragMoved = false;
           }, 220);
         }
       }
@@ -5829,11 +5823,11 @@ function bootPrototypeRuntime() {
     stage.addEventListener("touchend", endTouch, { passive: true });
     stage.addEventListener("touchcancel", endTouch, { passive: true });
     stage.addEventListener("click", (e) => {
-      if (window._islandNodeDragMoved && e.target.closest(".pavilion-node")) {
+      if (window2._islandNodeDragMoved && e.target.closest(".pavilion-node")) {
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
-        window._islandNodeDragMoved = false;
+        window2._islandNodeDragMoved = false;
         return false;
       }
     }, true);
@@ -5845,12 +5839,12 @@ function bootPrototypeRuntime() {
         return;
       node._clickGuardBound = true;
       node.addEventListener("click", (e) => {
-        if (node._dragMoved || window._islandNodeDragMoved) {
+        if (node._dragMoved || window2._islandNodeDragMoved) {
           e.preventDefault();
           e.stopPropagation();
           e.stopImmediatePropagation();
           node._dragMoved = false;
-          window._islandNodeDragMoved = false;
+          window2._islandNodeDragMoved = false;
           return false;
         }
       }, true);
@@ -5992,11 +5986,11 @@ function bootPrototypeRuntime() {
     });
   }
   function toggleBrowseMode() {
-    window.isBrowseMode = !window.isBrowseMode;
+    window2.isBrowseMode = !window2.isBrowseMode;
     const btn = document.getElementById("launcher-btn-browse");
     if (btn)
-      btn.classList.toggle("is-active", window.isBrowseMode);
-    if (window.isBrowseMode) {
+      btn.classList.toggle("is-active", window2.isBrowseMode);
+    if (window2.isBrowseMode) {
       showIslandToast("\u{1F441}\uFE0F \u6D4F\u89C8\u6A21\u5F0F\u5DF2\u5F00\u542F\uFF1A\u79FB\u52A8\u5E73\u677F\u5355\u51FB\u529F\u80FD\u9986\u5373\u53EF\u76F4\u63A5\u8FDB\u5165\u4E8C\u7EA7\u5DE5\u4F5C\u53F0\uFF01");
     } else {
       showIslandToast("\u{1F512} \u6D4F\u89C8\u6A21\u5F0F\u5DF2\u5173\u95ED\uFF1A\u53CC\u51FB\u8FDB\u5165\u5DE5\u4F5C\u53F0\uFF0C\u5355\u51FB\u4E3A\u9009\u4E2D\u805A\u7126\u3002");
@@ -6038,7 +6032,7 @@ function bootPrototypeRuntime() {
   function loadIslandSettings() {
     const def = defaultIslandSettings();
     try {
-      const raw = window.localStorage.getItem(ISLAND_SETTINGS_KEY);
+      const raw = window2.localStorage.getItem(ISLAND_SETTINGS_KEY);
       if (raw) {
         const o = JSON.parse(raw);
         return Object.assign(def, o, {
@@ -6051,14 +6045,14 @@ function bootPrototypeRuntime() {
     return def;
   }
   function getIslandSettings() {
-    const st = window.USER_PROFILE_STATE;
+    const st = window2.USER_PROFILE_STATE;
     if (!st.settings)
       st.settings = loadIslandSettings();
     return st.settings;
   }
   function saveIslandSettings() {
     try {
-      window.localStorage.setItem(ISLAND_SETTINGS_KEY, JSON.stringify(getIslandSettings()));
+      window2.localStorage.setItem(ISLAND_SETTINGS_KEY, JSON.stringify(getIslandSettings()));
     } catch (e) {
     }
   }
@@ -6264,9 +6258,9 @@ function bootPrototypeRuntime() {
       showIslandToast("\u5DF2\u9000\u51FA\u6C89\u6D78\u6A21\u5F0F\uFF0C\u6062\u590D\u5168\u80FD\u64CD\u4F5C\u754C\u9762\u3002");
     }
   }
-  window.toggleObsidianSplit = function(side) {
-    if (typeof window.__toggleObsidianSidebar === "function") {
-      window.__toggleObsidianSidebar(side);
+  window2.toggleObsidianSplit = function(side) {
+    if (typeof window2.__toggleObsidianSidebar === "function") {
+      window2.__toggleObsidianSidebar(side);
     } else {
       showIslandToast((side === "left" ? "\u{1F4C2} \u5DE6\u4FA7\u8FB9\u680F" : "\u{1F4D1} \u53F3\u4FA7\u8FB9\u680F") + "\u5207\u6362\uFF08\u5728 Obsidian \u539F\u751F\u63D2\u4EF6\u73AF\u5883\u4E2D\u751F\u6548\uFF09");
     }
@@ -6281,8 +6275,8 @@ function bootPrototypeRuntime() {
     }
     toast.innerText = msg;
     toast.style.opacity = "1";
-    clearTimeout(toast.timer);
-    toast.timer = setTimeout(() => {
+    clearTimeout2(toast.timer);
+    toast.timer = setTimeout2(() => {
       toast.style.opacity = "0";
     }, 2200);
   }
@@ -7362,7 +7356,7 @@ function bootPrototypeRuntime() {
   }
   function notifyIslandStateChanged() {
     try {
-      window.dispatchEvent(new CustomEvent("youth-island:state-changed"));
+      window2.dispatchEvent(new CustomEvent("youth-island:state-changed"));
     } catch (e) {
     }
   }
@@ -7389,8 +7383,8 @@ function bootPrototypeRuntime() {
     const checkinType = normalizeExecCheckinType(pavilionId);
     const meta = EXEC_CHECKIN_PAGE_META[checkinType] || EXEC_CHECKIN_PAGE_META.goal;
     currentExecPopupPavilion = meta.legacyKey || "study";
-    window.currentExecCheckinType = checkinType;
-    window.currentActiveExecDeckCardId = clickedCardEl ? clickedCardEl.id : "exec-card-" + checkinType;
+    window2.currentExecCheckinType = checkinType;
+    window2.currentActiveExecDeckCardId = clickedCardEl ? clickedCardEl.id : "exec-card-" + checkinType;
     isExecProjectNodesViewActive = false;
     const data = EXEC_PROJECT_DATA[currentExecPopupPavilion] || EXEC_PROJECT_DATA.study;
     const customTitle = clickedCardEl ? clickedCardEl.getAttribute("data-label") || "" : "";
@@ -7623,7 +7617,7 @@ function bootPrototypeRuntime() {
     });
     cardsContainer.innerHTML = cardsHtml;
     labelsLayer.innerHTML = labelsHtml;
-    setTimeout(() => {
+    setTimeout2(() => {
       const actNode = document.querySelector(".exec-active-project-node");
       if (actNode && world) {
         const offset = actNode.offsetLeft - 120;
@@ -7651,7 +7645,7 @@ function bootPrototypeRuntime() {
       panScrollLeft = worldEl.scrollLeft;
       worldEl.style.cursor = "grabbing";
     });
-    window.addEventListener("mousemove", (e) => {
+    window2.addEventListener("mousemove", (e) => {
       if (!isPanningExecCanvas || !worldEl)
         return;
       e.preventDefault();
@@ -7659,7 +7653,7 @@ function bootPrototypeRuntime() {
       const walk = (x - panStartX) * 1.4;
       worldEl.scrollLeft = panScrollLeft - walk;
     });
-    window.addEventListener("mouseup", () => {
+    window2.addEventListener("mouseup", () => {
       if (isPanningExecCanvas) {
         isPanningExecCanvas = false;
         if (worldEl)
@@ -7709,7 +7703,7 @@ function bootPrototypeRuntime() {
     if (btn)
       btn.textContent = "\u25B6\uFE0F \u542F\u52A8\u4E13\u6CE8";
   }
-  window.USER_PROFILE_STATE = {
+  window2.USER_PROFILE_STATE = {
     streakDays: 0,
     streakIncrementedToday: false,
     completedTodayCount: 0,
@@ -7720,7 +7714,7 @@ function bootPrototypeRuntime() {
     checkedTaskKeys: {}
   };
   function computeCurrentFulfillmentRate() {
-    const st = window.USER_PROFILE_STATE || { streakDays: 0, completedTodayCount: 0, totalTodayCount: 0, baseFulfillmentRate: 100, violationCount: 0 };
+    const st = window2.USER_PROFILE_STATE || { streakDays: 0, completedTodayCount: 0, totalTodayCount: 0, baseFulfillmentRate: 100, violationCount: 0 };
     if (!st.totalTodayCount || st.totalTodayCount === 0) {
       return Math.max(0, 100 - (st.violationCount || 0) * 5);
     }
@@ -7728,7 +7722,7 @@ function bootPrototypeRuntime() {
     return Math.max(0, Math.min(100, pct - (st.violationCount || 0) * 5));
   }
   function recalcAndRenderGlobalHUD() {
-    const st = window.USER_PROFILE_STATE || { streakDays: 0, completedTodayCount: 0, totalTodayCount: 0, baseFulfillmentRate: 100, violationCount: 0 };
+    const st = window2.USER_PROFILE_STATE || { streakDays: 0, completedTodayCount: 0, totalTodayCount: 0, baseFulfillmentRate: 100, violationCount: 0 };
     const rate = computeCurrentFulfillmentRate();
     const streakEl = document.getElementById("hud-streak-count");
     if (streakEl)
@@ -7751,23 +7745,23 @@ function bootPrototypeRuntime() {
     if (!logText)
       return;
     const addMins = parseInt(focusMinutes, 10) || 0;
-    if (window.NOTE_STATE) {
-      if (!Array.isArray(window.NOTE_STATE.todayAutoLogs)) {
-        window.NOTE_STATE.todayAutoLogs = [];
+    if (window2.NOTE_STATE) {
+      if (!Array.isArray(window2.NOTE_STATE.todayAutoLogs)) {
+        window2.NOTE_STATE.todayAutoLogs = [];
       }
-      if (!window.NOTE_STATE.todayAutoLogs.some((item) => (typeof item === "string" ? item : item.text) === logText)) {
+      if (!window2.NOTE_STATE.todayAutoLogs.some((item) => (typeof item === "string" ? item : item.text) === logText)) {
         const now = /* @__PURE__ */ new Date();
         const timeStr = String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
-        window.NOTE_STATE.todayAutoLogs.unshift({
+        window2.NOTE_STATE.todayAutoLogs.unshift({
           time: timeStr,
           text: logText
         });
       }
       if (addMins > 0) {
-        window.NOTE_STATE.todayFocusMinutes = (window.NOTE_STATE.todayFocusMinutes || 60) + addMins;
+        window2.NOTE_STATE.todayFocusMinutes = (window2.NOTE_STATE.todayFocusMinutes || 60) + addMins;
       }
-      if (Array.isArray(window.NOTE_STATE.historyEntries) && window.NOTE_STATE.historyEntries[0]) {
-        const todayEntry = window.NOTE_STATE.historyEntries[0];
+      if (Array.isArray(window2.NOTE_STATE.historyEntries) && window2.NOTE_STATE.historyEntries[0]) {
+        const todayEntry = window2.NOTE_STATE.historyEntries[0];
         if (!Array.isArray(todayEntry.autoLogs))
           todayEntry.autoLogs = [];
         if (!todayEntry.autoLogs.includes(logText)) {
@@ -7784,9 +7778,9 @@ function bootPrototypeRuntime() {
   }
   function renderHomeSemesterGoalsBanner() {
     const listEl = document.getElementById("island-goal-cards-list");
-    if (!listEl || !Array.isArray(window.GANTT_PROJECTS))
+    if (!listEl || !Array.isArray(window2.GANTT_PROJECTS))
       return;
-    const activeProjs = window.GANTT_PROJECTS.filter((p) => !p.isArchived);
+    const activeProjs = window2.GANTT_PROJECTS.filter((p) => !p.isArchived);
     if (activeProjs.length === 0) {
       listEl.innerHTML = `<div style="display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:10px 16px; color:#8c6b45; font-size:12px; font-weight:700;"><span>\u{1F331} \u6682\u65E0\u8FDB\u884C\u4E2D\u7684\u5B66\u671F\u89C4\u5212\u9879\u76EE</span><button type="button" class="card-graphic-pill pill-timer" onclick="switchMainSection('ws'); openAddProjectModal();" style="padding:2px 10px; font-size:11px; cursor:pointer;">\u2795 \u7ACB\u5373\u7ACB\u9879</button></div>`;
       return;
@@ -7812,7 +7806,7 @@ function bootPrototypeRuntime() {
     const pavilionId = options.pavilionId || "study";
     const title = options.title || "\u653B\u575A\u5B9E\u8BAD\u4EFB\u52A1";
     const focusMinutes = parseInt(options.focusMinutes, 10) || 20;
-    const st = window.USER_PROFILE_STATE;
+    const st = window2.USER_PROFILE_STATE;
     const deckCards = document.querySelectorAll("#day-card-deck .exec-task-card");
     if (deckCards.length > 0) {
       st.totalTodayCount = Math.max(st.totalTodayCount || 5, deckCards.length);
@@ -7825,11 +7819,11 @@ function bootPrototypeRuntime() {
         st.streakIncrementedToday = true;
       }
     }
-    if (Array.isArray(window.GANTT_PROJECTS)) {
+    if (Array.isArray(window2.GANTT_PROJECTS)) {
       const todayStr = typeof GANTT_TODAY !== "undefined" ? GANTT_TODAY : "2026-10-27";
       const catMap = { study: "\u5B66\u4E1A\u653B\u575A", dojo: "\u5174\u8DA3\u7279\u957F", cultivation: "\u4FEE\u8EAB\u7ACB\u5BAA", cognition: "\u8BA4\u77E5\u601D\u8FA8", drill: "\u5B66\u4E1A\u653B\u575A", habit: "\u4FEE\u8EAB\u7ACB\u5BAA", reflection: "\u5B66\u4E1A\u653B\u575A", goal: "\u5B66\u4E1A\u653B\u575A", custom: "\u8BA4\u77E5\u601D\u8FA8" };
       const targetCat = catMap[pavilionId] || PAVILION_META[pavilionId] && PAVILION_META[pavilionId].cat || "\u5B66\u4E1A\u653B\u575A";
-      const proj = options.projId && window.GANTT_PROJECTS.find((p) => p.id === options.projId) || window.GANTT_PROJECTS.find((p) => !p.isArchived && (p.pavilion === pavilionId || p.category === targetCat)) || window.GANTT_PROJECTS[0];
+      const proj = options.projId && window2.GANTT_PROJECTS.find((p) => p.id === options.projId) || window2.GANTT_PROJECTS.find((p) => !p.isArchived && (p.pavilion === pavilionId || p.category === targetCat)) || window2.GANTT_PROJECTS[0];
       if (proj) {
         if (!Array.isArray(proj.completedDays))
           proj.completedDays = [];
@@ -7864,7 +7858,7 @@ function bootPrototypeRuntime() {
         }
       }
       if (typeof renderWeekBoard === "function") {
-        renderWeekBoard(window.currentWeekFilter || "all");
+        renderWeekBoard(window2.currentWeekFilter || "all");
       }
     }
     if (typeof renderMonthCalendar === "function") {
@@ -7873,10 +7867,10 @@ function bootPrototypeRuntime() {
     recalcAndRenderGlobalHUD();
     const pName = typeof PAVILION_META !== "undefined" && PAVILION_META[pavilionId] && PAVILION_META[pavilionId].name ? PAVILION_META[pavilionId].name : "\u6267\u884C\u4E2D\u5FC3";
     appendDailyAutoLog("\u26A1 \u6267\u884C\u6253\u5361\u8FBE\u6210\uFF1A\u3010" + pName + "\u3011\u5B8C\u6210\u300A" + title + "\u300B(" + focusMinutes + "\u5206\u949F\u7269\u8BC1\u5DF2\u5F52\u6863)", focusMinutes);
-    if (st.streakDays >= 19 && window.ACHIEVEMENT_STATE && Array.isArray(window.ACHIEVEMENT_STATE.cultivationItems)) {
+    if (st.streakDays >= 19 && window2.ACHIEVEMENT_STATE && Array.isArray(window2.ACHIEVEMENT_STATE.cultivationItems)) {
       const achId = "ACH-CULT-STREAK-19";
-      if (!window.ACHIEVEMENT_STATE.cultivationItems.some((x) => x.id === achId)) {
-        window.ACHIEVEMENT_STATE.cultivationItems.unshift({
+      if (!window2.ACHIEVEMENT_STATE.cultivationItems.some((x) => x.id === achId)) {
+        window2.ACHIEVEMENT_STATE.cultivationItems.unshift({
           id: achId,
           date: (/* @__PURE__ */ new Date()).toISOString().split("T")[0],
           title: "\u8FDE\u7EED" + st.streakDays + "\u5929\u77E5\u884C\u5408\u4E00\u5C65\u7EA6\u8FBE\u4EBA\u52CB\u7AE0",
@@ -7931,18 +7925,18 @@ function bootPrototypeRuntime() {
       focusMinutes: 25
     });
     showIslandToast("\u{1F31F} \u6253\u5361\u95ED\u73AF\u8FBE\u6210\uFF01\u5DF2\u540C\u6B65\u56DE\u5199\u7518\u7279\u8FDB\u5EA6\u3001\u5168\u5C40\u5C65\u7EA6\u7387\u3001\u6BCF\u65E5\u968F\u8BB0\u4E0E\u6210\u5C31\u9986\uFF01");
-    setTimeout(() => {
+    setTimeout2(() => {
       closeExecCardPopupView();
     }, 1400);
   }
-  window.tertiaryModuleUploadedImageSrc = "";
+  window2.tertiaryModuleUploadedImageSrc = "";
   function handleTertiaryModuleFileUpload(input) {
     if (!input || !input.files || !input.files[0])
       return;
     const file = input.files[0];
     const reader = new FileReader();
     reader.onload = function(e) {
-      window.tertiaryModuleUploadedImageSrc = e.target.result;
+      window2.tertiaryModuleUploadedImageSrc = e.target.result;
       const previewContainer = document.getElementById("tertiary-module-upload-preview-container");
       const thumb = document.getElementById("tertiary-module-upload-thumb");
       const filenameEl = document.getElementById("tertiary-module-upload-filename");
@@ -7964,7 +7958,7 @@ function bootPrototypeRuntime() {
     reader.readAsDataURL(file);
   }
   function removeTertiaryModuleUploadedFile() {
-    window.tertiaryModuleUploadedImageSrc = "";
+    window2.tertiaryModuleUploadedImageSrc = "";
     const previewContainer = document.getElementById("tertiary-module-upload-preview-container");
     const fileInput = document.getElementById("input-tertiary-module-file");
     const iconInput = document.getElementById("input-tertiary-module-icon");
@@ -8036,7 +8030,7 @@ function bootPrototypeRuntime() {
   }
   function renderWorkspaceContent() {
     if (typeof applyPavilionWallpaper === "function")
-      setTimeout(applyPavilionWallpaper, 0);
+      setTimeout2(applyPavilionWallpaper, 0);
     const meta = PAVILION_META[currentWsPavilion] || { name: "\u5DE5\u4F5C\u53F0", icon: "\u{1F3EB}", specializedTitle: "\u4E13\u5C5E\u7A7A\u95F4", hasGantt: true };
     const breadcrumbPavilionName = document.getElementById("ws-crumb-pavilion-name");
     const breadcrumbLeaf = document.getElementById("ws-crumb-view-leaf");
@@ -8311,9 +8305,9 @@ function bootPrototypeRuntime() {
       }
     }
   }
-  window.BOUNTY_STATE = null;
+  window2.BOUNTY_STATE = null;
   function renderBountyModalAndBillboard() {
-    const b = window.BOUNTY_STATE;
+    const b = window2.BOUNTY_STATE;
     const billboard = document.getElementById("home-bounty-billboard");
     const hTitle = document.getElementById("home-bounty-title");
     const hTimer = document.getElementById("home-bounty-timer");
@@ -8614,7 +8608,7 @@ function bootPrototypeRuntime() {
     const pavId = pavLabel.includes("\u6B66\u9053") ? "dojo" : pavLabel.includes("\u4FEE\u8EAB") ? "cultivation" : pavLabel.includes("\u601D\u8FA8") ? "cognition" : "study";
     const days = Math.max(1, parseInt(daysEl ? daysEl.value : "7", 10) || 7);
     const criteria = critEl && critEl.value.trim() ? critEl.value.trim() : "\u6309\u671F\u5B8C\u6210\u6311\u6218\u5E76\u4E0A\u4F20\u771F\u5B9E\u8FC7\u7A0B\u7167\u7247/\u89C6\u9891\u7269\u8BC1\uFF0C\u7ECF\u4EB2\u5B50\u5171\u540C\u6838\u9A8C\u76D6\u6233\u5151\u73B0\u3002";
-    window.BOUNTY_STATE = {
+    window2.BOUNTY_STATE = {
       id: "BC-" + Date.now().toString().slice(-6),
       title,
       pavilionLabel: pavLabel,
@@ -8640,7 +8634,7 @@ function bootPrototypeRuntime() {
     showIslandToast("\u{1F680} \u65B0\u60AC\u8D4F\u4EE4\u300A" + title + "\u300B\u5DF2\u5F20\u699C\u81F3\u9876\u680F\u544A\u793A\u724C\uFF01\u8BF7\u5B69\u5B50\u70B9\u51FB\u3010\u63ED\u699C\u5E94\u6218\u3011\uFF01");
   }
   function acceptParentBounty() {
-    const b = window.BOUNTY_STATE;
+    const b = window2.BOUNTY_STATE;
     if (!b)
       return;
     b.status = "accepted";
@@ -8658,7 +8652,7 @@ function bootPrototypeRuntime() {
     showIslandToast("\u2694\uFE0F \u63ED\u699C\u6210\u529F\uFF01\u5DF2\u81EA\u52A8\u5C06\u300A" + b.title + "\u300B\u6D3E\u53D1\u81F3\u9996\u9875\u4ECA\u65E5\u5F85\u529E\u8F6E\u64AD\uFF01");
   }
   function uploadBountyEvidence() {
-    const b = window.BOUNTY_STATE;
+    const b = window2.BOUNTY_STATE;
     if (!b)
       return;
     b.evidenceUploaded = true;
@@ -8667,7 +8661,7 @@ function bootPrototypeRuntime() {
     showIslandToast("\u{1F4F8} \u5DF2\u4E0A\u4F20\u60AC\u8D4F\u6311\u6218\u771F\u5B9E\u7269\u8BC1\uFF1A\u300A" + b.evidenceName + "\u300B\uFF01");
   }
   function completeBountyDemo() {
-    const b = window.BOUNTY_STATE;
+    const b = window2.BOUNTY_STATE;
     if (!b)
       return;
     if (b.status === "published") {
@@ -8682,10 +8676,10 @@ function bootPrototypeRuntime() {
     renderBountyModalAndBillboard();
     const now = /* @__PURE__ */ new Date();
     const dateStr = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
-    if (window.ACHIEVEMENT_STATE && window.ACHIEVEMENT_STATE.cultivationItems) {
+    if (window2.ACHIEVEMENT_STATE && window2.ACHIEVEMENT_STATE.cultivationItems) {
       const bountyAchId = "ACH-BOUNTY-" + b.id;
-      if (!window.ACHIEVEMENT_STATE.cultivationItems.some((x) => x.id === bountyAchId)) {
-        window.ACHIEVEMENT_STATE.cultivationItems.unshift({
+      if (!window2.ACHIEVEMENT_STATE.cultivationItems.some((x) => x.id === bountyAchId)) {
+        window2.ACHIEVEMENT_STATE.cultivationItems.unshift({
           id: bountyAchId,
           date: dateStr,
           title: "\u7F6E\u9876\u60AC\u8D4F\u4EE4 \xB7 \u300A" + b.title + "\u300B\u5C65\u7EA6\u52CB\u7AE0",
@@ -8708,7 +8702,7 @@ function bootPrototypeRuntime() {
     }
     appendDailyAutoLog("\u{1F3C6} \u60AC\u8D4F\u5951\u7EA6\u5151\u73B0\uFF1A\u5706\u6EE1\u8FBE\u6210\u300A" + b.title + "\u300B\uFF0C\u5151\u73B0\u5FC3\u613F\u3010" + b.reward + "\u3011\u5E76\u8F7D\u5165\u6210\u5C31\u9986");
     showIslandToast("\u{1F389} \u5BB6\u957F\u6838\u9A8C\u76D6\u6233\u901A\u8FC7\uFF01\u5FC3\u613F\u3010" + b.reward + "\u3011\u5DF2\u5151\u73B0\u5E76\u540C\u6B65\u94ED\u523B\u81F3\u6210\u5C31\u9986\u4E0E\u6BCF\u65E5\u968F\u8BB0\uFF01");
-    setTimeout(() => {
+    setTimeout2(() => {
       closeBountyModal();
     }, 1500);
   }
@@ -8867,10 +8861,10 @@ function bootPrototypeRuntime() {
     }
     const now = /* @__PURE__ */ new Date();
     const dateStr = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
-    if (window.ACHIEVEMENT_STATE && Array.isArray(window.ACHIEVEMENT_STATE.cultivationItems)) {
-      const existing = window.ACHIEVEMENT_STATE.cultivationItems.find((x) => x.id === "ACH-GOAL-CHECKIN-PAGE");
+    if (window2.ACHIEVEMENT_STATE && Array.isArray(window2.ACHIEVEMENT_STATE.cultivationItems)) {
+      const existing = window2.ACHIEVEMENT_STATE.cultivationItems.find((x) => x.id === "ACH-GOAL-CHECKIN-PAGE");
       if (!existing) {
-        window.ACHIEVEMENT_STATE.cultivationItems.unshift({
+        window2.ACHIEVEMENT_STATE.cultivationItems.unshift({
           id: "ACH-GOAL-CHECKIN-PAGE",
           date: dateStr,
           title: "\u53E3\u7B97\u8FBE\u6807\u4E0E\u601D\u7EF4\u901A\u5173\u76EE\u6807 \xB7 \u9636\u6BB5\u7ED3\u4E1A\u901A\u5173\u7AE0",
@@ -9058,8 +9052,8 @@ function bootPrototypeRuntime() {
       deckStatus.innerText = "\u{1F7E2} \u5DF2" + sealText;
       deckStatus.style.color = "#059669";
     }
-    if (window.currentActiveExecDeckCardId) {
-      const activeDeckCard = document.getElementById(window.currentActiveExecDeckCardId);
+    if (window2.currentActiveExecDeckCardId) {
+      const activeDeckCard = document.getElementById(window2.currentActiveExecDeckCardId);
       if (activeDeckCard) {
         const pill = activeDeckCard.querySelector(".task-status-pill");
         if (pill) {
@@ -9086,14 +9080,14 @@ function bootPrototypeRuntime() {
     const popupTitleEl = document.getElementById("exec-popup-title");
     const realTaskTitle = popupTitleEl && popupTitleEl.textContent.trim() ? popupTitleEl.textContent.trim() : sealText + "\u8282\u70B9\u6253\u5361 (" + type + ")";
     triggerGlobalCheckinClosedLoop({
-      taskKey: window.currentActiveExecDeckCardId || "checkin-page-" + type,
+      taskKey: window2.currentActiveExecDeckCardId || "checkin-page-" + type,
       pavilionId: type,
       title: realTaskTitle,
       focusMinutes: 20
     });
     showIslandToast("\u{1F389} \u606D\u559C\uFF01\u5DF2\u5B8C\u6210\u3010" + sealText + "\u3011\u6253\u5361\u95ED\u73AF\uFF01\u7518\u7279\u8FDB\u5EA6\u3001\u5C65\u7EA6\u7387\u4E0E\u6BCF\u65E5\u968F\u8BB0\u5DF2\u540C\u6B65\u66F4\u65B0\uFF01");
     if (document.body.classList.contains("has-exec-fullscreen") && typeof closeExecCardPopupView === "function") {
-      setTimeout(() => {
+      setTimeout2(() => {
         closeExecCardPopupView();
       }, 950);
     }
@@ -9144,7 +9138,7 @@ function bootPrototypeRuntime() {
     if (firstCard && typeof firstCard.scrollIntoView === "function") {
       firstCard.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
       firstCard.style.boxShadow = "0 0 0 4px #f59e0b";
-      setTimeout(() => {
+      setTimeout2(() => {
         firstCard.style.boxShadow = "";
       }, 1600);
     }
@@ -9202,7 +9196,7 @@ function bootPrototypeRuntime() {
       drawer.style.right = isArchiveDrawerOpen ? "0" : "-360px";
     }
   }
-  window.TERTIARY_EDGES = [
+  window2.TERTIARY_EDGES = [
     {
       id: "edge-1-2",
       sourceId: "tcard-1",
@@ -9262,9 +9256,9 @@ function bootPrototypeRuntime() {
   function toggleTertiaryRouteSetup() {
     showIslandToast("\u{1F500} \u5DF2\u5F00\u542F\u62D3\u6251\u8FDE\u7EBF\u6A21\u5F0F\uFF1A\u70B9\u51FB\u6807\u7B7E\u5207\u6362\u5173\u7CFB\uFF0C\u62D6\u62FD\u7AEF\u53E3\u91CD\u65B0\u8FDE\u7EBF\uFF01");
   }
-  window.PROJECT_CANVAS_STORE = {};
-  window.currentTertiaryProjId = "p1";
-  window.TERTIARY_HISTORY = { undoStack: [], redoStack: [] };
+  window2.PROJECT_CANVAS_STORE = {};
+  window2.currentTertiaryProjId = "p1";
+  window2.TERTIARY_HISTORY = { undoStack: [], redoStack: [] };
   function pushTertiaryHistory() {
     const world = document.getElementById("tertiary-canvas-world");
     if (!world)
@@ -9275,14 +9269,14 @@ function bootPrototypeRuntime() {
       clone.removeAttribute("data-drag-bound");
       return clone.outerHTML;
     }).join("\n");
-    window.TERTIARY_HISTORY.undoStack.push({
+    window2.TERTIARY_HISTORY.undoStack.push({
       cardsHtml,
-      edges: JSON.parse(JSON.stringify(window.TERTIARY_EDGES || []))
+      edges: JSON.parse(JSON.stringify(window2.TERTIARY_EDGES || []))
     });
-    if (window.TERTIARY_HISTORY.undoStack.length > 25) {
-      window.TERTIARY_HISTORY.undoStack.shift();
+    if (window2.TERTIARY_HISTORY.undoStack.length > 25) {
+      window2.TERTIARY_HISTORY.undoStack.shift();
     }
-    window.TERTIARY_HISTORY.redoStack = [];
+    window2.TERTIARY_HISTORY.redoStack = [];
   }
   function updateTertiaryNodeCountBadge() {
     const totalCards = document.querySelectorAll("#tertiary-canvas-world .tertiary-card").length;
@@ -9294,7 +9288,7 @@ function bootPrototypeRuntime() {
       statCountEl.innerText = totalCards + " \u8282\u70B9";
   }
   function saveCurrentProjectCanvasSnapshot() {
-    const pid = window.currentTertiaryProjId || "p1";
+    const pid = window2.currentTertiaryProjId || "p1";
     const world = document.getElementById("tertiary-canvas-world");
     if (!world)
       return;
@@ -9304,9 +9298,9 @@ function bootPrototypeRuntime() {
       clone.removeAttribute("data-drag-bound");
       return clone.outerHTML;
     });
-    window.PROJECT_CANVAS_STORE[pid] = {
+    window2.PROJECT_CANVAS_STORE[pid] = {
       cardsHtml: cardHtmlList.join("\n"),
-      edges: JSON.parse(JSON.stringify(window.TERTIARY_EDGES || []))
+      edges: JSON.parse(JSON.stringify(window2.TERTIARY_EDGES || []))
     };
     updateTertiaryNodeCountBadge();
     notifyIslandStateChanged();
@@ -9329,26 +9323,26 @@ function bootPrototypeRuntime() {
     const targetId = projId || "p1";
     const world = document.getElementById("tertiary-canvas-world");
     if (world) {
-      if (!window.PROJECT_CANVAS_STORE["p1"] && window.currentTertiaryProjId === "p1") {
+      if (!window2.PROJECT_CANVAS_STORE["p1"] && window2.currentTertiaryProjId === "p1") {
         saveCurrentProjectCanvasSnapshot();
-      } else if (window.currentTertiaryProjId) {
+      } else if (window2.currentTertiaryProjId) {
         saveCurrentProjectCanvasSnapshot();
       }
-      const p2 = (window.GANTT_PROJECTS || []).find((item) => item.id === targetId);
-      if (!window.PROJECT_CANVAS_STORE[targetId]) {
-        window.PROJECT_CANVAS_STORE[targetId] = buildStarterCanvasForProject(p2);
+      const p2 = (window2.GANTT_PROJECTS || []).find((item) => item.id === targetId);
+      if (!window2.PROJECT_CANVAS_STORE[targetId]) {
+        window2.PROJECT_CANVAS_STORE[targetId] = buildStarterCanvasForProject(p2);
       }
-      const snap = window.PROJECT_CANVAS_STORE[targetId];
+      const snap = window2.PROJECT_CANVAS_STORE[targetId];
       if (snap && snap.cardsHtml) {
         world.querySelectorAll(".tertiary-card").forEach((el) => el.remove());
         const temp = document.createElement("div");
         temp.innerHTML = snap.cardsHtml;
         Array.from(temp.children).forEach((cardEl) => world.appendChild(cardEl));
-        window.TERTIARY_EDGES = JSON.parse(JSON.stringify(snap.edges || []));
+        window2.TERTIARY_EDGES = JSON.parse(JSON.stringify(snap.edges || []));
       }
-      window.currentTertiaryProjId = targetId;
+      window2.currentTertiaryProjId = targetId;
     }
-    const p = (window.GANTT_PROJECTS || []).find((item) => item.id === targetId);
+    const p = (window2.GANTT_PROJECTS || []).find((item) => item.id === targetId);
     const leafEl = document.getElementById("tertiary-crumb-leaf");
     if (leafEl) {
       leafEl.innerText = p ? "\u26A1 " + p.title : "\u26A1 \u653B\u575A\u8111\u56FE\u753B\u5E03";
@@ -9386,9 +9380,9 @@ function bootPrototypeRuntime() {
     }
     const stageW = stage.clientWidth || 1e3;
     const stageH = stage.clientHeight || 700;
-    const tZoom = window.tertiaryZoom || 1;
-    const tPanX = window.tertiaryPanX || 0;
-    const tPanY = window.tertiaryPanY || 0;
+    const tZoom = window2.tertiaryZoom || 1;
+    const tPanX = window2.tertiaryPanX || 0;
+    const tPanY = window2.tertiaryPanY || 0;
     const vpLeft = -tPanX / tZoom;
     const vpTop = -tPanY / tZoom;
     const vpRight = (stageW - tPanX) / tZoom;
@@ -9473,9 +9467,9 @@ function bootPrototypeRuntime() {
       const targetY = tertiaryMinimapBounds.minY + (svgY - tertiaryMinimapOffsetY) / tertiaryMinimapScale;
       const stageW = stage.clientWidth || 1e3;
       const stageH = stage.clientHeight || 700;
-      const tZoom = window.tertiaryZoom || 1;
-      window.tertiaryPanX = stageW / 2 - targetX * tZoom;
-      window.tertiaryPanY = stageH / 2 - targetY * tZoom;
+      const tZoom = window2.tertiaryZoom || 1;
+      window2.tertiaryPanX = stageW / 2 - targetX * tZoom;
+      window2.tertiaryPanY = stageH / 2 - targetY * tZoom;
       applyTertiaryTransform();
     });
     vpRect.addEventListener("pointerdown", (e) => {
@@ -9490,17 +9484,17 @@ function bootPrototypeRuntime() {
       }
       const initialClientX = e.clientX;
       const initialClientY = e.clientY;
-      const initialPanX = window.tertiaryPanX || 0;
-      const initialPanY = window.tertiaryPanY || 0;
-      const tZoom = window.tertiaryZoom || 1;
+      const initialPanX = window2.tertiaryPanX || 0;
+      const initialPanY = window2.tertiaryPanY || 0;
+      const tZoom = window2.tertiaryZoom || 1;
       const onPointerMove = (ev) => {
         const rect = svg.getBoundingClientRect();
         const deltaSvgX = (ev.clientX - initialClientX) / rect.width * 180;
         const deltaSvgY = (ev.clientY - initialClientY) / rect.height * 100;
         const deltaCanvasX = deltaSvgX / tertiaryMinimapScale;
         const deltaCanvasY = deltaSvgY / tertiaryMinimapScale;
-        window.tertiaryPanX = initialPanX - deltaCanvasX * tZoom;
-        window.tertiaryPanY = initialPanY - deltaCanvasY * tZoom;
+        window2.tertiaryPanX = initialPanX - deltaCanvasX * tZoom;
+        window2.tertiaryPanY = initialPanY - deltaCanvasY * tZoom;
         applyTertiaryTransform();
       };
       const onPointerUp = (ev) => {
@@ -9511,7 +9505,7 @@ function bootPrototypeRuntime() {
         svg.removeEventListener("pointermove", onPointerMove);
         svg.removeEventListener("pointerup", onPointerUp);
         svg.removeEventListener("pointercancel", onPointerUp);
-        setTimeout(() => {
+        setTimeout2(() => {
           isDraggingTertiaryMinimapVp = false;
         }, 50);
       };
@@ -9543,19 +9537,19 @@ function bootPrototypeRuntime() {
     alignGridLayout();
   }
   function handleOpenObsidianCanvas(projId) {
-    const targetId = projId || window.currentTertiaryProjId || "p1";
-    if (typeof window.__openProjectInObsidianCanvas === "function") {
-      window.__openProjectInObsidianCanvas(targetId);
+    const targetId = projId || window2.currentTertiaryProjId || "p1";
+    if (typeof window2.__openProjectInObsidianCanvas === "function") {
+      window2.__openProjectInObsidianCanvas(targetId);
     } else {
       showIslandToast("\u{1F3A8} \u6B63\u5728 Obsidian Canvas \u6838\u5FC3\u63D2\u4EF6\u4E2D\u5168\u5C4F\u6253\u5F00\u9879\u76EE\u753B\u5E03...");
     }
   }
   function openCurrentProjectInObsidianCanvas() {
-    handleOpenObsidianCanvas(window.currentTertiaryProjId);
+    handleOpenObsidianCanvas(window2.currentTertiaryProjId);
   }
-  window.tertiaryZoom = 1;
-  window.tertiaryPanX = 60;
-  window.tertiaryPanY = 40;
+  window2.tertiaryZoom = 1;
+  window2.tertiaryPanX = 60;
+  window2.tertiaryPanY = 40;
   const activePointers = /* @__PURE__ */ new Map();
   let isPinching = false;
   let pinchStartDistance = 0;
@@ -9579,11 +9573,11 @@ function bootPrototypeRuntime() {
     const world = document.getElementById("tertiary-canvas-world");
     if (!world)
       return;
-    world.style.transform = "translate3d(" + window.tertiaryPanX + "px, " + window.tertiaryPanY + "px, 0) scale(" + window.tertiaryZoom + ")";
+    world.style.transform = "translate3d(" + window2.tertiaryPanX + "px, " + window2.tertiaryPanY + "px, 0) scale(" + window2.tertiaryZoom + ")";
     world.style.transformOrigin = "0 0";
     const badge = document.getElementById("tertiary-zoom-badge");
     if (badge)
-      badge.textContent = Math.round(window.tertiaryZoom * 100) + "%";
+      badge.textContent = Math.round(window2.tertiaryZoom * 100) + "%";
     if (typeof updateTertiaryMinimap === "function")
       updateTertiaryMinimap();
   }
@@ -9591,21 +9585,21 @@ function bootPrototypeRuntime() {
     const stage = document.getElementById("tertiary-canvas-stage");
     if (!stage)
       return;
-    const oldZoom = window.tertiaryZoom || 1;
+    const oldZoom = window2.tertiaryZoom || 1;
     const newZoom = Math.min(3, Math.max(0.25, oldZoom * factor));
     const centerX = stage.clientWidth / 2;
     const centerY = stage.clientHeight / 2;
-    const worldX = (centerX - window.tertiaryPanX) / oldZoom;
-    const worldY = (centerY - window.tertiaryPanY) / oldZoom;
-    window.tertiaryZoom = newZoom;
-    window.tertiaryPanX = centerX - worldX * newZoom;
-    window.tertiaryPanY = centerY - worldY * newZoom;
+    const worldX = (centerX - window2.tertiaryPanX) / oldZoom;
+    const worldY = (centerY - window2.tertiaryPanY) / oldZoom;
+    window2.tertiaryZoom = newZoom;
+    window2.tertiaryPanX = centerX - worldX * newZoom;
+    window2.tertiaryPanY = centerY - worldY * newZoom;
     applyTertiaryTransform();
   }
   function resetTertiaryCanvasZoom() {
-    window.tertiaryZoom = 1;
-    window.tertiaryPanX = 60;
-    window.tertiaryPanY = 40;
+    window2.tertiaryZoom = 1;
+    window2.tertiaryPanX = 60;
+    window2.tertiaryPanY = 40;
     applyTertiaryTransform();
     showIslandToast("\u{1F50D} \u5DF2\u6062\u590D 100% \u539F\u59CB\u6BD4\u4F8B");
   }
@@ -9638,9 +9632,9 @@ function bootPrototypeRuntime() {
     const scaleX = (stageW - padding * 2) / bboxW;
     const scaleY = (stageH - padding * 2) / bboxH;
     const fitScale = Math.min(1.2, Math.max(0.3, Math.min(scaleX, scaleY)));
-    window.tertiaryZoom = fitScale;
-    window.tertiaryPanX = (stageW - bboxW * fitScale) / 2 - minX * fitScale;
-    window.tertiaryPanY = (stageH - bboxH * fitScale) / 2 - minY * fitScale;
+    window2.tertiaryZoom = fitScale;
+    window2.tertiaryPanX = (stageW - bboxW * fitScale) / 2 - minX * fitScale;
+    window2.tertiaryPanY = (stageH - bboxH * fitScale) / 2 - minY * fitScale;
     applyTertiaryTransform();
     showIslandToast("\u26F6 \u5DF2\u81EA\u9002\u5E94\u5C45\u4E2D\u7F29\u653E\u5168\u90E8\u5361\u7247 (" + Math.round(fitScale * 100) + "%)");
   }
@@ -9660,7 +9654,7 @@ function bootPrototypeRuntime() {
     const linesGroup = document.getElementById("tertiary-lines-group");
     if (!linesGroup)
       return;
-    const edges = window.TERTIARY_EDGES || [];
+    const edges = window2.TERTIARY_EDGES || [];
     let needFull = false;
     edges.forEach((e) => {
       const pathEl = document.getElementById("svg-line-" + e.id);
@@ -9730,7 +9724,7 @@ function bootPrototypeRuntime() {
     if (typeof ResizeObserver === "undefined")
       return;
     if (!tertiaryResizeObserver) {
-      tertiaryResizeObserver = new ResizeObserver(() => scheduleTertiaryEdgeRefresh());
+      tertiaryResizeObserver = runtimeScope.observe(new ResizeObserver(() => scheduleTertiaryEdgeRefresh()));
     }
     document.querySelectorAll("#tertiary-canvas-world .tertiary-card").forEach((c) => {
       if (!c._tertiaryRoBound) {
@@ -9762,17 +9756,17 @@ function bootPrototypeRuntime() {
       const cursorStageX = e.clientX - rect.left;
       const cursorStageY = e.clientY - rect.top;
       if (e.ctrlKey || !e.shiftKey && Math.abs(e.deltaX) < 2) {
-        const oldZoom = window.tertiaryZoom || 1;
+        const oldZoom = window2.tertiaryZoom || 1;
         const factor = e.deltaY < 0 ? 1.08 : 0.92;
         const newZoom = Math.min(3.5, Math.max(0.25, oldZoom * factor));
-        const worldX = (cursorStageX - window.tertiaryPanX) / oldZoom;
-        const worldY = (cursorStageY - window.tertiaryPanY) / oldZoom;
-        window.tertiaryZoom = newZoom;
-        window.tertiaryPanX = cursorStageX - worldX * newZoom;
-        window.tertiaryPanY = cursorStageY - worldY * newZoom;
+        const worldX = (cursorStageX - window2.tertiaryPanX) / oldZoom;
+        const worldY = (cursorStageY - window2.tertiaryPanY) / oldZoom;
+        window2.tertiaryZoom = newZoom;
+        window2.tertiaryPanX = cursorStageX - worldX * newZoom;
+        window2.tertiaryPanY = cursorStageY - worldY * newZoom;
       } else {
-        window.tertiaryPanX -= e.deltaX || 0;
-        window.tertiaryPanY -= e.deltaY || 0;
+        window2.tertiaryPanX -= e.deltaX || 0;
+        window2.tertiaryPanY -= e.deltaY || 0;
       }
       applyTertiaryTransform();
     }, { passive: false });
@@ -9811,12 +9805,12 @@ function bootPrototypeRuntime() {
           view.classList.add("is-viewport-moving");
         const pts = Array.from(activePointers2.values());
         pinchStartDist = Math.hypot(pts[1].clientX - pts[0].clientX, pts[1].clientY - pts[0].clientY);
-        pinchStartZoom2 = window.tertiaryZoom || 1;
+        pinchStartZoom2 = window2.tertiaryZoom || 1;
         const rect = stage.getBoundingClientRect();
         const midStageX = (pts[0].clientX + pts[1].clientX) / 2 - rect.left;
         const midStageY = (pts[0].clientY + pts[1].clientY) / 2 - rect.top;
-        pinchPivotWorldX = (midStageX - window.tertiaryPanX) / pinchStartZoom2;
-        pinchPivotWorldY = (midStageY - window.tertiaryPanY) / pinchStartZoom2;
+        pinchPivotWorldX = (midStageX - window2.tertiaryPanX) / pinchStartZoom2;
+        pinchPivotWorldY = (midStageY - window2.tertiaryPanY) / pinchStartZoom2;
         return;
       }
       if (activePointers2.size === 1) {
@@ -9852,8 +9846,8 @@ function bootPrototypeRuntime() {
         isPinching2 = false;
         panStartX2 = e.clientX;
         panStartY = e.clientY;
-        panInitialX = window.tertiaryPanX;
-        panInitialY = window.tertiaryPanY;
+        panInitialX = window2.tertiaryPanX;
+        panInitialY = window2.tertiaryPanY;
         stage.classList.add("is-dragging-canvas");
         if (view)
           view.classList.add("is-viewport-moving");
@@ -9876,15 +9870,15 @@ function bootPrototypeRuntime() {
           const rect = stage.getBoundingClientRect();
           const currentMidStageX = (pts[0].clientX + pts[1].clientX) / 2 - rect.left;
           const currentMidStageY = (pts[0].clientY + pts[1].clientY) / 2 - rect.top;
-          window.tertiaryZoom = newZoom;
-          window.tertiaryPanX = currentMidStageX - pinchPivotWorldX * newZoom;
-          window.tertiaryPanY = currentMidStageY - pinchPivotWorldY * newZoom;
+          window2.tertiaryZoom = newZoom;
+          window2.tertiaryPanX = currentMidStageX - pinchPivotWorldX * newZoom;
+          window2.tertiaryPanY = currentMidStageY - pinchPivotWorldY * newZoom;
           applyTertiaryTransform();
         }
         return;
       }
       if (activeDraggingCard && activePointers2.size === 1) {
-        const zoom = window.tertiaryZoom || 1;
+        const zoom = window2.tertiaryZoom || 1;
         const dx = (e.clientX - cardDragStartClientX) / zoom;
         const dy = (e.clientY - cardDragStartClientY) / zoom;
         if (!cardDragHasMoved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
@@ -9904,8 +9898,8 @@ function bootPrototypeRuntime() {
       if (isPanning && activePointers2.size === 1) {
         const dx = e.clientX - panStartX2;
         const dy = e.clientY - panStartY;
-        window.tertiaryPanX = panInitialX + dx;
-        window.tertiaryPanY = panInitialY + dy;
+        window2.tertiaryPanX = panInitialX + dx;
+        window2.tertiaryPanY = panInitialY + dy;
         applyTertiaryTransform();
         return;
       }
@@ -9938,10 +9932,10 @@ function bootPrototypeRuntime() {
       }
     };
     stage.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointermove", onPointerMove);
+    window2.addEventListener("pointermove", onPointerMove);
     stage.addEventListener("pointerup", onPointerUp);
     stage.addEventListener("pointercancel", onPointerUp);
-    window.addEventListener("pointerup", onPointerUp);
+    window2.addEventListener("pointerup", onPointerUp);
     let touchPinchStartDist = 0;
     let touchPinchStartZoom = 1;
     let touchPinchPivotWorldX = 0;
@@ -9974,12 +9968,12 @@ function bootPrototypeRuntime() {
         const t1 = e.touches[0];
         const t2 = e.touches[1];
         touchPinchStartDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-        touchPinchStartZoom = window.tertiaryZoom || 1;
+        touchPinchStartZoom = window2.tertiaryZoom || 1;
         const rect = stage.getBoundingClientRect();
         const midX = (t1.clientX + t2.clientX) / 2 - rect.left;
         const midY = (t1.clientY + t2.clientY) / 2 - rect.top;
-        touchPinchPivotWorldX = (midX - window.tertiaryPanX) / touchPinchStartZoom;
-        touchPinchPivotWorldY = (midY - window.tertiaryPanY) / touchPinchStartZoom;
+        touchPinchPivotWorldX = (midX - window2.tertiaryPanX) / touchPinchStartZoom;
+        touchPinchPivotWorldY = (midY - window2.tertiaryPanY) / touchPinchStartZoom;
         return;
       }
       if (e.touches.length === 1) {
@@ -10011,8 +10005,8 @@ function bootPrototypeRuntime() {
         isTouchPinching = false;
         touchPanStartX = e.touches[0].clientX;
         touchPanStartY = e.touches[0].clientY;
-        touchPanInitialX = window.tertiaryPanX;
-        touchPanInitialY = window.tertiaryPanY;
+        touchPanInitialX = window2.tertiaryPanX;
+        touchPanInitialY = window2.tertiaryPanY;
         stage.classList.add("is-dragging-canvas");
         if (view)
           view.classList.add("is-viewport-moving");
@@ -10033,9 +10027,9 @@ function bootPrototypeRuntime() {
           const rect = stage.getBoundingClientRect();
           const midX = (t1.clientX + t2.clientX) / 2 - rect.left;
           const midY = (t1.clientY + t2.clientY) / 2 - rect.top;
-          window.tertiaryZoom = newZoom;
-          window.tertiaryPanX = midX - touchPinchPivotWorldX * newZoom;
-          window.tertiaryPanY = midY - touchPinchPivotWorldY * newZoom;
+          window2.tertiaryZoom = newZoom;
+          window2.tertiaryPanX = midX - touchPinchPivotWorldX * newZoom;
+          window2.tertiaryPanY = midY - touchPinchPivotWorldY * newZoom;
           applyTertiaryTransform();
         }
         return;
@@ -10043,7 +10037,7 @@ function bootPrototypeRuntime() {
       if (activeTouchCard && e.touches.length === 1) {
         if (e.cancelable)
           e.preventDefault();
-        const zoom = window.tertiaryZoom || 1;
+        const zoom = window2.tertiaryZoom || 1;
         const dx = (e.touches[0].clientX - touchCardStartX) / zoom;
         const dy = (e.touches[0].clientY - touchCardStartY) / zoom;
         if (!touchCardHasMoved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
@@ -10065,8 +10059,8 @@ function bootPrototypeRuntime() {
           e.preventDefault();
         const dx = e.touches[0].clientX - touchPanStartX;
         const dy = e.touches[0].clientY - touchPanStartY;
-        window.tertiaryPanX = touchPanInitialX + dx;
-        window.tertiaryPanY = touchPanInitialY + dy;
+        window2.tertiaryPanX = touchPanInitialX + dx;
+        window2.tertiaryPanY = touchPanInitialY + dy;
         applyTertiaryTransform();
         return;
       }
@@ -10143,7 +10137,7 @@ function bootPrototypeRuntime() {
     const result = [];
     while (queue.length > 0) {
       const curr = queue.shift();
-      (window.TERTIARY_EDGES || []).forEach((e) => {
+      (window2.TERTIARY_EDGES || []).forEach((e) => {
         if (e.sourceId === curr && !visited.has(e.targetId)) {
           visited.add(e.targetId);
           result.push(e.targetId);
@@ -10196,7 +10190,7 @@ function bootPrototypeRuntime() {
         return;
       const clientX = e.clientX || e.touches && e.touches[0].clientX;
       const clientY = e.clientY || e.touches && e.touches[0].clientY;
-      const currentZoom = window.tertiaryZoom || 1;
+      const currentZoom = window2.tertiaryZoom || 1;
       const dx = (clientX - startX) / currentZoom;
       const dy = (clientY - startY) / currentZoom;
       if (!hasMoved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
@@ -10229,11 +10223,11 @@ function bootPrototypeRuntime() {
       }
     };
     card.addEventListener("mousedown", onPointerDown);
-    window.addEventListener("mousemove", onPointerMove);
-    window.addEventListener("mouseup", onPointerUp);
+    window2.addEventListener("mousemove", onPointerMove);
+    window2.addEventListener("mouseup", onPointerUp);
     card.addEventListener("touchstart", onPointerDown, { passive: true });
-    window.addEventListener("touchmove", onPointerMove, { passive: true });
-    window.addEventListener("touchend", onPointerUp);
+    window2.addEventListener("touchmove", onPointerMove, { passive: true });
+    window2.addEventListener("touchend", onPointerUp);
   }
   function renderTertiaryEdges() {
     const linesGroup = document.getElementById("tertiary-lines-group");
@@ -10244,7 +10238,7 @@ function bootPrototypeRuntime() {
     let linesHtml = "";
     let labelsHtml = "";
     let defsHtml = "";
-    (window.TERTIARY_EDGES || []).forEach((e) => {
+    (window2.TERTIARY_EDGES || []).forEach((e) => {
       const sEl = document.getElementById(e.sourceId);
       const tEl = document.getElementById(e.targetId);
       if (!sEl || !tEl)
@@ -10302,7 +10296,7 @@ function bootPrototypeRuntime() {
   function openEdgePopover(edgeId, event) {
     if (event)
       event.stopPropagation();
-    const edge = (window.TERTIARY_EDGES || []).find((x) => x.id === edgeId);
+    const edge = (window2.TERTIARY_EDGES || []).find((x) => x.id === edgeId);
     if (!edge)
       return;
     currentActiveEdgeId = edgeId;
@@ -10358,7 +10352,7 @@ function bootPrototypeRuntime() {
     popover.classList.remove("is-hidden");
   }
   function reverseEdgeDirection() {
-    const edge = (window.TERTIARY_EDGES || []).find((x) => x.id === currentActiveEdgeId);
+    const edge = (window2.TERTIARY_EDGES || []).find((x) => x.id === currentActiveEdgeId);
     if (!edge)
       return;
     const tempId = edge.sourceId;
@@ -10372,7 +10366,7 @@ function bootPrototypeRuntime() {
     showIslandToast("\u{1F504} \u5DF2\u53CD\u8F6C\u8DEF\u7EBF\u8D77\u70B9\u4E0E\u7EC8\u70B9");
   }
   function handleEdgeHierarchy(isReversed) {
-    const edge = (window.TERTIARY_EDGES || []).find((x) => x.id === currentActiveEdgeId);
+    const edge = (window2.TERTIARY_EDGES || []).find((x) => x.id === currentActiveEdgeId);
     if (!edge)
       return;
     if (isReversed) {
@@ -10382,7 +10376,7 @@ function bootPrototypeRuntime() {
     }
   }
   function setEdgeArrowMode(mode) {
-    const edge = (window.TERTIARY_EDGES || []).find((x) => x.id === currentActiveEdgeId);
+    const edge = (window2.TERTIARY_EDGES || []).find((x) => x.id === currentActiveEdgeId);
     if (!edge)
       return;
     edge.arrowMode = mode;
@@ -10393,7 +10387,7 @@ function bootPrototypeRuntime() {
     showIslandToast("\u8DEF\u7EBF\u7BAD\u5934\u6A21\u5F0F\uFF1A" + (mode === "single" ? "\u5355\u5411" : mode === "double" ? "\u53CC\u5411" : "\u65E0\u5411"));
   }
   function setEdgeLineStyle(style) {
-    const edge = (window.TERTIARY_EDGES || []).find((x) => x.id === currentActiveEdgeId);
+    const edge = (window2.TERTIARY_EDGES || []).find((x) => x.id === currentActiveEdgeId);
     if (!edge)
       return;
     edge.lineStyle = style;
@@ -10404,7 +10398,7 @@ function bootPrototypeRuntime() {
     showIslandToast("\u8DEF\u7EBF\u6837\u5F0F\uFF1A" + (style === "solid" ? "\u5B9E\u7EBF" : "\u865A\u7EBF"));
   }
   function handleEdgeWidthInput(val) {
-    const edge = (window.TERTIARY_EDGES || []).find((x) => x.id === currentActiveEdgeId);
+    const edge = (window2.TERTIARY_EDGES || []).find((x) => x.id === currentActiveEdgeId);
     if (!edge)
       return;
     edge.lineWidth = parseInt(val, 10);
@@ -10414,7 +10408,7 @@ function bootPrototypeRuntime() {
     renderTertiaryEdges();
   }
   function handleEdgeColorSelect(color) {
-    const edge = (window.TERTIARY_EDGES || []).find((x) => x.id === currentActiveEdgeId);
+    const edge = (window2.TERTIARY_EDGES || []).find((x) => x.id === currentActiveEdgeId);
     if (!edge)
       return;
     edge.color = color;
@@ -10423,14 +10417,14 @@ function bootPrototypeRuntime() {
     showIslandToast("\u{1F3A8} \u8DEF\u7EBF\u989C\u8272\u5DF2\u66F4\u65B0");
   }
   function handleEdgeLabelChange(val) {
-    const edge = (window.TERTIARY_EDGES || []).find((x) => x.id === currentActiveEdgeId);
+    const edge = (window2.TERTIARY_EDGES || []).find((x) => x.id === currentActiveEdgeId);
     if (!edge)
       return;
     edge.label = val.trim();
     renderTertiaryEdges();
   }
   function handleEdgeTypeSelect(val) {
-    const edge = (window.TERTIARY_EDGES || []).find((x) => x.id === currentActiveEdgeId);
+    const edge = (window2.TERTIARY_EDGES || []).find((x) => x.id === currentActiveEdgeId);
     if (!edge)
       return;
     edge.type = val;
@@ -10445,7 +10439,7 @@ function bootPrototypeRuntime() {
   function handleDeleteActiveEdge() {
     if (!currentActiveEdgeId)
       return;
-    window.TERTIARY_EDGES = (window.TERTIARY_EDGES || []).filter((x) => x.id !== currentActiveEdgeId);
+    window2.TERTIARY_EDGES = (window2.TERTIARY_EDGES || []).filter((x) => x.id !== currentActiveEdgeId);
     const popover = document.getElementById("tertiary-edge-popover");
     if (popover)
       popover.classList.add("is-hidden");
@@ -10490,8 +10484,8 @@ function bootPrototypeRuntime() {
           lineWidth: 3,
           color: "#6fa99b"
         };
-        window.TERTIARY_EDGES = window.TERTIARY_EDGES || [];
-        window.TERTIARY_EDGES.push(newEdge);
+        window2.TERTIARY_EDGES = window2.TERTIARY_EDGES || [];
+        window2.TERTIARY_EDGES.push(newEdge);
         renderTertiaryEdges();
         openEdgePopover(newEdgeId);
         showIslandToast("\u2728 \u8DEF\u7EBF\u5EFA\u7ACB\u6210\u529F\uFF01\u5DF2\u6253\u5F00\u8DEF\u7EBF\u8BBE\u7F6E");
@@ -10527,7 +10521,7 @@ function bootPrototypeRuntime() {
       const nameInput = document.getElementById("input-tertiary-module-name");
       if (nameInput) {
         nameInput.value = "\u53E3\u7B97\u8FDB\u9000\u4F4D\u4E13\u9879\u7A81\u7834";
-        setTimeout(() => nameInput.focus(), 50);
+        setTimeout2(() => nameInput.focus(), 50);
       }
     }
   }
@@ -10594,7 +10588,7 @@ function bootPrototypeRuntime() {
     newCard.style.position = "absolute";
     newCard.style.left = 120 + (tertiaryCardIndex - 1) % 4 * 360 + "px";
     newCard.style.top = 380 + Math.floor((tertiaryCardIndex - 1) / 4) * 260 + "px";
-    newCard.innerHTML = '<div class="work-node-card-header"><span class="work-node-badge" style="background:#fef3c7; color:#b45309; border:1px solid #fde68a;">' + (window.tertiaryModuleUploadedImageSrc ? '<img src="' + window.tertiaryModuleUploadedImageSrc + '" style="width:16px;height:16px;object-fit:cover;border-radius:3px;vertical-align:middle;margin-right:2px;"/>' : icon) + ' \u653B\u575A\u6A21\u5757</span><span class="work-node-title">' + name + '</span><span style="font-size:10px; font-weight:800; color:#d97706;">\u8BFE\u9898\u6838\u5FC3</span></div><div class="work-node-body"><p style="font-weight:750; color:#4a3a2a;">\u3010\u8BFE\u9898\u76EE\u6807\u4E0E\u8BF4\u660E\u3011</p><div style="background:#fffbeb; border:1px solid #fef3c7; padding:8px 10px; border-radius:8px; font-size:10.5px; color:#92400e; line-height:1.4;">' + (desc || "\u653B\u575A\u76EE\u6807\u63A8\u8FDB\u4E2D\uFF0C\u53EF\u901A\u8FC7\u53F3\u4FA7\u8FDE\u7EBF\u624B\u67C4\u62C9\u53D6\u4E0B\u4E00\u7EA7\u5B9E\u8BAD\u8282\u70B9\u3002") + '</div><div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:8px; border-top:1px solid #f1e4d0; font-size:10.5px;"><span style="color:#059669; font-weight:800;">\u25CF \u72B6\u6001\uFF1A\u653B\u5173\u4E2D</span><span style="font-size:10px; color:#8c6b45;">\u521B\u5EFA\u4E8E 10-28</span></div></div><div class="work-card-connect-handle" data-card-id="' + cardId + '" onclick="startOrFinishConnecting(this.dataset.cardId, event)" title="\u70B9\u51FB\u4E0E\u4E0B\u4E00\u8282\u70B9\u5EFA\u7ACB\u8DEF\u7EBF\u8FDE\u7EBF">\u{1F517}</div>';
+    newCard.innerHTML = '<div class="work-node-card-header"><span class="work-node-badge" style="background:#fef3c7; color:#b45309; border:1px solid #fde68a;">' + (window2.tertiaryModuleUploadedImageSrc ? '<img src="' + window2.tertiaryModuleUploadedImageSrc + '" style="width:16px;height:16px;object-fit:cover;border-radius:3px;vertical-align:middle;margin-right:2px;"/>' : icon) + ' \u653B\u575A\u6A21\u5757</span><span class="work-node-title">' + name + '</span><span style="font-size:10px; font-weight:800; color:#d97706;">\u8BFE\u9898\u6838\u5FC3</span></div><div class="work-node-body"><p style="font-weight:750; color:#4a3a2a;">\u3010\u8BFE\u9898\u76EE\u6807\u4E0E\u8BF4\u660E\u3011</p><div style="background:#fffbeb; border:1px solid #fef3c7; padding:8px 10px; border-radius:8px; font-size:10.5px; color:#92400e; line-height:1.4;">' + (desc || "\u653B\u575A\u76EE\u6807\u63A8\u8FDB\u4E2D\uFF0C\u53EF\u901A\u8FC7\u53F3\u4FA7\u8FDE\u7EBF\u624B\u67C4\u62C9\u53D6\u4E0B\u4E00\u7EA7\u5B9E\u8BAD\u8282\u70B9\u3002") + '</div><div style="display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:8px; border-top:1px solid #f1e4d0; font-size:10.5px;"><span style="color:#059669; font-weight:800;">\u25CF \u72B6\u6001\uFF1A\u653B\u5173\u4E2D</span><span style="font-size:10px; color:#8c6b45;">\u521B\u5EFA\u4E8E 10-28</span></div></div><div class="work-card-connect-handle" data-card-id="' + cardId + '" onclick="startOrFinishConnecting(this.dataset.cardId, event)" title="\u70B9\u51FB\u4E0E\u4E0B\u4E00\u8282\u70B9\u5EFA\u7ACB\u8DEF\u7EBF\u8FDE\u7EBF">\u{1F517}</div>';
     world.appendChild(newCard);
     bindCardDragSingle(newCard);
     tertiaryCardIndex++;
@@ -11045,7 +11039,7 @@ function bootPrototypeRuntime() {
     triggerGlobalCheckinClosedLoop({
       taskKey: "node-" + cardId,
       pavilionId: currentWsPavilion || "study",
-      projId: window.currentTertiaryProjId,
+      projId: window2.currentTertiaryProjId,
       title: cTitle,
       focusMinutes: 20
     });
@@ -11218,7 +11212,7 @@ function bootPrototypeRuntime() {
     showIslandToast("\u{1F524} \u8FDE\u7EBF\u6587\u5B57\u663E\u793A\uFF1A" + (isHidden ? "\u5DF2\u5F00\u542F" : "\u5DF2\u5173\u95ED"));
   }
   function handleTertiaryUndo() {
-    if (!window.TERTIARY_HISTORY || !window.TERTIARY_HISTORY.undoStack || window.TERTIARY_HISTORY.undoStack.length === 0) {
+    if (!window2.TERTIARY_HISTORY || !window2.TERTIARY_HISTORY.undoStack || window2.TERTIARY_HISTORY.undoStack.length === 0) {
       showIslandToast("\u26A0\uFE0F \u5F53\u524D\u6682\u65E0\u53EF\u64A4\u9500\u7684\u5386\u53F2\u6B65\u9AA4");
       return;
     }
@@ -11229,11 +11223,11 @@ function bootPrototypeRuntime() {
     world.querySelectorAll(".tertiary-card, .tertiary-node-card").forEach((c) => {
       currentCards.push({ id: c.id, left: c.style.left, top: c.style.top, html: c.outerHTML });
     });
-    window.TERTIARY_HISTORY.redoStack.push({
+    window2.TERTIARY_HISTORY.redoStack.push({
       cards: currentCards,
-      edges: JSON.parse(JSON.stringify(window.TERTIARY_EDGES || []))
+      edges: JSON.parse(JSON.stringify(window2.TERTIARY_EDGES || []))
     });
-    const prevState = window.TERTIARY_HISTORY.undoStack.pop();
+    const prevState = window2.TERTIARY_HISTORY.undoStack.pop();
     world.querySelectorAll(".tertiary-card, .tertiary-node-card").forEach((c) => c.remove());
     (prevState.cards || []).forEach((c) => {
       const temp = document.createElement("div");
@@ -11246,14 +11240,14 @@ function bootPrototypeRuntime() {
         world.appendChild(node);
       }
     });
-    window.TERTIARY_EDGES = JSON.parse(JSON.stringify(prevState.edges || []));
+    window2.TERTIARY_EDGES = JSON.parse(JSON.stringify(prevState.edges || []));
     bindTertiaryCardsDrag();
     renderTertiaryEdges();
     saveCurrentProjectCanvasSnapshot();
-    showIslandToast("\u21A9\uFE0F \u5DF2\u64A4\u9500\u4E0A\u4E00\u6B65\u64CD\u4F5C (\u5269\u4F59\u53EF\u64A4\u9500 " + window.TERTIARY_HISTORY.undoStack.length + " \u6B65)");
+    showIslandToast("\u21A9\uFE0F \u5DF2\u64A4\u9500\u4E0A\u4E00\u6B65\u64CD\u4F5C (\u5269\u4F59\u53EF\u64A4\u9500 " + window2.TERTIARY_HISTORY.undoStack.length + " \u6B65)");
   }
   function handleTertiaryRedo() {
-    if (!window.TERTIARY_HISTORY || !window.TERTIARY_HISTORY.redoStack || window.TERTIARY_HISTORY.redoStack.length === 0) {
+    if (!window2.TERTIARY_HISTORY || !window2.TERTIARY_HISTORY.redoStack || window2.TERTIARY_HISTORY.redoStack.length === 0) {
       showIslandToast("\u26A0\uFE0F \u5F53\u524D\u6682\u65E0\u53EF\u91CD\u505A\u7684\u5386\u53F2\u6B65\u9AA4");
       return;
     }
@@ -11264,11 +11258,11 @@ function bootPrototypeRuntime() {
     world.querySelectorAll(".tertiary-card, .tertiary-node-card").forEach((c) => {
       currentCards.push({ id: c.id, left: c.style.left, top: c.style.top, html: c.outerHTML });
     });
-    window.TERTIARY_HISTORY.undoStack.push({
+    window2.TERTIARY_HISTORY.undoStack.push({
       cards: currentCards,
-      edges: JSON.parse(JSON.stringify(window.TERTIARY_EDGES || []))
+      edges: JSON.parse(JSON.stringify(window2.TERTIARY_EDGES || []))
     });
-    const nextState = window.TERTIARY_HISTORY.redoStack.pop();
+    const nextState = window2.TERTIARY_HISTORY.redoStack.pop();
     world.querySelectorAll(".tertiary-card, .tertiary-node-card").forEach((c) => c.remove());
     (nextState.cards || []).forEach((c) => {
       const temp = document.createElement("div");
@@ -11281,7 +11275,7 @@ function bootPrototypeRuntime() {
         world.appendChild(node);
       }
     });
-    window.TERTIARY_EDGES = JSON.parse(JSON.stringify(nextState.edges || []));
+    window2.TERTIARY_EDGES = JSON.parse(JSON.stringify(nextState.edges || []));
     bindTertiaryCardsDrag();
     renderTertiaryEdges();
     saveCurrentProjectCanvasSnapshot();
@@ -11297,7 +11291,7 @@ function bootPrototypeRuntime() {
     const targetCard = document.querySelector(".tertiary-card.is-selected, .tertiary-node-card.is-selected") || cards[cards.length - 1];
     const cardId = targetCard.id;
     targetCard.remove();
-    window.TERTIARY_EDGES = (window.TERTIARY_EDGES || []).filter((e) => e.sourceId !== cardId && e.targetId !== cardId);
+    window2.TERTIARY_EDGES = (window2.TERTIARY_EDGES || []).filter((e) => e.sourceId !== cardId && e.targetId !== cardId);
     renderTertiaryEdges();
     saveCurrentProjectCanvasSnapshot();
     const activeCountEl = document.getElementById("tertiary-top-active-count");
@@ -11320,7 +11314,7 @@ function bootPrototypeRuntime() {
     if (matched) {
       matched.scrollIntoView({ behavior: "smooth", block: "center" });
       matched.style.boxShadow = "0 0 0 4px #f59e0b";
-      setTimeout(() => {
+      setTimeout2(() => {
         matched.style.boxShadow = "";
       }, 2e3);
       showIslandToast("\u{1F3AF} \u5DF2\u5B9A\u4F4D\u81F3\u5339\u914D\u8282\u70B9\uFF1A" + (matched.dataset.label || "\u653B\u575A\u5361\u7247"));
@@ -11335,7 +11329,7 @@ function bootPrototypeRuntime() {
     const ctx = canvas.getContext("2d");
     let width = canvas.width = canvas.offsetWidth;
     let height = canvas.height = canvas.offsetHeight;
-    window.addEventListener("resize", () => {
+    window2.addEventListener("resize", () => {
       if (!canvas)
         return;
       width = canvas.width = canvas.offsetWidth;
@@ -11390,7 +11384,7 @@ function bootPrototypeRuntime() {
     }
     render();
   }
-  window.addEventListener("keydown", (e) => {
+  window2.addEventListener("keydown", (e) => {
     if (currentGlobalView === "exec" && currentExecSubView === "day") {
       if (e.key === "ArrowLeft") {
         prevDayCard();
@@ -11456,7 +11450,7 @@ function bootPrototypeRuntime() {
       dotsWrap.style.display = "flex";
     totalDayCards = allCards.length;
     currentDayCardIndex = Math.max(0, Math.min(currentDayCardIndex, totalDayCards - 1));
-    window.currentDayCardIndex = currentDayCardIndex;
+    window2.currentDayCardIndex = currentDayCardIndex;
     const cards = allCards;
     const dots = document.querySelectorAll(".exec-carousel-pagination .pagination-dot-pill");
     cards.forEach((card, idx) => {
@@ -11623,10 +11617,10 @@ function bootPrototypeRuntime() {
       }
     };
     stage.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointermove", onPointerMove);
+    window2.addEventListener("pointermove", onPointerMove);
     stage.addEventListener("pointerup", onPointerUp);
     stage.addEventListener("pointercancel", onPointerUp);
-    window.addEventListener("pointerup", onPointerUp);
+    window2.addEventListener("pointerup", onPointerUp);
   }
   function completeTask(taskId) {
     const btn = document.getElementById("btn-complete-" + taskId);
@@ -11696,9 +11690,9 @@ function bootPrototypeRuntime() {
     container.appendChild(row);
     showIslandToast("\u2795 \u5DF2\u65B0\u589E\u81EA\u5B9A\u4E49\u52A8\u6001\u4E1A\u52A1\u5B57\u6BB5\u884C");
   }
-  window.currentWeekOffset = 0;
-  window.currentWeekFilter = "all";
-  window.TASK_HISTORY_BY_DATE = window.TASK_HISTORY_BY_DATE || {};
+  window2.currentWeekOffset = 0;
+  window2.currentWeekFilter = "all";
+  window2.TASK_HISTORY_BY_DATE = window2.TASK_HISTORY_BY_DATE || {};
   const WEEK_BOARD_DATA = [
     { dayIndex: 0, dayName: "\u5468\u4E00", dateStr: "", tasks: [] },
     { dayIndex: 1, dayName: "\u5468\u4E8C", dateStr: "", tasks: [] },
@@ -11741,7 +11735,7 @@ function bootPrototypeRuntime() {
     }
   }
   function syncWeekBoardToRealDate() {
-    window.TASK_HISTORY_BY_DATE = window.TASK_HISTORY_BY_DATE || {};
+    window2.TASK_HISTORY_BY_DATE = window2.TASK_HISTORY_BY_DATE || {};
     const now = /* @__PURE__ */ new Date();
     const todayKey = calDateKey(now);
     const monday = calMondayOf(now);
@@ -11759,7 +11753,7 @@ function bootPrototypeRuntime() {
       } else if (col.dateKey !== key) {
         if (col.tasks.length) {
           const archived = col.tasks.map((t) => Object.assign({}, t, { status: t.status === "pending" ? "overdue" : t.status }));
-          window.TASK_HISTORY_BY_DATE[col.dateKey] = (window.TASK_HISTORY_BY_DATE[col.dateKey] || []).concat(archived);
+          window2.TASK_HISTORY_BY_DATE[col.dateKey] = (window2.TASK_HISTORY_BY_DATE[col.dateKey] || []).concat(archived);
         }
         col.tasks = [];
       }
@@ -11784,10 +11778,10 @@ function bootPrototypeRuntime() {
     if (!label)
       return;
     const monday = calMondayOf(/* @__PURE__ */ new Date());
-    monday.setDate(monday.getDate() + window.currentWeekOffset * 7);
+    monday.setDate(monday.getDate() + window2.currentWeekOffset * 7);
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
-    const tag = window.currentWeekOffset === 0 ? "" : window.currentWeekOffset > 0 ? " \xB7 \u672A\u6765\u5468" : " \xB7 \u5386\u53F2\u5468";
+    const tag = window2.currentWeekOffset === 0 ? "" : window2.currentWeekOffset > 0 ? " \xB7 \u672A\u6765\u5468" : " \xB7 \u5386\u53F2\u5468";
     label.textContent = monday.getFullYear() + "\u5E74\u7B2C" + calIsoWeekNumber(monday) + "\u5468 (" + (monday.getMonth() + 1) + "\u6708" + calPad2(monday.getDate()) + "\u65E5 - " + (sunday.getMonth() + 1) + "\u6708" + calPad2(sunday.getDate()) + "\u65E5)" + tag;
   }
   function getWeekColsForOffset(offset) {
@@ -11814,11 +11808,11 @@ function bootPrototypeRuntime() {
   }
   function getRecordsForDate(key) {
     const col = WEEK_BOARD_DATA.find((c) => c.dateKey === key);
-    let tasks = col ? col.tasks || [] : (window.TASK_HISTORY_BY_DATE || {})[key] || [];
+    let tasks = col ? col.tasks || [] : (window2.TASK_HISTORY_BY_DATE || {})[key] || [];
     if (tasks.length > 0)
       return tasks;
     const derived = [];
-    (window.GANTT_PROJECTS || []).forEach((p) => {
+    (window2.GANTT_PROJECTS || []).forEach((p) => {
       if (Array.isArray(p.completedDays) && p.completedDays.includes(key)) {
         const meta = typeof PAVILION_META !== "undefined" && PAVILION_META[p.pavilion] ? PAVILION_META[p.pavilion] : { name: p.category || "\u89C4\u5212\u9986", icon: "\u{1F3AF}" };
         derived.push({
@@ -11838,19 +11832,19 @@ function bootPrototypeRuntime() {
     return derived;
   }
   function changeWeek(delta) {
-    window.currentWeekOffset += delta;
+    window2.currentWeekOffset += delta;
     updateWeekRangeLabel();
-    renderWeekBoard(window.currentWeekFilter);
-    showIslandToast(window.currentWeekOffset === 0 ? "\u{1F4C5} \u5DF2\u5207\u6362\u81F3\u672C\u5468\u770B\u677F" : delta > 0 ? "\u23E9 \u5DF2\u5207\u6362\u81F3\u4E0B\u4E00\u5468\u770B\u677F" : "\u23EA \u5DF2\u5207\u6362\u81F3\u4E0A\u4E00\u5468\u770B\u677F");
+    renderWeekBoard(window2.currentWeekFilter);
+    showIslandToast(window2.currentWeekOffset === 0 ? "\u{1F4C5} \u5DF2\u5207\u6362\u81F3\u672C\u5468\u770B\u677F" : delta > 0 ? "\u23E9 \u5DF2\u5207\u6362\u81F3\u4E0B\u4E00\u5468\u770B\u677F" : "\u23EA \u5DF2\u5207\u6362\u81F3\u4E0A\u4E00\u5468\u770B\u677F");
   }
   function resetToCurrentWeek() {
-    window.currentWeekOffset = 0;
+    window2.currentWeekOffset = 0;
     updateWeekRangeLabel();
-    renderWeekBoard(window.currentWeekFilter);
+    renderWeekBoard(window2.currentWeekFilter);
     showIslandToast("\u{1F4C5} \u5DF2\u56DE\u5230\u672C\u5468\u4EFB\u52A1\u5168\u666F\u770B\u677F\uFF01");
   }
   function filterWeekTasks(filter) {
-    window.currentWeekFilter = filter;
+    window2.currentWeekFilter = filter;
     const tabs = document.querySelectorAll(".week-filter-tab");
     tabs.forEach((tab) => {
       tab.classList.toggle("active", tab.getAttribute("data-filter") === filter);
@@ -11861,8 +11855,8 @@ function bootPrototypeRuntime() {
     const container = document.getElementById("week-board-columns-container");
     if (!container)
       return;
-    filter = filter || window.currentWeekFilter || "all";
-    const weekCols = getWeekColsForOffset(window.currentWeekOffset || 0);
+    filter = filter || window2.currentWeekFilter || "all";
+    const weekCols = getWeekColsForOffset(window2.currentWeekOffset || 0);
     updateWeekRangeLabel();
     let totalAll = 0, totalDone = 0, totalPending = 0, totalOverdue = 0;
     weekCols.forEach((col) => {
@@ -12015,10 +12009,10 @@ function bootPrototypeRuntime() {
     if (modal)
       modal.style.display = "none";
   }
-  window.currentMonthOffset = 0;
+  window2.currentMonthOffset = 0;
   function getCalendarBaseMonth() {
     const now = /* @__PURE__ */ new Date();
-    return new Date(now.getFullYear(), now.getMonth() + (window.currentMonthOffset || 0), 1);
+    return new Date(now.getFullYear(), now.getMonth() + (window2.currentMonthOffset || 0), 1);
   }
   function updateMonthTitleLabel() {
     const label = document.getElementById("month-title-label");
@@ -12028,13 +12022,13 @@ function bootPrototypeRuntime() {
     label.textContent = base.getFullYear() + " \u5E74 " + (base.getMonth() + 1) + " \u6708";
   }
   function changeMonth(delta) {
-    window.currentMonthOffset += delta;
+    window2.currentMonthOffset += delta;
     updateMonthTitleLabel();
     renderMonthCalendar();
     showIslandToast(delta > 0 ? "\u4E0B\u4E2A\u6708\u6708\u5386\u8DB3\u8FF9" : "\u4E0A\u4E2A\u6708\u6708\u5386\u8DB3\u8FF9");
   }
   function resetToCurrentMonth() {
-    window.currentMonthOffset = 0;
+    window2.currentMonthOffset = 0;
     updateMonthTitleLabel();
     renderMonthCalendar();
     showIslandToast("\u{1F4C5} \u5DF2\u56DE\u5230\u672C\u6708\u8DB3\u8FF9\u77E9\u9635\uFF01");
@@ -12079,7 +12073,7 @@ function bootPrototypeRuntime() {
       if (over > 0)
         pips += '<span class="month-pip" style="background:#fee2e2; color:#b91c1c;">\u{1F534} ' + over + "</span>";
       if (isToday) {
-        const st = window.USER_PROFILE_STATE || {};
+        const st = window2.USER_PROFILE_STATE || {};
         if (st.violationCount > 0) {
           pips += '<span class="month-pip" style="background:#fee2e2; color:#b91c1c;">\u2696\uFE0F -' + st.violationCount * 5 + "%</span>";
         }
@@ -12162,12 +12156,12 @@ function bootPrototypeRuntime() {
     if (modal) {
       modal.style.display = "flex";
       if (scrollToViolation) {
-        setTimeout(() => {
+        setTimeout2(() => {
           const sec = document.getElementById("pact-violation-console");
           if (sec && typeof sec.scrollIntoView === "function") {
             sec.scrollIntoView({ behavior: "smooth", block: "center" });
             sec.style.boxShadow = "0 0 0 3px #ef4444";
-            setTimeout(() => {
+            setTimeout2(() => {
               sec.style.boxShadow = "";
             }, 1400);
           }
@@ -12193,7 +12187,7 @@ function bootPrototypeRuntime() {
       showIslandToast("\u26A0\uFE0F \u8BF7\u5148\u52FE\u9009\u3010\u5BB6\u957F\u4E0E\u5B69\u5B50\u53CC\u65B9\u5DF2\u5FC3\u5E73\u6C14\u548C\u6838\u5B9E\u4E8B\u5B9E\u3011\u786E\u8BA4\u6846\uFF01");
       return;
     }
-    const st = window.USER_PROFILE_STATE;
+    const st = window2.USER_PROFILE_STATE;
     st.violationCount = (st.violationCount || 0) + 1;
     const now = /* @__PURE__ */ new Date();
     const dateStr = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0") + " " + String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
@@ -12221,7 +12215,7 @@ function bootPrototypeRuntime() {
     const endD = typeof parseGanttDate === "function" ? parseGanttDate(todayG) : new Date(2026, 9, 27);
     endD.setDate(endD.getDate() + 7);
     const endG = typeof formatGanttDate === "function" ? formatGanttDate(endD) : "2026-11-03";
-    if (Array.isArray(window.GANTT_PROJECTS)) {
+    if (Array.isArray(window2.GANTT_PROJECTS)) {
       const remProj = {
         id: projId,
         pavilion: "cultivation",
@@ -12233,9 +12227,9 @@ function bootPrototypeRuntime() {
         completedDays: [],
         isArchived: false
       };
-      window.GANTT_PROJECTS.unshift(remProj);
-      if (window.PROJECT_CANVAS_STORE) {
-        window.PROJECT_CANVAS_STORE[projId] = buildStarterCanvasForProject(remProj);
+      window2.GANTT_PROJECTS.unshift(remProj);
+      if (window2.PROJECT_CANVAS_STORE) {
+        window2.PROJECT_CANVAS_STORE[projId] = buildStarterCanvasForProject(remProj);
       }
       renderHomeSemesterGoalsBanner();
     }
@@ -12288,13 +12282,13 @@ function bootPrototypeRuntime() {
       card.style.transition = "all 0.3s ease";
       card.style.borderColor = "#b91c1c";
       card.style.boxShadow = "0 0 20px rgba(185, 28, 28, 0.4)";
-      setTimeout(() => {
+      setTimeout2(() => {
         card.style.borderColor = "";
         card.style.boxShadow = "";
       }, 2e3);
     }
   }
-  window.TREASURY_STATE = {
+  window2.TREASURY_STATE = {
     totalBalance: 0,
     totalIncome: 0,
     totalExpense: 0,
@@ -12302,7 +12296,7 @@ function bootPrototypeRuntime() {
     ledger: []
   };
   function switchTreasuryRecordType(type) {
-    window.TREASURY_STATE.currentRecordType = type;
+    window2.TREASURY_STATE.currentRecordType = type;
     const btnIncome = document.getElementById("treasury-type-btn-income");
     const btnExpense = document.getElementById("treasury-type-btn-expense");
     const categorySelect = document.getElementById("treasury-tx-category-select");
@@ -12355,7 +12349,7 @@ function bootPrototypeRuntime() {
     }
   }
   function recordLiveTreasuryTransaction() {
-    const type = window.TREASURY_STATE.currentRecordType || "income";
+    const type = window2.TREASURY_STATE.currentRecordType || "income";
     const amountInput = document.getElementById("treasury-tx-amount-input");
     const categorySelect = document.getElementById("treasury-tx-category-select");
     const descInput = document.getElementById("treasury-tx-desc-input");
@@ -12371,27 +12365,27 @@ function bootPrototypeRuntime() {
     const desc = descInput && descInput.value.trim() ? descInput.value.trim() : type === "income" ? "\u96F6\u7528\u91D1\u53D1\u653E\u6536\u5165" : "\u65E5\u5E38\u6D88\u8D39\u652F\u51FA";
     const proof = proofInput && proofInput.value.trim() ? proofInput.value.trim() : type === "income" ? "\u{1F4F7} \u96F6\u7528\u91D1\u8BB0\u5F55" : "\u{1F9FE} \u5C0F\u7968\u51ED\u636E\u5DF2\u6838\u9A8C";
     if (type === "expense") {
-      if (window.TREASURY_STATE.totalBalance < amountVal) {
-        showIslandToast("\u26A0\uFE0F \u4F59\u989D\u4E0D\u8DB3\uFF01\u5F53\u524D\u96F6\u7528\u91D1\u603B\u7ED3\u4F59\u4EC5\u4E3A \xA5" + window.TREASURY_STATE.totalBalance.toFixed(2) + "\uFF0C\u4E25\u7981\u900F\u652F\uFF01");
+      if (window2.TREASURY_STATE.totalBalance < amountVal) {
+        showIslandToast("\u26A0\uFE0F \u4F59\u989D\u4E0D\u8DB3\uFF01\u5F53\u524D\u96F6\u7528\u91D1\u603B\u7ED3\u4F59\u4EC5\u4E3A \xA5" + window2.TREASURY_STATE.totalBalance.toFixed(2) + "\uFF0C\u4E25\u7981\u900F\u652F\uFF01");
         return;
       }
-      window.TREASURY_STATE.totalBalance -= amountVal;
-      window.TREASURY_STATE.totalExpense += amountVal;
+      window2.TREASURY_STATE.totalBalance -= amountVal;
+      window2.TREASURY_STATE.totalExpense += amountVal;
     } else {
-      window.TREASURY_STATE.totalBalance += amountVal;
-      window.TREASURY_STATE.totalIncome += amountVal;
+      window2.TREASURY_STATE.totalBalance += amountVal;
+      window2.TREASURY_STATE.totalIncome += amountVal;
     }
-    const txLog = (type === "income" ? "\u{1F4B0} \u85CF\u91D1\u5C4B\u6536\u5165\uFF1A+\xA5" : "\u{1F4B8} \u85CF\u91D1\u5C4B\u652F\u51FA\uFF1A-\xA5") + amountVal.toFixed(2) + " (" + category + " \xB7 " + desc + "\uFF0C\u7ED3\u4F59 \xA5" + window.TREASURY_STATE.totalBalance.toFixed(2) + ")";
+    const txLog = (type === "income" ? "\u{1F4B0} \u85CF\u91D1\u5C4B\u6536\u5165\uFF1A+\xA5" : "\u{1F4B8} \u85CF\u91D1\u5C4B\u652F\u51FA\uFF1A-\xA5") + amountVal.toFixed(2) + " (" + category + " \xB7 " + desc + "\uFF0C\u7ED3\u4F59 \xA5" + window2.TREASURY_STATE.totalBalance.toFixed(2) + ")";
     appendDailyAutoLog(txLog, 0);
     const now = /* @__PURE__ */ new Date();
     const timeStr = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0") + " " + String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
-    window.TREASURY_STATE.ledger.unshift({
+    window2.TREASURY_STATE.ledger.unshift({
       id: "TX-" + Date.now(),
       time: timeStr,
       type,
       category,
       amount: type === "income" ? amountVal : -amountVal,
-      balanceAfter: window.TREASURY_STATE.totalBalance,
+      balanceAfter: window2.TREASURY_STATE.totalBalance,
       note: desc,
       proof
     });
@@ -12417,7 +12411,7 @@ function bootPrototypeRuntime() {
     }).join("");
   }
   function updateTreasuryLiveDOM() {
-    const state = window.TREASURY_STATE;
+    const state = window2.TREASURY_STATE;
     const totalAssetsEl = document.getElementById("treasury-total-assets");
     if (totalAssetsEl)
       totalAssetsEl.innerText = "\u603B\u51C0\u8D44\u4EA7\uFF1A\xA5" + state.totalBalance.toFixed(2);
@@ -12448,7 +12442,7 @@ function bootPrototypeRuntime() {
     const tbody = document.getElementById("treasury-ledger-tbody");
     if (!tbody)
       return;
-    const ledger = window.TREASURY_STATE.ledger || [];
+    const ledger = window2.TREASURY_STATE.ledger || [];
     let filtered = ledger;
     if (filter === "income") {
       filtered = ledger.filter((x) => x.type === "income");
@@ -12462,7 +12456,7 @@ function bootPrototypeRuntime() {
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "center" });
       el.style.boxShadow = "0 0 0 3px #f59e0b";
-      setTimeout(() => {
+      setTimeout2(() => {
         el.style.boxShadow = "";
       }, 1200);
     }
@@ -12474,7 +12468,7 @@ function bootPrototypeRuntime() {
     recordLiveTreasuryTransaction();
   }
   function renderTreasurySpecializedWorkspace() {
-    const state = window.TREASURY_STATE || {
+    const state = window2.TREASURY_STATE || {
       totalBalance: 0,
       totalIncome: 0,
       totalExpense: 0,
@@ -12483,8 +12477,8 @@ function bootPrototypeRuntime() {
     const isIncome = state.currentRecordType !== "expense";
     return '<div class="ws-layout-treasury-jars">  <!-- \u9876\u680F\u72EC\u7ACB\u6027\u89C4\u8303\u6A2A\u5E45 -->  <div class="ws-spec-notice-banner" style="background:linear-gradient(135deg, rgba(255, 251, 235, 0.95) 0%, rgba(254, 243, 199, 0.92) 50%, rgba(254, 215, 170, 0.88) 100%); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border-color:#d97706; border-left-color:#b45309;">    <div style="flex:1;">      <div class="ws-spec-notice-title" style="color:#78350f; display:flex; align-items:center; gap:8px;">        <span>\u{1F4B0} \u85CF\u91D1\u5C4B \xB7 \u5C11\u513F\u72EC\u7ACB\u8D22\u5546\u5B9E\u8DF5\u4E0E\u96F6\u7528\u91D1\u6536\u652F\u8BB0\u8D26</span>        <span style="font-size:10px; background:#fef3c7; color:#92400e; border:1px solid #f59e0b; padding:2px 8px; border-radius:10px; font-weight:800;">\u72EC\u7ACB\u6A21\u5757 \xB7 \u4E25\u7981\u5BF9\u8D4C</span>      </div>      <div class="ws-spec-notice-desc" style="color:#92400e;">\u57F9\u517B"\u52B3\u52A8\u6240\u5F97\u3001\u91CF\u5165\u4E3A\u51FA\u3001\u7406\u6027\u6D88\u8D39"\u91D1\u94B1\u89C2 \xB7 \u8BB0\u5F55\u771F\u5B9E\u96F6\u7528\u91D1\u6536\u652F \xB7 \u4E25\u683C\u65E0\u9879\u76EE\u89C4\u5212\u7518\u7279</div>    </div>    <div style="display:flex; align-items:center; gap:8px;">      <button class="treasury-cta-btn" onclick="scrollToTreasurySection(&apos;treasury-quick-record-card&apos;)">\u270D\uFE0F \u5FEB\u901F\u8BB0\u4E00\u7B14</button>    </div>  </div>  <!-- \u5361\u7247 1: \u{1F4CA} \u8D44\u4EA7\u603B\u89C8\u770B\u677F -->  <div class="treasury-card-box">    <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1.5px dashed #d4c5a9; padding-bottom:12px; margin-bottom:16px;">      <div>        <h3 style="margin:0; font-size:16px; color:#78350f; font-weight:900; display:flex; align-items:center; gap:8px;">          <span>\u{1F4CA} \u4E2A\u4EBA\u96F6\u7528\u91D1\u8D44\u4EA7\u603B\u89C8</span>          <span style="font-size:11px; font-weight:normal; color:#8c6b49;">(\u771F\u5B9E\u6536\u652F\u6E05\u6670\u900F\u660E \xB7 \u8D26\u5B9E\u76F8\u7B26)</span>        </h3>      </div>      <div style="display:flex; align-items:center; gap:10px;">        <span style="background:#fef3c7; color:#92400e; font-size:13px; font-weight:900; padding:5px 14px; border-radius:14px; border:1.5px solid #f59e0b; box-shadow:0 2px 6px rgba(245,158,11,0.2);" id="treasury-total-assets">\u603B\u51C0\u8D44\u4EA7\uFF1A\xA5' + state.totalBalance.toFixed(2) + '</span>      </div>    </div>    <div class="treasury-jars-row" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:14px;">      <!-- \u6307\u6807 1: \u5F53\u524D\u96F6\u7528\u91D1\u7ED3\u4F59 -->      <div class="treasury-jar-card" style="background:linear-gradient(180deg, #fffcf5 0%, #ffffff 100%); border:2px solid #f59e0b; border-radius:16px; padding:14px; text-align:center; box-shadow:0 4px 12px rgba(245,158,11,0.12);">        <div style="font-size:28px; margin-bottom:2px;">\u{1F4B0}</div>        <div style="font-size:13px; font-weight:900; color:#78350f;">\u5F53\u524D\u603B\u51C0\u8D44\u4EA7\u7ED3\u4F59</div>        <div style="font-size:24px; font-weight:900; color:#b45309; margin:8px 0;" id="treasury-stat-balance-val">\xA5' + state.totalBalance.toFixed(2) + '</div>        <div style="font-size:11px; color:#8c6b49;">\u968F\u65F6\u81EA\u4E3B\u652F\u914D\uFF1A\u6587\u5177\u3001\u8D2D\u4E66\u4E0E\u65E5\u5E38</div>      </div>      <!-- \u6307\u6807 2: \u7D2F\u8BA1\u603B\u6536\u5165 -->      <div class="treasury-jar-card" style="background:linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%); border:2px solid #10b981; border-radius:16px; padding:14px; text-align:center; box-shadow:0 4px 12px rgba(16,185,129,0.12);">        <div style="font-size:28px; margin-bottom:2px;">\u{1F4E5}</div>        <div style="font-size:13px; font-weight:900; color:#065f46;">\u7D2F\u8BA1\u603B\u6536\u5165</div>        <div style="font-size:24px; font-weight:900; color:#059669; margin:8px 0;" id="treasury-stat-income-val">+\xA5' + state.totalIncome.toFixed(2) + '</div>        <div style="font-size:11px; color:#047857;">\u6765\u6E90\uFF1A\u6BCF\u5468\u5E38\u89C4\u96F6\u82B1\u94B1\u3001\u52B3\u52A8\u6240\u5F97\u7B49</div>      </div>      <!-- \u6307\u6807 3: \u7D2F\u8BA1\u603B\u652F\u51FA -->      <div class="treasury-jar-card" style="background:linear-gradient(180deg, #fef2f2 0%, #ffffff 100%); border:2px solid #ef4444; border-radius:16px; padding:14px; text-align:center; box-shadow:0 4px 12px rgba(239,68,68,0.12);">        <div style="font-size:28px; margin-bottom:2px;">\u{1F4E4}</div>        <div style="font-size:13px; font-weight:900; color:#991b1b;">\u7D2F\u8BA1\u603B\u652F\u51FA</div>        <div style="font-size:24px; font-weight:900; color:#dc2626; margin:8px 0;" id="treasury-stat-expense-val">-\xA5' + state.totalExpense.toFixed(2) + '</div>        <div style="font-size:11px; color:#b91c1c;">\u7528\u9014\uFF1A\u5B66\u79D1\u6587\u5177\u3001\u4E66\u7C4D\u3001\u793C\u7269\u7B49\u5B9E\u7269\u5F00\u9500</div>      </div>    </div>  </div>  <!-- \u5361\u7247 2: \u270D\uFE0F \u96F6\u7528\u91D1\u6781\u901F\u6536\u652F\u8BB0\u8D26\u64CD\u4F5C\u53F0 -->  <div id="treasury-quick-record-card" class="treasury-card-box" style="border-color:#f59e0b;">    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">      <div>        <h3 style="margin:0; font-size:15px; color:#78350f; font-weight:900;">\u270D\uFE0F \u96F6\u7528\u91D1\u6781\u901F\u6536\u652F\u8BB0\u8D26\u64CD\u4F5C\u53F0</h3>        <div style="font-size:11px; color:#8c6b49; margin-top:2px;">\u9009\u62E9\u6536\u652F\u7C7B\u578B \u2794 \u5F55\u5165\u91D1\u989D\u5206\u7C7B \u2794 \u9644\u5E26\u8BF4\u660E\u6216\u5C0F\u7968\u51ED\u636E \u2794 \u4E00\u952E\u8BB0\u5165\u8D26\u672C\uFF08\u4E25\u7981\u900F\u652F\uFF09</div>      </div>      <div style="display:flex; gap:8px;">        <button type="button" id="treasury-type-btn-income" class="treasury-type-tab-btn is-income' + (isIncome ? " is-active" : "") + '" onclick="switchTreasuryRecordType(&apos;income&apos;)">\u{1F7E2} \u8BB0\u6536\u5165 (+\xA5)</button>        <button type="button" id="treasury-type-btn-expense" class="treasury-type-tab-btn is-expense' + (!isIncome ? " is-active" : "") + '" onclick="switchTreasuryRecordType(&apos;expense&apos;)">\u{1F534} \u8BB0\u652F\u51FA (-\xA5)</button>      </div>    </div>    <div style="background:rgba(255, 252, 245, 0.9); border:1.5px solid #fed7aa; border-radius:14px; padding:14px;">      <div style="display:grid; grid-template-columns: 200px 180px 1fr; gap:12px; margin-bottom:12px;">        <div>          <label style="font-size:11px; font-weight:bold; color:#78350f; display:block; margin-bottom:4px;">\u53D1\u751F\u91D1\u989D (\xA5)\uFF1A</label>          <div style="position:relative;">            <span style="position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:15px; font-weight:bold; color:#b45309;">\xA5</span>            <input id="treasury-tx-amount-input" type="number" step="1" min="0.1" placeholder="\u5982 50.00" style="width:100%; padding:8px 12px 8px 26px; border:1.5px solid #f59e0b; border-radius:8px; font-size:14px; font-weight:bold; color:#78350f; background:#fff; box-sizing:border-box;">          </div>        </div>        <div>          <label style="font-size:11px; font-weight:bold; color:#78350f; display:block; margin-bottom:4px;">\u6536\u652F\u4E1A\u52A1\u5206\u7C7B\uFF1A</label>          <select id="treasury-tx-category-select" style="width:100%; padding:8px; border:1.5px solid #f59e0b; border-radius:8px; font-size:12px; font-weight:bold; color:#78350f; background:#fff;">' + (isIncome ? '            <option value="\u96F6\u82B1\u94B1">\u{1F4B5} \u5E38\u89C4\u96F6\u82B1\u94B1</option>            <option value="\u52B3\u52A8\u5956\u52B1">\u{1F9F9} \u81EA\u4E3B\u52B3\u52A8\u5956\u52B1</option>            <option value="\u8282\u65E5\u7EA2\u5305">\u{1F9E7} \u8282\u65E5\u538B\u5C81\u7EA2\u5305</option>            <option value="\u5176\u4ED6\u6240\u5F97">\u2728 \u5176\u4ED6\u81EA\u4E3B\u6240\u5F97</option>' : '            <option value="\u5B66\u79D1\u6587\u5177">\u270F\uFE0F \u5B66\u79D1\u6587\u5177\u4E0E\u7B14\u8BB0\u672C</option>            <option value="\u8BFE\u5916\u4E66\u7C4D">\u{1F4DA} \u7ECF\u5178\u8BFE\u5916\u8BFB\u7269</option>            <option value="\u5065\u5EB7\u96F6\u98DF">\u{1F95B} \u5065\u5EB7\u9178\u5976/\u6C34\u679C</option>            <option value="\u5B5D\u4EB2\u793C\u7269">\u{1F381} \u957F\u8F88\u8282\u65E5\u5B5D\u4EB2\u793C\u7269</option>            <option value="\u5176\u4ED6\u65E5\u5E38">\u{1F6D2} \u5176\u4ED6\u65E5\u5E38\u5C0F\u5F00\u9500</option>') + '          </select>        </div>        <div>          <label style="font-size:11px; font-weight:bold; color:#78350f; display:block; margin-bottom:4px;">\u7528\u9014\u6216\u6765\u6E90\u8BF4\u660E\uFF1A</label>          <input id="treasury-tx-desc-input" type="text" placeholder="' + (isIncome ? "\u5982\uFF1A\u6BCF\u5468\u81EA\u4E3B\u751F\u6D3B\u96F6\u82B1\u94B1\u5E38\u89C4\u53D1\u653E\u5B58\u5165" : "\u5982\uFF1A\u65B0\u534E\u4E66\u5E97\u8D2D\u4E70\u9519\u9898\u6D3B\u9875\u672C\u4E0E\u7EA2\u7B14") + '" style="width:100%; padding:8px 12px; border:1.5px solid #d4c5a9; border-radius:8px; font-size:12px; background:#fff; box-sizing:border-box;">        </div>      </div>      <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px dashed #fed7aa; padding-top:10px;">        <div style="display:flex; align-items:center; gap:6px;">          <span style="font-size:11px; color:#8c6b49; font-weight:bold;">\u5FEB\u6377\u91D1\u989D\uFF1A</span>          <button type="button" class="treasury-quick-amt-token" onclick="setQuickRecordAmount(10)">\xA510</button>          <button type="button" class="treasury-quick-amt-token" onclick="setQuickRecordAmount(20)">\xA520</button>          <button type="button" class="treasury-quick-amt-token" onclick="setQuickRecordAmount(50)">\xA550</button>          <button type="button" class="treasury-quick-amt-token" onclick="setQuickRecordAmount(100)">\xA5100</button>        </div>        <div style="display:flex; align-items:center; gap:10px;">          <input id="treasury-tx-proof-input" type="text" placeholder="\u7269\u8BC1/\u51ED\u636E\u8BF4\u660E (\u5982\uFF1A\u{1F9FE} \u65B0\u534E\u4E66\u5E97\u6536\u94F6\u5C0F\u7968)" style="width:220px; padding:7px 10px; font-size:11px; border:1.5px solid #d4c5a9; border-radius:8px; background:#fff;">          <button type="button" class="treasury-submit-btn" onclick="recordLiveTreasuryTransaction()">\u{1F4DD} \u786E\u8BA4\u8BB0\u5165\u8D26\u672C</button>        </div>      </div>    </div>  </div>  <!-- \u5361\u7247 3: \u{1F3DB}\uFE0F \u96F6\u7528\u91D1\u6536\u652F\u660E\u7EC6\u53F0\u8D26 -->  <div id="treasury-ledger-card" class="treasury-card-box" style="border-color:#78350f;">    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px dashed #d4c5a9; padding-bottom:12px; margin-bottom:14px;">      <div>        <h3 style="margin:0; font-size:15px; color:#78350f; font-weight:900; display:flex; align-items:center; gap:8px;">          <span>\u{1F3DB}\uFE0F \u85CF\u91D1\u5C4B\u96F6\u7528\u91D1\u6536\u652F\u660E\u7EC6\u53F0\u8D26</span>          <span style="font-size:10px; background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:8px; font-weight:bold;">\u{1F512} \u771F\u5B9E\u5BA2\u89C2\u8D26\u672C \xB7 \u4E0D\u53EF\u968F\u610F\u7BE1\u6539</span>        </h3>        <div style="font-size:11px; color:#8c6b49; margin-top:2px;">\u6BCF\u4E00\u7B14\u6536\u5165\u4E0E\u652F\u51FA\u5747\u8BB0\u5F55\u65F6\u95F4\u3001\u4E1A\u52A1\u5206\u7C7B\u3001\u53D1\u751F\u91D1\u989D\u4E0E\u51ED\u636E\u8BF4\u660E</div>      </div>      <div style="display:flex; gap:6px;">        <button class="treasury-filter-tab-btn is-active" onclick="filterTreasuryLedgerRows(&apos;all&apos;, this)">\u5168\u90E8\u660E\u7EC6</button>        <button class="treasury-filter-tab-btn" onclick="filterTreasuryLedgerRows(&apos;income&apos;, this)">\u{1F7E2} \u6536\u5165\u6D41\u6C34</button>        <button class="treasury-filter-tab-btn" onclick="filterTreasuryLedgerRows(&apos;expense&apos;, this)">\u{1F534} \u652F\u51FA\u6D41\u6C34</button>      </div>    </div>    <div style="max-height:360px; overflow-y:auto; border-radius:10px; border:1px solid #e2e8f0;">      <table class="treasury-ledger-table" style="width:100%; border-collapse:collapse; font-size:11.5px;">        <thead>          <tr style="background:#faf4e6; color:#78350f; position:sticky; top:0; z-index:2;">            <th style="padding:8px 10px; text-align:left;">\u4EA4\u6613\u65F6\u95F4</th>            <th style="padding:8px 10px; text-align:center;">\u7C7B\u578B</th>            <th style="padding:8px 10px; text-align:left;">\u6536\u652F\u5206\u7C7B</th>            <th style="padding:8px 10px; text-align:right;">\u53D1\u751F\u91D1\u989D</th>            <th style="padding:8px 10px; text-align:right;">\u8D26\u6237\u7ED3\u4F59</th>            <th style="padding:8px 10px; text-align:left;">\u8BF4\u660E\u4E0E\u7269\u8BC1\u51ED\u636E</th>          </tr>        </thead>        <tbody id="treasury-ledger-tbody">' + renderTreasuryLedgerRows(state.ledger) + "        </tbody>      </table>    </div>  </div></div>";
   }
-  window.CURRENT_DAXUE_TAB = "all";
-  window.UNIVERSITY_EIGHT_ITEMS_DATA = [
+  window2.CURRENT_DAXUE_TAB = "all";
+  window2.UNIVERSITY_EIGHT_ITEMS_DATA = [
     {
       id: "gewu",
       idxStr: "\u7B2C\u4E00\u76EE",
@@ -12695,7 +12689,7 @@ function bootPrototypeRuntime() {
     }
   ];
   function renderDaxueEightItemsHtml(filterId) {
-    const list = window.UNIVERSITY_EIGHT_ITEMS_DATA || [];
+    const list = window2.UNIVERSITY_EIGHT_ITEMS_DATA || [];
     if (!filterId || filterId === "all") {
       return '<div class="daxue-eight-grid">' + list.map((item2) => {
         const isNeiSheng = ["gewu", "zhizhi", "chengyi", "zhengxin"].includes(item2.id);
@@ -12714,7 +12708,7 @@ function bootPrototypeRuntime() {
     }).join("") + "  </div></div>";
   }
   function openDaxueItemDetailModal(itemId) {
-    const item = (window.UNIVERSITY_EIGHT_ITEMS_DATA || []).find((x) => x.id === itemId);
+    const item = (window2.UNIVERSITY_EIGHT_ITEMS_DATA || []).find((x) => x.id === itemId);
     if (!item)
       return;
     const modal = document.getElementById("daxue-item-detail-modal");
@@ -12732,16 +12726,16 @@ function bootPrototypeRuntime() {
       modal.style.display = "none";
   }
   function renderDaxueItemModalBody(item) {
-    const currentIndex = (window.UNIVERSITY_EIGHT_ITEMS_DATA || []).findIndex((x) => x.id === item.id);
-    const total = (window.UNIVERSITY_EIGHT_ITEMS_DATA || []).length;
-    const prevId = currentIndex > 0 ? window.UNIVERSITY_EIGHT_ITEMS_DATA[currentIndex - 1].id : null;
-    const nextId = currentIndex < total - 1 ? window.UNIVERSITY_EIGHT_ITEMS_DATA[currentIndex + 1].id : null;
+    const currentIndex = (window2.UNIVERSITY_EIGHT_ITEMS_DATA || []).findIndex((x) => x.id === item.id);
+    const total = (window2.UNIVERSITY_EIGHT_ITEMS_DATA || []).length;
+    const prevId = currentIndex > 0 ? window2.UNIVERSITY_EIGHT_ITEMS_DATA[currentIndex - 1].id : null;
+    const nextId = currentIndex < total - 1 ? window2.UNIVERSITY_EIGHT_ITEMS_DATA[currentIndex + 1].id : null;
     return '<div style="display:flex; flex-direction:column; gap:16px;">  <!-- \u5178\u7C4D\u9898\u5934 -->  <div style="background:#faf6ed; border:1.5px solid #d4c5a9; border-left:5px solid #991b1b; border-radius:12px; padding:16px 20px;">    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">      <div style="display:flex; align-items:center; gap:10px;">        <span style="font-size:28px;">' + item.icon + '</span>        <div>          <h3 style="margin:0; font-size:17px; font-weight:900; color:#7f1d1d; letter-spacing:1px;">' + item.fullName + '</h3>          <div style="font-size:12px; color:#b45309; margin-top:3px; font-weight:bold;">' + item.summary + '</div>        </div>      </div>      <span class="classic-vermilion-seal" style="font-size:11px; padding:4px 10px;">' + item.idxStr + ' \xB7 \u7EC8\u8EAB\u81EA\u5F8B\u5E95\u7EBF</span>    </div>    <div style="margin-top:14px; padding-top:12px; border-top:1px dashed #e2d9c8;">      <div style="font-size:12px; color:#78350f; font-weight:bold; margin-bottom:4px;">\u{1F4D6} \u5148\u8D24\u5723\u8A00\u539F\u5178\u51FA\u5904\uFF1A</div>      <div style="font-size:13px; color:#991b1b; font-style:italic; font-family:STSong, serif; line-height:1.6;">' + item.classicQuote + '</div>      <div style="font-size:12px; color:#451a03; margin-top:8px; line-height:1.6; background:#fff; padding:10px 14px; border-radius:8px; border:1px solid #e5dccb;">        <strong>\u3010\u77E5\u884C\u5408\u4E00\u91CA\u4E49\u3011</strong> ' + item.classicExplain + '      </div>    </div>  </div>  <!-- \u5DF2\u786E\u7ACB\u7684\u6CD5\u5178\u6212\u5F8B\u6E05\u5355 -->  <div>    <div style="font-size:14px; font-weight:900; color:#7f1d1d; margin-bottom:10px; display:flex; align-items:center; gap:6px;">      <span>\u2696\uFE0F \u4EB2\u5B50\u5171\u540C\u786E\u7ACB\u751F\u6548\u4E4B\u884C\u4E3A\u6212\u5F8B\u6761\u6B3E</span>      <span style="font-size:11px; color:#15803d; font-weight:bold;">(\u5171 ' + item.rules.length + ' \u6761 \xB7 \u7EC8\u8EAB\u5C65\u7EA6)</span>    </div>    <div style="display:flex; flex-direction:column; gap:10px;">' + item.rules.map((r) => {
       return '      <div style="background:#ffffff; border:1.5px solid #d4c5a9; border-radius:10px; padding:14px 16px; display:flex; justify-content:space-between; align-items:flex-start; gap:14px;">        <div style="flex:1;">          <div style="display:flex; align-items:center; gap:8px;">            <span style="font-size:10.5px; background:#fef2f2; color:#991b1b; border:1px solid #fecaca; padding:2px 7px; border-radius:4px; font-weight:bold;">' + r.code + '</span>            <strong style="font-size:13.5px; color:#1e293b;">' + r.title + '</strong>            <span style="font-size:10px; background:#f1f5f9; color:#475569; padding:2px 7px; border-radius:4px;">\u9002\u7528\u573A\u666F\uFF1A' + r.scene + '</span>          </div>          <div style="font-size:12px; color:#475569; margin-top:8px; line-height:1.6;">' + r.desc + '</div>        </div>        <div style="display:flex; flex-direction:column; align-items:center; flex-shrink:0;">          <span class="classic-vermilion-seal" style="font-size:10.5px; padding:3px 8px;">' + r.seal + ' \u2713</span>          <span style="font-size:10px; color:#15803d; margin-top:4px; font-weight:bold;">\u5951\u7EA6\u52A0\u76D6\u751F\u6548</span>        </div>      </div>';
-    }).join("") + '    </div>  </div>  <!-- \u7FFB\u9875\u5BFC\u822A -->  <div style="display:flex; justify-content:space-between; align-items:center; padding-top:12px; border-top:1.5px dashed #d4c5a9;">' + (prevId ? '    <button type="button" class="modal-3d-btn parchment" onclick="openDaxueItemDetailModal(&apos;' + prevId + '&apos;)">\u25C0\uFE0F \u4E0A\u4E00\u76EE\uFF1A' + window.UNIVERSITY_EIGHT_ITEMS_DATA[currentIndex - 1].name + "</button>" : "<div></div>") + (nextId ? '    <button type="button" class="modal-3d-btn parchment" onclick="openDaxueItemDetailModal(&apos;' + nextId + '&apos;)">\u4E0B\u4E00\u76EE\uFF1A' + window.UNIVERSITY_EIGHT_ITEMS_DATA[currentIndex + 1].name + " \u25B6\uFE0F</button>" : "<div></div>") + "  </div></div>";
+    }).join("") + '    </div>  </div>  <!-- \u7FFB\u9875\u5BFC\u822A -->  <div style="display:flex; justify-content:space-between; align-items:center; padding-top:12px; border-top:1.5px dashed #d4c5a9;">' + (prevId ? '    <button type="button" class="modal-3d-btn parchment" onclick="openDaxueItemDetailModal(&apos;' + prevId + '&apos;)">\u25C0\uFE0F \u4E0A\u4E00\u76EE\uFF1A' + window2.UNIVERSITY_EIGHT_ITEMS_DATA[currentIndex - 1].name + "</button>" : "<div></div>") + (nextId ? '    <button type="button" class="modal-3d-btn parchment" onclick="openDaxueItemDetailModal(&apos;' + nextId + '&apos;)">\u4E0B\u4E00\u76EE\uFF1A' + window2.UNIVERSITY_EIGHT_ITEMS_DATA[currentIndex + 1].name + " \u25B6\uFE0F</button>" : "<div></div>") + "  </div></div>";
   }
   function switchDaxueTab(tabId, btn) {
-    window.CURRENT_DAXUE_TAB = tabId;
+    window2.CURRENT_DAXUE_TAB = tabId;
     if (btn && btn.parentElement) {
       btn.parentElement.querySelectorAll(".daxue-eight-pill").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
@@ -12752,25 +12746,25 @@ function bootPrototypeRuntime() {
     }
   }
   function renderTreeSpecializedWorkspace() {
-    const currentTab = window.CURRENT_DAXUE_TAB || "all";
+    const currentTab = window2.CURRENT_DAXUE_TAB || "all";
     return '<div class="classic-code-book-wrapper">  <!-- \u9876\u680F\u6A2A\u5E45 -->  <div class="ws-spec-notice-banner" style="margin-bottom:16px; background:#fffbf0; border-color:#991b1b; border-left-color:#7f1d1d;">    <div>      <div class="ws-spec-notice-title" style="color:#7f1d1d; display:flex; align-items:center; gap:8px;">        <span>\u{1F4DC}\u300A\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303\u300B\xB7 \u9075\u300A\u5927\u5B66\u300B\u516B\u76EE\u7ACB\u5BAA\u6CD5\u5178\u957F\u5377</span>        <span style="font-size:10px; background:#fef2f2; color:#991b1b; border:1px solid #fecaca; padding:2px 8px; border-radius:10px; font-weight:bold;">\u4E09\u7EB2\u516B\u76EE\u4F53\u7CFB</span>      </div>      <div class="ws-spec-notice-desc" style="color:#991b1b;">\u3010\u7EAF\u67E5\u9605\u529F\u80FD \xB7 \u4E25\u683C\u65E0\u6253\u5361\u3011\u9075\u7167\u300A\u5927\u5B66\u300B\u516B\u76EE\uFF08\u683C\u7269\u3001\u81F4\u77E5\u3001\u8BDA\u610F\u3001\u6B63\u5FC3\u3001\u4FEE\u8EAB\u3001\u9F50\u5BB6\u3001\u6CBB\u56FD\u3001\u5E73\u5929\u4E0B\uFF09\u7CFB\u7EDF\u5206\u7C7B\u5C55\u793A\u4E4B\u524D\u5DF2\u786E\u7ACB\u751F\u6548\u7684\u7EC8\u8EAB\u884C\u4E3A\u6212\u5F8B\uFF0C\u7EDD\u4E0D\u4F5C\u4E3A\u6BCF\u65E5\u771F\u5B9E\u884C\u4E3A\u8F93\u5165\u6E90\u3002</div>    </div>    <span class="classic-vermilion-seal">\u7ACB\u8EAB\u4E4B\u672C \xB7 \u516B\u76EE\u7ACB\u5BAA</span>  </div>  <!-- \u6CD5\u5178\u9898\u5934 -->  <div class="classic-code-header">    <div>      <div class="classic-code-title">\u{1F4DC} \u9F50\u5929\u7EC8\u8EAB\u884C\u4E3A\u89C4\u8303\u6212\u5F8B\u6CD5\u5178 \xB7 \u516B\u76EE\u7ECF\u7EAC</div>      <div style="font-size:11px; color:#78350f; margin-top:4px;">\u683C\u7269\u81F4\u77E5\u4EE5\u7A77\u7406 \xB7 \u8BDA\u610F\u6B63\u5FC3\u4EE5\u7ACB\u547D \xB7 \u4FEE\u9F50\u6CBB\u5E73\u4EE5\u8FBE\u5929\u4E0B \xB7 \u4EB2\u5B50\u7ACB\u5BAA\u6731\u7802\u5370\u5B58</div>    </div>    <span class="classic-vermilion-seal">\u6731\u7802\u94A4\u5370 \xB7 \u4E0D\u53EF\u903E\u8D8A</span>  </div>  <!-- \u300A\u5927\u5B66\u300B\u516B\u76EE\u5206\u7C7B\u7ECF\u7EAC\u5BFC\u822A\u680F -->  <div class="daxue-eight-tabs-bar" id="daxue-eight-tabs">    <button type="button" class="daxue-eight-pill' + (currentTab === "all" ? " active" : "") + '" onclick="switchDaxueTab(&apos;all&apos;, this)">\u{1F4DC} \u516B\u76EE\u5168\u666F\u901A\u89C8</button>    <button type="button" class="daxue-eight-pill' + (currentTab === "gewu" ? " active" : "") + '" onclick="switchDaxueTab(&apos;gewu&apos;, this)">\u{1F33F} 1. \u683C\u7269</button>    <button type="button" class="daxue-eight-pill' + (currentTab === "zhizhi" ? " active" : "") + '" onclick="switchDaxueTab(&apos;zhizhi&apos;, this)">\u{1F4A1} 2. \u81F4\u77E5</button>    <button type="button" class="daxue-eight-pill' + (currentTab === "chengyi" ? " active" : "") + '" onclick="switchDaxueTab(&apos;chengyi&apos;, this)">\u{1F9ED} 3. \u8BDA\u610F</button>    <button type="button" class="daxue-eight-pill' + (currentTab === "zhengxin" ? " active" : "") + '" onclick="switchDaxueTab(&apos;zhengxin&apos;, this)">\u2696\uFE0F 4. \u6B63\u5FC3</button>    <button type="button" class="daxue-eight-pill' + (currentTab === "xiushen" ? " active" : "") + '" onclick="switchDaxueTab(&apos;xiushen&apos;, this)">\u{1F94B} 5. \u4FEE\u8EAB</button>    <button type="button" class="daxue-eight-pill' + (currentTab === "qijia" ? " active" : "") + '" onclick="switchDaxueTab(&apos;qijia&apos;, this)">\u{1F3E1} 6. \u9F50\u5BB6</button>    <button type="button" class="daxue-eight-pill' + (currentTab === "zhiguo" ? " active" : "") + '" onclick="switchDaxueTab(&apos;zhiguo&apos;, this)">\u{1F3DB}\uFE0F 7. \u6CBB\u56FD</button>    <button type="button" class="daxue-eight-pill' + (currentTab === "pingtianxia" ? " active" : "") + '" onclick="switchDaxueTab(&apos;pingtianxia&apos;, this)">\u{1F30F} 8. \u5E73\u5929\u4E0B</button>  </div>  <!-- \u300A\u5927\u5B66\u300B\u516B\u76EE\u5206\u7C7B\u6CD5\u5178\u5927\u5361\u7247\u957F\u5377\u5BB9\u5668 -->  <div id="daxue-eight-cards-container">' + renderDaxueEightItemsHtml(currentTab) + '  </div>  <!-- \u5386\u6B21\u73B0\u5B9E\u8BF1\u60D1\u8003\u9A8C\u5B9E\u5F55 (\u91D1\u77F3\u8C31) -->  <div style="background:#ffffff; border:1.5px solid #d4c5a9; border-radius:12px; padding:14px; margin-top:16px;">    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">      <div style="font-size:13px; font-weight:900; color:#7f1d1d;">\u26A1 \u5386\u6B21\u73B0\u5B9E\u8BF1\u60D1\u8003\u9A8C\u5B9E\u5F55 (\u91D1\u77F3\u8C31)</div>      <span style="font-size:11px; color:#15803d; font-weight:800;">\u2705 \u5DF2\u6210\u529F\u901A\u8FC7 14 \u6B21\u8BF1\u60D1\u8003\u9A8C</span>    </div>    <div style="display:flex; flex-direction:column; gap:8px;">      <div style="background:#faf6ed; border-left:3px solid #16a34a; padding:8px 12px; border-radius:6px; font-size:11px; display:flex; justify-content:space-between;">        <span><strong>\u8003\u9A8C 14\u3010\u6B63\u5FC3\xB7\u65AD\u5FF5\u3011\uFF1A</strong> \u5468\u672B\u597D\u53CB\u8054\u673A\u6E38\u620F\u5347\u7EA7\u8BF1\u60D1 \u2794 \u3010\u51B3\u65AD\uFF1A\u575A\u5B88\u539F\u5219\u4E3B\u52A8\u5173\u673A\u4EA4\u4ED8\u7236\u6BCD\u4FDD\u7BA1\u3011</span>        <span style="color:#b91c1c; font-weight:bold;">\u6731\u7802\u76D6\u5370 \u2713</span>      </div>      <div style="background:#faf6ed; border-left:3px solid #16a34a; padding:8px 12px; border-radius:6px; font-size:11px; display:flex; justify-content:space-between;">        <span><strong>\u8003\u9A8C 13\u3010\u683C\u7269\xB7\u6C42\u771F\u3011\uFF1A</strong> \u538B\u8F74\u5927\u9898\u9A8C\u7B97\u53D7\u632B\u60F3\u7FFB\u770B\u7B54\u6848 \u2794 \u3010\u51B3\u65AD\uFF1A\u72EC\u7ACB\u91CD\u63A8 40 \u5206\u949F\u6210\u529F\u7834\u89E3\u3011</span>        <span style="color:#b91c1c; font-weight:bold;">\u6731\u7802\u76D6\u5370 \u2713</span>      </div>    </div>  </div>  <!-- \u5E95\u90E8\u53CC\u9A71\u53E4\u5178 3D \u62DF\u7269\u64CD\u4F5C\u5927\u6309\u952E -->  <div class="tree-footer-action-bar">    <button type="button" class="tree-action-btn pact-btn" onclick="openFamilyPactModal()">      <span style="font-size:16px;">\u{1F4DC}</span>      <span>\u4EB2\u5B50\u7ACB\u5BAA\u516C\u7EA6\u5168\u6587\u4E0E\u6212\u5F8B\u6CD5\u5178</span>      <span class="btn-badge">\u6B63\u672C\u5B58\u8BC1</span>    </button>    <button type="button" class="tree-action-btn philo-btn" onclick="openDaxuePhilosophyModal()">      <span style="font-size:16px;">\u{1F50D}</span>      <span>\u68C0\u89C6\u300A\u5927\u5B66\u300B\u516B\u76EE\u4FEE\u8EAB\u54F2\u5B66\u4F53\u7CFB</span>      <span class="btn-badge">\u5168\u606F\u89E3\u6784</span>    </button>  </div></div>';
   }
   function showDaxueEightPhilosophy() {
     openDaxuePhilosophyModal();
   }
-  window.ACHIEVEMENT_STATE = {
+  window2.ACHIEVEMENT_STATE = {
     currentTab: "cultivation",
     cultivationItems: [],
     accidentalItems: []
   };
   function renderAchieveSpecializedWorkspace() {
-    const cultItems = window.ACHIEVEMENT_STATE.cultivationItems || [];
-    const accItems = window.ACHIEVEMENT_STATE.accidentalItems || [];
-    const currentTab = window.ACHIEVEMENT_STATE.currentTab || "cultivation";
+    const cultItems = window2.ACHIEVEMENT_STATE.cultivationItems || [];
+    const accItems = window2.ACHIEVEMENT_STATE.accidentalItems || [];
+    const currentTab = window2.ACHIEVEMENT_STATE.currentTab || "cultivation";
     return '<div class="achieve-hall-wrapper">  <!-- \u9876\u680F\u53CC\u8F68\u673A\u5236\u6A2A\u5E45 (\u6668\u66E6\u9633\u5149\u6696\u9633\u91D1\u6BBF) -->  <div class="ws-spec-notice-banner" style="background:linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #fde68a 100%); border:1.5px solid #fbbf24; border-left:5px solid #f59e0b; margin-bottom:20px; box-shadow:0 4px 14px rgba(245, 158, 11, 0.12);">    <div style="flex:1;">      <div class="ws-spec-notice-title" style="color:#78350f; display:flex; align-items:center; gap:8px;">        <span style="font-size:20px;">\u{1F3C6}</span>        <span style="font-weight:900; font-size:15px; letter-spacing:0.5px;">\u6210\u5C31\u9986 \xB7 \u9752\u5C11\u5E74\u6210\u957F\u9AD8\u5149\u53F2\u8BD7\u8363\u8A89\u6BBF\u5802</span>        <span style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#fff; font-size:10px; font-weight:900; padding:2px 8px; border-radius:8px; box-shadow:0 1px 3px rgba(217,119,6,0.3);">\u53CC\u8F68\u5206\u7C7B\u67B6\u6784</span>      </div>      <div class="ws-spec-notice-desc" style="color:#92400e; font-size:11.5px; margin-top:3px;">        \u{1F331} \u517B\u6210\u7C7B\u6210\u5C31\uFF08\u5404\u6A21\u5757\u9879\u76EE\u6267\u884C\u901A\u5173\u6C89\u6DC0 \xB7 \u4E25\u7981\u624B\u52A8\u65B0\u589E \xB7 \u6309\u9879\u76EE\u7C7B\u578B\u5206\u7EC4\uFF09 \uFF5C \u2728 \u5076\u7136\u6210\u5C31\uFF08\u751F\u6D3B\u5B66\u4E60\u9AD8\u5149\u6293\u53D6 \xB7 \u652F\u6301\u968F\u65F6\u81EA\u4E3B\u65B0\u589E \xB7 \u6309\u6210\u5C31\u7C7B\u522B\u5206\u7EC4\uFF09      </div>    </div>    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">      <button type="button" class="tree-action-btn philo-btn" style="height:36px; padding:0 13px; font-size:11.5px;" onclick="openRegisterAccidentalAchievementModal()">        <span>\u2728</span>        <span>\u8BB0\u5F55\u5076\u7136\u6210\u5C31</span>      </button>      <button type="button" class="tree-action-btn rule-btn" style="height:36px; padding:0 13px; font-size:11.5px;" onclick="openBountyModal()">        <span>\u{1F4DC}</span>        <span>\u7F6E\u9876\u60AC\u8D4F\u8363\u8A89</span>      </button>      <button type="button" class="tree-action-btn law-btn" style="height:36px; padding:0 13px; font-size:11.5px;" onclick="jumpFromAchieveToProjectWorkspace(&apos;note&apos;, &apos;\u6BCF\u65E5\u968F\u8BB0&apos;)">        <span>\u{1F4DD}</span>        <span>\u65F6\u5E8F\u968F\u8BB0</span>      </button>    </div>  </div>  <!-- \u9876\u5C42\u6838\u5FC3\u5206\u7C7B\u5207\u6362\u6807\u7B7E\u680F -->  <div class="achieve-tab-bar">    <button type="button" class="achieve-tab-btn' + (currentTab === "cultivation" ? " active" : "") + '" onclick="switchAchieveTab(&apos;cultivation&apos;, this)">      <span>\u{1F331} \u9879\u76EE\u517B\u6210\u7C7B\u6210\u5C31</span>      <span class="badge-count">' + cultItems.length + ' \u9879</span>    </button>    <button type="button" class="achieve-tab-btn' + (currentTab === "accidental" ? " active" : "") + '" onclick="switchAchieveTab(&apos;accidental&apos;, this)">      <span>\u2728 \u751F\u6D3B\u5B66\u4E60\u5076\u7136\u6210\u5C31</span>      <span class="badge-count">' + accItems.length + ' \u9879</span>    </button>    <button type="button" class="achieve-tab-btn' + (currentTab === "all" ? " active" : "") + '" onclick="switchAchieveTab(&apos;all&apos;, this)">      <span>\u{1F3DB}\uFE0F \u53CC\u8F68\u5168\u8C8C\u603B\u89C8</span>      <span class="badge-count">' + (cultItems.length + accItems.length) + ' \u679A</span>    </button>  </div>  <!-- \u4E13\u533A 1: \u{1F331} \u9879\u76EE\u517B\u6210\u7C7B\u6210\u5C31\u5C55\u5385 (\u6309\u9879\u76EE\u7C7B\u578B\u5206\u7EC4\uFF0C\u7EC4\u5185\u6309\u65F6\u95F4\u7EBF\u5C55\u793A) -->  <div id="achieve-cultivation-section" style="' + (currentTab === "accidental" ? "display:none;" : "display:block;") + '">    <!-- \u94C1\u5F8B\u63D0\u793A\u5361 -->    <div style="background:linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border:1.5px solid #fde68a; border-left:4.5px solid #f59e0b; border-radius:14px; padding:12px 18px; margin-bottom:18px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 8px rgba(245,158,11,0.06);">      <div style="display:flex; align-items:center; gap:10px;">        <span style="font-size:22px;">\u{1F512}</span>        <div>          <strong style="color:#78350f; font-size:13.5px;">\u517B\u6210\u7C7B\u6210\u5C31\u6C89\u6DC0\u94C1\u5F8B\uFF1A\u4E0D\u53EF\u624B\u52A8\u65B0\u589E</strong>          <div style="font-size:11.5px; color:#92400e; margin-top:2px;">\u53EA\u80FD\u5728\u5404\u6A21\u5757\u9879\u76EE\u89C4\u5212\u4E0E\u6267\u884C\u4E2D\uFF0C\u5B8C\u6210\u76EE\u6807\u5206\u89E3\u5361\u7247\u7684\u901A\u5173\u9A8C\u6536\u540E\uFF0C\u70B9\u51FB\u3010\u8BB0\u5F55\u5230\u6210\u5C31\u9986\u3011\u81EA\u52A8\u5C06\u5B9E\u6D4B\u6307\u6807\u4E0E\u4EA4\u4ED8\u7269\u5F52\u6863\u6C89\u6DC0\u4E8E\u6B64\u3002</div>        </div>      </div>      <span style="font-size:11px; color:#b45309; font-weight:850; background:#ffffff; padding:4px 12px; border-radius:12px; border:1px solid #f59e0b; white-space:nowrap; box-shadow:0 1px 3px rgba(245,158,11,0.15);">\u6309\u9879\u76EE\u7C7B\u578B\u5206\u7EC4 \xB7 \u5012\u5E8F\u65F6\u95F4\u7EBF</span>    </div>    <!-- \u517B\u6210\u7C7B\u5206\u7EC4\u5217\u8868 -->    <div id="achieve-cultivation-groups">' + renderCultivationGroupsHtml(cultItems) + '    </div>  </div>  <!-- \u4E13\u533A 2: \u2728 \u751F\u6D3B\u5B66\u4E60\u5076\u7136\u6210\u5C31\u5C55\u5385 (\u6309\u6210\u5C31\u7C7B\u522B\u5206\u7EC4\uFF0C\u7EC4\u5185\u6309\u65F6\u95F4\u7EBF\u5C55\u793A) -->  <div id="achieve-accidental-section" style="' + (currentTab === "cultivation" ? "display:none;" : "display:block;") + '">    <!-- \u5076\u7136\u6210\u5C31\u5F15\u5BFC\u5361 -->    <div style="background:linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border:1.5px solid #bbf7d0; border-left:4.5px solid #10b981; border-radius:14px; padding:12px 18px; margin-bottom:18px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 2px 8px rgba(16,185,129,0.06);">      <div style="display:flex; align-items:center; gap:10px;">        <span style="font-size:22px;">\u2728</span>        <div>          <strong style="color:#065f46; font-size:13.5px;">\u5076\u7136\u6210\u5C31\u9AD8\u5149\u6355\u624B\uFF1A\u652F\u6301\u968F\u65F6\u81EA\u4E3B\u8BB0\u5F55</strong>          <div style="font-size:11.5px; color:#047857; margin-top:2px;">\u751F\u6D3B\u81EA\u7ACB\u3001\u63A2\u7D22\u53D1\u73B0\u3001\u827A\u672F\u8868\u8FBE\u3001\u610F\u5916\u8363\u8A89\u2014\u2014\u53EA\u8981\u662F\u4F60\u611F\u5230\u81EA\u8C6A\u7684\u6210\u957F\u77AC\u95F4\uFF0C\u968F\u65F6\u70B9\u51FB\u53F3\u4E0A\u89D2\u8BB0\u5F55\uFF0C\u4E0A\u4F20\u7269\u8BC1\u7167\u7247\uFF0C\u4EE5\u65F6\u95F4\u8F74\u954C\u523B\u9752\u6625\u5370\u8BB0\uFF01</div>        </div>      </div>      <button type="button" class="exec-action-btn primary" style="background:linear-gradient(135deg, #10b981, #059669); border:1.5px solid #34d399; color:#fff; font-weight:900; padding:6px 16px; font-size:11.5px; white-space:nowrap;" onclick="openRegisterAccidentalAchievementModal()">\u2795 \u8BB0\u5F55\u5076\u7136\u6210\u5C31</button>    </div>    <!-- \u5076\u7136\u7C7B\u5206\u7EC4\u5217\u8868 -->    <div id="achieve-accidental-groups">' + renderAccidentalGroupsHtml(accItems) + "    </div>  </div></div>";
   }
   function switchAchieveTab(tab, btn) {
-    window.ACHIEVEMENT_STATE.currentTab = tab;
+    window2.ACHIEVEMENT_STATE.currentTab = tab;
     if (btn) {
       document.querySelectorAll(".achieve-tab-btn").forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
@@ -12856,9 +12850,9 @@ function bootPrototypeRuntime() {
   function openAchievementDetailModal(type, id) {
     let item = null;
     if (type === "cultivation") {
-      item = (window.ACHIEVEMENT_STATE.cultivationItems || []).find((x) => x.id === id);
+      item = (window2.ACHIEVEMENT_STATE.cultivationItems || []).find((x) => x.id === id);
     } else {
-      item = (window.ACHIEVEMENT_STATE.accidentalItems || []).find((x) => x.id === id);
+      item = (window2.ACHIEVEMENT_STATE.accidentalItems || []).find((x) => x.id === id);
     }
     if (!item)
       return;
@@ -13011,7 +13005,7 @@ function bootPrototypeRuntime() {
       desc,
       issuer
     };
-    window.ACHIEVEMENT_STATE.accidentalItems.unshift(newAcc);
+    window2.ACHIEVEMENT_STATE.accidentalItems.unshift(newAcc);
     if (typeof syncAchievementToDailyNote === "function") {
       syncAchievementToDailyNote(categoryLabel, title);
     }
@@ -13043,7 +13037,7 @@ function bootPrototypeRuntime() {
   function renderCognitionSpecializedWorkspace() {
     return '<div class="cognition-studio-wrapper"><div class="ws-spec-notice-banner" style="background:#f5f3ff; border-color:#6366f1; border-left-color:#4f46e5; margin-bottom:16px;">  <div>    <div class="ws-spec-notice-title" style="color:#4338ca;">\u{1F9E0} \u8BA4\u77E5\u53F0 \xB7 \u54F2\u601D\u5DE5\u574A\u4E0E\u80FD\u529B\u7F57\u76D8</div>    <div class="ws-spec-notice-desc" style="color:#3730a3;">\u53CC\u613F\u666F\u7F57\u76D8 + \u82CF\u683C\u62C9\u5E95\u601D\u8FA8\u95EE\u7B54\u573A + \u4E94\u7EF4\u8BA4\u77E5\u80FD\u529B\u96F7\u8FBE\u6A21\u578B</div>  </div>  <button class="exec-action-btn tool-btn" style="padding:4px 10px; font-size:11px;" onclick="switchSecondarySubView(&apos;gantt&apos;)">\u{1F4CA} \u67E5\u770B\u8BA4\u77E5\u7518\u7279\u56FE</button></div><div class="cognition-studio-grid">  <div style="background:#ffffff; border:1.5px solid #c7d2fe; border-radius:14px; padding:14px;">    <div style="font-size:13px; font-weight:900; color:#4338ca; margin-bottom:8px;">\u{1F9ED} \u53CC\u613F\u666F\u7F57\u76D8 (\u73B0\u5B9E\u9776\u6807 vs \u7EC8\u6781\u54C1\u683C)</div>    <div style="background:#eef2ff; border-radius:8px; padding:10px; font-size:11px; margin-bottom:8px;">      <strong style="color:#3730a3;">\u73B0\u5B9E\u9776\u6807\uFF1A</strong> \u5C0F\u5B66\u4F4E\u5E74\u7EA7\u4E60\u60EF\u5960\u57FA\u4F18\u79C0\uFF0C\u5C11\u513F\u8DF3\u7EF3\u8FDE\u8DF3\u8FBE\u6807\uFF0C\u4E13\u6CE8\u72EC\u7ACB\u81EA\u7406    </div>    <div style="background:#faf5ff; border-radius:8px; padding:10px; font-size:11px;">      <strong style="color:#6b21a8;">\u7EC8\u6781\u54C1\u683C\uFF1A</strong> \u77E5\u6B62\u800C\u540E\u6709\u5B9A\uFF0C\u505A\u5766\u8361\u8BDA\u5B9E\u3001\u6709\u6DF1\u5EA6\u72EC\u7ACB\u601D\u8003\u529B\u4E0E\u62C5\u5F53\u7CBE\u795E\u7684\u81EA\u5F8B\u8005    </div>  </div>  <div style="background:#ffffff; border:1.5px solid #c7d2fe; border-radius:14px; padding:14px;">    <div style="font-size:13px; font-weight:900; color:#4338ca; margin-bottom:8px;">\u{1F578}\uFE0F \u4E94\u7EF4\u8BA4\u77E5\u80FD\u529B\u96F7\u8FBE</div>    <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; font-size:11px;">      <div style="background:#f8fafc; padding:6px; border-radius:6px;">\u2022 \u5143\u8BA4\u77E5\u76D1\u63A7: <strong style="color:#4f46e5;">88\u5206</strong></div>      <div style="background:#f8fafc; padding:6px; border-radius:6px;">\u2022 \u903B\u8F91\u6279\u5224\u529B: <strong style="color:#4f46e5;">92\u5206</strong></div>      <div style="background:#f8fafc; padding:6px; border-radius:6px;">\u2022 \u60C5\u7EEA\u89C9\u5BDF\u5EA6: <strong style="color:#4f46e5;">85\u5206</strong></div>      <div style="background:#f8fafc; padding:6px; border-radius:6px;">\u2022 \u957F\u671F\u4E3B\u4E49\u89C2: <strong style="color:#4f46e5;">90\u5206</strong></div>    </div>  </div></div><div style="background:#ffffff; border:1.5px solid #c7d2fe; border-radius:14px; padding:14px; margin-top:14px;">  <div style="font-size:13px; font-weight:900; color:#4338ca; margin-bottom:8px;">\u{1F5E3}\uFE0F \u82CF\u683C\u62C9\u5E95\u601D\u8FA8\u95EE\u7B54\u573A (\u4EB2\u5B50\u53CC\u8F68\u8FA9\u8BBA\u5F55)</div>  <div style="background:#faf5ff; border-left:4px solid #6366f1; padding:10px; border-radius:8px; font-size:11px; line-height:1.6;">    <div><strong>\u672C\u5468\u8BBA\u9898\uFF1A</strong>\u3010\u5728\u7ADE\u4E89\u6FC0\u70C8\u7684\u65F6\u4EE3\uFF0C\u5766\u8361\u8BDA\u5B9E\u662F\u5426\u4F1A\u5BFC\u81F4\u73B0\u5B9E\u5403\u4E8F\uFF1F\u3011</div>    <div style="margin-top:4px;"><strong>\u5B69\u5B50\u7ACB\u8BBA\uFF1A</strong> \u77ED\u671F\u53EF\u80FD\u653E\u5F03\u6295\u673A\u5C0F\u5229\uFF0C\u4F46\u957F\u671F\u79EF\u7D2F\u6700\u7A33\u56FA\u7684\u4FE1\u8A89\u4E0E\u5185\u5FC3\u7B03\u5B9A\uFF0C\u80FD\u5438\u5F15\u6700\u9AD8\u8D28\u91CF\u7684\u4F19\u4F34\u3002</div>    <div style="margin-top:4px;"><strong>\u5BB6\u957F\u6307\u5F15\uFF1A</strong> \u8BDA\u5B9E\u9700\u8981\u667A\u6167\u548C\u5B9E\u529B\u62A4\u822A\uFF0C\u5766\u8361\u4E0D\u7B49\u4E8E\u5929\u771F\uFF0C\u8981\u6709\u6D1E\u5BDF\u4EBA\u6027\u7684\u6E05\u9192\u3002</div>  </div></div></div>';
   }
-  window.NOTE_STATE = {
+  window2.NOTE_STATE = {
     currentMood: "\u2600\uFE0F \u4E13\u6CE8\u5145\u5B9E",
     currentEnergy: 4,
     todayFocusMinutes: 0,
@@ -13053,7 +13047,7 @@ function bootPrototypeRuntime() {
     historyEntries: []
   };
   function renderNoteSpecializedWorkspace() {
-    const state = window.NOTE_STATE;
+    const state = window2.NOTE_STATE;
     const curEnergy = state.currentEnergy || 4;
     const autoLogsList = state.todayAutoLogs || [];
     const autoLogsHtml = autoLogsList.length > 0 ? autoLogsList.map((item, idx) => {
@@ -13072,10 +13066,10 @@ function bootPrototypeRuntime() {
       const active = s <= curEnergy;
       starsHtml += '<button type="button" onclick="switchNoteEnergy(' + s + ')" style="background:none; border:none; padding:0 2px; font-size:15px; cursor:pointer; color:' + (active ? "#f59e0b" : "#cbd5e1") + '; line-height:1;" title="\u7CBE\u529B ' + s + ' \u661F">\u2605</button>';
     }
-    return '<div class="note-dual-track-wrapper">  <!-- \u9876\u680F\u6A2A\u5E45 -->  <div class="ws-spec-notice-banner" style="background:linear-gradient(135deg, rgba(239, 246, 255, 0.95) 0%, rgba(219, 234, 254, 0.92) 50%, rgba(191, 219, 254, 0.88) 100%); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border-color:#3b82f6; border-left-color:#2563eb;">    <div style="flex:1;">      <div class="ws-spec-notice-title" style="color:#1e40af; display:flex; align-items:center; gap:8px;">        <span>\u{1F4DD} \u6BCF\u65E5\u968F\u8BB0 \xB7 \u65F6\u5E8F\u5FC3\u6D41\u53CC\u8F68\u65E5\u8BB0\u7C3F</span>        <span style="font-size:10px; background:#dbeafe; color:#1e40af; border:1px solid #93c5fd; padding:2px 8px; border-radius:10px; font-weight:800;">\u53CC\u8F68\u81EA\u52A8\u6C47\u6D41 \xB7 \u771F\u5B9E\u5F71\u50CF\u7559\u75D5</span>      </div>      <div class="ws-spec-notice-desc" style="color:#1d4ed8;">\u4E0A\u534A\u8F68\u81EA\u52A8\u6C47\u805A\u5168\u57DF\u771F\u5B9E\u786C\u6838\u5BA2\u89C2\u4ED8\u51FA \xB7 \u4E0B\u534A\u8F68\u8BB0\u5F55\u5FC3\u6D41\u611F\u609F\u4E0E\u7167\u7247\u89C6\u9891\u5F71\u50CF\u7269\u8BC1 \xB7 \u514D\u9664\u5197\u4F59\u6D41\u6C34\u8D1F\u62C5</div>    </div>    <div style="display:flex; align-items:center; gap:8px;">      <button class="note-media-action-btn" onclick="scrollToNoteSection(&apos;note-journal-editor-card&apos;)">\u270D\uFE0F \u4ECA\u65E5\u968F\u7B14</button>      <button class="note-media-action-btn secondary" onclick="scrollToNoteSection(&apos;note-history-section&apos;)">\u{1F4DC} \u5386\u53F2\u5377\u5B97</button>    </div>  </div>  <!-- \u5361\u7247 1: \u{1F6E4}\uFE0F \u4E0A\u534A\u8F68\uFF1A\u5168\u81EA\u52A8\u771F\u5B9E\u5BA2\u89C2\u884C\u4E3A\u6D41\u6C34 -->  <div class="note-card-box">    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px dashed #bfdbfe; padding-bottom:12px; margin-bottom:14px;">      <div>        <h3 style="margin:0; font-size:15px; color:#1e40af; font-weight:900; display:flex; align-items:center; gap:8px;">          <span>\u{1F6E4}\uFE0F \u4E0A\u534A\u8F68\uFF1A\u4ECA\u65E5\u771F\u5B9E\u5BA2\u89C2\u884C\u4E3A\u6D41\u6C34\uFF08\u5171 ' + (state.todayAutoLogs ? state.todayAutoLogs.length : 0) + ' \u6761\uFF09</span>          <span style="font-size:10px; background:#dcfce7; color:#166534; padding:2px 8px; border-radius:8px; font-weight:800; border:1px solid #86efac;">\u{1F512} \u7CFB\u7EDF\u81EA\u52A8\u805A\u5408 \xB7 \u5B9E\u65F6\u540C\u6B65</span>        </h3>        <div style="font-size:11px; color:#64748b; margin-top:2px;">\u5B69\u5B50\u65E0\u9700\u91CD\u590D\u624B\u6284\u6D41\u6C34\u8D26\uFF0C\u7CFB\u7EDF\u5E95\u5C42\u81EA\u52A8\u63D0\u53D6\u5F53\u65E5\u5404\u573A\u9986\u6253\u5361\u5DE5\u65F6\u3001\u6210\u5C31\u5165\u9986\u3001\u60AC\u8D4F\u5151\u73B0\u4E0E\u8D22\u5546\u6536\u652F</div>      </div>      <div style="display:flex; align-items:center; gap:8px;">        <span id="note-today-focus-pill" style="background:#eff6ff; color:#1d4ed8; font-size:12px; font-weight:800; padding:4px 12px; border-radius:12px; border:1px solid #bfdbfe;">\u4ECA\u65E5\u7D2F\u8BA1\u4E13\u6CE8\uFF1A' + (state.todayFocusMinutes || 60) + ' \u5206\u949F</span>      </div>    </div>    <div id="note-today-autologs-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">' + autoLogsHtml + '    </div>  </div>  <!-- \u5361\u7247 2: \u270D\uFE0F \u4E0B\u534A\u8F68\uFF1A\u4E3B\u89C2\u5FC3\u6D41\u65E5\u8BB0\u4E0E\u7167\u7247/\u89C6\u9891\u7559\u75D5\u64CD\u4F5C\u53F0 -->  <div id="note-journal-editor-card" class="note-card-box">    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; border-bottom:1.5px dashed #bfdbfe; padding-bottom:12px; margin-bottom:14px;">      <div>        <h3 style="margin:0; font-size:15px; color:#1e40af; font-weight:900; display:flex; align-items:center; gap:8px;">          <span>\u270D\uFE0F \u4E0B\u534A\u8F68\uFF1A\u4ECA\u65E5\u4E3B\u89C2\u5FC3\u6D41\u65E5\u8BB0\u4E0E\u751F\u6D3B\u7559\u75D5</span>          <span style="font-size:10px; background:#eff6ff; color:#1d4ed8; padding:2px 8px; border-radius:8px; font-weight:bold;">\u2728 \u7075\u611F\u968F\u7B14 \xB7 \u7167\u7247\u89C6\u9891\u5B58\u8BC1</span>        </h3>        <div style="font-size:11px; color:#64748b; margin-top:2px;">\u8BB0\u5F55\u89E6\u52A8\u611F\u609F\u3001\u7A81\u7834\u5FC3\u5F97\u6216\u52C7\u6562\u81EA\u7701\uFF0C\u5E76\u4E0A\u4F20\u771F\u5B9E\u505A\u9898\u624B\u7A3F\u7167\u7247\u4E0E\u81EA\u7701\u89C6\u9891</div>      </div>      <!-- \u5FC3\u6D41\u6674\u96E8\u8868 + 1~5\u661F\u7CBE\u529B\u503C -->      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">        <div style="display:flex; align-items:center; gap:4px; background:#fffbeb; border:1px solid #fde68a; padding:3px 8px; border-radius:8px;">          <span style="font-size:11px; font-weight:800; color:#92400e;">\u26A1 \u7CBE\u529B:</span>          <span id="note-energy-stars-box">' + starsHtml + '</span>        </div>        <div style="display:flex; align-items:center; gap:6px;">          <span style="font-size:11px; font-weight:800; color:#1e40af;">\u5FC3\u6D41\u6674\u96E8\u8868:</span>          <div style="display:flex; gap:4px;" id="note-mood-pills-row">            <button type="button" class="note-mood-pill' + (state.currentMood === "\u2600\uFE0F \u4E13\u6CE8\u5145\u5B9E" ? " is-active" : "") + '" onclick="switchNoteMood(&apos;\u2600\uFE0F \u4E13\u6CE8\u5145\u5B9E&apos;, this)">\u2600\uFE0F \u4E13\u6CE8\u5145\u5B9E</button>            <button type="button" class="note-mood-pill' + (state.currentMood === "\u{1F308} \u987F\u609F\u7A81\u7834" ? " is-active" : "") + '" onclick="switchNoteMood(&apos;\u{1F308} \u987F\u609F\u7A81\u7834&apos;, this)">\u{1F308} \u987F\u609F\u7A81\u7834</button>            <button type="button" class="note-mood-pill' + (state.currentMood === "\u{1F324}\uFE0F \u5E73\u548C\u606C\u6DE1" ? " is-active" : "") + '" onclick="switchNoteMood(&apos;\u{1F324}\uFE0F \u5E73\u548C\u606C\u6DE1&apos;, this)">\u{1F324}\uFE0F \u5E73\u548C\u606C\u6DE1</button>            <button type="button" class="note-mood-pill' + (state.currentMood === "\u{1F327}\uFE0F \u906D\u9047\u632B\u6298" ? " is-active" : "") + '" onclick="switchNoteMood(&apos;\u{1F327}\uFE0F \u906D\u9047\u632B\u6298&apos;, this)">\u{1F327}\uFE0F \u906D\u9047\u632B\u6298</button>          </div>        </div>      </div>    </div>    <!-- \u601D\u8003\u542F\u53D1\u5361\u7247 -->    <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:10px 14px; margin-bottom:12px; display:flex; align-items:center; gap:10px;">      <span style="font-size:18px;">\u{1F4A1}</span>      <div style="font-size:12px; color:#1e40af; font-weight:700;">\u4ECA\u65E5\u542F\u53D1\u601D\u8003\u9898\uFF1A\u4ECA\u5929\u9762\u5BF9\u5361\u70B9\u6216\u75B2\u52B3\u65F6\uFF0C\u4F60\u662F\u5982\u4F55\u575A\u5B9A\u610F\u5FD7\u8DE8\u8FC7\u969C\u788D\u7684\uFF1F\u54EA\u4E00\u77AC\u95F4\u8BA9\u4F60\u6700\u6709\u6210\u5C31\u611F\uFF1F</div>    </div>    <!-- \u968F\u7B14\u8F93\u5165\u6846 -->    <div style="margin-bottom:14px;">      <textarea id="note-journal-textarea" oninput="updateNoteTextCounter()" style="width:100%; height:96px; border:1.5px solid #93c5fd; border-radius:10px; padding:12px; font-size:12.5px; line-height:1.6; color:#1e293b; background:#ffffff; box-sizing:border-box; outline:none; resize:vertical;" placeholder="\u5728\u6B64\u8BB0\u5F55\u4ECA\u5929\u6700\u89E6\u52A8\u4F60\u7684\u4E00\u4EF6\u4E8B\u3001\u987F\u609F\u7A81\u7834\u7684\u5FC3\u5F97\u3001\u6216\u8005\u4E00\u6B21\u9762\u5BF9\u632B\u6298\u7684\u52C7\u6562\u81EA\u7701...">' + (state.journalText || "") + '</textarea>    </div>    <!-- \u{1F4F8} \u{1F4F7} \u{1F3A5} \u591A\u5A92\u4F53\u5F71\u50CF\u7559\u75D5\u4E13\u533A (\u7528\u6237\u7279\u522B\u8981\u6C42\u7684\u6838\u5FC3\u529F\u80FD) -->    <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:14px; padding:14px; margin-bottom:14px;">      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">        <div style="display:flex; align-items:center; gap:8px;">          <span style="font-size:16px;">\u{1F4F8}</span>          <div>            <div style="font-size:13px; font-weight:900; color:#0f172a;">\u4ECA\u65E5\u5F71\u50CF\u7269\u8BC1\u8BB0\u5F55 (\u7167\u7247\u4E0E\u89C6\u9891)</div>            <div style="font-size:10.5px; color:#64748b;">\u62CD\u7167\u7559\u5B58\u505A\u9898\u8349\u7A3F\u3001\u4E66\u6CD5\u624B\u5DE5\u4F5C\u54C1\uFF0C\u6216\u5F55\u5236\u4E00\u6BB5 1 \u5206\u949F\u5FC3\u6D41\u81EA\u7701\u5C0F\u89C6\u9891</div>          </div>        </div>        <div style="display:flex; align-items:center; gap:8px;">          <input type="file" id="note-photo-file-input" accept="image/*" style="display:none;" onchange="handleNotePhotoFile(this)">          <input type="file" id="note-video-file-input" accept="video/*" style="display:none;" onchange="handleNoteVideoFile(this)">          <button type="button" class="note-media-action-btn" onclick="triggerNotePhotoUpload()">\u{1F4F7} \u62CD\u7167/\u4E0A\u4F20\u56FE\u7247</button>          <button type="button" class="note-media-action-btn" onclick="triggerNoteVideoUpload()">\u{1F3A5} \u5F55\u5236/\u4E0A\u4F20\u89C6\u9891</button>          <button type="button" class="note-media-action-btn secondary" onclick="addNoteDemoMedia()">\u2728 \u5FEB\u901F\u6DFB\u52A0\u6837\u4F8B</button>        </div>      </div>      <!-- \u5A92\u4F53\u7F29\u7565\u56FE\u9648\u5217\u7F51\u683C -->      <div id="note-media-gallery" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px;">' + renderNoteMediaGalleryHtml() + '      </div>    </div>    <!-- \u5E95\u90E8\u64CD\u4F5C\u680F -->    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px dashed #bfdbfe; padding-top:12px;">      <div style="font-size:11.5px; color:#64748b; font-weight:600;" id="note-status-summary">' + getNoteStatusSummaryText() + '      </div>      <div style="display:flex; align-items:center; gap:10px;">        <button type="button" class="note-submit-btn" onclick="saveNoteDailyEntry()">\u{1F4BE} \u4FDD\u5B58\u4ECA\u65E5\u53CC\u8F68\u968F\u8BB0</button>      </div>    </div>  </div>  <!-- \u5361\u7247 3: \u{1F4DC} \u5F80\u671F\u53CC\u8F68\u968F\u8BB0\u5377\u5B97\u957F\u5377 (\u5386\u53F2\u6210\u957F\u6863\u6848\u7011\u5E03\u6D41) -->  <div id="note-history-section" class="note-card-box">    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px dashed #bfdbfe; padding-bottom:12px; margin-bottom:14px;">      <div>        <h3 style="margin:0; font-size:15px; color:#1e40af; font-weight:900; display:flex; align-items:center; gap:8px;">          <span>\u{1F4DC} \u5F80\u671F\u53CC\u8F68\u968F\u8BB0\u5377\u5B97\u957F\u5377</span>          <span style="font-size:10px; background:#eff6ff; color:#1d4ed8; padding:2px 8px; border-radius:8px; font-weight:bold;">\u81EA\u4F20\u4F53\u6210\u957F\u5370\u8BB0</span>        </h3>        <div style="font-size:11px; color:#64748b; margin-top:2px;">\u6BCF\u4E00\u5929\u771F\u5B9E\u5BA2\u89C2\u6D41\u6C34\u4E0E\u4E3B\u89C2\u5FC3\u6D41\u968F\u7B14\u7684\u6C38\u4E45\u6C89\u6DC0\uFF0C\u5305\u542B\u5F53\u65F6\u7559\u5B58\u7684\u7167\u7247\u4E0E\u89C6\u9891\u7269\u8BC1</div>      </div>      <div style="font-size:11.5px; color:#2563eb; font-weight:bold;">        \u7D2F\u8BA1\u6536\u5F55\uFF1A<span id="note-history-count">' + (state.historyEntries ? state.historyEntries.length : 0) + '</span> \u7BC7      </div>    </div>    <!-- \u5386\u53F2\u8BB0\u5F55\u5217\u8868\u5BB9\u5668 -->    <div id="note-history-list" style="display:flex; flex-direction:column; gap:14px;">' + renderNoteHistoryEntriesHtml() + "    </div>  </div></div>";
+    return '<div class="note-dual-track-wrapper">  <!-- \u9876\u680F\u6A2A\u5E45 -->  <div class="ws-spec-notice-banner" style="background:linear-gradient(135deg, rgba(239, 246, 255, 0.95) 0%, rgba(219, 234, 254, 0.92) 50%, rgba(191, 219, 254, 0.88) 100%); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border-color:#3b82f6; border-left-color:#2563eb;">    <div style="flex:1;">      <div class="ws-spec-notice-title" style="color:#1e40af; display:flex; align-items:center; gap:8px;">        <span>\u{1F4DD} \u6BCF\u65E5\u968F\u8BB0 \xB7 \u65F6\u5E8F\u5FC3\u6D41\u53CC\u8F68\u65E5\u8BB0\u7C3F</span>        <span style="font-size:10px; background:#dbeafe; color:#1e40af; border:1px solid #93c5fd; padding:2px 8px; border-radius:10px; font-weight:800;">\u53CC\u8F68\u81EA\u52A8\u6C47\u6D41 \xB7 \u771F\u5B9E\u5F71\u50CF\u7559\u75D5</span>      </div>      <div class="ws-spec-notice-desc" style="color:#1d4ed8;">\u4E0A\u534A\u8F68\u81EA\u52A8\u6C47\u805A\u5168\u57DF\u771F\u5B9E\u786C\u6838\u5BA2\u89C2\u4ED8\u51FA \xB7 \u4E0B\u534A\u8F68\u8BB0\u5F55\u5FC3\u6D41\u611F\u609F\u4E0E\u7167\u7247\u89C6\u9891\u5F71\u50CF\u7269\u8BC1 \xB7 \u514D\u9664\u5197\u4F59\u6D41\u6C34\u8D1F\u62C5</div>    </div>    <div style="display:flex; align-items:center; gap:8px;">      <button class="note-media-action-btn" onclick="scrollToNoteSection(&apos;note-journal-editor-card&apos;)">\u270D\uFE0F \u4ECA\u65E5\u968F\u7B14</button>      <button class="note-media-action-btn secondary" onclick="scrollToNoteSection(&apos;note-history-section&apos;)">\u{1F4DC} \u5386\u53F2\u5377\u5B97</button>    </div>  </div>  <!-- \u5361\u7247 1: \u{1F6E4}\uFE0F \u4E0A\u534A\u8F68\uFF1A\u5168\u81EA\u52A8\u771F\u5B9E\u5BA2\u89C2\u884C\u4E3A\u6D41\u6C34 -->  <div class="note-card-box">    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px dashed #bfdbfe; padding-bottom:12px; margin-bottom:14px;">      <div>        <h3 style="margin:0; font-size:15px; color:#1e40af; font-weight:900; display:flex; align-items:center; gap:8px;">          <span>\u{1F6E4}\uFE0F \u4E0A\u534A\u8F68\uFF1A\u4ECA\u65E5\u771F\u5B9E\u5BA2\u89C2\u884C\u4E3A\u6D41\u6C34\uFF08\u5171 ' + (state.todayAutoLogs ? state.todayAutoLogs.length : 0) + ' \u6761\uFF09</span>          <span style="font-size:10px; background:#dcfce7; color:#166534; padding:2px 8px; border-radius:8px; font-weight:800; border:1px solid #86efac;">\u{1F512} \u7CFB\u7EDF\u81EA\u52A8\u805A\u5408 \xB7 \u5B9E\u65F6\u540C\u6B65</span>        </h3>        <div style="font-size:11px; color:#64748b; margin-top:2px;">\u5B69\u5B50\u65E0\u9700\u91CD\u590D\u624B\u6284\u6D41\u6C34\u8D26\uFF0C\u7CFB\u7EDF\u5E95\u5C42\u81EA\u52A8\u63D0\u53D6\u5F53\u65E5\u5404\u573A\u9986\u6253\u5361\u5DE5\u65F6\u3001\u6210\u5C31\u5165\u9986\u3001\u60AC\u8D4F\u5151\u73B0\u4E0E\u8D22\u5546\u6536\u652F</div>      </div>      <div style="display:flex; align-items:center; gap:8px;">        <span id="note-today-focus-pill" style="background:#eff6ff; color:#1d4ed8; font-size:12px; font-weight:800; padding:4px 12px; border-radius:12px; border:1px solid #bfdbfe;">\u4ECA\u65E5\u7D2F\u8BA1\u4E13\u6CE8\uFF1A' + (state.todayFocusMinutes || 0) + ' \u5206\u949F</span>      </div>    </div>    <div id="note-today-autologs-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">' + autoLogsHtml + '    </div>  </div>  <!-- \u5361\u7247 2: \u270D\uFE0F \u4E0B\u534A\u8F68\uFF1A\u4E3B\u89C2\u5FC3\u6D41\u65E5\u8BB0\u4E0E\u7167\u7247/\u89C6\u9891\u7559\u75D5\u64CD\u4F5C\u53F0 -->  <div id="note-journal-editor-card" class="note-card-box">    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; border-bottom:1.5px dashed #bfdbfe; padding-bottom:12px; margin-bottom:14px;">      <div>        <h3 style="margin:0; font-size:15px; color:#1e40af; font-weight:900; display:flex; align-items:center; gap:8px;">          <span>\u270D\uFE0F \u4E0B\u534A\u8F68\uFF1A\u4ECA\u65E5\u4E3B\u89C2\u5FC3\u6D41\u65E5\u8BB0\u4E0E\u751F\u6D3B\u7559\u75D5</span>          <span style="font-size:10px; background:#eff6ff; color:#1d4ed8; padding:2px 8px; border-radius:8px; font-weight:bold;">\u2728 \u7075\u611F\u968F\u7B14 \xB7 \u7167\u7247\u89C6\u9891\u5B58\u8BC1</span>        </h3>        <div style="font-size:11px; color:#64748b; margin-top:2px;">\u8BB0\u5F55\u89E6\u52A8\u611F\u609F\u3001\u7A81\u7834\u5FC3\u5F97\u6216\u52C7\u6562\u81EA\u7701\uFF0C\u5E76\u4E0A\u4F20\u771F\u5B9E\u505A\u9898\u624B\u7A3F\u7167\u7247\u4E0E\u81EA\u7701\u89C6\u9891</div>      </div>      <!-- \u5FC3\u6D41\u6674\u96E8\u8868 + 1~5\u661F\u7CBE\u529B\u503C -->      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">        <div style="display:flex; align-items:center; gap:4px; background:#fffbeb; border:1px solid #fde68a; padding:3px 8px; border-radius:8px;">          <span style="font-size:11px; font-weight:800; color:#92400e;">\u26A1 \u7CBE\u529B:</span>          <span id="note-energy-stars-box">' + starsHtml + '</span>        </div>        <div style="display:flex; align-items:center; gap:6px;">          <span style="font-size:11px; font-weight:800; color:#1e40af;">\u5FC3\u6D41\u6674\u96E8\u8868:</span>          <div style="display:flex; gap:4px;" id="note-mood-pills-row">            <button type="button" class="note-mood-pill' + (state.currentMood === "\u2600\uFE0F \u4E13\u6CE8\u5145\u5B9E" ? " is-active" : "") + '" onclick="switchNoteMood(&apos;\u2600\uFE0F \u4E13\u6CE8\u5145\u5B9E&apos;, this)">\u2600\uFE0F \u4E13\u6CE8\u5145\u5B9E</button>            <button type="button" class="note-mood-pill' + (state.currentMood === "\u{1F308} \u987F\u609F\u7A81\u7834" ? " is-active" : "") + '" onclick="switchNoteMood(&apos;\u{1F308} \u987F\u609F\u7A81\u7834&apos;, this)">\u{1F308} \u987F\u609F\u7A81\u7834</button>            <button type="button" class="note-mood-pill' + (state.currentMood === "\u{1F324}\uFE0F \u5E73\u548C\u606C\u6DE1" ? " is-active" : "") + '" onclick="switchNoteMood(&apos;\u{1F324}\uFE0F \u5E73\u548C\u606C\u6DE1&apos;, this)">\u{1F324}\uFE0F \u5E73\u548C\u606C\u6DE1</button>            <button type="button" class="note-mood-pill' + (state.currentMood === "\u{1F327}\uFE0F \u906D\u9047\u632B\u6298" ? " is-active" : "") + '" onclick="switchNoteMood(&apos;\u{1F327}\uFE0F \u906D\u9047\u632B\u6298&apos;, this)">\u{1F327}\uFE0F \u906D\u9047\u632B\u6298</button>          </div>        </div>      </div>    </div>    <!-- \u601D\u8003\u542F\u53D1\u5361\u7247 -->    <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:10px 14px; margin-bottom:12px; display:flex; align-items:center; gap:10px;">      <span style="font-size:18px;">\u{1F4A1}</span>      <div style="font-size:12px; color:#1e40af; font-weight:700;">\u4ECA\u65E5\u542F\u53D1\u601D\u8003\u9898\uFF1A\u4ECA\u5929\u9762\u5BF9\u5361\u70B9\u6216\u75B2\u52B3\u65F6\uFF0C\u4F60\u662F\u5982\u4F55\u575A\u5B9A\u610F\u5FD7\u8DE8\u8FC7\u969C\u788D\u7684\uFF1F\u54EA\u4E00\u77AC\u95F4\u8BA9\u4F60\u6700\u6709\u6210\u5C31\u611F\uFF1F</div>    </div>    <!-- \u968F\u7B14\u8F93\u5165\u6846 -->    <div style="margin-bottom:14px;">      <textarea id="note-journal-textarea" oninput="updateNoteTextCounter()" style="width:100%; height:96px; border:1.5px solid #93c5fd; border-radius:10px; padding:12px; font-size:12.5px; line-height:1.6; color:#1e293b; background:#ffffff; box-sizing:border-box; outline:none; resize:vertical;" placeholder="\u5728\u6B64\u8BB0\u5F55\u4ECA\u5929\u6700\u89E6\u52A8\u4F60\u7684\u4E00\u4EF6\u4E8B\u3001\u987F\u609F\u7A81\u7834\u7684\u5FC3\u5F97\u3001\u6216\u8005\u4E00\u6B21\u9762\u5BF9\u632B\u6298\u7684\u52C7\u6562\u81EA\u7701...">' + (state.journalText || "") + '</textarea>    </div>    <!-- \u{1F4F8} \u{1F4F7} \u{1F3A5} \u591A\u5A92\u4F53\u5F71\u50CF\u7559\u75D5\u4E13\u533A (\u7528\u6237\u7279\u522B\u8981\u6C42\u7684\u6838\u5FC3\u529F\u80FD) -->    <div style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:14px; padding:14px; margin-bottom:14px;">      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">        <div style="display:flex; align-items:center; gap:8px;">          <span style="font-size:16px;">\u{1F4F8}</span>          <div>            <div style="font-size:13px; font-weight:900; color:#0f172a;">\u4ECA\u65E5\u5F71\u50CF\u7269\u8BC1\u8BB0\u5F55 (\u7167\u7247\u4E0E\u89C6\u9891)</div>            <div style="font-size:10.5px; color:#64748b;">\u62CD\u7167\u7559\u5B58\u505A\u9898\u8349\u7A3F\u3001\u4E66\u6CD5\u624B\u5DE5\u4F5C\u54C1\uFF0C\u6216\u5F55\u5236\u4E00\u6BB5 1 \u5206\u949F\u5FC3\u6D41\u81EA\u7701\u5C0F\u89C6\u9891</div>          </div>        </div>        <div style="display:flex; align-items:center; gap:8px;">          <input type="file" id="note-photo-file-input" accept="image/*" style="display:none;" onchange="handleNotePhotoFile(this)">          <input type="file" id="note-video-file-input" accept="video/*" style="display:none;" onchange="handleNoteVideoFile(this)">          <button type="button" class="note-media-action-btn" onclick="triggerNotePhotoUpload()">\u{1F4F7} \u62CD\u7167/\u4E0A\u4F20\u56FE\u7247</button>          <button type="button" class="note-media-action-btn" onclick="triggerNoteVideoUpload()">\u{1F3A5} \u5F55\u5236/\u4E0A\u4F20\u89C6\u9891</button>          <button type="button" class="note-media-action-btn secondary" onclick="addNoteDemoMedia()">\u2728 \u5FEB\u901F\u6DFB\u52A0\u6837\u4F8B</button>        </div>      </div>      <!-- \u5A92\u4F53\u7F29\u7565\u56FE\u9648\u5217\u7F51\u683C -->      <div id="note-media-gallery" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:12px;">' + renderNoteMediaGalleryHtml() + '      </div>    </div>    <!-- \u5E95\u90E8\u64CD\u4F5C\u680F -->    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px dashed #bfdbfe; padding-top:12px;">      <div style="font-size:11.5px; color:#64748b; font-weight:600;" id="note-status-summary">' + getNoteStatusSummaryText() + '      </div>      <div style="display:flex; align-items:center; gap:10px;">        <button type="button" class="note-submit-btn" onclick="saveNoteDailyEntry()">\u{1F4BE} \u4FDD\u5B58\u4ECA\u65E5\u53CC\u8F68\u968F\u8BB0</button>      </div>    </div>  </div>  <!-- \u5361\u7247 3: \u{1F4DC} \u5F80\u671F\u53CC\u8F68\u968F\u8BB0\u5377\u5B97\u957F\u5377 (\u5386\u53F2\u6210\u957F\u6863\u6848\u7011\u5E03\u6D41) -->  <div id="note-history-section" class="note-card-box">    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px dashed #bfdbfe; padding-bottom:12px; margin-bottom:14px;">      <div>        <h3 style="margin:0; font-size:15px; color:#1e40af; font-weight:900; display:flex; align-items:center; gap:8px;">          <span>\u{1F4DC} \u5F80\u671F\u53CC\u8F68\u968F\u8BB0\u5377\u5B97\u957F\u5377</span>          <span style="font-size:10px; background:#eff6ff; color:#1d4ed8; padding:2px 8px; border-radius:8px; font-weight:bold;">\u81EA\u4F20\u4F53\u6210\u957F\u5370\u8BB0</span>        </h3>        <div style="font-size:11px; color:#64748b; margin-top:2px;">\u6BCF\u4E00\u5929\u771F\u5B9E\u5BA2\u89C2\u6D41\u6C34\u4E0E\u4E3B\u89C2\u5FC3\u6D41\u968F\u7B14\u7684\u6C38\u4E45\u6C89\u6DC0\uFF0C\u5305\u542B\u5F53\u65F6\u7559\u5B58\u7684\u7167\u7247\u4E0E\u89C6\u9891\u7269\u8BC1</div>      </div>      <div style="font-size:11.5px; color:#2563eb; font-weight:bold;">        \u7D2F\u8BA1\u6536\u5F55\uFF1A<span id="note-history-count">' + (state.historyEntries ? state.historyEntries.length : 0) + '</span> \u7BC7      </div>    </div>    <!-- \u5386\u53F2\u8BB0\u5F55\u5217\u8868\u5BB9\u5668 -->    <div id="note-history-list" style="display:flex; flex-direction:column; gap:14px;">' + renderNoteHistoryEntriesHtml() + "    </div>  </div></div>";
   }
   function getNoteStatusSummaryText() {
-    const state = window.NOTE_STATE;
+    const state = window2.NOTE_STATE;
     const textEl = document.getElementById("note-journal-textarea");
     const txtLen = textEl ? textEl.value.trim().length : state.journalText ? state.journalText.length : 0;
     const photos = state.mediaList.filter((x) => x.type === "image").length;
@@ -13088,7 +13082,7 @@ function bootPrototypeRuntime() {
       sumEl.innerText = getNoteStatusSummaryText();
   }
   function renderNoteMediaGalleryHtml() {
-    const list = window.NOTE_STATE.mediaList || [];
+    const list = window2.NOTE_STATE.mediaList || [];
     if (list.length === 0) {
       return '<div style="grid-column:1 / -1; padding:24px; text-align:center; background:#ffffff; border:1.5px dashed #cbd5e1; border-radius:12px; color:#64748b; font-size:12px;">  <div style="font-size:24px; margin-bottom:4px;">\u{1F4F7} \u{1F3A5}</div>  <div style="font-weight:bold; color:#475569;">\u6682\u672A\u6DFB\u52A0\u56FE\u7247\u6216\u89C6\u9891\u7269\u8BC1</div>  <div style="font-size:11px; color:#94a3b8; margin-top:2px;">\u70B9\u51FB\u53F3\u4E0A\u89D2\u6309\u94AE\u5373\u53EF\u62CD\u7167\u4E0A\u4F20\u505A\u9898\u8349\u7A3F\u624B\u7A3F\uFF0C\u6216\u5F55\u5236\u5FC3\u6D41\u53CD\u601D\u89C6\u9891</div></div>';
     }
@@ -13101,7 +13095,7 @@ function bootPrototypeRuntime() {
     }).join("");
   }
   function renderNoteHistoryEntriesHtml() {
-    const entries = window.NOTE_STATE.historyEntries || [];
+    const entries = window2.NOTE_STATE.historyEntries || [];
     if (entries.length === 0) {
       return '<div style="padding:20px; text-align:center; color:#94a3b8; font-size:12px;">\u6682\u65E0\u5F80\u671F\u53CC\u8F68\u65E5\u8BB0\u8BB0\u5F55</div>';
     }
@@ -13117,7 +13111,7 @@ function bootPrototypeRuntime() {
   }
   function switchNoteEnergy(stars) {
     const val = Math.max(1, Math.min(5, parseInt(stars, 10) || 4));
-    window.NOTE_STATE.currentEnergy = val;
+    window2.NOTE_STATE.currentEnergy = val;
     const box = document.getElementById("note-energy-stars-box");
     if (box) {
       let html = "";
@@ -13129,7 +13123,7 @@ function bootPrototypeRuntime() {
     showIslandToast("\u26A1 \u4ECA\u65E5\u5FC3\u6D41\u7CBE\u529B\u72B6\u6001\u5DF2\u6807\u8BB0\u4E3A " + val + " \u9897\u661F\uFF01");
   }
   function switchNoteMood(mood, btn) {
-    window.NOTE_STATE.currentMood = mood;
+    window2.NOTE_STATE.currentMood = mood;
     if (btn && btn.parentElement) {
       btn.parentElement.querySelectorAll(".note-mood-pill").forEach((b) => b.classList.remove("is-active"));
       btn.classList.add("is-active");
@@ -13145,7 +13139,7 @@ function bootPrototypeRuntime() {
       const file = input.files[0];
       const now = /* @__PURE__ */ new Date();
       const timeStr = String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
-      window.NOTE_STATE.mediaList.unshift({
+      window2.NOTE_STATE.mediaList.unshift({
         id: "m-photo-" + Date.now(),
         type: "image",
         name: file.name || "\u4ECA\u65E5\u624B\u7A3F\u62CD\u7167\u7559\u75D5.png",
@@ -13168,7 +13162,7 @@ function bootPrototypeRuntime() {
       const file = input.files[0];
       const now = /* @__PURE__ */ new Date();
       const timeStr = String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
-      window.NOTE_STATE.mediaList.unshift({
+      window2.NOTE_STATE.mediaList.unshift({
         id: "m-video-" + Date.now(),
         type: "video",
         name: file.name || "\u5FC3\u6D41\u53CD\u601D\u5F55\u50CF.mp4",
@@ -13192,7 +13186,7 @@ function bootPrototypeRuntime() {
       { type: "video", name: "\u665A\u95F41\u5206\u949F\u4EB2\u5B50\u601D\u8FA8\u8FA9\u8BBA\u7247\u6BB5.mp4", caption: "\u54F2\u601D\u5DE5\u574A\u6DF1\u5EA6\u5BF9\u8BDD", duration: "01:25", icon: "\u{1F9E0}" }
     ];
     const randomItem = demoPool[Math.floor(Math.random() * demoPool.length)];
-    window.NOTE_STATE.mediaList.unshift({
+    window2.NOTE_STATE.mediaList.unshift({
       id: "m-demo-" + Date.now(),
       type: randomItem.type,
       name: randomItem.name,
@@ -13206,7 +13200,7 @@ function bootPrototypeRuntime() {
     showIslandToast("\u2728 \u5DF2\u6DFB\u52A0\u5F71\u50CF\u7269\u8BC1\uFF1A" + randomItem.name);
   }
   function removeNoteMedia(id) {
-    window.NOTE_STATE.mediaList = window.NOTE_STATE.mediaList.filter((x) => x.id !== id);
+    window2.NOTE_STATE.mediaList = window2.NOTE_STATE.mediaList.filter((x) => x.id !== id);
     refreshNoteMediaGallery();
     showIslandToast("\u{1F5D1}\uFE0F \u5DF2\u79FB\u9664\u8BE5\u5F71\u50CF\u7269\u8BC1");
   }
@@ -13218,7 +13212,7 @@ function bootPrototypeRuntime() {
     updateNoteTextCounter();
   }
   function openNoteMediaPreviewModal(mediaId) {
-    const media = window.NOTE_STATE.mediaList.find((x) => x.id === mediaId);
+    const media = window2.NOTE_STATE.mediaList.find((x) => x.id === mediaId);
     if (!media)
       return;
     const modal = document.getElementById("note-media-preview-modal");
@@ -13251,7 +13245,7 @@ function bootPrototypeRuntime() {
   function saveNoteDailyEntry() {
     const textEl = document.getElementById("note-journal-textarea");
     const textVal = textEl ? textEl.value.trim() : "";
-    if (textVal.length < 5 && window.NOTE_STATE.mediaList.length === 0) {
+    if (textVal.length < 5 && window2.NOTE_STATE.mediaList.length === 0) {
       showIslandToast("\u270D\uFE0F \u8BF7\u5728\u968F\u7B14\u6846\u4E2D\u81F3\u5C11\u4E66\u5199\u4E00\u53E5\u4ECA\u65E5\u611F\u609F\uFF0C\u6216\u4E0A\u4F20\u7269\u8BC1\u540E\u518D\u5C01\u5B58\uFF01");
       if (textEl)
         textEl.focus();
@@ -13259,22 +13253,22 @@ function bootPrototypeRuntime() {
     }
     const now = /* @__PURE__ */ new Date();
     const dateStr = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
-    const liveAutoLogs = (window.NOTE_STATE.todayAutoLogs || []).map(
+    const liveAutoLogs = (window2.NOTE_STATE.todayAutoLogs || []).map(
       (item) => typeof item === "string" ? item : item.time ? "[" + item.time + "] " + item.text : item.text
     );
     const newEntry = {
       id: "entry-" + Date.now(),
       date: dateStr,
-      mood: window.NOTE_STATE.currentMood,
-      energy: window.NOTE_STATE.currentEnergy || 4,
-      text: textVal || "\uFF08\u4ECA\u65E5\u4E0A\u4F20\u4E86 " + window.NOTE_STATE.mediaList.length + " \u9879\u5F71\u50CF\u7269\u8BC1\uFF0C\u4E13\u6CE8\u5B8C\u6210\u4E86\u5404\u9879\u8BFE\u9898\uFF09",
+      mood: window2.NOTE_STATE.currentMood,
+      energy: window2.NOTE_STATE.currentEnergy || 4,
+      text: textVal || "\uFF08\u4ECA\u65E5\u4E0A\u4F20\u4E86 " + window2.NOTE_STATE.mediaList.length + " \u9879\u5F71\u50CF\u7269\u8BC1\uFF0C\u4E13\u6CE8\u5B8C\u6210\u4E86\u5404\u9879\u8BFE\u9898\uFF09",
       autoLogs: liveAutoLogs.length > 0 ? liveAutoLogs : [
         "\u23F1\uFE0F \u6821\u53F2\u9986\uFF1A\u5B8C\u6210 1 \u4E2A\u756A\u8304\u949F\u4E13\u6CE8\u9650\u65F6\u53E3\u7B97 (25\u5206\u949F)\uFF0C\u6E05\u96F6\u9519\u9898 3 \u9053"
       ],
-      media: window.NOTE_STATE.mediaList.map((m) => ({ ...m }))
+      media: window2.NOTE_STATE.mediaList.map((m) => ({ ...m }))
     };
-    window.NOTE_STATE.historyEntries.unshift(newEntry);
-    window.NOTE_STATE.journalText = "";
+    window2.NOTE_STATE.historyEntries.unshift(newEntry);
+    window2.NOTE_STATE.journalText = "";
     if (textEl)
       textEl.value = "";
     const histList = document.getElementById("note-history-list");
@@ -13283,7 +13277,7 @@ function bootPrototypeRuntime() {
     }
     const histCount = document.getElementById("note-history-count");
     if (histCount) {
-      histCount.innerText = window.NOTE_STATE.historyEntries.length;
+      histCount.innerText = window2.NOTE_STATE.historyEntries.length;
     }
     updateNoteTextCounter();
     showIslandToast("\u{1F389} \u4ECA\u65E5\u53CC\u8F68\u968F\u8BB0\u5DF2\u5C01\u5B58\uFF01\u5305\u542B " + newEntry.media.length + " \u4E2A\u5F71\u50CF\u7269\u8BC1\u4E0E\u5FC3\u6D41\u968F\u7B14\uFF0C\u5DF2\u6C38\u4E45\u6C89\u6DC0\u81F3\u6210\u957F\u65F6\u95F4\u8F74\uFF01");
@@ -13294,12 +13288,12 @@ function bootPrototypeRuntime() {
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "center" });
       el.style.boxShadow = "0 0 0 3px #3b82f6";
-      setTimeout(() => {
+      setTimeout2(() => {
         el.style.boxShadow = "";
       }, 1200);
     }
   }
-  window.addEventListener("keydown", (e) => {
+  window2.addEventListener("keydown", (e) => {
     if (currentGlobalView === "exec" && currentExecSubView === "day") {
       if (e.key === "ArrowLeft") {
         prevDayCard();
@@ -13310,7 +13304,7 @@ function bootPrototypeRuntime() {
       }
     }
   });
-  window.addEventListener("DOMContentLoaded", () => {
+  window2.addEventListener("DOMContentLoaded", () => {
     syncWeekBoardToRealDate();
     const _ps = document.getElementById("input-proj-start");
     if (_ps && !_ps.value)
@@ -13331,7 +13325,7 @@ function bootPrototypeRuntime() {
       renderBountyModalAndBillboard();
     switchHomeGlobalView("exec");
   });
-  setTimeout(() => {
+  setTimeout2(() => {
     initWeatherEngine();
     initCanvasPanZoomAndDrag();
     setupCarouselGestures();
@@ -13346,7 +13340,7 @@ function bootPrototypeRuntime() {
       renderBountyModalAndBillboard();
     switchHomeGlobalView("exec");
   }, 200);
-  const GANTT_TODAY = function() {
+  let GANTT_TODAY = function() {
     const d = /* @__PURE__ */ new Date();
     return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
   }();
@@ -13381,7 +13375,7 @@ function bootPrototypeRuntime() {
   let currentGanttCategory = "all";
   let currentGanttStatus = "all";
   let selectedNewProjCategory = "\u5B66\u4E1A\u653B\u575A";
-  window.GANTT_PROJECTS = [];
+  window2.GANTT_PROJECTS = [];
   function computeProjectProgressAndStatus(p) {
     const totalDays = Math.max(1, diffGanttDays(p.startDate, p.endDate) + 1);
     const completedCount = p.completedDays && Array.isArray(p.completedDays) ? p.completedDays.length : 0;
@@ -13474,7 +13468,7 @@ function bootPrototypeRuntime() {
     showIslandToast("\u{1F4A1} [" + projTitle + "] " + dateStr + (isDone ? " \u5DF2\u6267\u884C\u8FBE\u6210 \u2713" : " \u5F85\u63A8\u8FDB") + "\uFF08\u7518\u7279\u56FE\u5C0F\u65B9\u683C\u4EC5\u4F9B\u5168\u666F\u67E5\u9605\uFF0C\u4E0D\u53EF\u5728\u6B64\u76F4\u63A5\u7F16\u8F91\uFF09");
   }
   function toggleProjectArchive(id) {
-    const p = window.GANTT_PROJECTS.find((item) => item.id === id);
+    const p = window2.GANTT_PROJECTS.find((item) => item.id === id);
     if (!p)
       return;
     p.isArchived = !p.isArchived;
@@ -13491,8 +13485,8 @@ function bootPrototypeRuntime() {
     const timelineRowsContainer = document.getElementById("gantt-timeline-rows");
     if (!tableRowsContainer || !headerContainer || !timelineRowsContainer)
       return;
-    let counts = { all: window.GANTT_PROJECTS.length, planned: 0, pending: 0, exec: 0, done: 0, archived: 0 };
-    window.GANTT_PROJECTS.forEach((p) => {
+    let counts = { all: window2.GANTT_PROJECTS.length, planned: 0, pending: 0, exec: 0, done: 0, archived: 0 };
+    window2.GANTT_PROJECTS.forEach((p) => {
       const res = computeProjectProgressAndStatus(p);
       if (res.status === "\u5F85\u89C4\u5212")
         counts.planned++;
@@ -13526,7 +13520,7 @@ function bootPrototypeRuntime() {
       elArchived.innerText = counts.archived;
     if (elActiveCount)
       elActiveCount.innerText = counts.exec + " \u4E2A";
-    const filteredProjects = window.GANTT_PROJECTS.filter((p) => {
+    const filteredProjects = window2.GANTT_PROJECTS.filter((p) => {
       const res = computeProjectProgressAndStatus(p);
       const catMatch = currentGanttCategory === "all" || p.category === currentGanttCategory;
       const statusMatch = currentGanttStatus === "all" || res.status === currentGanttStatus;
@@ -13654,10 +13648,10 @@ function bootPrototypeRuntime() {
     modal.classList.add("open");
     modal.classList.add("is-open");
     if (titleInput)
-      setTimeout(() => titleInput.focus(), 100);
+      setTimeout2(() => titleInput.focus(), 100);
   }
   function openEditProjectModal(id) {
-    const p = window.GANTT_PROJECTS.find((item) => item.id === id);
+    const p = window2.GANTT_PROJECTS.find((item) => item.id === id);
     if (!p)
       return;
     const modal = document.getElementById("add-project-modal");
@@ -13694,7 +13688,7 @@ function bootPrototypeRuntime() {
     handleProjDateChange();
     modal.style.display = "flex";
     if (titleInput)
-      setTimeout(() => titleInput.focus(), 100);
+      setTimeout2(() => titleInput.focus(), 100);
   }
   function closeAddProjectModal() {
     const modal = document.getElementById("add-project-modal");
@@ -13782,7 +13776,7 @@ function bootPrototypeRuntime() {
     const catToPavMap = { "\u5B66\u4E1A\u653B\u575A": "study", "\u5174\u8DA3\u7279\u957F": "dojo", "\u4FEE\u8EAB\u7ACB\u5BAA": "cultivation", "\u8BA4\u77E5\u601D\u8FA8": "cognition" };
     const resolvedPav = catToPavMap[selectedNewProjCategory] || (typeof currentWsPavilion !== "undefined" ? currentWsPavilion : "study");
     if (editId) {
-      const existing = window.GANTT_PROJECTS.find((item) => item.id === editId);
+      const existing = window2.GANTT_PROJECTS.find((item) => item.id === editId);
       if (existing) {
         existing.pavilion = resolvedPav;
         existing.category = selectedNewProjCategory;
@@ -13806,9 +13800,9 @@ function bootPrototypeRuntime() {
         completedDays: [],
         isArchived: false
       };
-      window.GANTT_PROJECTS.unshift(newProj);
-      if (window.PROJECT_CANVAS_STORE && typeof buildStarterCanvasForProject === "function") {
-        window.PROJECT_CANVAS_STORE[newProj.id] = buildStarterCanvasForProject(newProj);
+      window2.GANTT_PROJECTS.unshift(newProj);
+      if (window2.PROJECT_CANVAS_STORE && typeof buildStarterCanvasForProject === "function") {
+        window2.PROJECT_CANVAS_STORE[newProj.id] = buildStarterCanvasForProject(newProj);
       }
       if (typeof renderHomeSemesterGoalsBanner === "function")
         renderHomeSemesterGoalsBanner();
@@ -13866,8 +13860,8 @@ function bootPrototypeRuntime() {
       dot.innerHTML = '<span class="dot-circle"></span><span class="dot-text">' + (pavMeta.icon || "\u26A1") + " " + title.slice(0, 6) + "</span>";
       dotsWrap.appendChild(dot);
     }
-    if (window.USER_PROFILE_STATE) {
-      window.USER_PROFILE_STATE.totalTodayCount = deck.querySelectorAll(".exec-task-card").length;
+    if (window2.USER_PROFILE_STATE) {
+      window2.USER_PROFILE_STATE.totalTodayCount = deck.querySelectorAll(".exec-task-card").length;
     }
     if (typeof WEEK_BOARD_DATA !== "undefined" && Array.isArray(WEEK_BOARD_DATA)) {
       const todayCol = getTodayWeekCol();
@@ -13886,7 +13880,7 @@ function bootPrototypeRuntime() {
         });
       }
       if (typeof renderWeekBoard === "function")
-        renderWeekBoard(window.currentWeekFilter || "all");
+        renderWeekBoard(window2.currentWeekFilter || "all");
     }
     if (typeof renderMonthCalendar === "function")
       renderMonthCalendar();
@@ -13931,12 +13925,12 @@ function bootPrototypeRuntime() {
           imageDesc: "\u9488\u5BF9\u590D\u76D8\u63D0\u5347\u9879\u5B8C\u6210\u4E13\u9879\u7EA0\u504F\u5B9E\u8BAD\u5E76\u62CD\u7167\u5B58\u8BC1",
           skipAutoSync: false
         });
-        if (newCard && Array.isArray(window.TERTIARY_EDGES)) {
+        if (newCard && Array.isArray(window2.TERTIARY_EDGES)) {
           const baseLeft = (parseInt(card.style.left, 10) || 400) + 390;
           const baseTop = (parseInt(card.style.top, 10) || 320) + idx * 290;
           newCard.style.left = baseLeft + "px";
           newCard.style.top = baseTop + "px";
-          window.TERTIARY_EDGES.push({
+          window2.TERTIARY_EDGES.push({
             id: "edge-" + cardId + "-" + newCard.id,
             sourceId: cardId,
             targetId: newCard.id,
@@ -14344,10 +14338,10 @@ function bootPrototypeRuntime() {
     }
     const now = /* @__PURE__ */ new Date();
     const dateStr = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
-    if (window.ACHIEVEMENT_STATE && window.ACHIEVEMENT_STATE.cultivationItems) {
-      const existing = window.ACHIEVEMENT_STATE.cultivationItems.find((x) => x.id === "ACH-CULT-" + cardId);
+    if (window2.ACHIEVEMENT_STATE && window2.ACHIEVEMENT_STATE.cultivationItems) {
+      const existing = window2.ACHIEVEMENT_STATE.cultivationItems.find((x) => x.id === "ACH-CULT-" + cardId);
       if (!existing) {
-        window.ACHIEVEMENT_STATE.cultivationItems.unshift({
+        window2.ACHIEVEMENT_STATE.cultivationItems.unshift({
           id: "ACH-CULT-" + cardId,
           date: dateStr,
           title: title + " \xB7 \u9636\u6BB5\u7ED3\u4E1A\u901A\u5173\u7AE0",
@@ -14663,7 +14657,7 @@ function bootPrototypeRuntime() {
       showIslandToast("\u{1F5D1}\uFE0F \u5DF2\u79FB\u9664\u89C4\u5212\u6253\u5361\u8282\u70B9");
     }
   }
-  window.INQUIRY_POOL_STATE = [
+  window2.INQUIRY_POOL_STATE = [
     {
       id: "inq-1",
       cat: "\u{1F91D} \u540C\u4F34\u4EA4\u5F80",
@@ -14697,7 +14691,7 @@ function bootPrototypeRuntime() {
     const badgeEl = document.getElementById("inquiry-count-badge");
     if (!listEl)
       return;
-    const items = window.INQUIRY_POOL_STATE || [];
+    const items = window2.INQUIRY_POOL_STATE || [];
     const pendingCount = items.filter((x) => !x.converted).length;
     if (badgeEl)
       badgeEl.innerText = pendingCount + " \u4E2A\u5F85\u89C4\u5212\u56F0\u60D1";
@@ -14754,7 +14748,7 @@ function bootPrototypeRuntime() {
       }
     };
     const cm = catMetaMap[rawCat] || catMetaMap["\u60C5\u7EEA\u81EA\u63A7"];
-    window.INQUIRY_POOL_STATE.unshift({
+    window2.INQUIRY_POOL_STATE.unshift({
       id: "inq-" + Date.now(),
       cat: cm.cat,
       question: q,
@@ -14773,7 +14767,7 @@ function bootPrototypeRuntime() {
   function convertInquiryToPlan(question, classicQuote) {
     const q = question || "\u65E5\u5E38\u4FEE\u8EAB\u56F0\u60D1";
     const quote = classicQuote || "\u300A\u5927\u5B66\u300B\u77E5\u6B62\u5B9A\u9759";
-    const matched = (window.INQUIRY_POOL_STATE || []).find((x) => x.question === q);
+    const matched = (window2.INQUIRY_POOL_STATE || []).find((x) => x.question === q);
     if (matched)
       matched.converted = true;
     const projId = "proj_inq_" + Date.now();
@@ -14792,10 +14786,10 @@ function bootPrototypeRuntime() {
       completedDays: [],
       isArchived: false
     };
-    if (Array.isArray(window.GANTT_PROJECTS)) {
-      window.GANTT_PROJECTS.unshift(newProj);
-      if (window.PROJECT_CANVAS_STORE && typeof buildStarterCanvasForProject === "function") {
-        window.PROJECT_CANVAS_STORE[projId] = buildStarterCanvasForProject(newProj);
+    if (Array.isArray(window2.GANTT_PROJECTS)) {
+      window2.GANTT_PROJECTS.unshift(newProj);
+      if (window2.PROJECT_CANVAS_STORE && typeof buildStarterCanvasForProject === "function") {
+        window2.PROJECT_CANVAS_STORE[projId] = buildStarterCanvasForProject(newProj);
       }
       if (typeof renderHomeSemesterGoalsBanner === "function")
         renderHomeSemesterGoalsBanner();
@@ -14825,805 +14819,3661 @@ function bootPrototypeRuntime() {
   function recordTreeTestDemo() {
     showIslandToast("\u{1F3C6} \u6210\u529F\u76D6\u4E0A\u3010\u767E\u70BC\u6210\u91D1\u3011\u54C1\u683C\u5370\u7AE0\uFF0C\u4ECA\u65E5\u9632\u5B88\u8003\u9A8C +1\uFF01");
   }
+  function localDateKey2(date = /* @__PURE__ */ new Date()) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  }
+  function shiftDate(key, days) {
+    const [year, month, day] = key.split("-").map(Number);
+    return localDateKey2(new Date(year, month - 1, day + days, 12));
+  }
+  function computeStreak(validDays, violationDays, approvedFreezeDays = [], today = localDateKey2()) {
+    const valid = new Set(validDays);
+    const violations = new Set(violationDays);
+    const freezes = new Set(approvedFreezeDays);
+    let cursor = valid.has(today) || freezes.has(today) || violations.has(today) ? today : shiftDate(today, -1);
+    let count = 0;
+    const limit = valid.size + freezes.size;
+    for (let i = 0; i < limit; i++, cursor = shiftDate(cursor, -1)) {
+      if (violations.has(cursor))
+        break;
+      if (valid.has(cursor))
+        count++;
+      else if (!freezes.has(cursor))
+        break;
+    }
+    return count;
+  }
+  function fulfillmentRate(plannedDone, plannedTotal, contractDone, contractTotal, violations) {
+    const ratio = (done, total) => total > 0 ? Math.max(0, Math.min(1, done / total)) : 1;
+    return Math.round(Math.max(0, Math.min(100, 60 * ratio(plannedDone, plannedTotal) + 40 * ratio(contractDone, contractTotal) - 5 * Math.max(0, violations || 0))));
+  }
+  function safeFileStem2(value) {
+    const stem = String(value ?? "").replace(/[\\/:*?"<>|\[\]#^\x00-\x1f]/g, "_").replace(/\.+/g, "_").trim().replace(/[. ]+$/g, "");
+    return stem && !/^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i.test(stem) ? stem.slice(0, 100) : `_${stem || "untitled"}`;
+  }
+  function validateVaultRoot2(value) {
+    const path = value.trim().replace(/\\/g, "/");
+    if (/^(\/|[a-z]:)/i.test(path) || path.split("/").some((p) => p === ".." || p === ".obsidian" || p === ".git")) {
+      throw new Error("\u6570\u636E\u76EE\u5F55\u5FC5\u987B\u662F\u4ED3\u5E93\u5185\u7684\u76F8\u5BF9\u8DEF\u5F84\uFF0C\u4E0D\u80FD\u5305\u542B ..\u3001.obsidian \u6216 .git");
+    }
+    return path.replace(/\/+$/g, "");
+  }
+  function domainId(prefix = "id") {
+    return prefix + "-" + (globalThis.crypto?.randomUUID?.() || Date.now().toString(36) + "-" + Math.random().toString(36).slice(2));
+  }
+  function domainDate(date = /* @__PURE__ */ new Date()) {
+    return date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0") + "-" + String(date.getDate()).padStart(2, "0");
+  }
+  function domainShift(key, days) {
+    const [y, m, d] = key.split("-").map(Number);
+    return domainDate(new Date(y, m - 1, d + days, 12));
+  }
+  function domainValidDate(key) {
+    return /^\d{4}-\d{2}-\d{2}$/.test(key || "") && domainDate(/* @__PURE__ */ new Date(key + "T12:00:00")) === key;
+  }
+  function domainType(value) {
+    return String(value || "drill").replace(/^card-/, "").replace("reflection", "review");
+  }
+  function domainNode(config, project) {
+    const type = domainType(config.nodeType || config.cardType || config.archetype);
+    const payload = config.cardPayload || {};
+    const evidence = config.evidenceType || payload.evidenceType || config.checkinType || config.evidence || config.deliverableType || (type === "drill" ? "photo" : type === "goal" ? "text" : "none");
+    const map = { image: "photo", timer: "none", composite: "photo" };
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    return {
+      id: config.id || config.nodeId || domainId("node"),
+      projectId: project.id,
+      pavilionId: project.pavilion,
+      title: String(config.title || "\u65B0\u8282\u70B9").trim(),
+      nodeType: type,
+      isCheckinNode: type !== "text" && (config.isCheckinNode ?? config.needsCheckin ?? config.isActionable ?? type !== "goal"),
+      status: config.status || "pending",
+      weight: Number.isFinite(Number(config.weight)) && Number(config.weight) > 0 ? Number(config.weight) : 1,
+      plannedDate: config.plannedDate || project.startDate,
+      frequency: ["once", "daily", "weekdays", "weekly", "workday"].includes(config.frequency || payload.frequency) ? config.frequency || payload.frequency : "once",
+      dependencies: [...new Set(config.dependencies || [])],
+      canvasPosition: config.canvasPosition || { x: 80, y: 90 },
+      groupId: config.groupId || null,
+      groupRoot: config.groupRoot || null,
+      createdAt: config.createdAt || now,
+      updatedAt: config.updatedAt || now,
+      cardPayload: {
+        ...payload,
+        description: payload.description || config.description || config.formula || config.quote || config.cause || config.content || "",
+        plannedMinutes: Number(payload.plannedMinutes ?? config.plannedMinutes ?? config.duration ?? (type === "drill" ? 20 : 0)),
+        evidenceType: map[evidence] || evidence,
+        metrics: (payload.metrics || config.metrics || []).map((m) => ({ id: m.id || domainId("metric"), name: m.name || String(m), targetValue: m.targetValue ?? m.val ?? m.target ?? "", unit: m.unit || "" })),
+        checklist: (payload.checklist || config.checklistItems || []).map((c) => typeof c === "string" ? { id: domainId("item"), title: c, required: true } : c),
+        improvementList: (payload.improvementList || config.improvements || []).map((c) => typeof c === "string" ? { id: domainId("improvement"), actionItem: c, isChecked: true, derivedNodeId: null } : c),
+        customFieldsSchema: (payload.customFieldsSchema || config.customFieldsSchema || config.fields || []).map((f, i) => ({ key: f.key || "field-" + i, label: f.label || f.key || "\u5B57\u6BB5", type: f.type || "text", required: f.required !== false, placeholder: f.placeholder || "", defaultValue: f.defaultValue ?? f.value ?? "" })),
+        textContent: payload.textContent || config.content || "",
+        acceptanceCriteria: payload.acceptanceCriteria || config.acceptance || "",
+        targetDeadline: payload.targetDeadline || config.deadline || null
+      },
+      executionRecords: (config.executionRecords || []).map((r) => typeof r === "string" ? r : r?.id).filter(Boolean),
+      readCount: config.readCount || 0,
+      lastReadTime: config.lastReadTime || null,
+      achievementId: config.achievementId || null
+    };
+  }
+  function occurrenceDates(node, project, from = project.startDate, to = project.endDate) {
+    const start = node.plannedDate || project.startDate;
+    if (!domainValidDate(start) || !domainValidDate(project.endDate))
+      return [];
+    if (node.frequency === "once")
+      return start >= from && start <= to && start <= project.endDate ? [start] : [];
+    const result = [];
+    let cursor = start > from ? start : from;
+    for (let limit = 0; cursor <= to && cursor <= project.endDate && limit < 36600; limit++, cursor = domainShift(cursor, 1)) {
+      const weekday = (/* @__PURE__ */ new Date(cursor + "T12:00:00")).getDay();
+      if ((node.frequency === "weekdays" || node.frequency === "workday") && (weekday === 0 || weekday === 6))
+        continue;
+      if (node.frequency === "weekly" && weekday !== (/* @__PURE__ */ new Date(start + "T12:00:00")).getDay())
+        continue;
+      result.push(cursor);
+    }
+    return result;
+  }
+  function taskInstanceId(nodeId, date) {
+    return nodeId + "@" + date;
+  }
+  function projectProgress(project, nodes, records) {
+    const required = nodes.filter((n) => n.isCheckinNode && n.status !== "archived");
+    let weight = 0, fulfilled = 0, completedNodesCount = 0, totalInstances = 0, completedInstances = 0;
+    for (const node of required) {
+      const dates = occurrenceDates(node, project);
+      const done = dates.filter((date) => records.some((r) => r.projectId === project.id && r.nodeId === node.id && (r.taskInstanceId === taskInstanceId(node.id, date) || r.date === date) && r.validated === true)).length;
+      const w = node.weight || 1;
+      weight += w;
+      fulfilled += w * (dates.length ? done / dates.length : 0);
+      totalInstances += dates.length;
+      completedInstances += done;
+      if (dates.length && done === dates.length)
+        completedNodesCount++;
+    }
+    const progress = weight ? Math.round(100 * fulfilled / weight) : 0;
+    return { progress, completedNodesCount, totalNodesCount: required.length, completedInstances, totalInstances, complete: required.length > 0 && completedNodesCount === required.length };
+  }
+  function scheduleDomain(state, today = domainDate()) {
+    const result = [];
+    const records = state.records || [];
+    for (const project of state.projects || []) {
+      if (project.isArchived || project.status === "archived" || project.status === "cancelled")
+        continue;
+      const nodes = state.nodesByProject?.[project.id] || [];
+      for (const node of nodes) {
+        if (!node.isCheckinNode || node.status === "archived")
+          continue;
+        for (const date of occurrenceDates(node, project)) {
+          const record = records.find((r) => r.nodeId === node.id && r.projectId === project.id && (r.taskInstanceId === taskInstanceId(node.id, date) || r.date === date) && r.validated === true);
+          const blocked = node.dependencies.some((id) => {
+            const dep = nodes.find((n) => n.id === id);
+            if (!dep)
+              return true;
+            return !records.some((r) => r.nodeId === id && r.projectId === project.id && r.validated === true && (dep.frequency === "once" || (r.scheduledDate || r.date) === date));
+          });
+          result.push({
+            id: taskInstanceId(node.id, date),
+            nodeId: node.id,
+            projectId: project.id,
+            pavilionId: project.pavilion,
+            title: node.title,
+            date,
+            nodeType: node.nodeType,
+            status: record ? "completed" : blocked ? "blocked" : date < today ? "overdue" : date === today ? "ready" : "scheduled",
+            recordId: record?.id || null,
+            contract: project.pavilion === "cultivation"
+          });
+        }
+      }
+    }
+    for (const bounty of state.bounties || []) {
+      if (!["accepted", "redeemed"].includes(bounty.status))
+        continue;
+      const record = records.find((r) => r.bountyId === bounty.id && r.validated === true);
+      if (bounty.status === "redeemed" && !record)
+        continue;
+      const occurrence = bounty.acceptedDate || bounty.createdDate || today;
+      const date = bounty.status === "redeemed" ? bounty.verifiedDate || occurrence : bounty.endDate || occurrence;
+      result.push({ id: "bounty-" + bounty.id + "@" + occurrence, nodeId: null, projectId: null, bountyId: bounty.id, pavilionId: bounty.pavilionId || "study", title: bounty.title, date, nodeType: "bounty", contract: true, recordId: record?.id || null, status: bounty.status === "redeemed" ? "completed" : bounty.endDate < today ? "overdue" : "ready" });
+    }
+    return result;
+  }
+  function evaluateMetric(target, actual, confirmed = false) {
+    const text = String(target || "").trim();
+    const match = text.match(/^(>=|<=|≥|≤|>|<|=|等于)?\s*(-?\d+(?:\.\d+)?)\s*(%|分|次|秒|分钟|道|个)?$/);
+    if (!match)
+      return { passed: confirmed && String(actual ?? "").trim().length > 0, actual: String(actual ?? ""), manual: true };
+    const numeric = String(actual ?? "").trim().replace(/[%分次秒分钟道个\s]/g, "");
+    const value = Number(numeric);
+    if (!numeric || !Number.isFinite(value))
+      return { passed: false, actual: String(actual ?? ""), manual: false };
+    const baseline = Number(match[2]);
+    const op = match[1] || "=";
+    const passed = op === ">=" || op === "\u2265" ? value >= baseline : op === "<=" || op === "\u2264" ? value <= baseline : op === ">" ? value > baseline : op === "<" ? value < baseline : value === baseline;
+    return { passed, actual: String(actual), manual: false };
+  }
+  function validateDomainExecution(node, input) {
+    const errors = [];
+    const p = node.cardPayload;
+    const text = String(input.reflection || "").trim();
+    const media = (input.media || []).filter((m) => m.path);
+    if (!Number.isFinite(Number(input.focusSeconds || 0)) || Number(input.focusSeconds || 0) < 0)
+      errors.push("\u4E13\u6CE8\u65F6\u957F\u5FC5\u987B\u4E3A\u6709\u6548\u7684\u975E\u8D1F\u79D2\u6570");
+    const type = p.evidenceType;
+    if (["photo", "video", "audio"].includes(type) && !media.some((m) => m.type === (type === "photo" ? "image" : type)))
+      errors.push("\u8BF7\u63D0\u4EA4\u89C4\u5212\u8981\u6C42\u7684" + { photo: "\u7167\u7247", video: "\u89C6\u9891", audio: "\u97F3\u9891" }[type] + "\u7269\u8BC1");
+    if (type === "text" && text.length < 15)
+      errors.push("\u6587\u5B57\u4EA4\u4ED8\u81F3\u5C1115\u5B57");
+    if (node.nodeType === "drill" && (input.focusSeconds || 0) < p.plannedMinutes * 60)
+      errors.push("\u5B9E\u9645\u4E13\u6CE8\u65F6\u957F\u5C1A\u672A\u8FBE\u5230\u89C4\u5212\u7684" + p.plannedMinutes + "\u5206\u949F");
+    if (node.nodeType === "review" && text.length < 15)
+      errors.push("\u590D\u76D8\u8BF4\u660E\u81F3\u5C1115\u5B57");
+    if (node.nodeType === "review" && !(input.improvementList || []).some((x) => String(x.actionItem || "").trim()))
+      errors.push("\u8BF7\u586B\u5199\u81F3\u5C11\u4E00\u9879\u63D0\u5347\u884C\u52A8");
+    if (node.nodeType === "habit" && p.checklist.some((c) => c.required !== false && !input.checklistResults?.[c.id]))
+      errors.push("\u8BF7\u9010\u9879\u6838\u9A8C\u5168\u90E8\u5FC5\u9700\u7684\u8DF5\u884C\u6E05\u5355");
+    const metrics = p.metrics.map((m) => ({ ...m, ...evaluateMetric(m.targetValue, input.metricValues?.[m.id], input.metricConfirmations?.[m.id]) }));
+    if (node.nodeType === "goal" && !metrics.length)
+      errors.push("\u8BF7\u5148\u5728\u76EE\u6807\u89C4\u5212\u4E2D\u7EF4\u62A4\u81F3\u5C11\u4E00\u9879\u9A8C\u6536\u6307\u6807");
+    if (node.nodeType === "goal" && metrics.some((m) => !String(m.name).trim() || !String(m.targetValue ?? "").trim()))
+      errors.push("\u76EE\u6807\u9A8C\u6536\u6307\u6807\u987B\u5305\u542B\u540D\u79F0\u548C\u660E\u786E\u7684\u76EE\u6807\u6807\u51C6");
+    if (node.nodeType === "goal" && metrics.some((m) => !m.passed))
+      errors.push("\u76EE\u6807\u5B9E\u6D4B\u6307\u6807\u5C1A\u672A\u5168\u90E8\u8FBE\u6807\u6216\u672A\u786E\u8BA4\u6587\u5B57\u9A8C\u6536");
+    if (node.nodeType === "custom")
+      for (const f of p.customFieldsSchema) {
+        const value = input.customFieldValues?.[f.key];
+        if (f.required && (value === void 0 || value === null || value === ""))
+          errors.push("\u8BF7\u586B\u5199 " + f.label);
+        if (value !== void 0 && value !== "" && f.type === "number" && !Number.isFinite(Number(value)))
+          errors.push(f.label + " \u5FC5\u987B\u662F\u6570\u5B57");
+        if (value && f.type === "date" && !domainValidDate(value))
+          errors.push(f.label + " \u5FC5\u987B\u662F\u6709\u6548\u65E5\u671F");
+      }
+    if (!media.length && !text && !(input.focusSeconds >= 60) && !Object.values(input.checklistResults || {}).some(Boolean) && !metrics.length && !Object.values(input.customFieldValues || {}).some((v) => v !== "" && v !== void 0))
+      errors.push("\u8BF7\u4FDD\u7559\u771F\u5B9E\u6267\u884C\u5185\u5BB9");
+    return { valid: errors.length === 0, errors, metrics };
+  }
+  const escapeIslandText = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  let evidenceSession = null;
+  loadIslandSettings = defaultIslandSettings;
+  saveIslandSettings = function() {
+    notifyIslandStateChanged();
+  };
+  const oldWeatherEngine = initWeatherEngine;
+  initWeatherEngine = function() {
+    const canvas = document.getElementById("particle-canvas");
+    if (!canvas || canvas.dataset.weatherBound)
+      return;
+    canvas.dataset.weatherBound = "true";
+    oldWeatherEngine();
+  };
+  function ensureBusinessDate() {
+    const today = localDateKey2();
+    GANTT_TODAY = today;
+    const note = window2.NOTE_STATE;
+    const profile = window2.USER_PROFILE_STATE;
+    profile.checkinRecords = profile.checkinRecords || [];
+    profile.violationRecords = profile.violationRecords || [];
+    if (note.dateKey && note.dateKey !== today) {
+      const entry = { id: "entry-" + note.dateKey, date: note.dateKey, text: note.journalText || "", mood: note.currentMood, energy: note.currentEnergy, autoLogs: note.todayAutoLogs || [], media: note.mediaList || [] };
+      if (!note.historyEntries.some((e) => e.date === entry.date))
+        note.historyEntries.unshift(entry);
+      note.todayAutoLogs = [];
+      note.todayFocusMinutes = 0;
+      note.journalText = "";
+      note.mediaList = [];
+    }
+    note.dateKey = today;
+    if (profile.statsDate !== today) {
+      profile.statsDate = today;
+      profile.checkedTaskKeys = {};
+      profile.completedTodayCount = 0;
+      profile.streakIncrementedToday = false;
+    }
+    return today;
+  }
+  function refreshBusinessMetrics() {
+    const today = ensureBusinessDate();
+    const st = window2.USER_PROFILE_STATE;
+    const records = st.checkinRecords.filter((r) => r.date === today);
+    const cards = Array.from(document.querySelectorAll("#day-card-deck .exec-task-card"));
+    const contractCard = (card) => card.dataset.pavilion === "cultivation" || (card.dataset.taskId || "").startsWith("bounty-");
+    const done = (card) => (card.dataset.taskId || "").startsWith("bounty-") ? window2.BOUNTY_STATE?.status === "redeemed" : records.some((r) => r.taskId === card.dataset.taskId);
+    const planned = cards.filter((card) => !contractCard(card));
+    const contracts = cards.filter(contractCard);
+    st.totalTodayCount = cards.length;
+    st.completedTodayCount = cards.filter(done).length;
+    st.continuousDays = computeStreak(st.checkinRecords.map((r) => r.date), st.violationRecords.map((r) => (r.time || r.date || "").slice(0, 10)), st.approvedFreezeDays || [], today);
+    st.streakDays = st.continuousDays;
+    st.maxContinuousDays = Math.max(st.maxContinuousDays || 0, st.continuousDays);
+    st.fulfillmentRate = fulfillmentRate(planned.filter(done).length, planned.length, contracts.filter(done).length, contracts.length, st.violationCount || 0);
+    st.totalFocusMinutes = Math.round(st.checkinRecords.reduce((sum, r) => sum + (r.focusSeconds || 0), 0) / 60);
+    for (const card of cards) {
+      const pill = card.querySelector(".task-status-pill");
+      if (pill) {
+        pill.className = "task-status-pill " + (done(card) ? "completed" : "pending");
+        pill.textContent = done(card) ? "\u2713 \u4ECA\u65E5\u5DF2\u5B8C\u6210" : "\u{1F7E1} \u4ECA\u65E5\u5F85\u6253\u5361";
+      }
+    }
+    return st.fulfillmentRate;
+  }
+  computeCurrentFulfillmentRate = refreshBusinessMetrics;
+  const originalRenderHUD = recalcAndRenderGlobalHUD;
+  recalcAndRenderGlobalHUD = function() {
+    refreshBusinessMetrics();
+    originalRenderHUD();
+  };
+  appendDailyAutoLog = function(text, minutes) {
+    ensureBusinessDate();
+    const note = window2.NOTE_STATE;
+    const now = /* @__PURE__ */ new Date();
+    note.todayAutoLogs.unshift({ time: now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), text: String(text) });
+    note.todayFocusMinutes = (note.todayFocusMinutes || 0) + (Number(minutes) || 0);
+    const todayEntry = note.historyEntries.find((e) => e.date === note.dateKey);
+    if (todayEntry)
+      todayEntry.autoLogs = note.todayAutoLogs.map((l) => typeof l === "string" ? l : "[" + l.time + "] " + l.text);
+    notifyIslandStateChanged();
+  };
+  const originalSaveCanvas = saveCurrentProjectCanvasSnapshot;
+  saveCurrentProjectCanvasSnapshot = function() {
+    const id = window2.currentTertiaryProjId;
+    if (!id || !window2.GANTT_PROJECTS.some((p) => p.id === id))
+      return;
+    const world = document.getElementById("tertiary-canvas-world");
+    if (world?.dataset.projectId && world.dataset.projectId !== id)
+      return;
+    const previous = window2.PROJECT_CANVAS_STORE[id] || {};
+    originalSaveCanvas();
+    window2.PROJECT_CANVAS_STORE[id] = Object.assign({}, previous, window2.PROJECT_CANVAS_STORE[id]);
+  };
+  const originalEnterTertiary = enterTertiaryWorkspace;
+  enterTertiaryWorkspace = function(id) {
+    originalEnterTertiary(id);
+    const world = document.getElementById("tertiary-canvas-world");
+    if (world)
+      world.dataset.projectId = id;
+  };
+  const originalSyncNode = syncNewNodeToHomeExecution;
+  syncNewNodeToHomeExecution = function(cfg) {
+    if (!cfg?.id)
+      return;
+    const source = document.getElementById(cfg.id);
+    const generatedProject = cfg.id.startsWith("remedy-") ? window2.GANTT_PROJECTS.find((p) => p.id.startsWith("proj_remedy_")) : cfg.id.startsWith("inq-task-") ? window2.GANTT_PROJECTS.find((p) => p.id.startsWith("proj_inq_")) : null;
+    const projectId = cfg.projectId || generatedProject?.id || (cfg.id.startsWith("bounty-") ? "" : window2.GANTT_PROJECTS.some((p) => p.id === window2.currentTertiaryProjId) ? window2.currentTertiaryProjId : "");
+    originalSyncNode({ ...cfg, title: escapeIslandText(cfg.title), desc: escapeIslandText(cfg.desc) });
+    const card = document.getElementById("exec-sync-" + cfg.id);
+    if (card) {
+      card.dataset.label = cfg.title || "";
+      card.dataset.projectId = projectId;
+      card.dataset.nodeId = cfg.sourceNodeId || (generatedProject ? "projnode-" + generatedProject.id + "-2" : cfg.id);
+      card.dataset.checkinType = source?.className.includes("habit") ? "habit" : source?.className.includes("reflection") ? "reflection" : source?.className.includes("custom") ? "custom" : "drill";
+      card.setAttribute("onclick", "handleTaskCardClick(event, this.dataset.checkinType)");
+    }
+    const task = getTodayWeekCol()?.tasks.find((t) => t.id === "w-" + cfg.id);
+    if (task) {
+      task.sourceNodeId = cfg.id;
+      task.projectId = projectId;
+    }
+    notifyIslandStateChanged();
+  };
+  function getEvidenceElapsed() {
+    return evidenceSession ? evidenceSession.seconds + (evidenceSession.startedAt ? Math.floor((Date.now() - evidenceSession.startedAt) / 1e3) : 0) : 0;
+  }
+  function toggleEvidenceTimer() {
+    if (!evidenceSession)
+      return;
+    if (evidenceSession.startedAt) {
+      evidenceSession.seconds = getEvidenceElapsed();
+      evidenceSession.startedAt = 0;
+    } else
+      evidenceSession.startedAt = Date.now();
+    const btn = document.getElementById("island-real-timer");
+    if (btn)
+      btn.textContent = evidenceSession.startedAt ? "\u23F8 \u6682\u505C\u8BA1\u65F6" : "\u25B6 \u7EE7\u7EED\u4E13\u6CE8";
+    saveExecutionDraft();
+  }
+  function saveExecutionDraft() {
+    if (!evidenceSession || evidenceSession.saved)
+      return;
+    const profile = window2.USER_PROFILE_STATE;
+    profile.executionDrafts = profile.executionDrafts || {};
+    profile.executionDrafts[localDateKey2() + "|" + evidenceSession.taskId] = { reflection: document.getElementById("island-real-reflection")?.value || "", seconds: getEvidenceElapsed(), media: evidenceSession.media };
+    notifyIslandStateChanged();
+  }
+  function paintEvidenceTime() {
+    if (window2.USER_PROFILE_STATE.statsDate !== localDateKey2()) {
+      ensureBusinessDate();
+      recalcAndRenderGlobalHUD();
+      notifyIslandStateChanged();
+    }
+    const display = document.getElementById("island-real-elapsed");
+    const seconds = getEvidenceElapsed();
+    if (display)
+      display.textContent = String(Math.floor(seconds / 60)).padStart(2, "0") + ":" + String(seconds % 60).padStart(2, "0");
+  }
+  setInterval(paintEvidenceTime, 1e3);
+  function mountRealExecutionForm(card) {
+    const container = document.getElementById("exec-popup-task-view");
+    if (!container || !card)
+      return;
+    const taskId = card.dataset.taskId || card.id;
+    const today = ensureBusinessDate();
+    const saved = window2.USER_PROFILE_STATE.checkinRecords.find((r) => r.taskId === taskId && r.date === today);
+    const draft = window2.USER_PROFILE_STATE.executionDrafts?.[today + "|" + taskId];
+    evidenceSession = { taskId, nodeId: card.dataset.nodeId || taskId, projectId: card.dataset.projectId || "", pavilionId: card.dataset.pavilion || "study", title: card.dataset.label || "\u6267\u884C\u4EFB\u52A1", seconds: draft?.seconds || saved?.focusSeconds || 0, startedAt: 0, media: draft?.media || saved?.media || [], saved: !!saved };
+    const data = window2.PROJECT_CANVAS_STORE[evidenceSession.projectId];
+    const holder = document.createElement("div");
+    holder.innerHTML = data?.cardsHtml || "";
+    const source = Array.from(holder.querySelectorAll(".tertiary-card")).find((el) => el.id === evidenceSession.nodeId);
+    container.innerHTML = '<div class="note-card-box island-real-execution-form"><h3>' + escapeIslandText(evidenceSession.title) + '</h3><div id="island-execution-standard"></div><div class="island-real-execution-entry"><div style="display:flex;align-items:center;gap:12px;margin:14px 0;"><strong id="island-real-elapsed">00:00</strong><button class="ui-btn" id="island-real-timer" onclick="toggleEvidenceTimer()">\u25B6 \u5F00\u59CB\u4E13\u6CE8</button><span>\u6309\u5B9E\u9645\u8BA1\u65F6\u8BB0\u5F55\u6295\u5165</span></div><label>\u6267\u884C\u5FC3\u5F97\u4E0E\u5BA2\u89C2\u7ED3\u679C<textarea id="island-real-reflection" oninput="saveExecutionDraft()" style="width:100%;min-height:100px;" placeholder="\u5199\u4E0B\u5B9E\u9645\u5B8C\u6210\u5185\u5BB9\u3001\u6D4B\u91CF\u7ED3\u679C\u6216\u590D\u76D8\u5FC3\u5F97"></textarea></label><div style="margin:12px 0;"><input type="file" accept="image/*,video/*,audio/*" onchange="uploadExecutionEvidence(this)"><div id="island-real-media-list"></div></div><button class="ui-btn primary" id="island-real-submit" onclick="submitRealExecution()">' + (saved ? "\u2713 \u4ECA\u65E5\u5DF2\u5B8C\u6210" : "\u63D0\u4EA4\u5B58\u8BC1 \xB7 \u5B8C\u6210\u4ECA\u65E5\u6253\u5361") + "</button></div></div>";
+    const standard = document.getElementById("island-execution-standard");
+    if (source) {
+      source.style.cssText = "position:relative;width:100%;height:auto;min-height:0;transform:none;";
+      source.removeAttribute("id");
+      source.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
+      [source, ...source.querySelectorAll("*")].forEach((el) => {
+        for (const attr of Array.from(el.attributes))
+          if (attr.name.startsWith("on"))
+            el.removeAttribute(attr.name);
+      });
+      source.querySelectorAll("button, .work-card-connect-handle, [onclick]").forEach((el) => {
+        if (el.tagName === "BUTTON" || el.classList.contains("work-card-connect-handle"))
+          el.remove();
+        else
+          el.removeAttribute("onclick");
+      });
+      source.querySelectorAll("input,textarea,select,[contenteditable]").forEach((el) => {
+        if (el.type === "checkbox" && card.dataset.checkinType === "habit") {
+          el.checked = false;
+          el.removeAttribute("checked");
+        } else {
+          el.disabled = true;
+          el.removeAttribute("contenteditable");
+        }
+      });
+      standard.appendChild(source);
+    } else {
+      standard.textContent = card.querySelector(".work-node-body p")?.textContent || "\u6309\u5DF2\u7EA6\u5B9A\u7684\u4EFB\u52A1\u6807\u51C6\u6267\u884C\uFF0C\u4FDD\u7559\u771F\u5B9E\u8BB0\u5F55\u3002";
+    }
+    document.getElementById("island-real-submit").disabled = !!saved;
+    const reflection = document.getElementById("island-real-reflection");
+    reflection.value = saved?.reflection || draft?.reflection || "";
+    reflection.readOnly = !!saved;
+    document.getElementById("island-real-timer").disabled = !!saved;
+    if (saved)
+      container.querySelectorAll("input").forEach((input) => input.disabled = true);
+    evidenceSession.media.forEach((media) => {
+      const row = document.createElement("div");
+      row.textContent = "\u2713 \u5DF2\u4FDD\u5B58\u9644\u4EF6\uFF1A" + media.name;
+      document.getElementById("island-real-media-list").appendChild(row);
+    });
+    paintEvidenceTime();
+  }
+  const originalOpenExec = openExecCardPopupView;
+  openExecCardPopupView = function(type, card) {
+    originalOpenExec(type, card);
+    if (card)
+      mountRealExecutionForm(card);
+  };
+  const originalCloseExec = closeExecCardPopupView;
+  closeExecCardPopupView = function() {
+    saveExecutionDraft();
+    evidenceSession = null;
+    originalCloseExec();
+  };
+  async function uploadExecutionEvidence(input) {
+    const file = input.files?.[0];
+    const session = evidenceSession;
+    if (!file || !session || session.saved)
+      return;
+    try {
+      const result = await window2.__saveIslandAttachment(file);
+      if (evidenceSession !== session)
+        return;
+      session.media.push({ id: "proof-" + Date.now(), name: file.name, type: file.type.split("/")[0], path: result.path });
+      saveExecutionDraft();
+      const row = document.createElement("div");
+      row.textContent = "\u2713 \u5DF2\u4FDD\u5B58\u9644\u4EF6\uFF1A" + file.name;
+      document.getElementById("island-real-media-list")?.appendChild(row);
+    } catch (error) {
+      showIslandToast("\u26A0\uFE0F " + error.message);
+    }
+    input.value = "";
+  }
+  function submitRealExecution() {
+    if (!evidenceSession || evidenceSession.saved)
+      return;
+    const reflection = (document.getElementById("island-real-reflection")?.value || "").trim();
+    const focusSeconds = getEvidenceElapsed();
+    const checkboxes = Array.from(document.querySelectorAll("#island-execution-standard input[type=checkbox]"));
+    if (checkboxes.length && checkboxes.some((c) => !c.checked)) {
+      showIslandToast("\u8BF7\u5148\u6838\u9A8C\u5168\u90E8\u8DF5\u884C\u6E05\u5355\u9879");
+      return;
+    }
+    if (!reflection && !evidenceSession.media.length && focusSeconds < 60 && !checkboxes.length) {
+      showIslandToast("\u8BF7\u586B\u5199\u6267\u884C\u5FC3\u5F97\u3001\u4E0A\u4F20\u771F\u5B9E\u7269\u8BC1\u6216\u5B8C\u6210\u81F3\u5C11\u4E00\u5206\u949F\u7684\u4E13\u6CE8\u8BA1\u65F6");
+      return;
+    }
+    triggerGlobalCheckinClosedLoop({ ...evidenceSession, taskKey: evidenceSession.taskId, reflection, focusSeconds, checklistVerified: checkboxes.length > 0 });
+  }
+  triggerGlobalCheckinClosedLoop = function(options) {
+    if (!options || !options.reflection && !options.media?.length && !(options.focusSeconds >= 60) && !options.checklistVerified)
+      return false;
+    const today = ensureBusinessDate();
+    const st = window2.USER_PROFILE_STATE;
+    const taskId = options.taskId || options.taskKey;
+    if (!taskId || st.checkinRecords.some((r) => r.taskId === taskId && r.date === today))
+      return false;
+    const record = { taskId, nodeId: options.nodeId || taskId, projectId: options.projectId || options.projId || "", pavilionId: options.pavilionId || "study", title: options.title || "\u6267\u884C\u4EFB\u52A1", date: today, completedAt: (/* @__PURE__ */ new Date()).toISOString(), focusSeconds: Math.max(0, options.focusSeconds || 0), reflection: options.reflection || "", media: options.media || [], checklistVerified: !!options.checklistVerified };
+    st.checkinRecords.push(record);
+    st.lastActiveDate = today;
+    if (st.executionDrafts)
+      delete st.executionDrafts[today + "|" + taskId];
+    const project = window2.GANTT_PROJECTS.find((p) => p.id === record.projectId);
+    if (project) {
+      project.completedDays = project.completedDays || [];
+      if (!project.completedDays.includes(today))
+        project.completedDays.push(today);
+      const data = window2.PROJECT_CANVAS_STORE[project.id];
+      if (data) {
+        data.executionRecords = data.executionRecords || {};
+        data.executionRecords[record.nodeId] = record;
+        const update = (root) => {
+          const node = Array.from(root.querySelectorAll(".tertiary-card")).find((c) => c.id === record.nodeId);
+          if (!node)
+            return;
+          node.dataset.status = "completed";
+          node.dataset.completedDate = today;
+          const status = node.querySelector('[id="status-text-' + record.nodeId + '"]');
+          if (status)
+            status.textContent = "\u2713 \u4ECA\u65E5\u5DF2\u5B8C\u6210 \xB7 " + today;
+        };
+        const holder = document.createElement("div");
+        holder.innerHTML = data.cardsHtml || "";
+        update(holder);
+        data.cardsHtml = holder.innerHTML;
+        const world = document.getElementById("tertiary-canvas-world");
+        if (world && window2.currentTertiaryProjId === project.id)
+          update(world);
+      }
+    }
+    const task = getTodayWeekCol()?.tasks.find((t) => t.id === "w-" + taskId || t.sourceNodeId === record.nodeId);
+    if (task) {
+      task.status = "done";
+      task.evidence = record.media.map((m) => m.path).join("\n") || record.reflection;
+      task.reflection = record.reflection;
+    }
+    if (evidenceSession?.taskId === taskId)
+      evidenceSession.saved = true;
+    appendDailyAutoLog("\u26A1 \u6267\u884C\u5B58\u8BC1\uFF1A\u300A" + record.title + "\u300B\uFF1B\u5B9E\u9645\u4E13\u6CE8 " + Math.floor(record.focusSeconds / 60) + " \u5206\u949F\uFF0C\u9644\u4EF6 " + record.media.length + " \u9879", record.focusSeconds / 60);
+    recalcAndRenderGlobalHUD();
+    renderHomeSemesterGoalsBanner();
+    renderWeekBoard(window2.currentWeekFilter || "all");
+    renderMonthCalendar();
+    if (st.continuousDays >= 19 && !window2.ACHIEVEMENT_STATE.cultivationItems.some((a) => a.id === "ACH-CULT-STREAK-19")) {
+      window2.ACHIEVEMENT_STATE.cultivationItems.unshift({ id: "ACH-CULT-STREAK-19", title: "\u8FDE\u7EED\u5341\u4E5D\u5929\u771F\u5B9E\u8DF5\u884C", date: today, icon: "\u{1F525}", projectType: "cultivation", projectTypeLabel: "\u575A\u6301\u8BB0\u5F55", projectName: "\u771F\u5B9E\u6267\u884C\u53F0\u8D26", metrics: [{ name: "\u6709\u6548\u575A\u6301\u5929\u6570", target: "19\u5929", actual: st.continuousDays + "\u5929" }], proof: "\u4EE5\u6267\u884C\u53F0\u8D26\u3001\u8FDD\u7EA6\u4E0E\u4EB2\u5B50\u8C41\u514D\u8BB0\u5F55\u6838\u9A8C", desc: "\u575A\u6301\u6E90\u4E8E\u6BCF\u5929\u7684\u5B9E\u9645\u4ED8\u51FA\u3002" });
+      appendDailyAutoLog("\u{1F3C6} \u8FDE\u7EED\u5341\u4E5D\u5929\u771F\u5B9E\u8DF5\u884C\u8363\u8A89\u5DF2\u5F52\u6863");
+    }
+    const button = document.getElementById("island-real-submit");
+    if (button) {
+      button.disabled = true;
+      button.textContent = "\u2713 \u4ECA\u65E5\u5DF2\u5B8C\u6210";
+    }
+    notifyIslandStateChanged();
+    showIslandToast("\u2713 \u6253\u5361\u5DF2\u8BB0\u5F55\uFF0C\u9879\u76EE\u3001\u968F\u8BB0\u4E0E\u6210\u957F\u6307\u6807\u5DF2\u540C\u6B65");
+    return true;
+  };
+  handleNodeCheckin = function(button, id) {
+    const project = window2.GANTT_PROJECTS.find((p) => p.id === window2.currentTertiaryProjId);
+    const source = document.getElementById(id);
+    syncNewNodeToHomeExecution({ id, projectId: project?.id, title: source?.querySelector(".work-node-title")?.textContent || source?.dataset.label || "\u6267\u884C\u4EFB\u52A1", pavilionId: project?.pavilion || currentWsPavilion });
+    switchMainSection("island");
+    switchHomeGlobalView("exec");
+    openExecCardPopupView("drill", document.getElementById("exec-sync-" + id));
+  };
+  completeTask = function(id) {
+    const card = document.getElementById("exec-sync-" + id);
+    if (card)
+      openExecCardPopupView(card.dataset.checkinType || "drill", card);
+  };
+  completeCheckinPageCard = submitRealExecution;
+  handleExecPopupMainCheckin = submitRealExecution;
+  executeCustomCardCheckin = function(id) {
+    handleNodeCheckin(null, id);
+  };
+  handleCustomCardCheckin = function(btn, id) {
+    handleNodeCheckin(btn, id);
+  };
+  async function saveRealNoteMedia(input, type) {
+    const file = input.files?.[0];
+    if (!file)
+      return;
+    if (!file.type.startsWith(type + "/")) {
+      showIslandToast("\u8BF7\u9009\u62E9\u6B63\u786E\u7684\u6587\u4EF6\u7C7B\u578B");
+      return;
+    }
+    try {
+      const result = await window2.__saveIslandAttachment(file);
+      ensureBusinessDate();
+      window2.NOTE_STATE.mediaList.unshift({ id: "media-" + Date.now(), type, name: file.name, path: result.path, caption: file.name, time: (/* @__PURE__ */ new Date()).toLocaleTimeString() });
+      refreshNoteMediaGallery();
+      notifyIslandStateChanged();
+    } catch (error) {
+      showIslandToast("\u26A0\uFE0F " + error.message);
+    }
+    input.value = "";
+  }
+  handleNotePhotoFile = (input) => saveRealNoteMedia(input, "image");
+  handleNoteVideoFile = (input) => saveRealNoteMedia(input, "video");
+  addNoteDemoMedia = function() {
+    showIslandToast("\u8BF7\u4F7F\u7528\u62CD\u7167\u6216\u4E0A\u4F20\u6309\u94AE\u6DFB\u52A0\u771F\u5B9E\u7269\u8BC1");
+  };
+  openNoteMediaPreviewModal = function(id) {
+    const note = window2.NOTE_STATE;
+    const media = note.mediaList.concat(note.historyEntries.flatMap((e) => e.media || [])).find((m) => m.id === id);
+    if (!media?.path) {
+      showIslandToast("\u8FD9\u6761\u65E7\u8BB0\u5F55\u672A\u4FDD\u5B58\u539F\u59CB\u9644\u4EF6");
+      return;
+    }
+    const modal = document.getElementById("note-media-preview-modal");
+    const body = document.getElementById("note-preview-modal-body");
+    if (!modal || !body)
+      return;
+    body.replaceChildren();
+    const element = document.createElement(media.type === "video" ? "video" : media.type === "audio" ? "audio" : "img");
+    element.src = window2.__islandAttachmentUrl(media.path);
+    element.style.cssText = "max-width:100%;max-height:65vh;";
+    if (media.type !== "image")
+      element.controls = true;
+    body.appendChild(element);
+    document.getElementById("note-preview-modal-title").textContent = media.name;
+    modal.style.display = "flex";
+  };
+  saveNoteDailyEntry = function() {
+    const today = ensureBusinessDate();
+    const note = window2.NOTE_STATE;
+    const text = (document.getElementById("note-journal-textarea")?.value ?? note.journalText ?? "").trim();
+    if (!text && !note.mediaList.length && !note.todayAutoLogs.length) {
+      showIslandToast("\u8BF7\u5148\u8BB0\u5F55\u968F\u7B14\u6216\u4E0A\u4F20\u771F\u5B9E\u5F71\u50CF");
+      return;
+    }
+    const entry = { id: "entry-" + today, date: today, text, mood: note.currentMood, energy: note.currentEnergy, autoLogs: note.todayAutoLogs.map((l) => typeof l === "string" ? l : "[" + l.time + "] " + l.text), media: note.mediaList.map((m) => ({ ...m })) };
+    const existing = note.historyEntries.findIndex((e) => e.date === today);
+    if (existing >= 0)
+      note.historyEntries.splice(existing, 1, entry);
+    else
+      note.historyEntries.unshift(entry);
+    note.journalText = text;
+    const list = document.getElementById("note-history-list");
+    if (list)
+      list.innerHTML = renderNoteHistoryEntriesHtml();
+    const count = document.getElementById("note-history-count");
+    if (count)
+      count.textContent = note.historyEntries.length;
+    notifyIslandStateChanged();
+    showIslandToast("\u2713 \u4ECA\u65E5\u53CC\u8F68\u968F\u8BB0\u5DF2\u4FDD\u5B58");
+  };
+  const oldNoteCounter = updateNoteTextCounter;
+  updateNoteTextCounter = function() {
+    window2.NOTE_STATE.journalText = document.getElementById("note-journal-textarea")?.value || "";
+    oldNoteCounter();
+  };
+  uploadBountyEvidence = function() {
+    const bounty = window2.BOUNTY_STATE;
+    if (!bounty || bounty.status !== "accepted") {
+      showIslandToast("\u8BF7\u5148\u63ED\u699C\u5E94\u6218");
+      return;
+    }
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*,video/*,audio/*";
+    input.onchange = async () => {
+      if (!input.files?.[0])
+        return;
+      try {
+        const file = input.files[0];
+        const result = await window2.__saveIslandAttachment(file);
+        bounty.evidenceUploaded = true;
+        bounty.evidencePath = result.path;
+        bounty.evidenceName = file.name;
+        renderBountyModalAndBillboard();
+        notifyIslandStateChanged();
+      } catch (error) {
+        showIslandToast("\u26A0\uFE0F " + error.message);
+      }
+    };
+    input.click();
+  };
+  const oldCompleteBounty = completeBountyDemo;
+  completeBountyDemo = function() {
+    const bounty = window2.BOUNTY_STATE;
+    if (bounty?.status === "redeemed")
+      return;
+    if (!bounty?.evidencePath) {
+      showIslandToast("\u8BF7\u5148\u4E0A\u4F20\u771F\u5B9E\u6311\u6218\u7269\u8BC1\uFF0C\u518D\u7531\u5BB6\u957F\u6838\u9A8C\u5151\u73B0");
+      return;
+    }
+    oldCompleteBounty();
+    recalcAndRenderGlobalHUD();
+    notifyIslandStateChanged();
+  };
+  const oldAdjudicate = submitPactViolationAdjudication;
+  submitPactViolationAdjudication = function() {
+    const before = window2.USER_PROFILE_STATE.violationCount || 0;
+    oldAdjudicate();
+    if ((window2.USER_PROFILE_STATE.violationCount || 0) > before) {
+      const remedy = window2.GANTT_PROJECTS.find((p) => p.id.startsWith("proj_remedy_"));
+      if (remedy)
+        remedy.endDate = shiftDate(remedy.startDate, 6);
+      recalcAndRenderGlobalHUD();
+      notifyIslandStateChanged();
+    }
+  };
+  triggerGoalDeliverableUpload = function(id, event) {
+    event?.stopPropagation();
+    const box = document.getElementById("goal-media-box-" + id);
+    if (!box)
+      return;
+    const mode = document.getElementById("goal-deliverable-type-" + id)?.value || "photo";
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = mode === "video" ? "video/*" : "image/*";
+    input.onchange = async () => {
+      if (!input.files?.[0])
+        return;
+      try {
+        const file = input.files[0];
+        const saved = await window2.__saveIslandAttachment(file);
+        box.dataset.uploaded = "true";
+        box.dataset.evidencePath = saved.path;
+        box.textContent = "\u2713 \u5DF2\u4FDD\u5B58\u4EA4\u4ED8\u7269\uFF1A" + file.name;
+        saveCurrentProjectCanvasSnapshot();
+        notifyIslandStateChanged();
+      } catch (error) {
+        showIslandToast(error.message);
+      }
+    };
+    input.click();
+  };
+  const oldDepositGoal = depositGoalToAchievement;
+  depositGoalToAchievement = function(id, event) {
+    const button = document.getElementById("btn-deposit-" + id);
+    if (button?.dataset.deposited === "true") {
+      oldDepositGoal(id, event);
+      return;
+    }
+    const mode = document.getElementById("goal-deliverable-type-" + id)?.value || "photo";
+    const box = document.getElementById("goal-media-box-" + id);
+    const text = document.getElementById("goal-deliverable-text-" + id)?.value.trim();
+    if (mode === "text" && !text || mode !== "text" && !box?.dataset.evidencePath) {
+      showIslandToast("\u8BF7\u5148\u63D0\u4EA4\u771F\u5B9E\u4EA4\u4ED8\u7269\u540E\u518D\u5F52\u6863\u6210\u679C");
+      return;
+    }
+    oldDepositGoal(id, event);
+    const achievement = window2.ACHIEVEMENT_STATE.cultivationItems[0];
+    if (achievement) {
+      achievement.proof = mode === "text" ? text : box.dataset.evidencePath;
+      achievement.sourceProjectId = window2.currentTertiaryProjId;
+      achievement.sourceNodeId = id;
+    }
+    saveCurrentProjectCanvasSnapshot();
+    notifyIslandStateChanged();
+  };
+  const oldTreasuryRecord = recordLiveTreasuryTransaction;
+  recordLiveTreasuryTransaction = function() {
+    const amount = document.getElementById("treasury-tx-amount-input");
+    if (!amount)
+      return;
+    const raw = Number(amount.value);
+    if (!Number.isFinite(raw) || raw <= 0 || !Number.isSafeInteger(Math.round(raw * 100)) || Math.abs(raw * 100 - Math.round(raw * 100)) > 1e-7) {
+      showIslandToast("\u91D1\u989D\u5FC5\u987B\u4E3A\u6B63\u6570\uFF0C\u6700\u591A\u4FDD\u7559\u4E24\u4F4D\u5C0F\u6570");
+      return;
+    }
+    oldTreasuryRecord();
+    const treasury = window2.TREASURY_STATE;
+    for (const key of ["totalBalance", "totalIncome", "totalExpense"])
+      treasury[key] = Math.round(treasury[key] * 100) / 100;
+    if (treasury.ledger[0])
+      treasury.ledger[0].balanceAfter = treasury.totalBalance;
+    notifyIslandStateChanged();
+  };
+  const originalDerive = deriveNodesFromReflectionCard;
+  deriveNodesFromReflectionCard = function(id, event) {
+    const world = document.getElementById("tertiary-canvas-world");
+    const parent = document.getElementById(id);
+    if (!parent || !world?.contains(parent))
+      return;
+    const before = new Set(Array.from(world.querySelectorAll(".tertiary-card")).map((c) => c.id));
+    originalDerive(id, event);
+    const children = Array.from(world.querySelectorAll(".tertiary-card")).filter((c) => !before.has(c.id));
+    if (!children.length)
+      return;
+    parent.dataset.groupId = parent.dataset.groupId || "group-" + id;
+    parent.dataset.groupRoot = id;
+    children.forEach((c) => {
+      c.dataset.groupId = parent.dataset.groupId;
+      c.dataset.groupRoot = id;
+    });
+    saveCurrentProjectCanvasSnapshot();
+  };
+  handleTertiaryDeleteNode = function() {
+    const world = document.getElementById("tertiary-canvas-world");
+    const cards = Array.from(world?.querySelectorAll(".tertiary-card") || []);
+    const target = cards.find((c) => c.classList.contains("is-selected"));
+    if (!target) {
+      showIslandToast("\u8BF7\u5148\u9009\u4E2D\u8981\u79FB\u9664\u7684\u8282\u70B9");
+      return;
+    }
+    if (target.dataset.groupId && target.dataset.groupRoot !== target.id) {
+      showIslandToast("\u6D3E\u751F\u8282\u70B9\u53D7\u6210\u7EC4\u4FDD\u62A4\uFF0C\u8BF7\u9009\u62E9\u4E3B\u590D\u76D8\u8282\u70B9\u64CD\u4F5C\u6574\u7EC4");
+      return;
+    }
+    pushTertiaryHistory();
+    const ids = new Set(cards.filter((c) => c === target || target.dataset.groupId && c.dataset.groupId === target.dataset.groupId).map((c) => c.id));
+    cards.filter((c) => ids.has(c.id)).forEach((c) => c.remove());
+    document.querySelectorAll("#day-card-deck .exec-task-card").forEach((c) => {
+      if (ids.has(c.dataset.nodeId))
+        c.remove();
+    });
+    WEEK_BOARD_DATA.forEach((col) => {
+      col.tasks = col.tasks.filter((t) => !ids.has(t.sourceNodeId));
+    });
+    window2.TERTIARY_EDGES = (window2.TERTIARY_EDGES || []).filter((e) => !ids.has(e.sourceId) && !ids.has(e.targetId));
+    renderTertiaryEdges();
+    saveCurrentProjectCanvasSnapshot();
+    recalcAndRenderGlobalHUD();
+    updateDayCarousel();
+  };
+  const oldStarter = buildStarterCanvasForProject;
+  buildStarterCanvasForProject = function(p) {
+    return oldStarter(p ? { ...p, title: escapeIslandText(p.title), desc: escapeIslandText(p.desc) } : p);
+  };
+  let renderingSafeNote = false;
+  function withSafeNote(renderer) {
+    if (renderingSafeNote)
+      return renderer();
+    const original = window2.NOTE_STATE;
+    const safe = (value) => typeof value === "string" ? escapeIslandText(value) : Array.isArray(value) ? value.map(safe) : value && typeof value === "object" ? Object.fromEntries(Object.entries(value).map(([k, v]) => [k, safe(v)])) : value;
+    renderingSafeNote = true;
+    window2.NOTE_STATE = safe(original);
+    try {
+      return renderer();
+    } finally {
+      window2.NOTE_STATE = original;
+      renderingSafeNote = false;
+    }
+  }
+  const oldNoteWorkspace = renderNoteSpecializedWorkspace;
+  renderNoteSpecializedWorkspace = () => withSafeNote(oldNoteWorkspace);
+  const oldNoteHistory = renderNoteHistoryEntriesHtml;
+  renderNoteHistoryEntriesHtml = function() {
+    return window2.NOTE_STATE.historyEntries.map((entry) => '<div class="note-history-card"><strong>\u{1F4C5} ' + escapeIslandText(entry.date) + " \xB7 " + escapeIslandText(entry.mood || "") + "</strong><div>" + (entry.autoLogs || []).map((l) => "<div>" + escapeIslandText(typeof l === "string" ? l : l.text) + "</div>").join("") + '</div><p style="white-space:pre-wrap;">' + escapeIslandText(entry.text || entry.content || "") + "</p><div>" + (entry.media || []).map((m) => '<button class="note-media-action-btn" onclick="' + escapeIslandText("openNoteMediaPreviewModal(" + JSON.stringify(m.id) + ")") + '">' + escapeIslandText(m.name) + "</button>").join("") + "</div></div>").join("") || withSafeNote(oldNoteHistory);
+  };
+  function restoreBusinessViews() {
+    ensureBusinessDate();
+    const streak = document.getElementById("hud-streak-count");
+    if (streak) {
+      streak.title = "\u67E5\u770B\u575A\u6301\u8BB0\u5F55\u4E0E\u4EB2\u5B50\u5BA1\u6279\u4FDD\u62A4";
+      streak.style.cursor = "pointer";
+      streak.onclick = openStreakFreezeDialog;
+    }
+    const grid = document.getElementById("island-pavilion-grid");
+    for (const [key, meta] of Object.entries(window2.PAVILION_META || {})) {
+      if (!key.startsWith("custom-") || document.getElementById("node-" + key) || !grid)
+        continue;
+      const node = document.createElement("div");
+      node.className = "pavilion-node custom-module-node";
+      node.id = "node-" + key;
+      node.style.cssText = "top:50%;left:" + (30 + grid.querySelectorAll(".custom-module-node").length * 12) + "%;";
+      node.innerHTML = '<div class="pavilion-card-body"><div class="pavilion-3d-visual">' + escapeIslandText(meta.icon) + '</div></div><div class="pavilion-card-label">' + escapeIslandText(meta.name) + "</div>";
+      node.onclick = () => handlePavilionClick(key);
+      grid.appendChild(node);
+      initNodeDragging(node);
+      const picker = document.getElementById("proj-category-picker");
+      if (picker && !Array.from(picker.children).some((c) => c.dataset.cat === meta.cat)) {
+        const chip = document.createElement("button");
+        chip.className = "proj-cat-chip";
+        chip.dataset.cat = meta.cat;
+        chip.textContent = meta.name;
+        chip.onclick = () => selectProjCategory(chip, meta.cat);
+        picker.appendChild(chip);
+      }
+    }
+    const id = window2.__restoredCanvasProjectId;
+    const data = window2.PROJECT_CANVAS_STORE[id];
+    const world = document.getElementById("tertiary-canvas-world");
+    if (data && world) {
+      world.querySelectorAll(".tertiary-card").forEach((c) => c.remove());
+      const holder = document.createElement("div");
+      holder.innerHTML = data.cardsHtml || "";
+      Array.from(holder.children).forEach((c) => world.appendChild(c));
+      window2.TERTIARY_EDGES = data.edges || [];
+      world.dataset.projectId = id;
+      initTertiaryWorkspace();
+    }
+    document.querySelectorAll("#day-card-deck .exec-task-card[data-task-id]").forEach((card) => card.setAttribute("onclick", "handleTaskCardClick(event, this.dataset.checkinType || 'drill')"));
+    recalcAndRenderGlobalHUD();
+  }
+  function captureBusinessCanvas() {
+    const world = document.getElementById("tertiary-canvas-world");
+    syncFormStateToAttributes(world);
+    return { cardsHtml: Array.from(world?.querySelectorAll(".tertiary-card") || []).map((c) => {
+      const copy = c.cloneNode(true);
+      copy.removeAttribute("data-drag-bound");
+      return copy.outerHTML;
+    }).join("\n"), edges: JSON.parse(JSON.stringify(window2.TERTIARY_EDGES || [])), deck: document.getElementById("day-card-deck")?.innerHTML || "", week: JSON.parse(JSON.stringify(WEEK_BOARD_DATA)) };
+  }
+  pushTertiaryHistory = function() {
+    window2.TERTIARY_HISTORY.undoStack.push(captureBusinessCanvas());
+    if (window2.TERTIARY_HISTORY.undoStack.length > 25)
+      window2.TERTIARY_HISTORY.undoStack.shift();
+    window2.TERTIARY_HISTORY.redoStack = [];
+  };
+  function applyBusinessHistory(from, to) {
+    const history = window2.TERTIARY_HISTORY;
+    if (!history[from].length)
+      return;
+    history[to].push(captureBusinessCanvas());
+    const state = history[from].pop();
+    const world = document.getElementById("tertiary-canvas-world");
+    world.querySelectorAll(".tertiary-card").forEach((c) => c.remove());
+    const holder = document.createElement("div");
+    holder.innerHTML = state.cardsHtml || "";
+    Array.from(holder.children).forEach((c) => world.appendChild(c));
+    window2.TERTIARY_EDGES = state.edges || [];
+    if (state.week)
+      WEEK_BOARD_DATA.splice(0, WEEK_BOARD_DATA.length, ...state.week);
+    const deck = document.getElementById("day-card-deck");
+    if (deck && state.deck !== void 0)
+      deck.innerHTML = state.deck;
+    bindTertiaryCardsDrag();
+    renderTertiaryEdges();
+    saveCurrentProjectCanvasSnapshot();
+    recalcAndRenderGlobalHUD();
+    updateDayCarousel();
+  }
+  handleTertiaryUndo = () => applyBusinessHistory("undoStack", "redoStack");
+  handleTertiaryRedo = () => applyBusinessHistory("redoStack", "undoStack");
+  function openStreakFreezeDialog() {
+    document.getElementById("island-freeze-dialog")?.remove();
+    const overlay = document.createElement("div");
+    overlay.id = "island-freeze-dialog";
+    overlay.style.cssText = "position:absolute;inset:0;z-index:22000;background:#0009;display:flex;align-items:center;justify-content:center;";
+    overlay.innerHTML = `<div class="note-card-box" style="width:460px;max-width:90%;color:#334155;"><h3>\u575A\u6301\u8BB0\u5F55 \xB7 \u4EB2\u5B50\u5BA1\u6279\u4FDD\u62A4</h3><p>\u56E0\u751F\u75C5\u3001\u65C5\u884C\u7B49\u5BA2\u89C2\u539F\u56E0\uFF0C\u6BCF\u6708\u6700\u591A\u4FDD\u62A4\u4E24\u5929\u3002\u8C41\u514D\u53EA\u7EF4\u6301\u8FDE\u7EED\u6027\uFF0C\u4E0D\u589E\u52A0\u6253\u5361\u5929\u6570\u3002</p><label>\u7533\u8BF7\u65E5\u671F<input type="date" id="island-freeze-date"></label><label>\u5BA2\u89C2\u539F\u56E0<textarea id="island-freeze-reason" style="width:100%;"></textarea></label><label><input type="checkbox" id="island-freeze-confirm">\u5BB6\u957F\u5DF2\u4E86\u89E3\u539F\u56E0\u5E76\u540C\u610F\u4FDD\u62A4\u672C\u6B21\u65AD\u7B7E</label><div style="display:flex;gap:8px;margin-top:12px;"><button class="ui-btn primary" onclick="submitStreakFreeze()">\u6279\u51C6\u4FDD\u62A4</button><button class="ui-btn" onclick="document.getElementById('island-freeze-dialog').remove()">\u5173\u95ED</button></div></div>`;
+    document.querySelector(".youth-island-plugin-root").appendChild(overlay);
+    const date = document.getElementById("island-freeze-date");
+    date.value = shiftDate(localDateKey2(), -1);
+    date.max = date.value;
+    date.min = localDateKey2().slice(0, 7) + "-01";
+  }
+  function submitStreakFreeze() {
+    const date = document.getElementById("island-freeze-date")?.value;
+    const reason = document.getElementById("island-freeze-reason")?.value.trim();
+    const confirmed = document.getElementById("island-freeze-confirm")?.checked;
+    const today = ensureBusinessDate();
+    const profile = window2.USER_PROFILE_STATE;
+    profile.freezeRecords = profile.freezeRecords || [];
+    profile.approvedFreezeDays = profile.approvedFreezeDays || [];
+    if (!date || date >= today || date.slice(0, 7) !== today.slice(0, 7) || !reason || !confirmed) {
+      showIslandToast("\u8BF7\u9009\u62E9\u672C\u6708\u5DF2\u8FC7\u53BB\u7684\u65E5\u671F\u3001\u586B\u5199\u539F\u56E0\u5E76\u7531\u5BB6\u957F\u6279\u51C6");
+      return;
+    }
+    if (profile.approvedFreezeDays.includes(date) || profile.checkinRecords.some((r) => r.date === date) || profile.violationRecords.some((r) => (r.time || r.date || "").slice(0, 10) === date)) {
+      showIslandToast("\u8BE5\u65E5\u671F\u5DF2\u6709\u4FDD\u62A4\u3001\u6709\u6548\u6253\u5361\u6216\u8FDD\u7EA6\u4E8B\u5B9E\uFF0C\u4E0D\u80FD\u7533\u8BF7");
+      return;
+    }
+    if (profile.freezeRecords.filter((r) => r.date.slice(0, 7) === date.slice(0, 7)).length >= 2) {
+      showIslandToast("\u672C\u6708\u4E24\u6B21\u4FDD\u62A4\u989D\u5EA6\u5DF2\u7528\u5B8C");
+      return;
+    }
+    profile.freezeRecords.push({ date, reason, approvedAt: (/* @__PURE__ */ new Date()).toISOString() });
+    profile.approvedFreezeDays.push(date);
+    profile.streakFreezeAllowance = 2;
+    profile.streakFreezeUsed = profile.freezeRecords.filter((r) => r.date.slice(0, 7) === date.slice(0, 7)).length;
+    appendDailyAutoLog("\u{1F6E1} \u4EB2\u5B50\u6279\u51C6\u65AD\u7B7E\u4FDD\u62A4\uFF1A" + date + "\uFF08" + reason + "\uFF09");
+    recalcAndRenderGlobalHUD();
+    document.getElementById("island-freeze-dialog").remove();
+    notifyIslandStateChanged();
+  }
+  let activeDomainState = null;
+  let renderingDomain = false;
+  const domainTypeNames = { goal: "\u{1F3AF} \u76EE\u6807\u5206\u89E3", drill: "\u26A1 \u653B\u575A\u5B9E\u8BAD", habit: "\u{1F33F} \u4E60\u60EF\u8DF5\u884C", review: "\u{1F4DD} \u8BC4\u4F30\u590D\u76D8", custom: "\u2699\uFE0F \u81EA\u5B9A\u4E49\u914D\u7F6E", text: "\u{1F4C4} \u7B80\u5355\u6587\u672C" };
+  function migrateCanvasNodes(snapshot, project) {
+    if (Array.isArray(snapshot.nodes))
+      return snapshot.nodes.map((n) => domainNode(n, project));
+    const holder = document.createElement("div");
+    holder.innerHTML = snapshot.cardsHtml || "";
+    return Array.from(holder.querySelectorAll(".tertiary-card")).map((card) => {
+      const value = (selector) => card.querySelector(selector)?.value || "";
+      const type = card.dataset.archetype || (["goal", "drill", "habit", "reflection", "custom", "text"].find((t) => card.className.includes("tertiary-" + t)) || "text");
+      const cfg = {
+        id: card.id,
+        title: card.querySelector(".work-node-title")?.textContent || card.dataset.label || "\u5386\u53F2\u8282\u70B9",
+        archetype: type,
+        canvasPosition: { x: parseFloat(card.style.left) || 80, y: parseFloat(card.style.top) || 90 },
+        groupId: card.dataset.groupId,
+        groupRoot: card.dataset.groupRoot,
+        duration: value("[id^=drill-duration-select]") || 0,
+        evidenceType: type === "drill" ? "photo" : "none",
+        description: card.querySelector(".work-node-body")?.textContent.trim() || "",
+        deliverableType: value("[id^=goal-deliverable-type]") || "text",
+        deadline: value("input[type=datetime-local]") || null,
+        metrics: Array.from(card.querySelectorAll(".card-goal-metric-item")).map((row) => ({ name: row.querySelector(".goal-metric-name")?.value || "\u6307\u6807", val: row.querySelector(".goal-metric-val")?.value || "" })),
+        checklistItems: Array.from(card.querySelectorAll(".habit-checklist-input")).map((input) => input.value),
+        improvements: Array.from(card.querySelectorAll(".reflection-improvement-input")).map((input) => input.value),
+        isCheckinNode: ["drill", "habit", "reflection"].includes(type) || type === "custom" && !card.textContent.includes("\u7EAF\u4FE1\u606F\u6C89\u6DC0")
+      };
+      if (type === "goal")
+        cfg.evidenceType = cfg.deliverableType;
+      const node = domainNode(cfg, project);
+      const record = snapshot.executionRecords?.[node.id];
+      if (record)
+        node.executionRecords = [record];
+      return node;
+    });
+  }
+  function bootstrapDomainState(force = false) {
+    if (!force && activeDomainState === window2.DOMAIN_STATE && activeDomainState)
+      return activeDomainState;
+    const previous = window2.DOMAIN_STATE || {};
+    const state = { schemaVersion: 3, revision: previous.revision || 0, storageRevision: previous.storageRevision || 0, projects: window2.GANTT_PROJECTS || [], nodesByProject: {}, records: previous.records?.length ? previous.records : window2.USER_PROFILE_STATE.checkinRecords || [], events: previous.events || [], bounties: previous.bounties || [], family: previous.family || { childName: "", guardianNames: "", signedAt: null, clauses: [] }, historyByProject: previous.historyByProject || {}, drafts: previous.drafts || {}, taskAliases: previous.taskAliases || {}, inquiries: window2.INQUIRY_POOL_STATE || [] };
+    for (const project of state.projects) {
+      const snapshot = window2.PROJECT_CANVAS_STORE[project.id] || {};
+      state.nodesByProject[project.id] = migrateCanvasNodes(snapshot, project);
+      snapshot.nodes = state.nodesByProject[project.id];
+      window2.PROJECT_CANVAS_STORE[project.id] = snapshot;
+    }
+    if (window2.BOUNTY_STATE && !state.bounties.some((b) => b.id === window2.BOUNTY_STATE.id))
+      state.bounties.push(window2.BOUNTY_STATE);
+    if (window2.BOUNTY_STATE)
+      window2.BOUNTY_STATE = state.bounties.find((b) => b.id === window2.BOUNTY_STATE.id) || null;
+    for (const b of state.bounties) {
+      b.createdDate = b.createdDate || domainDate();
+      b.endDate = b.endDate || domainShift(b.createdDate, Math.max(0, (b.days || 7) - 1));
+    }
+    for (const record of state.records) {
+      record.id = record.id || domainId("record");
+      if (record.validated === void 0) {
+        record.validated = false;
+        record.legacyUnverified = true;
+      }
+    }
+    window2.DOMAIN_STATE = state;
+    activeDomainState = state;
+    window2.USER_PROFILE_STATE.checkinRecords = state.records;
+    return state;
+  }
+  function getDomainState() {
+    return bootstrapDomainState();
+  }
+  function getDomainNode(id) {
+    for (const nodes of Object.values(getDomainState().nodesByProject)) {
+      const node = nodes.find((n) => n.id === id);
+      if (node)
+        return node;
+    }
+    return null;
+  }
+  function domainEvent(kind, sourceId, text, extra = {}) {
+    const state = getDomainState();
+    const event = { id: domainId("event"), kind, sourceId, date: domainDate(), timestamp: (/* @__PURE__ */ new Date()).toISOString(), text, ...extra };
+    state.events.push(event);
+    window2.NOTE_STATE.todayAutoLogs.unshift({ id: event.id, time: (/* @__PURE__ */ new Date()).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), text, sourceId, kind, projectId: extra.projectId || null, nodeId: extra.nodeId || null, recordId: extra.recordId || null });
+    const entry = window2.NOTE_STATE.historyEntries?.find((e) => e.date === event.date);
+    if (entry)
+      entry.autoLogs = [...window2.NOTE_STATE.todayAutoLogs];
+    state.revision++;
+    window2.dispatchEvent(new CustomEvent("youth-island:domain-event", { detail: event }));
+    notifyIslandStateChanged();
+    return event;
+  }
+  ensureBusinessDate = function() {
+    const today = domainDate(), note = window2.NOTE_STATE, profile = window2.USER_PROFILE_STATE;
+    profile.checkinRecords = profile.checkinRecords || [];
+    profile.violationRecords = profile.violationRecords || [];
+    note.historyEntries = note.historyEntries || [];
+    if (note.dateKey && note.dateKey !== today) {
+      const index = note.historyEntries.findIndex((e) => e.date === note.dateKey), old = index >= 0 ? note.historyEntries[index] : {};
+      const entry = { ...old, id: old.id || "entry-" + note.dateKey, date: note.dateKey, text: note.journalText ?? old.text ?? "", mood: note.currentMood, energy: note.currentEnergy, autoLogs: note.todayAutoLogs || [], media: note.mediaList || [], draft: true, updatedAt: (/* @__PURE__ */ new Date()).toISOString() };
+      if (index >= 0) {
+        entry.versions = [...old.versions || [], { text: old.text || "", savedAt: old.savedAt || null }];
+        note.historyEntries.splice(index, 1, entry);
+      } else
+        note.historyEntries.unshift(entry);
+      note.todayAutoLogs = [];
+      note.todayFocusMinutes = 0;
+      note.journalText = "";
+      note.mediaList = [];
+      if (evidenceSession)
+        saveExecutionDraft();
+      evidenceSession = null;
+    }
+    note.dateKey = today;
+    profile.statsDate = today;
+    GANTT_TODAY = today;
+    return today;
+  };
+  appendDailyAutoLog = function(text, minutes) {
+    ensureBusinessDate();
+    const event = domainEvent("activity", null, String(text));
+    window2.NOTE_STATE.todayFocusMinutes = (window2.NOTE_STATE.todayFocusMinutes || 0) + (Number(minutes) || 0);
+    return event;
+  };
+  function domainNodeHtml(node) {
+    const p = node.cardPayload, project = getDomainState().projects.find((x) => x.id === node.projectId);
+    const type = node.nodeType === "review" ? "reflection" : node.nodeType;
+    const input = (field, value, kind = "text") => '<input class="add-module-text-input" type="' + kind + '" value="' + escapeIslandText(value ?? "") + `" onchange="updateDomainNode('` + node.id + "','" + field + `',this.value)">`;
+    let body = "<label>\u4E3B\u9898" + input("title", node.title) + `</label><label>\u89C4\u5212\u8BF4\u660E<textarea class="add-module-text-input" onchange="updateDomainNode('` + node.id + `','description',this.value)">` + escapeIslandText(p.description) + "</textarea></label>";
+    if (node.nodeType === "text")
+      body = `<textarea class="add-module-text-input" onchange="updateDomainNode('` + node.id + `','textContent',this.value)">` + escapeIslandText(p.textContent) + `</textarea><button class="card-graphic-pill" onclick="acknowledgeDomainText('` + node.id + `')">\u{1F441} \u9605\u8BFB\u7559\u75D5\uFF08` + node.readCount + "\u6B21\uFF09</button>";
+    else {
+      body += '<div class="domain-planning-row"><label>\u8BA1\u5212\u65E5\u671F' + input("plannedDate", node.plannedDate, "date") + `</label><label>\u9891\u6B21<select onchange="updateDomainNode('` + node.id + `','frequency',this.value)">` + [["once", "\u4E00\u6B21\u6027"], ["daily", "\u6BCF\u65E5"], ["weekdays", "\u5468\u4E00\u81F3\u5468\u4E94"], ["weekly", "\u6BCF\u5468\u540C\u65E5"]].map(([key, label]) => '<option value="' + key + '"' + (node.frequency === key ? " selected" : "") + ">" + label + "</option>").join("") + "</select></label></div>";
+      if (node.nodeType === "goal")
+        body += "<div>" + p.metrics.map((m) => '<div class="domain-planning-row">' + escapeIslandText(m.name) + "\uFF1A" + escapeIslandText(m.targetValue) + "</div>").join("") + `</div><button class="card-graphic-pill" onclick="editDomainList('` + node.id + `','metrics')">\u270F \u7F16\u8F91\u6307\u6807</button><label>\u9A8C\u6536\u8BF4\u660E<textarea onchange="updateDomainNode('` + node.id + `','acceptanceCriteria',this.value)">` + escapeIslandText(p.acceptanceCriteria) + "</textarea></label><label>\u671F\u671B\u622A\u6B62\u65F6\u95F4" + input("targetDeadline", p.targetDeadline, "datetime-local") + `</label><button class="card-graphic-pill" onclick="depositGoalToAchievement('` + node.id + `',event)">\u{1F3C6} \u8BB0\u5F55\u5DF2\u9A8C\u6536\u6210\u679C</button>`;
+      if (node.nodeType === "drill")
+        body += "<label>\u4E13\u6CE8\u5206\u949F" + input("plannedMinutes", p.plannedMinutes, "number") + "</label>";
+      if (node.nodeType === "habit")
+        body += "<div>" + p.checklist.map((c) => "<div>\u25A1 " + escapeIslandText(c.title) + "</div>").join("") + `</div><button class="card-graphic-pill" onclick="editDomainList('` + node.id + `','checklist')">\u270F \u7F16\u8F91\u9632\u5B88\u6E05\u5355</button>`;
+      if (node.nodeType === "review")
+        body += "<div>" + p.improvementList.map((c) => "<div>\u{1F331} " + escapeIslandText(c.actionItem) + (c.derivedNodeId ? " \u2713 \u5DF2\u6D3E\u751F" : "") + "</div>").join("") + `</div><button class="card-graphic-pill" onclick="editDomainList('` + node.id + `','improvementList')">\u270F \u7F16\u8F91\u63D0\u5347\u6E05\u5355</button><button class="card-graphic-pill" onclick="deriveNodesFromReflectionCard('` + node.id + `',event)">\u{1F331} \u6D3E\u751F\u5B9E\u8BAD\u8282\u70B9</button>`;
+      if (node.nodeType === "custom")
+        body += "<div>" + p.customFieldsSchema.map((f) => "<div>" + escapeIslandText(f.label) + " \xB7 " + escapeIslandText(f.type) + (f.required ? "\uFF08\u5FC5\u586B\uFF09" : "") + "</div>").join("") + `</div><button class="card-graphic-pill" onclick="editDomainList('` + node.id + `','customFieldsSchema')">\u270F \u7F16\u8F91\u5B57\u6BB5\u5B9A\u4E49</button>`;
+      body += '<div class="domain-planning-row"><label><input type="checkbox"' + (node.isCheckinNode ? " checked" : "") + ` onchange="updateDomainNode('` + node.id + `','isCheckinNode',this.checked)">\u9700\u8981\u6267\u884C</label><label>\u7269\u8BC1<select onchange="updateDomainNode('` + node.id + `','evidenceType',this.value)">` + [["none", "\u65E0\u9700\u9644\u4EF6"], ["text", "\u6587\u5B57 \u226515\u5B57"], ["photo", "\u7167\u7247"], ["video", "\u89C6\u9891"], ["audio", "\u97F3\u9891"]].map(([key, label]) => '<option value="' + key + '"' + (p.evidenceType === key ? " selected" : "") + ">" + label + "</option>").join("") + "</select></label></div>";
+      body += `<label>\u524D\u7F6E\u8282\u70B9<select multiple onchange="updateDomainDependencies('` + node.id + `',this)">` + (getDomainState().nodesByProject[node.projectId] || []).filter((n) => n.id !== node.id && n.isCheckinNode).map((n) => '<option value="' + n.id + '"' + (node.dependencies.includes(n.id) ? " selected" : "") + ">" + escapeIslandText(n.title) + "</option>").join("") + "</select></label>";
+    }
+    const records = getDomainState().records.filter((r) => r.nodeId === node.id);
+    const status = records.length ? "\u5DF2\u7559\u75D5 " + records.length + " \u6B21" : "\u5C1A\u672A\u6267\u884C";
+    return '<div class="a-my-island-work-node-card tertiary-card tertiary-' + type + '-card" id="' + node.id + '" data-domain-node="true" data-label="' + escapeIslandText(node.title) + '" data-group-id="' + (node.groupId || "") + '" data-group-root="' + (node.groupRoot || "") + '" style="position:absolute;left:' + node.canvasPosition.x + "px;top:" + node.canvasPosition.y + `px;width:340px;"><div class="work-node-card-header" ondblclick="toggleTertiaryCardMinimize('` + node.id + `',event)"><span class="work-node-badge">` + domainTypeNames[node.nodeType] + '</span><span class="work-node-title">' + escapeIslandText(node.title) + '</span><span id="status-text-' + node.id + '">' + status + '</span></div><div class="work-node-body domain-planning-body">' + body + '</div><div class="work-card-connect-handle" data-card-id="' + node.id + '" onclick="startOrFinishConnecting(this.dataset.cardId,event)">\u{1F517}</div></div>';
+  }
+  function renderDomainCanvas(projectId) {
+    const world = document.getElementById("tertiary-canvas-world");
+    if (!world)
+      return;
+    world.querySelectorAll(".tertiary-card,.tertiary-node-card").forEach((c) => c.remove());
+    for (const node of getDomainState().nodesByProject[projectId] || []) {
+      world.insertAdjacentHTML("beforeend", domainNodeHtml(node));
+    }
+    world.dataset.projectId = projectId || "";
+    window2.currentTertiaryProjId = projectId || null;
+    window2.TERTIARY_EDGES = window2.PROJECT_CANVAS_STORE[projectId]?.edges || [];
+    bindTertiaryCardsDrag();
+    renderTertiaryEdges();
+    updateTertiaryNodeCountBadge();
+  }
+  saveCurrentProjectCanvasSnapshot = function() {
+    const id = window2.currentTertiaryProjId, world = document.getElementById("tertiary-canvas-world"), state = getDomainState();
+    if (!id || world?.dataset.projectId !== id || !state.projects.some((p) => p.id === id))
+      return;
+    for (const node of state.nodesByProject[id] || []) {
+      const card = document.getElementById(node.id);
+      if (card && world.contains(card))
+        node.canvasPosition = { x: parseFloat(card.style.left) || 0, y: parseFloat(card.style.top) || 0 };
+    }
+    const existing = window2.PROJECT_CANVAS_STORE[id] || {};
+    window2.PROJECT_CANVAS_STORE[id] = { ...existing, nodes: state.nodesByProject[id] || [], edges: window2.TERTIARY_EDGES || [], cardsHtml: (state.nodesByProject[id] || []).map(domainNodeHtml).join("\n") };
+  };
+  enterTertiaryWorkspace = function(id) {
+    const project = getDomainState().projects.find((p) => p.id === id);
+    if (!project) {
+      showIslandToast("\u8BF7\u5148\u9009\u62E9\u6709\u6548\u9879\u76EE");
+      return false;
+    }
+    saveCurrentProjectCanvasSnapshot();
+    currentWsPavilion = project.pavilion;
+    currentWsSubView = "gantt";
+    renderDomainCanvas(id);
+    document.getElementById("tertiary-crumb-leaf").textContent = project.title;
+    switchMainSection("tertiary");
+    initTertiaryWorkspace();
+    return true;
+  };
+  function recordDomainHistory() {
+    const id = window2.currentTertiaryProjId;
+    if (!id)
+      return;
+    const state = getDomainState();
+    saveCurrentProjectCanvasSnapshot();
+    const history = state.historyByProject[id] || (state.historyByProject[id] = { undo: [], redo: [] });
+    history.undo.push(JSON.parse(JSON.stringify({ nodes: state.nodesByProject[id], edges: window2.PROJECT_CANVAS_STORE[id]?.edges || [] })));
+    if (history.undo.length > 30)
+      history.undo.shift();
+    history.redo = [];
+  }
+  pushTertiaryHistory = recordDomainHistory;
+  function restoreDomainHistory(from, to) {
+    const id = window2.currentTertiaryProjId, state = getDomainState(), history = state.historyByProject[id];
+    if (!history?.[from].length)
+      return;
+    history[to].push(JSON.parse(JSON.stringify({ nodes: state.nodesByProject[id], edges: window2.TERTIARY_EDGES || [] })));
+    const next = history[from].pop();
+    state.nodesByProject[id] = next.nodes;
+    for (const node of next.nodes)
+      node.executionRecords = getDomainState().records.filter((r) => r.nodeId === node.id).map((r) => r.id);
+    window2.PROJECT_CANVAS_STORE[id] = { ...window2.PROJECT_CANVAS_STORE[id], nodes: next.nodes, edges: next.edges };
+    renderDomainCanvas(id);
+    refreshDomainProjections();
+    notifyIslandStateChanged();
+  }
+  handleTertiaryUndo = () => restoreDomainHistory("undo", "redo");
+  handleTertiaryRedo = () => restoreDomainHistory("redo", "undo");
+  function updateDomainNode(id, key, value) {
+    const node = getDomainNode(id);
+    if (!node)
+      return;
+    const project = getDomainState().projects.find((p) => p.id === node.projectId);
+    if (key === "title" && (value.trim().length < 2 || value.trim().length > 30)) {
+      showIslandToast("\u8282\u70B9\u6807\u9898\u987B\u4E3A2\uFF5E30\u5B57");
+      renderDomainCanvas(node.projectId);
+      return;
+    }
+    if (key === "plannedDate" && (!domainValidDate(value) || value < project.startDate || value > project.endDate)) {
+      showIslandToast("\u8BA1\u5212\u65E5\u671F\u987B\u5728\u9879\u76EE\u5468\u671F\u5185");
+      renderDomainCanvas(node.projectId);
+      return;
+    }
+    if (key === "plannedMinutes" && (!Number.isFinite(Number(value)) || Number(value) < 0 || Number(value) > 120)) {
+      showIslandToast("\u65F6\u957F\u4E3A0\uFF5E120\u5206\u949F");
+      return;
+    }
+    recordDomainHistory();
+    if (["title", "frequency", "plannedDate", "isCheckinNode"].includes(key))
+      node[key] = value;
+    else
+      node.cardPayload[key] = key === "plannedMinutes" ? Number(value) : value;
+    node.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
+    saveCurrentProjectCanvasSnapshot();
+    refreshDomainProjections();
+    notifyIslandStateChanged();
+  }
+  function domainDependencyCycle(node, dependencies) {
+    const nodes = getDomainState().nodesByProject[node.projectId];
+    const reaches = (cursor, target, seen = /* @__PURE__ */ new Set()) => {
+      if (cursor === target)
+        return true;
+      if (seen.has(cursor))
+        return false;
+      seen.add(cursor);
+      return (nodes.find((n) => n.id === cursor)?.dependencies || []).some((next) => reaches(next, target, seen));
+    };
+    return dependencies.some((dep) => !nodes.some((n) => n.id === dep && n.isCheckinNode) || reaches(dep, node.id));
+  }
+  function updateDomainDependencies(id, select) {
+    const node = getDomainNode(id), dependencies = Array.from(select.selectedOptions).map((o) => o.value);
+    if (!node)
+      return false;
+    if (domainDependencyCycle(node, dependencies)) {
+      showIslandToast("\u524D\u7F6E\u987B\u4E3A\u540C\u9879\u76EE\u53EF\u6267\u884C\u8282\u70B9\uFF0C\u4E14\u4E0D\u80FD\u5F62\u6210\u5FAA\u73AF");
+      renderDomainCanvas(node.projectId);
+      return false;
+    }
+    recordDomainHistory();
+    node.dependencies = dependencies;
+    const edges = (window2.TERTIARY_EDGES || []).filter((e) => e.targetId !== id || !["\u524D\u7F6E", "\u4F9D\u8D56", "\u963B\u585E"].includes(e.type));
+    for (const sourceId of dependencies)
+      edges.push({ id: domainId("edge"), sourceId, targetId: id, type: "\u524D\u7F6E", label: "\u524D\u7F6E\u5B8C\u6210" });
+    window2.TERTIARY_EDGES = edges;
+    saveCurrentProjectCanvasSnapshot();
+    renderTertiaryEdges();
+    refreshDomainProjections();
+    notifyIslandStateChanged();
+    return true;
+  }
+  const domainOldConnect = startOrFinishConnecting;
+  startOrFinishConnecting = function(id, event) {
+    const before = (window2.TERTIARY_EDGES || []).length;
+    if (connectingSourceCardId && connectingSourceCardId !== id)
+      recordDomainHistory();
+    domainOldConnect(id, event);
+    if ((window2.TERTIARY_EDGES || []).length !== before) {
+      saveCurrentProjectCanvasSnapshot();
+      notifyIslandStateChanged();
+    }
+  };
+  handleEdgeTypeSelect = function(type) {
+    const edge = (window2.TERTIARY_EDGES || []).find((e) => e.id === currentActiveEdgeId);
+    if (!edge)
+      return false;
+    const target = getDomainNode(edge.targetId), isDependency = ["\u524D\u7F6E", "\u4F9D\u8D56", "\u963B\u585E"].includes(type), wasDependency = ["\u524D\u7F6E", "\u4F9D\u8D56", "\u963B\u585E"].includes(edge.type);
+    if (!target)
+      return false;
+    const remaining = target.dependencies.filter((id) => id !== edge.sourceId);
+    if (isDependency && domainDependencyCycle(target, [...remaining, edge.sourceId])) {
+      showIslandToast("\u524D\u7F6E\u987B\u4E3A\u540C\u9879\u76EE\u53EF\u6267\u884C\u8282\u70B9\uFF0C\u4E14\u4E0D\u80FD\u5F62\u6210\u5FAA\u73AF");
+      document.getElementById("edge-type-select").value = edge.type;
+      return false;
+    }
+    recordDomainHistory();
+    edge.type = type;
+    edge.label = type === "none" ? "" : type;
+    if (isDependency)
+      target.dependencies = [.../* @__PURE__ */ new Set([...remaining, edge.sourceId])];
+    else if (wasDependency && !window2.TERTIARY_EDGES.some((e) => e.id !== edge.id && e.sourceId === edge.sourceId && e.targetId === edge.targetId && ["\u524D\u7F6E", "\u4F9D\u8D56", "\u963B\u585E"].includes(e.type)))
+      target.dependencies = remaining;
+    saveCurrentProjectCanvasSnapshot();
+    renderTertiaryEdges();
+    refreshDomainProjections();
+    notifyIslandStateChanged();
+    return true;
+  };
+  handleDeleteActiveEdge = function() {
+    const edge = (window2.TERTIARY_EDGES || []).find((e) => e.id === currentActiveEdgeId);
+    if (!edge)
+      return false;
+    recordDomainHistory();
+    window2.TERTIARY_EDGES = window2.TERTIARY_EDGES.filter((e) => e.id !== edge.id);
+    const target = getDomainNode(edge.targetId);
+    if (target && ["\u524D\u7F6E", "\u4F9D\u8D56", "\u963B\u585E"].includes(edge.type) && !window2.TERTIARY_EDGES.some((e) => e.sourceId === edge.sourceId && e.targetId === edge.targetId && ["\u524D\u7F6E", "\u4F9D\u8D56", "\u963B\u585E"].includes(e.type)))
+      target.dependencies = target.dependencies.filter((id) => id !== edge.sourceId);
+    document.getElementById("tertiary-edge-popover")?.classList.add("is-hidden");
+    saveCurrentProjectCanvasSnapshot();
+    renderTertiaryEdges();
+    refreshDomainProjections();
+    notifyIslandStateChanged();
+    return true;
+  };
+  function editDomainList(id, key) {
+    const node = getDomainNode(id);
+    const list = node.cardPayload[key] || [];
+    const sample = key === "customFieldsSchema" ? '[{"key":"count","label":"\u5B8C\u6210\u6B21\u6570","type":"number","required":true}]' : key === "metrics" ? '[{"name":"\u6B63\u786E\u7387","targetValue":"\u226598%"}]' : key === "checklist" ? '[{"title":"\u5B8C\u6210\u89C4\u8303\u52A8\u4F5C","required":true}]' : '[{"actionItem":"\u4E0B\u4E00\u6B21\u7684\u5177\u4F53\u884C\u52A8","isChecked":true}]';
+    document.getElementById("domain-list-editor")?.remove();
+    const modal = document.createElement("div");
+    modal.className = "domain-modal";
+    modal.id = "domain-list-editor";
+    modal.innerHTML = '<div class="note-card-box"><h3>\u7F16\u8F91' + { metrics: "\u901A\u5173\u6307\u6807", checklist: "\u9632\u5B88\u6E05\u5355", improvementList: "\u63D0\u5347\u884C\u52A8", customFieldsSchema: "\u586B\u62A5\u9879\u76EE" }[key] + `</h3><div id="domain-list-rows"></div><button class="ui-btn" id="domain-list-add">\u2795 \u589E\u52A0\u4E00\u9879</button><div id="domain-list-error" role="alert"></div><button class="ui-btn primary" id="domain-list-save">\u4FDD\u5B58</button><button class="ui-btn" onclick="document.getElementById('domain-list-editor').remove()">\u53D6\u6D88</button></div>`;
+    (document.querySelector(".youth-island-plugin-root") || document.body).appendChild(modal);
+    const rows = modal.querySelector("#domain-list-rows");
+    const add = (item) => {
+      const row = document.createElement("div");
+      row.className = "domain-list-row";
+      row.dataset.id = item.id || domainId("item");
+      row.dataset.key = item.key || domainId("field");
+      row.innerHTML = '<input class="domain-item-label" placeholder="' + (key === "metrics" ? "\u6307\u6807\u540D\u79F0" : key === "customFieldsSchema" ? "\u586B\u62A5\u9879\u76EE\u540D\u79F0" : "\u5177\u4F53\u884C\u52A8") + '">' + (key === "metrics" ? '<input class="domain-item-target" placeholder="\u4F8B\u5982 \u226598% \u6216\u6587\u5B57\u9A8C\u6536\u6807\u51C6">' : "") + (key === "customFieldsSchema" ? '<select class="domain-item-type"><option value="text">\u6587\u5B57</option><option value="number">\u6570\u5B57</option><option value="boolean">\u662F/\u5426</option><option value="date">\u65E5\u671F</option></select><label><input class="domain-item-required" type="checkbox" checked>\u5FC5\u586B</label>' : "") + '<button class="ui-btn">\u79FB\u9664</button>';
+      row.querySelector(".domain-item-label").value = item.name || item.title || item.actionItem || item.label || "";
+      if (key === "metrics")
+        row.querySelector(".domain-item-target").value = item.targetValue || "";
+      if (key === "customFieldsSchema") {
+        row.querySelector("select").value = item.type || "text";
+        row.querySelector("input[type=checkbox]").checked = item.required !== false;
+      }
+      row.querySelector("button").onclick = () => row.remove();
+      rows.appendChild(row);
+    };
+    (list.length ? list : [{}]).forEach(add);
+    modal.querySelector("#domain-list-add").onclick = () => add({});
+    modal.querySelector("#domain-list-save").onclick = () => {
+      const parsed = Array.from(rows.children).map((row) => {
+        const label = row.querySelector(".domain-item-label").value.trim(), id2 = row.dataset.id;
+        if (!label)
+          return null;
+        if (key === "metrics")
+          return { id: id2, name: label, targetValue: row.querySelector(".domain-item-target").value.trim() };
+        if (key === "customFieldsSchema")
+          return { key: row.dataset.key, label, type: row.querySelector("select").value, required: row.querySelector("input[type=checkbox]").checked };
+        const existing = list.find((x) => x.id === id2);
+        return key === "checklist" ? { id: id2, title: label, required: true } : { ...existing, id: id2, actionItem: label, isChecked: true };
+      }).filter(Boolean);
+      if (!parsed.length) {
+        modal.querySelector("#domain-list-error").textContent = "\u8BF7\u81F3\u5C11\u586B\u5199\u4E00\u9879";
+        return;
+      }
+      recordDomainHistory();
+      node.cardPayload[key] = parsed;
+      renderDomainCanvas(node.projectId);
+      saveCurrentProjectCanvasSnapshot();
+      refreshDomainProjections();
+      modal.remove();
+      notifyIslandStateChanged();
+    };
+  }
+  function openDomainEditor(title, text, onSave) {
+    document.getElementById("domain-editor")?.remove();
+    const modal = document.createElement("div");
+    modal.id = "domain-editor";
+    modal.className = "domain-modal";
+    modal.innerHTML = '<div class="note-card-box"><h3>' + escapeIslandText(title) + `</h3><textarea id="domain-editor-text" style="width:100%;min-height:240px;"></textarea><div id="domain-editor-error" role="alert"></div><button class="ui-btn primary" id="domain-editor-save">\u4FDD\u5B58</button><button class="ui-btn" onclick="document.getElementById('domain-editor').remove()">\u53D6\u6D88</button></div>`;
+    document.querySelector(".youth-island-plugin-root")?.appendChild(modal) || document.body.appendChild(modal);
+    modal.querySelector("textarea").value = text;
+    modal.querySelector("#domain-editor-save").onclick = () => {
+      try {
+        onSave(modal.querySelector("textarea").value);
+        modal.remove();
+        notifyIslandStateChanged();
+      } catch (error) {
+        modal.querySelector("#domain-editor-error").textContent = error.message;
+      }
+    };
+  }
+  createTertiaryCustomPlanningCard = function(config) {
+    const state = getDomainState(), project = state.projects.find((p) => p.id === window2.currentTertiaryProjId);
+    if (!project) {
+      showIslandToast("\u8BF7\u5148\u9009\u62E9\u9879\u76EE\u518D\u65B0\u589E\u8282\u70B9");
+      return null;
+    }
+    recordDomainHistory();
+    const nodes = state.nodesByProject[project.id] || (state.nodesByProject[project.id] = []);
+    const node = domainNode(config, project);
+    node.canvasPosition = config.canvasPosition || { x: 80 + nodes.length % 3 * 400, y: 90 + Math.floor(nodes.length / 3) * 440 };
+    nodes.push(node);
+    renderDomainCanvas(project.id);
+    saveCurrentProjectCanvasSnapshot();
+    refreshDomainProjections();
+    domainEvent("node.created", node.id, "\u65B0\u589E\u89C4\u5212\u8282\u70B9\u300A" + node.title + "\u300B", { projectId: project.id });
+    return document.getElementById(node.id);
+  };
+  buildStarterCanvasForProject = function(project) {
+    const a = domainNode({ id: "projnode-" + project.id + "-1", archetype: "goal", title: project.title + " \xB7 \u9636\u6BB5\u9A8C\u6536", isCheckinNode: false, evidenceType: "text" }, project), b = domainNode({ id: "projnode-" + project.id + "-2", archetype: "drill", title: project.title + " \xB7 \u5B9E\u8BAD", duration: 20, evidenceType: "photo" }, project), c = domainNode({ id: "projnode-" + project.id + "-3", archetype: "review", title: project.title + " \xB7 \u590D\u76D8", dependencies: [b.id], evidenceType: "text" }, project);
+    a.canvasPosition = { x: 80, y: 90 };
+    b.canvasPosition = { x: 480, y: 90 };
+    c.canvasPosition = { x: 880, y: 90 };
+    return { nodes: [a, b, c], edges: [{ id: domainId("edge"), sourceId: b.id, targetId: c.id, label: "\u524D\u7F6E\u5B8C\u6210", type: "\u524D\u7F6E" }], cardsHtml: "" };
+  };
+  handleTertiaryDeleteNode = function() {
+    const world = document.getElementById("tertiary-canvas-world"), target = world?.querySelector(".tertiary-card.is-selected");
+    if (!target) {
+      showIslandToast("\u8BF7\u5148\u9009\u62E9\u8282\u70B9");
+      return;
+    }
+    const state = getDomainState(), node = getDomainNode(target.id);
+    if (!node)
+      return;
+    if (node.groupId && node.groupRoot !== node.id) {
+      showIslandToast("\u8BF7\u9009\u62E9\u4E3B\u8282\u70B9\u64CD\u4F5C\u6574\u7EC4");
+      return;
+    }
+    recordDomainHistory();
+    const nodes = state.nodesByProject[node.projectId], ids = new Set(nodes.filter((n) => n.id === node.id || node.groupId && n.groupId === node.groupId).map((n) => n.id));
+    state.nodesByProject[node.projectId] = nodes.filter((n) => !ids.has(n.id));
+    for (const n of state.nodesByProject[node.projectId])
+      n.dependencies = n.dependencies.filter((id) => !ids.has(id));
+    window2.PROJECT_CANVAS_STORE[node.projectId].edges = (window2.TERTIARY_EDGES || []).filter((e) => !ids.has(e.sourceId) && !ids.has(e.targetId));
+    renderDomainCanvas(node.projectId);
+    saveCurrentProjectCanvasSnapshot();
+    refreshDomainProjections();
+    notifyIslandStateChanged();
+  };
+  computeProjectProgressAndStatus = function(project) {
+    const state = getDomainState();
+    const result = projectProgress(project, state.nodesByProject[project.id] || [], state.records);
+    const today = domainDate();
+    let status = project.isArchived ? "\u5DF2\u5F52\u6863" : result.complete ? "\u5DF2\u5B8C\u6210" : today < project.startDate ? diffGanttDays(today, project.startDate) > 5 ? "\u5F85\u89C4\u5212" : "\u5F85\u6267\u884C" : today > project.endDate ? "\u5F85\u6267\u884C" : "\u8FDB\u884C\u4E2D";
+    Object.assign(project, { progressPercent: result.progress, completedNodesCount: result.completedNodesCount, totalNodesCount: result.totalNodesCount });
+    return { ...result, status, totalDays: result.totalNodesCount, completedCount: result.completedNodesCount };
+  };
+  const domainOldOpenProject = openAddProjectModal;
+  openAddProjectModal = function() {
+    domainOldOpenProject();
+    document.getElementById("input-proj-end").value = domainShift(domainDate(), 13);
+    handleProjDateChange();
+  };
+  const domainOldConfirmProject = confirmAddNewProject;
+  confirmAddNewProject = function() {
+    const title = document.getElementById("input-proj-title")?.value.trim(), start = document.getElementById("input-proj-start")?.value, end = document.getElementById("input-proj-end")?.value;
+    if (!title || title.length < 2 || title.length > 30 || !domainValidDate(start) || !domainValidDate(end) || end < start) {
+      showIslandToast("\u8BF7\u586B\u51992\uFF5E30\u5B57\u6807\u9898\u4E0E\u6709\u6548\u8D77\u6B62\u65E5\u671F");
+      return false;
+    }
+    const editId = document.getElementById("input-proj-edit-id")?.value;
+    const idBefore = new Set(window2.GANTT_PROJECTS.map((p) => p.id));
+    domainOldConfirmProject();
+    const state = getDomainState(), project = window2.GANTT_PROJECTS.find((p) => p.id === editId) || window2.GANTT_PROJECTS.find((p) => !idBefore.has(p.id));
+    if (!project)
+      return false;
+    const custom = Object.entries(PAVILION_META).find(([key, meta]) => key.startsWith("custom-") && meta.cat === selectedNewProjCategory);
+    if (custom)
+      project.pavilion = custom[0];
+    if (!state.nodesByProject[project.id])
+      state.nodesByProject[project.id] = migrateCanvasNodes(window2.PROJECT_CANVAS_STORE[project.id] || {}, project);
+    for (const node of state.nodesByProject[project.id]) {
+      node.pavilionId = project.pavilion;
+      if (node.plannedDate < start)
+        node.plannedDate = start;
+    }
+    refreshDomainProjections();
+    domainEvent(editId ? "project.updated" : "project.created", project.id, project.title, { projectId: project.id });
+    return true;
+  };
+  toggleProjectArchive = function(id) {
+    const project = getDomainState().projects.find((p) => p.id === id);
+    if (!project)
+      return false;
+    if (!project.isArchived && !computeProjectProgressAndStatus(project).complete) {
+      showIslandToast("\u53EA\u6709\u5168\u90E8\u6267\u884C\u8282\u70B9\u5B8C\u6210\u540E\u624D\u53EF\u5F52\u6863\uFF1B\u672A\u5B8C\u6210\u4EFB\u52A1\u8BF7\u5148\u8C03\u6574\u89C4\u5212");
+      return false;
+    }
+    project.isArchived = !project.isArchived;
+    project.archivedAt = project.isArchived ? (/* @__PURE__ */ new Date()).toISOString() : null;
+    refreshDomainProjections();
+    renderGanttChart();
+    domainEvent("project.archived", id, project.isArchived ? "\u5F52\u6863\u9879\u76EE\u300A" + project.title + "\u300B" : "\u6062\u590D\u9879\u76EE\u300A" + project.title + "\u300B");
+    return true;
+  };
+  function domainTasks() {
+    const state = getDomainState();
+    state.instances = scheduleDomain(state);
+    return state.instances;
+  }
+  function domainTodayTasks(tasks = domainTasks(), today = domainDate()) {
+    return tasks.filter((t) => t.date === today || t.bountyId && t.status !== "completed");
+  }
+  function resolveDomainTask(key) {
+    const state = getDomainState();
+    return domainTasks().find((t) => t.id === key || t.id === state.taskAliases[key] || t.nodeId === key || "bounty-" + t.bountyId === key) || null;
+  }
+  syncNewNodeToHomeExecution = function(cfg) {
+    if (!cfg?.id)
+      return;
+    const state = getDomainState();
+    let node = getDomainNode(cfg.sourceNodeId || cfg.id), project = state.projects.find((p) => p.id === (cfg.projectId || window2.currentTertiaryProjId));
+    if (!node && project && !cfg.id.startsWith("bounty-")) {
+      node = domainNode({ id: cfg.id, title: cfg.title, description: cfg.desc, archetype: cfg.nodeType || "drill", duration: cfg.duration || 0, evidenceType: cfg.evidenceType || "text", dependencies: cfg.dependencies || [] }, project);
+      state.nodesByProject[project.id].push(node);
+    }
+    if (node)
+      state.taskAliases[cfg.id] = taskInstanceId(node.id, domainDate());
+    refreshDomainProjections();
+    notifyIslandStateChanged();
+  };
+  function taskForCalendar(task) {
+    const state = getDomainState(), record = state.records.find((r) => r.id === task.recordId), node = getDomainNode(task.nodeId), meta = PAVILION_META[task.pavilionId] || { name: task.pavilionId, icon: "\u{1F3AF}" };
+    const status = { blocked: "\u524D\u7F6E\u672A\u5B8C\u6210", ready: "\u5C31\u7EEA", scheduled: "\u672A\u5230\u671F", completed: "\u5DF2\u5B8C\u6210", overdue: "\u903E\u671F" }[task.status];
+    return { id: task.id, taskInstanceId: task.id, sourceNodeId: task.nodeId, projectId: task.projectId, pavilion: meta.name, pavilionBadge: meta.icon + " " + meta.name, title: task.title, status: task.status === "completed" ? "done" : task.status === "overdue" ? "overdue" : "pending", duration: record ? Math.round(record.focusSeconds / 60) + " \u5206\u949F" : (node?.cardPayload.plannedMinutes || 0) + " \u5206\u949F", time: "\u8BA1\u5212 " + task.date + (record ? "\uFF1B\u5B9E\u9645\u4EA4\u4ED8 " + record.date : ""), instruction: (node?.cardPayload.description || "") + "\uFF08" + status + "\uFF09", evidence: record?.media?.map((m) => m.path).join("\n") || record?.reflection || "", reflection: record?.reflection || "", domainStatus: task.status };
+  }
+  getRecordsForDate = function(date) {
+    return domainTasks().filter((t) => t.date === date).map(taskForCalendar);
+  };
+  syncWeekBoardToRealDate = function() {
+    const monday = calMondayOf(/* @__PURE__ */ new Date());
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday);
+      d.setDate(d.getDate() + i);
+      Object.assign(WEEK_BOARD_DATA[i], { dateKey: domainDate(d), dayIndex: i, dateStr: calPad2(d.getMonth() + 1) + "/" + calPad2(d.getDate()), isToday: domainDate(d) === domainDate(), dayName: CAL_WEEK_NAMES[i], tasks: getRecordsForDate(domainDate(d)) });
+    }
+  };
+  function refreshDomainProjections() {
+    if (renderingDomain)
+      return;
+    renderingDomain = true;
+    try {
+      const today = ensureBusinessDate(), tasks = domainTasks(), deck = document.getElementById("day-card-deck");
+      if (deck) {
+        deck.querySelectorAll(".exec-task-card").forEach((card) => card.remove());
+        for (const task of domainTodayTasks(tasks, today).filter((t) => ["ready", "completed", "overdue"].includes(t.status))) {
+          const card = document.createElement("div");
+          card.id = "exec-sync-" + task.id;
+          card.className = "exec-task-card tertiary-drill-card";
+          Object.assign(card.dataset, { taskId: task.id, taskInstanceId: task.id, nodeId: task.nodeId || "", projectId: task.projectId || "", pavilion: task.pavilionId, label: task.title, checkinType: task.nodeType });
+          card.setAttribute("onclick", "handleTaskCardClick(event,this.dataset.checkinType)");
+          card.innerHTML = '<div class="work-node-card-header"><span class="work-node-badge">' + escapeIslandText(PAVILION_META[task.pavilionId]?.name || "\u60AC\u8D4F") + '</span><span class="work-node-title">' + escapeIslandText(task.title) + '</span><span class="task-status-pill ' + (task.status === "completed" ? "completed" : "pending") + '">' + { completed: "\u2713 \u4ECA\u65E5\u5DF2\u5B8C\u6210", overdue: "\u903E\u671F\u5F85\u6267\u884C", ready: "\u5F85\u6267\u884C" }[task.status] + '</span></div><div class="work-node-body"><p>' + escapeIslandText(getDomainNode(task.nodeId)?.cardPayload.description || "\u6309\u5951\u7EA6\u6267\u884C\u5E76\u63D0\u4EA4\u771F\u5B9E\u7269\u8BC1") + `</p><button class="card-graphic-pill" onclick="event.stopPropagation();openDomainTask('` + task.id + `')">\u6253\u5F00\u4EFB\u52A1</button></div>`;
+          deck.appendChild(card);
+        }
+        const empty = document.getElementById("day-deck-empty-placeholder");
+        if (empty)
+          empty.style.display = deck.querySelector(".exec-task-card") ? "none" : "flex";
+        currentDayCardIndex = Math.min(currentDayCardIndex, Math.max(0, deck.querySelectorAll(".exec-task-card").length - 1));
+        const dots = document.getElementById("exec-carousel-dots");
+        if (dots)
+          dots.innerHTML = Array.from(deck.querySelectorAll(".exec-task-card"), (_, i) => '<button class="pagination-dot-pill" aria-label="\u7B2C' + (i + 1) + '\u9879\u4EFB\u52A1" onclick="currentDayCardIndex=' + i + ';updateDayCarousel()"></button>').join("");
+        updateDayCarousel();
+      }
+      syncWeekBoardToRealDate();
+      renderWeekBoard(window2.currentWeekFilter || "all");
+      renderMonthCalendar();
+      renderHomeSemesterGoalsBanner();
+      recalcAndRenderGlobalHUD();
+    } finally {
+      renderingDomain = false;
+    }
+  }
+  refreshBusinessMetrics = function() {
+    const today = ensureBusinessDate(), state = getDomainState(), tasks = domainTodayTasks(domainTasks(), today), st = window2.USER_PROFILE_STATE;
+    const owed = tasks.filter((t) => t.status !== "blocked" && t.status !== "scheduled");
+    const planned = owed.filter((t) => !t.contract), contracts = owed.filter((t) => t.contract), done = (list) => list.filter((t) => t.status === "completed").length;
+    st.completedTodayCount = done(owed);
+    st.totalTodayCount = owed.length;
+    st.continuousDays = computeStreak(state.records.filter((r) => r.validated === true).map((r) => r.date), st.violationRecords.map((r) => (r.date || r.time || "").slice(0, 10)), st.approvedFreezeDays || [], today);
+    st.streakDays = st.continuousDays;
+    st.maxContinuousDays = Math.max(st.maxContinuousDays || 0, st.continuousDays);
+    st.fulfillmentRate = fulfillmentRate(done(planned), planned.length, done(contracts), contracts.length, st.violationCount || 0);
+    st.totalFocusMinutes = Math.round(state.records.filter((r) => r.validated === true).reduce((sum, r) => sum + (r.focusSeconds || 0), 0) / 60);
+    window2.NOTE_STATE.todayFocusMinutes = state.records.filter((r) => r.date === today && r.validated === true).reduce((sum, r) => sum + (r.focusSeconds || 0), 0) / 60;
+    return st.fulfillmentRate;
+  };
+  computeCurrentFulfillmentRate = refreshBusinessMetrics;
+  restoreBusinessViews = function() {
+    bootstrapDomainState(true);
+    const state = getDomainState();
+    for (const project of state.projects)
+      window2.PROJECT_CANVAS_STORE[project.id].nodes = state.nodesByProject[project.id];
+    if (state.projects.some((p) => p.id === window2.currentTertiaryProjId))
+      renderDomainCanvas(window2.currentTertiaryProjId);
+    else {
+      document.getElementById("tertiary-canvas-world")?.querySelectorAll(".tertiary-card").forEach((c) => c.remove());
+      window2.currentTertiaryProjId = null;
+    }
+    refreshDomainProjections();
+  };
+  function openDomainTask(key) {
+    const task = resolveDomainTask(key);
+    if (!task) {
+      showIslandToast("\u627E\u4E0D\u5230\u5BF9\u5E94\u4EFB\u52A1\uFF0C\u8BF7\u5237\u65B0\u4EFB\u52A1\u5217\u8868");
+      return false;
+    }
+    if (["blocked", "scheduled"].includes(task.status)) {
+      showIslandToast("\u8BE5\u4EFB\u52A1\u5C1A\u672A\u5230\u671F\u6216\u524D\u7F6E\u8282\u70B9\u672A\u5B8C\u6210");
+      return false;
+    }
+    saveExecutionDraft();
+    switchMainSection("island");
+    switchHomeGlobalView("exec");
+    originalOpenExec(task.nodeType === "review" ? "reflection" : task.nodeType === "bounty" ? "drill" : task.nodeType);
+    const node = getDomainNode(task.nodeId), state = getDomainState(), saved = state.records.find((r) => r.validated === true && (r.id === task.recordId || r.taskInstanceId === task.id));
+    const draft = state.drafts[task.id] || {};
+    evidenceSession = { taskId: task.id, taskInstanceId: task.id, nodeId: task.nodeId, projectId: task.projectId, pavilionId: task.pavilionId, title: task.title, date: task.date, seconds: draft.seconds || saved?.focusSeconds || 0, startedAt: 0, media: [...saved?.media || draft.media || []], saved: !!saved, task };
+    window2.currentActiveExecDeckCardId = "exec-sync-" + task.id;
+    document.getElementById("exec-popup-title").textContent = task.title;
+    document.getElementById("exec-popup-breadcrumb").textContent = (PAVILION_META[task.pavilionId]?.name || "\u60AC\u8D4F") + " \u276F " + (state.projects.find((p) => p.id === task.projectId)?.title || "\u4EB2\u5B50\u5951\u7EA6") + " \u276F " + task.title;
+    document.getElementById("exec-project-map-title").textContent = state.projects.find((p) => p.id === task.projectId)?.title || "\u4EB2\u5B50\u5951\u7EA6";
+    document.getElementById("exec-project-map-summary").textContent = "\u5F53\u524D\u9879\u76EE\u7684\u771F\u5B9E\u8282\u70B9\u4E0E\u524D\u7F6E\u4F9D\u8D56";
+    document.getElementById("btn-exec-popup-toggle-project").style.display = task.projectId ? "inline-flex" : "none";
+    renderDomainExecution(node, saved, draft);
+    return true;
+  }
+  openExecCardPopupView = function(type, card) {
+    const id = card?.dataset.taskInstanceId || card?.dataset.taskId || type;
+    return openDomainTask(id);
+  };
+  openExecutionWorkspace = openDomainTask;
+  function openGoalAcceptance(id) {
+    const node = getDomainNode(id);
+    if (!node || node.nodeType !== "goal")
+      return;
+    saveExecutionDraft();
+    const task = { id: taskInstanceId(node.id, domainDate()), nodeId: node.id, projectId: node.projectId, pavilionId: node.pavilionId, nodeType: "goal", date: domainDate(), title: node.title, status: "ready", acceptance: true };
+    const draft = getDomainState().drafts[task.id] || {};
+    switchMainSection("island");
+    switchHomeGlobalView("exec");
+    originalOpenExec("goal");
+    evidenceSession = { taskId: task.id, taskInstanceId: task.id, nodeId: node.id, projectId: node.projectId, pavilionId: node.pavilionId, title: node.title, date: task.date, seconds: draft.seconds || 0, startedAt: 0, media: [...draft.media || []], saved: false, task };
+    document.getElementById("exec-popup-title").textContent = node.title + " \xB7 \u6210\u679C\u9A8C\u6536";
+    document.getElementById("exec-popup-breadcrumb").textContent = (getDomainState().projects.find((p) => p.id === node.projectId)?.title || "") + " / " + node.title;
+    renderDomainExecution(node, null, draft);
+  }
+  function domainEvidenceLabel(type) {
+    return { none: "\u65E0\u9700\u9644\u4EF6", text: "\u6587\u5B57\u8BF4\u660E\uFF08\u81F3\u5C1115\u5B57\uFF09", photo: "\u7167\u7247\u539F\u4EF6", video: "\u89C6\u9891\u539F\u4EF6", audio: "\u97F3\u9891\u539F\u4EF6" }[type] || "\u7167\u7247\u6216\u89C6\u9891\u539F\u4EF6";
+  }
+  function renderDomainExecution(node, saved, draft = {}) {
+    const p = node?.cardPayload || {}, container = document.getElementById("exec-popup-task-view");
+    delete container.dataset.activeCheckinType;
+    let fields = "";
+    if (node?.nodeType === "goal" && !p.metrics.length)
+      fields += `<p>\u5C1A\u65E0\u9A8C\u6536\u6307\u6807\uFF0C\u8BF7\u5148\u56DE\u5230\u76EE\u6807\u89C4\u5212\u7EF4\u62A4\u6807\u51C6\u3002</p><button class="ui-btn" onclick="jumpToDomainSource('` + node.projectId + "','" + node.id + "');editDomainList('" + node.id + `','metrics')">\u5B8C\u5584\u76EE\u6807\u6307\u6807</button>`;
+    if (node?.nodeType === "goal")
+      fields += "<h4>\u76EE\u6807\u5B9E\u6D4B\u4E0E\u9A8C\u6536</h4>" + p.metrics.map((m) => "<label>" + escapeIslandText(m.name) + "\uFF08\u76EE\u6807 " + escapeIslandText(m.targetValue) + '\uFF09<input class="domain-metric-value" data-key="' + m.id + '" value="' + escapeIslandText(saved?.metricValues?.[m.id] || draft.metricValues?.[m.id] || "") + '"><label><input class="domain-metric-confirm" data-key="' + m.id + '" type="checkbox">\u6587\u5B57\u6307\u6807\u7ECF\u4EB2\u5B50\u6838\u9A8C\uFF08\u6570\u503C\u6307\u6807\u81EA\u52A8\u6BD4\u8F83\uFF09</label></label>').join("");
+    if (node?.nodeType === "habit")
+      fields += "<h4>\u8DF5\u884C\u6838\u9A8C</h4>" + p.checklist.map((c) => '<label class="domain-check-row"><input class="domain-check-result" data-key="' + c.id + '" type="checkbox"' + (saved?.checklistResults?.[c.id] || draft.checklistResults?.[c.id] ? " checked" : "") + ">" + escapeIslandText(c.title) + (c.required !== false ? " *" : "") + "</label>").join("");
+    if (node?.nodeType === "review")
+      fields += '<label>\u4E0B\u9636\u6BB5\u63D0\u5347\u884C\u52A8\uFF08\u6BCF\u884C\u4E00\u9879\uFF09<textarea id="domain-review-improvements">' + escapeIslandText((saved?.improvementList || draft.improvementList || p.improvementList).map((x) => x.actionItem).join("\n")) + "</textarea></label>";
+    if (node?.nodeType === "custom")
+      fields += "<h4>\u5B9E\u6D4B\u5B57\u6BB5</h4>" + p.customFieldsSchema.map((f) => "<label>" + escapeIslandText(f.label) + (f.required ? " *" : "") + (f.type === "boolean" ? '<input class="domain-custom-value" data-key="' + escapeIslandText(f.key) + '" type="checkbox">' : '<input class="domain-custom-value" data-key="' + escapeIslandText(f.key) + '" type="' + (f.type === "number" ? "number" : f.type === "date" ? "date" : "text") + '" value="' + escapeIslandText(saved?.customFieldValues?.[f.key] ?? draft.customFieldValues?.[f.key] ?? "") + '">') + "</label>").join("");
+    const bounty = evidenceSession.task.bountyId ? getDomainState().bounties.find((b) => b.id === evidenceSession.task.bountyId) : null;
+    container.innerHTML = '<div class="note-card-box island-real-execution-form"><h3>' + escapeIslandText(evidenceSession.title) + '</h3><section id="island-execution-standard"><h4>\u89C4\u5212\u6807\u51C6 \xB7 \u53EA\u8BFB</h4><p>' + escapeIslandText(p.description || bounty?.criteria || "") + "</p><p>\u9884\u8BA1\u4E13\u6CE8\uFF1A" + (p.plannedMinutes || 0) + "\u5206\u949F\uFF1B\u4EA4\u4ED8\u8981\u6C42\uFF1A" + escapeIslandText(domainEvidenceLabel(p.evidenceType)) + "</p><p>\u6765\u6E90\u9879\u76EE\uFF1A" + escapeIslandText(getDomainState().projects.find((x) => x.id === evidenceSession.projectId)?.title || "\u4EB2\u5B50\u5951\u7EA6") + '</p></section><section class="island-real-execution-entry" oninput="saveExecutionDraft()"><div class="domain-planning-row"><strong id="island-real-elapsed">00:00</strong><button class="ui-btn" id="island-real-timer" onclick="toggleEvidenceTimer()">\u25B6 \u5F00\u59CB/\u7EE7\u7EED\u4E13\u6CE8</button></div>' + fields + "<label>" + (node?.nodeType === "review" ? "\u590D\u76D8\u8BF4\u660E\uFF08\u81F3\u5C1115\u5B57\uFF09" : "\u6267\u884C\u5FC3\u5F97\u4E0E\u4EA4\u4ED8\u8BF4\u660E") + '<textarea id="island-real-reflection">' + escapeIslandText(saved?.reflection || draft.reflection || "") + '</textarea></label><label>\u771F\u5B9E\u7269\u8BC1<input type="file" accept="image/*,video/*,audio/*" onchange="uploadExecutionEvidence(this)"></label><div id="island-real-media-list"></div><div id="domain-exec-errors" role="alert"></div><button class="ui-btn primary" id="island-real-submit" onclick="submitRealExecution()">' + (saved ? "\u2713 \u5DF2\u8BB0\u5F55" : "\u63D0\u4EA4\u5E76\u6821\u9A8C") + "</button>" + (node?.nodeType === "review" ? `<button class="ui-btn" onclick="deriveNodesFromReflectionCard('` + node.id + `',event)">\u{1F331} \u5C06\u5DF2\u4FDD\u5B58\u63D0\u5347\u884C\u52A8\u6D3E\u751F\u5B9E\u8BAD</button>` : "") + (node?.nodeType === "goal" ? `<button class="ui-btn" onclick="depositGoalToAchievement('` + node.id + `',event)">\u{1F3C6} \u5F52\u6863\u5DF2\u9A8C\u6536\u6210\u679C</button>` : "") + "</section></div>";
+    container.querySelectorAll(".domain-metric-confirm").forEach((el) => el.checked = !!(saved?.metricConfirmations || draft.metricConfirmations || {})[el.dataset.key]);
+    container.querySelectorAll(".domain-custom-value[type=checkbox]").forEach((el) => el.checked = !!(saved?.customFieldValues || draft.customFieldValues || {})[el.dataset.key]);
+    if (saved)
+      container.querySelectorAll("input,textarea,#island-real-submit,#island-real-timer").forEach((el) => el.disabled = true);
+    renderDomainEvidence();
+    paintEvidenceTime();
+  }
+  function collectDomainExecution() {
+    const data = { reflection: document.getElementById("island-real-reflection")?.value.trim() || "", focusSeconds: getEvidenceElapsed(), media: evidenceSession?.media || [], metricValues: {}, metricConfirmations: {}, customFieldValues: {}, checklistResults: {}, improvementList: [] };
+    document.querySelectorAll(".domain-metric-value").forEach((el) => data.metricValues[el.dataset.key] = el.value);
+    document.querySelectorAll(".domain-metric-confirm").forEach((el) => data.metricConfirmations[el.dataset.key] = el.checked);
+    document.querySelectorAll(".domain-check-result").forEach((el) => data.checklistResults[el.dataset.key] = el.checked);
+    document.querySelectorAll(".domain-custom-value").forEach((el) => data.customFieldValues[el.dataset.key] = el.type === "checkbox" ? el.checked : el.value);
+    const node = getDomainNode(evidenceSession?.nodeId);
+    const improvements = document.getElementById("domain-review-improvements")?.value.split("\n").map((x) => x.trim()).filter(Boolean) || [];
+    data.improvementList = improvements.map((text) => ({ ...node?.cardPayload.improvementList.find((x) => x.actionItem === text), actionItem: text, id: node?.cardPayload.improvementList.find((x) => x.actionItem === text)?.id || domainId("improvement"), isChecked: true }));
+    return data;
+  }
+  saveExecutionDraft = function() {
+    if (!evidenceSession || evidenceSession.saved)
+      return;
+    getDomainState().drafts[evidenceSession.taskId] = { ...collectDomainExecution(), seconds: getEvidenceElapsed(), savedAt: (/* @__PURE__ */ new Date()).toISOString() };
+    notifyIslandStateChanged();
+  };
+  function renderDomainEvidence() {
+    const list = document.getElementById("island-real-media-list");
+    if (list)
+      list.innerHTML = (evidenceSession?.media || []).map((m) => `<button class="note-media-action-btn" onclick="openDomainMedia('` + m.id + `')">` + escapeIslandText(m.name) + "</button>").join("");
+  }
+  uploadExecutionEvidence = async function(input) {
+    const file = input.files?.[0], session = evidenceSession;
+    if (!file || !session || session.saved)
+      return;
+    try {
+      const result = await persistDomainMedia(file);
+      session.media.push(result);
+      if (session === evidenceSession) {
+        renderDomainEvidence();
+        saveExecutionDraft();
+      }
+    } catch (error) {
+      showIslandToast(error.message);
+    }
+    input.value = "";
+  };
+  submitRealExecution = function() {
+    if (!evidenceSession || evidenceSession.saved)
+      return false;
+    const result = triggerGlobalCheckinClosedLoop({ ...collectDomainExecution(), taskInstanceId: evidenceSession.taskId, acceptance: evidenceSession.task.acceptance });
+    if (result) {
+      evidenceSession.saved = true;
+      evidenceSession.seconds = getEvidenceElapsed();
+      evidenceSession.startedAt = 0;
+      renderDomainExecution(getDomainNode(evidenceSession.nodeId), result);
+    }
+    return !!result;
+  };
+  triggerGlobalCheckinClosedLoop = function(input) {
+    const state = getDomainState(), key = input?.taskInstanceId || input?.taskId || input?.taskKey;
+    const nodeId = key?.split("@")[0];
+    const node = getDomainNode(nodeId);
+    const task = resolveDomainTask(key) || (input?.acceptance && node?.nodeType === "goal" ? { id: key, nodeId: node.id, projectId: node.projectId, pavilionId: node.pavilionId, date: domainDate(), title: node.title, status: "ready" } : null);
+    if (!task || !["ready", "overdue", "completed"].includes(task.status))
+      return false;
+    const existing = state.records.find((r) => r.taskInstanceId === task.id && r.validated === true);
+    if (existing)
+      return existing;
+    if (task.bountyId) {
+      const b = state.bounties.find((x) => x.id === task.bountyId);
+      if (!input.media?.some((m) => m.path && ["image", "video"].includes(m.type))) {
+        showIslandToast("\u8BF7\u63D0\u4EA4\u6311\u6218\u7167\u7247\u6216\u89C6\u9891");
+        return false;
+      }
+      b.evidence = input.media;
+      b.evidencePath = input.media[0].path;
+      b.evidenceName = input.media[0].name;
+      b.evidenceUploaded = true;
+      b.childReport = input.reflection || "";
+      domainEvent("bounty.evidence", b.id, "\u60AC\u8D4F\u7269\u8BC1\u5DF2\u4EA4\u4ED8\uFF0C\u7B49\u5F85\u5BB6\u957F\u6838\u9A8C");
+      renderBountyModalAndBillboard();
+      showIslandToast("\u7269\u8BC1\u5DF2\u4FDD\u5B58\uFF0C\u8BF7\u5BB6\u957F\u586B\u5199\u5BC4\u8BED\u5E76\u6838\u51C6\u5151\u73B0");
+      return { id: domainId("submission"), ...input, validated: false };
+    }
+    const source = getDomainNode(task.nodeId);
+    if (!source)
+      return false;
+    const validation = validateDomainExecution(source, input);
+    if (!validation.valid) {
+      const area = document.getElementById("domain-exec-errors");
+      if (area)
+        area.textContent = validation.errors.join("\uFF1B");
+      showIslandToast(validation.errors[0]);
+      return false;
+    }
+    const record = { ...input, id: domainId("record"), taskInstanceId: task.id, taskId: task.id, nodeId: source.id, projectId: source.projectId, pavilionId: source.pavilionId, title: source.title, sourceSnapshot: JSON.parse(JSON.stringify({ title: source.title, nodeType: source.nodeType, projectId: source.projectId, cardPayload: source.cardPayload })), date: domainDate(), scheduledDate: task.date, completedAt: (/* @__PURE__ */ new Date()).toISOString(), validated: true, metrics: validation.metrics, media: (input.media || []).map((m) => ({ ...m })), focusSeconds: Math.max(0, Math.floor(Number(input.focusSeconds) || 0)) };
+    state.records.push(record);
+    source.executionRecords.push(record.id);
+    source.updatedAt = record.completedAt;
+    source.status = "completed";
+    if (source.nodeType === "review")
+      source.cardPayload.improvementList = record.improvementList;
+    delete state.drafts[task.id];
+    const project = state.projects.find((p) => p.id === source.projectId);
+    project.completedDays = [...new Set(state.records.filter((r) => r.projectId === project.id).map((r) => r.date))];
+    domainEvent("checkin.completed", record.id, "\u5B8C\u6210\u300A" + source.title + "\u300B\uFF1A\u5B9E\u9645\u4E13\u6CE8 " + Math.floor(record.focusSeconds / 60) + " \u5206\u949F\uFF0C\u7269\u8BC1 " + record.media.length + " \u9879", { projectId: project.id, nodeId: source.id, recordId: record.id });
+    const note = window2.NOTE_STATE;
+    for (const media of record.media)
+      if (!note.mediaList.some((m) => m.id === media.id))
+        note.mediaList.push({ ...media, sourceRecordId: record.id });
+    note.todayFocusMinutes = state.records.filter((r) => r.date === domainDate() && r.validated === true).reduce((sum, r) => sum + r.focusSeconds, 0) / 60;
+    saveCurrentProjectCanvasSnapshot();
+    refreshDomainProjections();
+    notifyIslandStateChanged();
+    syncDomainMilestones();
+    showIslandToast("\u6267\u884C\u8BB0\u5F55\u5DF2\u6821\u9A8C\u5E76\u56DE\u5199");
+    return record;
+  };
+  closeExecCardPopupView = function() {
+    saveExecutionDraft();
+    evidenceSession = null;
+    const container = document.getElementById("exec-popup-task-view");
+    if (container) {
+      delete container.dataset.activeCheckinType;
+      container.replaceChildren();
+    }
+    originalCloseExec();
+  };
+  function syncDomainMilestones() {
+    const state = getDomainState(), items = window2.ACHIEVEMENT_STATE.cultivationItems;
+    refreshBusinessMetrics();
+    let changed = false;
+    const add = (key, config, records) => {
+      if (!records.length || items.some((a) => a.milestoneKey === key))
+        return;
+      const latest = records[records.length - 1], award = { id: domainId("achievement"), milestoneKey: key, date: domainDate(), sourceProjectId: latest.projectId || null, sourceNodeId: latest.nodeId || null, sourceRecordId: latest.id, sourceRecordIds: records.map((r) => r.id), projectType: latest.pavilionId || "cultivation", projectName: state.projects.find((p) => p.id === latest.projectId)?.title || "\u771F\u5B9E\u6267\u884C\u53F0\u8D26", icon: "\u{1F3C6}", media: latest.media || [], proof: "\u6765\u6E90\u6267\u884C\u8BB0\u5F55\uFF1A" + records.map((r) => r.id).join("\u3001"), ...config };
+      items.unshift(award);
+      changed = true;
+      domainEvent("achievement.created", award.id, "\u89E3\u9501\u771F\u5B9E\u91CC\u7A0B\u7891\u300A" + award.title + "\u300B", { projectId: award.sourceProjectId, recordId: latest.id });
+    };
+    for (const project of state.projects) {
+      const progress = projectProgress(project, state.nodesByProject[project.id] || [], state.records);
+      if (!progress.complete)
+        continue;
+      add("project-complete:" + project.id, { title: project.title + " \xB7 \u9879\u76EE\u7ED3\u4E1A", sourceProjectId: project.id, projectName: project.title, projectType: project.pavilion, metrics: [{ name: "\u6267\u884C\u8282\u70B9\u9A8C\u6536", target: progress.totalNodesCount + "\u4E2A", actual: progress.completedNodesCount + "\u4E2A" }], desc: "\u7ED3\u4E1A\u65F6\u5168\u90E8\u8BA1\u5212\u6267\u884C\u8282\u70B9\u5DF2\u901A\u8FC7\uFF1B\u540E\u7EED\u8C03\u6574\u89C4\u5212\u4E0D\u6539\u5199\u672C\u6B21\u8FBE\u6210\u4E8B\u5B9E\u3002" }, state.records.filter((r) => r.projectId === project.id && r.validated === true));
+    }
+    const days = window2.USER_PROFILE_STATE.continuousDays;
+    if (days >= 19) {
+      const violationDates = new Set(window2.USER_PROFILE_STATE.violationRecords.map((r) => (r.date || r.time || "").slice(0, 10))), validRecords = state.records.filter((r) => r.validated === true && !violationDates.has(r.date)), validDates = new Set(validRecords.map((r) => r.date)), protectedDates = new Set(window2.USER_PROFILE_STATE.approvedFreezeDays || []), chain = /* @__PURE__ */ new Set();
+      let cursor = domainDate();
+      if (!validDates.has(cursor))
+        cursor = domainShift(cursor, -1);
+      for (let limit = 0; limit < 36600 && !violationDates.has(cursor) && (validDates.has(cursor) || protectedDates.has(cursor)); limit++, cursor = domainShift(cursor, -1))
+        chain.add(cursor);
+      const records = validRecords.filter((r) => chain.has(r.date));
+      add("valid-streak:19", { title: "\u8FDE\u7EED\u5341\u4E5D\u5929\u771F\u5B9E\u8DF5\u884C", projectType: "cultivation", projectName: "\u771F\u5B9E\u6267\u884C\u53F0\u8D26", metrics: [{ name: "\u8FDE\u7EED\u6709\u6548\u65E5", target: "19\u5929", actual: days + "\u5929" }], desc: "\u4F9D\u636E\u6709\u6548\u6267\u884C\u65E5\u3001\u5171\u540C\u786E\u8BA4\u8FDD\u7EA6\u53CA\u6279\u51C6\u4FDD\u62A4\u8BB0\u5F55\u6838\u9A8C\uFF1B\u4FDD\u62A4\u65E5\u4E0D\u589E\u52A0\u6709\u6548\u5929\u6570\u3002" }, records);
+    }
+    if (changed)
+      updateAchieveWorkspaceLiveDOM();
+    return changed;
+  }
+  completeCheckinPageCard = submitRealExecution;
+  handleExecPopupMainCheckin = submitRealExecution;
+  completeTask = openDomainTask;
+  handleNodeCheckin = function(btn, id) {
+    const task = resolveDomainTask(id);
+    if (task)
+      openDomainTask(task.id);
+  };
+  showWeekTaskDetail = function(el) {
+    const task = resolveDomainTask(el.dataset.id || el.dataset.taskInstanceId);
+    if (!task) {
+      showIslandToast("\u4EFB\u52A1\u5DF2\u8C03\u6574\uFF0C\u8BF7\u5237\u65B0");
+      return;
+    }
+    const row = taskForCalendar(task), modal = document.getElementById("task-detail-inspector-modal");
+    for (const [id, value] of [["td-modal-title", task.title], ["td-modal-pavilion-badge", row.pavilionBadge], ["td-modal-instruction", row.instruction], ["td-modal-evidence-content", row.evidence || "\u5C1A\u672A\u63D0\u4EA4"], ["td-modal-reflection-content", row.reflection || "\u5C1A\u672A\u63D0\u4EA4"], ["td-modal-time", row.time], ["td-modal-duration", row.duration]]) {
+      const target = document.getElementById(id);
+      if (target)
+        target.textContent = value;
+    }
+    const actions = document.getElementById("td-modal-actions-right");
+    actions.innerHTML = `<button class="ui-btn primary" onclick="closeTaskDetailModal();openDomainTask('` + task.id + `')">` + (task.status === "completed" ? "\u67E5\u770B\u6267\u884C\u539F\u4EF6" : "\u524D\u5F80\u540C\u4E00\u4EFB\u52A1\u6267\u884C") + "</button>";
+    modal.style.display = "flex";
+  };
+  toggleExecPopupProjectNodesView = function() {
+    const id = evidenceSession?.projectId;
+    if (!id) {
+      showIslandToast("\u6B64\u5951\u7EA6\u6CA1\u6709\u89C4\u5212\u9879\u76EE");
+      return;
+    }
+    const taskView = document.getElementById("exec-popup-task-view"), projectView = document.getElementById("exec-popup-project-view");
+    isExecProjectNodesViewActive = !isExecProjectNodesViewActive;
+    taskView.style.display = isExecProjectNodesViewActive ? "none" : "flex";
+    projectView.style.display = isExecProjectNodesViewActive ? "flex" : "none";
+    if (isExecProjectNodesViewActive)
+      renderExecProjectAssociatedNodes();
+  };
+  renderExecProjectAssociatedNodes = function() {
+    const id = evidenceSession?.projectId, state = getDomainState(), container = document.getElementById("exec-project-cards-container");
+    if (!container || !id)
+      return;
+    container.innerHTML = (state.nodesByProject[id] || []).map((n) => '<div class="note-card-box"><h4>' + escapeIslandText(n.title) + "</h4><p>" + escapeIslandText(n.cardPayload.description) + "</p><p>\u524D\u7F6E\uFF1A" + escapeIslandText(n.dependencies.map((dep) => getDomainNode(dep)?.title || dep).join("\u3001") || "\u65E0") + `</p><button class="ui-btn" onclick="jumpToDomainSource('` + id + "','" + n.id + `')">\u67E5\u770B\u6E90\u8282\u70B9</button></div>`).join("");
+    document.getElementById("exec-project-svg-lines-group")?.replaceChildren();
+    document.getElementById("exec-project-labels-layer")?.replaceChildren();
+  };
+  function jumpToDomainSource(projectId, nodeId) {
+    closeExecCardPopupView();
+    enterTertiaryWorkspace(projectId);
+    const card = document.getElementById(nodeId);
+    card?.classList.add("is-selected");
+    if (card) {
+      card.style.boxShadow = "0 0 0 4px #f59e0b";
+      window2.tertiaryPanX = 40 - parseFloat(card.style.left);
+      window2.tertiaryPanY = 60 - parseFloat(card.style.top);
+      applyTertiaryTransform();
+    }
+  }
+  deriveNodesFromReflectionCard = function(id, event) {
+    event?.stopPropagation();
+    const node = getDomainNode(id);
+    if (!node || node.nodeType !== "review")
+      return false;
+    if (evidenceSession?.nodeId === id && !evidenceSession.saved) {
+      showIslandToast("\u8BF7\u5148\u4FDD\u5B58\u590D\u76D8\u4E0E\u63D0\u5347\u884C\u52A8");
+      return false;
+    }
+    recordDomainHistory();
+    const state = getDomainState(), project = state.projects.find((p) => p.id === node.projectId), nodes = state.nodesByProject[project.id];
+    node.groupId = node.groupId || domainId("group");
+    node.groupRoot = node.id;
+    let count = 0;
+    for (const item of node.cardPayload.improvementList.filter((x) => x.isChecked !== false)) {
+      if (item.derivedNodeId && nodes.some((n) => n.id === item.derivedNodeId))
+        continue;
+      const plannedDate = project.startDate > domainDate() ? project.startDate : domainDate();
+      if (project.endDate < plannedDate)
+        project.endDate = plannedDate;
+      const child = domainNode({ title: item.actionItem.slice(0, 30), archetype: "drill", duration: 20, evidenceType: "photo", plannedDate, groupId: node.groupId, groupRoot: node.id, description: item.actionItem }, project);
+      child.canvasPosition = { x: node.canvasPosition.x + 400, y: node.canvasPosition.y + count * 400 };
+      item.derivedNodeId = child.id;
+      nodes.push(child);
+      window2.PROJECT_CANVAS_STORE[project.id].edges.push({ id: domainId("edge"), sourceId: node.id, targetId: child.id, type: "\u6D3E\u751F", label: "\u63D0\u5347\u884C\u52A8" });
+      count++;
+    }
+    renderDomainCanvas(project.id);
+    saveCurrentProjectCanvasSnapshot();
+    refreshDomainProjections();
+    if (count)
+      domainEvent("review.derived", id, "\u4ECE\u590D\u76D8\u6D3E\u751F " + count + " \u9879\u5B9E\u8BAD", { projectId: project.id });
+    else
+      showIslandToast("\u9009\u4E2D\u63D0\u5347\u9879\u5DF2\u6D3E\u751F\uFF0C\u65E0\u9700\u91CD\u590D\u521B\u5EFA");
+    return count;
+  };
+  depositGoalToAchievement = function(id, event) {
+    event?.stopPropagation();
+    const node = getDomainNode(id);
+    if (!node || node.nodeType !== "goal")
+      return false;
+    const state = getDomainState(), record = [...state.records].reverse().find((r) => r.nodeId === id && r.validated);
+    if (!record) {
+      openGoalAcceptance(id);
+      return false;
+    }
+    if (node.achievementId) {
+      openAchievementDetailModal("cultivation", node.achievementId);
+      return true;
+    }
+    const project = state.projects.find((p) => p.id === node.projectId);
+    const award = { id: domainId("achievement"), date: record.date, title: node.title, projectType: project.pavilion, projectTypeLabel: PAVILION_META[project.pavilion]?.name || project.pavilion, projectName: project.title, sourceProjectId: project.id, sourceNodeId: node.id, sourceRecordId: record.id, icon: "\u{1F3C6}", metrics: record.metrics.map((m) => ({ name: m.name, target: m.targetValue, actual: m.actual })), media: record.media, proof: record.media.map((m) => m.path).join("\n") || record.reflection, issuer: state.family.guardianNames || "\u81EA\u4E3B\u5B9E\u6D4B\u8BB0\u5F55", desc: record.reflection };
+    window2.ACHIEVEMENT_STATE.cultivationItems.unshift(award);
+    node.achievementId = award.id;
+    domainEvent("achievement.created", award.id, "\u6210\u679C\u5DF2\u5F52\u6863\u300A" + node.title + "\u300B", { projectId: project.id, nodeId: node.id, recordId: record.id });
+    updateAchieveWorkspaceLiveDOM();
+    notifyIslandStateChanged();
+    return true;
+  };
+  renderCultivationGroupsHtml = function(items) {
+    const keys = [.../* @__PURE__ */ new Set(["study", "dojo", "cognition", "cultivation", ...Object.keys(PAVILION_META).filter((k) => k.startsWith("custom-")), ...items.map((x) => x.projectType).filter((k) => k !== "treasury")])];
+    return '<div class="achieve-projects-grid">' + keys.map((key) => {
+      const meta = PAVILION_META[key] || { name: key, icon: "\u{1F3C6}" }, list = items.filter((x) => x.projectType === key).sort((a, b) => b.date.localeCompare(a.date));
+      return '<section class="achieve-grid-cabinet"><h3>' + escapeIslandText(meta.icon + " " + meta.name) + " \xB7 " + list.length + "\u9879</h3>" + list.map((a) => '<div class="achieve-compact-tile"><strong>' + escapeIslandText(a.title) + "</strong><p>" + escapeIslandText(a.date) + `</p><button class="ui-btn" onclick="openAchievementDetailModal('cultivation','` + a.id + `')">\u539F\u4EF6\u4E0E\u6307\u6807</button><button class="ui-btn" onclick="jumpFromAchieveToProjectWorkspace('` + a.projectType + "','" + a.id + `')">\u5B9A\u4F4D\u6E90\u9879\u76EE</button></div>`).join("") + "</section>";
+    }).join("") + "</div>";
+  };
+  jumpFromAchieveToProjectWorkspace = function(type, id) {
+    const award = window2.ACHIEVEMENT_STATE.cultivationItems.find((a) => a.id === id);
+    closeAchievementDetailModal();
+    if (award?.sourceProjectId) {
+      jumpToDomainSource(award.sourceProjectId, award.sourceNodeId);
+      return;
+    }
+    if (type === "note") {
+      enterSecondaryWorkspace("note", "specialized");
+      return;
+    }
+    enterSecondaryWorkspace(type, "gantt");
+    showIslandToast("\u8FD9\u6761\u65E7\u8363\u8A89\u6CA1\u6709\u6E90\u9879\u76EE\u6807\u8BC6\uFF0C\u5DF2\u6253\u5F00\u6240\u5C5E\u573A\u9986");
+  };
+  const domainOldAchievementBody = renderAchievementModalBody;
+  renderAchievementModalBody = function(type, item) {
+    const media = item.media || [];
+    return '<div class="note-card-box"><h3>' + escapeIslandText(item.title) + "</h3><p>\u6765\u6E90\uFF1A" + escapeIslandText(item.projectName || item.categoryLabel || "\u751F\u6D3B\u8BB0\u5F55") + "</p><p>" + escapeIslandText(item.desc || "") + "</p>" + (item.metrics || []).map((m) => "<p>" + escapeIslandText(m.name) + "\uFF1A\u76EE\u6807 " + escapeIslandText(m.target) + "\uFF1B\u5B9E\u6D4B " + escapeIslandText(m.actual) + "</p>").join("") + media.map((m) => `<button class="ui-btn" onclick="openDomainMedia('` + m.id + `')">` + escapeIslandText(m.name) + "</button>").join("") + "<p>\u8BB0\u5F55\u65E5\u671F\uFF1A" + escapeIslandText(item.date) + "</p>" + (item.sourceProjectId ? `<button class="ui-btn" onclick="jumpFromAchieveToProjectWorkspace('` + item.projectType + "','" + item.id + `')">\u5B9A\u4F4D\u6E90\u9879\u76EE\u4E0E\u8282\u70B9</button>` : "") + `<button class="ui-btn" onclick="exportDomainAchievement('` + item.id + `')">\u5BFC\u51FA\u6210\u679C\u6863\u6848</button></div>`;
+  };
+  async function persistDomainMedia(file) {
+    if (!/^(image|video|audio)\//.test(file.type))
+      throw new Error("\u8BF7\u9009\u62E9\u771F\u5B9E\u7167\u7247\u3001\u89C6\u9891\u6216\u97F3\u9891");
+    if (file.size > 200 * 1024 * 1024)
+      throw new Error("File exceeds 200 MB");
+    const saved = await window2.__saveIslandAttachment(file);
+    const media = { id: domainId("media"), path: saved.path, name: file.name, type: file.type.split("/")[0], mime: file.type, size: file.size, uploadedAt: (/* @__PURE__ */ new Date()).toISOString() };
+    if (media.type !== "image") {
+      media.duration = await new Promise((resolve) => {
+        const element = document.createElement(media.type);
+        const url = URL.createObjectURL(file), finish = (value) => {
+          URL.revokeObjectURL(url);
+          resolve(value);
+        };
+        element.onloadedmetadata = () => finish(Number.isFinite(element.duration) ? element.duration : null);
+        element.onerror = () => finish(null);
+        setTimeout2(() => finish(null), 3e3);
+        element.src = url;
+      });
+    }
+    return media;
+  }
+  function allDomainMedia() {
+    const s = getDomainState();
+    return [...s.records.flatMap((r) => r.media || []), ...s.bounties.flatMap((b) => b.evidence || []), ...Object.values(s.drafts).flatMap((d) => d.media || []), ...window2.NOTE_STATE.mediaList, ...window2.NOTE_STATE.historyEntries.flatMap((e) => e.media || []), ...[...window2.ACHIEVEMENT_STATE.accidentalItems, ...window2.ACHIEVEMENT_STATE.cultivationItems].flatMap((a) => a.media || []), ...evidenceSession?.media || []];
+  }
+  function openDomainMedia(id) {
+    const media = allDomainMedia().find((m) => m.id === id);
+    if (!media?.path) {
+      showIslandToast("\u8FD9\u6761\u65E7\u8BB0\u5F55\u6CA1\u6709\u9644\u4EF6\u539F\u4EF6");
+      return false;
+    }
+    const modal = document.getElementById("note-media-preview-modal"), body = document.getElementById("note-preview-modal-body");
+    body.replaceChildren();
+    const el = document.createElement(media.type === "image" ? "img" : media.type);
+    el.src = window2.__islandAttachmentUrl(media.path);
+    el.style.cssText = "max-width:100%;max-height:65vh";
+    if (media.type !== "image")
+      el.controls = true;
+    body.appendChild(el);
+    document.getElementById("note-preview-modal-title").textContent = media.name;
+    modal.style.zIndex = "26000";
+    modal.style.display = "flex";
+    return true;
+  }
+  openNoteMediaPreviewModal = openDomainMedia;
+  handleAccidentalImageUpload = async function(input) {
+    const file = input.files?.[0];
+    if (!file)
+      return;
+    try {
+      window2.__accidentalDomainMedia = await persistDomainMedia(file);
+      const preview = document.getElementById("achieve-acc-image-preview");
+      preview.textContent = "\u5DF2\u4FDD\u5B58\u539F\u4EF6\uFF1A" + file.name;
+      preview.style.display = "block";
+    } catch (error) {
+      showIslandToast(error.message);
+    }
+  };
+  submitRegisterAccidentalAchievement = function() {
+    const title = document.getElementById("achieve-acc-title").value.trim(), desc = document.getElementById("achieve-acc-desc").value.trim(), date = document.getElementById("achieve-acc-date").value;
+    if (title.length < 2 || title.length > 30 || desc.length < 20 || desc.length > 300 || !domainValidDate(date) || date > domainDate() || !window2.__accidentalDomainMedia) {
+      showIslandToast("\u8BF7\u586B\u51992\uFF5E30\u5B57\u6807\u9898\u300120\uFF5E300\u5B57\u63CF\u8FF0\u3001\u771F\u5B9E\u65E5\u671F\u5E76\u4E0A\u4F20\u7167\u7247\u539F\u4EF6");
+      return false;
+    }
+    const media = window2.__accidentalDomainMedia;
+    const item = { id: domainId("achievement"), date, title, desc, category: document.getElementById("achieve-acc-category").value, issuer: document.getElementById("achieve-acc-issuer").value.trim(), image: media.path, media: [media] };
+    window2.ACHIEVEMENT_STATE.accidentalItems.unshift(item);
+    window2.__accidentalDomainMedia = null;
+    closeRegisterAccidentalAchievementModal();
+    updateAchieveWorkspaceLiveDOM();
+    domainEvent("achievement.accidental", item.id, "\u8BB0\u5F55\u751F\u6D3B\u9AD8\u5149\u300A" + title + "\u300B");
+    return true;
+  };
+  function sealDomainJournal(draft = false) {
+    const note = window2.NOTE_STATE, today = ensureBusinessDate(), text = document.getElementById("note-journal-textarea")?.value ?? note.journalText;
+    if (!draft && (text.trim().length < 30 || text.length > 500)) {
+      showIslandToast("\u5C01\u5B58\u968F\u7B14\u987B\u4E3A30\uFF5E500\u5B57\uFF1B\u77ED\u968F\u7B14\u4F1A\u81EA\u52A8\u4FDD\u7559\u8349\u7A3F");
+      return false;
+    }
+    const index = note.historyEntries.findIndex((e) => e.date === today), previous = index >= 0 ? note.historyEntries[index] : null;
+    const entry = { id: previous?.id || "entry-" + today, date: today, text, mood: note.currentMood, energy: note.currentEnergy, autoLogs: [...note.todayAutoLogs], media: [...note.mediaList], draft, updatedAt: (/* @__PURE__ */ new Date()).toISOString(), versions: [...previous?.versions || [], ...previous ? [{ text: previous.text, savedAt: previous.updatedAt }] : []] };
+    if (index >= 0)
+      note.historyEntries.splice(index, 1, entry);
+    else
+      note.historyEntries.unshift(entry);
+    note.journalText = text;
+    notifyIslandStateChanged();
+    return entry;
+  }
+  saveNoteDailyEntry = function() {
+    const entry = sealDomainJournal();
+    if (!entry)
+      return false;
+    const target = document.getElementById("note-history-list");
+    if (target)
+      target.innerHTML = renderNoteHistoryEntriesHtml();
+    domainEvent("journal.sealed", entry.id, "\u5C01\u5B58 " + entry.date + " \u7684\u5FC3\u6D41\u968F\u8BB0");
+    showIslandToast("\u5F53\u65E5\u968F\u8BB0\u5DF2\u5C01\u5B58");
+    return true;
+  };
+  renderNoteMediaGalleryHtml = function() {
+    return window2.NOTE_STATE.mediaList.map((m) => `<div class="note-history-card"><button class="ui-btn" onclick="openDomainMedia('` + m.id + `')">` + escapeIslandText(m.name) + "</button><span>" + escapeIslandText(m.duration == null ? "\u65F6\u957F\u672A\u8BFB\u53D6" : Math.round(m.duration) + "\u79D2") + `</span><button class="ui-btn" onclick="removeNoteMedia('` + m.id + `')">\u79FB\u9664</button></div>`).join("");
+  };
+  const domainOldHUD = recalcAndRenderGlobalHUD;
+  recalcAndRenderGlobalHUD = function() {
+    domainOldHUD();
+    const profile = window2.USER_PROFILE_STATE;
+    document.querySelectorAll(".hud-stat-item.streak > span:last-child").forEach((el) => el.textContent = "\u8FDE\u7EED " + profile.continuousDays + " \u5929");
+    document.querySelectorAll(".hud-stat-item.rate > span:last-child").forEach((el) => el.textContent = "\u5C65\u7EA6 " + profile.fulfillmentRate + "%");
+    document.querySelectorAll(".hud-stat-item.rate").forEach((el) => el.title = "\u5F53\u524D\u9886\u57DF\u4EFB\u52A1\u7684\u7EFC\u5408\u5C65\u7EA6\u7387 \xB7 \u70B9\u51FB\u67E5\u770B\u4EB2\u5B50\u516C\u7EA6");
+  };
+  handleOpenObsidianCanvas = function(id) {
+    const target = id || window2.currentTertiaryProjId;
+    if (!getDomainState().projects.some((p) => p.id === target)) {
+      showIslandToast("\u8BF7\u5148\u9009\u62E9\u5B9E\u9645\u9879\u76EE");
+      return false;
+    }
+    if (window2.__openProjectInObsidianCanvas)
+      return window2.__openProjectInObsidianCanvas(target);
+    showIslandToast("\u72EC\u7ACB\u8BBE\u8BA1\u9884\u89C8\u4E0D\u8FDE\u63A5Obsidian\uFF1B\u63D2\u4EF6\u4F1A\u6253\u5F00\u5DF2\u6709Canvas\uFF0C\u9996\u6B21\u4F7F\u7528\u65F6\u751F\u6210");
+    return false;
+  };
+  recordLiveTreasuryTransaction = function() {
+    const amountEl = document.getElementById("treasury-tx-amount-input");
+    if (!amountEl)
+      return false;
+    const amount = Number(amountEl.value), cents = Math.round(amount * 100), treasury = window2.TREASURY_STATE, type = treasury.currentRecordType || "income";
+    if (!Number.isFinite(amount) || amount <= 0 || !Number.isSafeInteger(cents) || Math.abs(amount * 100 - cents) > 1e-7) {
+      showIslandToast("\u91D1\u989D\u5FC5\u987B\u4E3A\u6B63\u6570\uFF0C\u6700\u591A\u4FDD\u7559\u4E24\u4F4D\u5C0F\u6570");
+      return false;
+    }
+    if (type === "expense" && cents > Math.round(treasury.totalBalance * 100)) {
+      showIslandToast("\u4F59\u989D\u4E0D\u8DB3\uFF0C\u4E0D\u80FD\u900F\u652F");
+      return false;
+    }
+    const note = document.getElementById("treasury-tx-desc-input")?.value.trim() || "\u672A\u586B\u5199\u8BF4\u660E", proof = document.getElementById("treasury-tx-proof-input")?.value.trim() || "\u672A\u63D0\u4F9B\u51ED\u636E\u8BF4\u660E";
+    treasury.totalBalance = Math.round(treasury.totalBalance * 100 + (type === "income" ? cents : -cents)) / 100;
+    const field = type === "income" ? "totalIncome" : "totalExpense";
+    treasury[field] = Math.round(treasury[field] * 100 + cents) / 100;
+    const record = { id: domainId("transaction"), time: (/* @__PURE__ */ new Date()).toISOString(), date: domainDate(), type, category: document.getElementById("treasury-tx-category-select")?.value || "\u5176\u4ED6", amount: type === "income" ? amount : -amount, balanceAfter: treasury.totalBalance, note, proof };
+    treasury.ledger.unshift(record);
+    amountEl.value = "";
+    const desc = document.getElementById("treasury-tx-desc-input");
+    if (desc)
+      desc.value = "";
+    updateTreasuryLiveDOM();
+    domainEvent("treasury.recorded", record.id, (type === "income" ? "\u96F6\u7528\u91D1\u6536\u5165" : "\u96F6\u7528\u91D1\u652F\u51FA") + " \xA5" + amount.toFixed(2) + " \xB7 " + note);
+    showIslandToast("\u771F\u5B9E\u6536\u652F\u5DF2\u8BB0\u5165\u8D26\u672C");
+    return record;
+  };
+  renderTreasuryLedgerRows = function(rows) {
+    return rows.length ? rows.map((r) => "<tr><td>" + escapeIslandText(r.time) + "</td><td>" + (r.type === "income" ? "\u6536\u5165" : "\u652F\u51FA") + "</td><td>" + escapeIslandText(r.category) + "</td><td>\xA5" + Number(r.amount).toFixed(2) + "</td><td>\xA5" + Number(r.balanceAfter).toFixed(2) + "</td><td>" + escapeIslandText(r.note) + "<br>\u51ED\u636E\u8BF4\u660E\uFF1A" + escapeIslandText(r.proof || "\u672A\u63D0\u4F9B") + "</td></tr>").join("") : '<tr><td colspan="6">\u6682\u65E0\u771F\u5B9E\u6536\u652F\u8BB0\u5F55</td></tr>';
+  };
+  const domainOldRenderBounty = renderBountyModalAndBillboard;
+  renderBountyModalAndBillboard = function() {
+    domainOldRenderBounty();
+    const b = window2.BOUNTY_STATE;
+    if (b) {
+      const days = Math.max(0, diffGanttDays(domainDate(), b.endDate || domainDate()));
+      const target = document.getElementById("home-bounty-timer");
+      if (target)
+        target.textContent = "\u5230\u671F " + b.endDate + " \xB7 \u5269\u4F59" + days + "\u5929";
+    }
+    const redeem = document.getElementById("bounty-action-redeem-btn");
+    if (redeem && !document.getElementById("domain-parent-confirm")) {
+      const label = document.createElement("label");
+      label.innerHTML = '<input type="checkbox" id="domain-parent-confirm">\u5BB6\u957F\u5DF2\u6838\u9A8C\u5B9E\u7269\u8BC1\u636E\u4E0E\u9A8C\u6536\u6807\u51C6';
+      redeem.parentElement.prepend(label);
+    }
+    const body = document.getElementById("bounty-modal-body");
+    if (body) {
+      let history = document.getElementById("domain-bounty-history");
+      if (!history) {
+        history = document.createElement("div");
+        history.id = "domain-bounty-history";
+        body.appendChild(history);
+      }
+      history.innerHTML = "<h4>\u5386\u53F2\u5951\u7EA6</h4>" + getDomainState().bounties.map((item) => `<button class="ui-btn" onclick="selectDomainBounty('` + item.id + `')">` + escapeIslandText(item.title) + " \xB7 " + escapeIslandText(item.status) + "</button>").join("");
+    }
+  };
+  function selectDomainBounty(id) {
+    window2.BOUNTY_STATE = getDomainState().bounties.find((b) => b.id === id) || null;
+    renderBountyModalAndBillboard();
+  }
+  submitNewParentBounty = function() {
+    const title = document.getElementById("bounty-new-title").value.trim(), reward = document.getElementById("bounty-new-reward").value.trim(), criteria = document.getElementById("bounty-new-criteria").value.trim(), days = Number(document.getElementById("bounty-new-days").value);
+    if (title.length < 2 || !reward || criteria.length < 5 || !Number.isInteger(days) || days < 1 || days > 366) {
+      showIslandToast("\u8BF7\u5B8C\u6574\u586B\u5199\u4E3B\u9898\u3001\u4F53\u9A8C\u5FC3\u613F\u3001\u9A8C\u6536\u6807\u51C6\u4E0E1\uFF5E366\u5929\u671F\u9650");
+      return false;
+    }
+    if (/现金|转账|\d+\s*(元|块)|[¥￥]/.test(reward)) {
+      showIslandToast("\u60AC\u8D4F\u4F7F\u7528\u8363\u8A89\u6216\u966A\u4F34\u4F53\u9A8C\uFF0C\u4E0D\u4E0E\u91D1\u94B1\u6302\u94A9");
+      return false;
+    }
+    const label = document.getElementById("bounty-new-pavilion").value;
+    const key = label.includes("\u6B66\u9053") ? "dojo" : label.includes("\u4FEE\u8EAB") ? "cultivation" : label.includes("\u601D\u8FA8") ? "cognition" : "study";
+    const bounty = { id: domainId("bounty"), title, reward, criteria, days, pavilionId: key, pavilionLabel: label, createdDate: domainDate(), createdAt: (/* @__PURE__ */ new Date()).toISOString(), endDate: domainShift(domainDate(), days - 1), status: "published", parentComment: "", evidence: [] };
+    getDomainState().bounties.push(bounty);
+    window2.BOUNTY_STATE = bounty;
+    toggleBountyPublishForm();
+    renderBountyModalAndBillboard();
+    domainEvent("bounty.published", bounty.id, "\u53D1\u5E03\u4EB2\u5B50\u6311\u6218\u300A" + title + "\u300B");
+    return true;
+  };
+  acceptParentBounty = function() {
+    const b = window2.BOUNTY_STATE;
+    if (!b || b.status !== "published")
+      return false;
+    b.status = "accepted";
+    b.acceptedDate = domainDate();
+    b.acceptedAt = (/* @__PURE__ */ new Date()).toISOString();
+    renderBountyModalAndBillboard();
+    refreshDomainProjections();
+    domainEvent("bounty.accepted", b.id, "\u63ED\u699C\u5E94\u6218\u300A" + b.title + "\u300B");
+    return true;
+  };
+  uploadBountyEvidence = function() {
+    const b = window2.BOUNTY_STATE;
+    if (!b || b.status !== "accepted")
+      return;
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*,video/*";
+    input.onchange = async () => {
+      if (!input.files?.[0])
+        return;
+      try {
+        const media = await persistDomainMedia(input.files[0]);
+        b.evidence = [...b.evidence || [], media];
+        b.evidencePath = media.path;
+        b.evidenceName = media.name;
+        b.evidenceUploaded = true;
+        renderBountyModalAndBillboard();
+        notifyIslandStateChanged();
+      } catch (error) {
+        showIslandToast(error.message);
+      }
+    };
+    input.click();
+  };
+  completeBountyDemo = function() {
+    const b = window2.BOUNTY_STATE, comment = document.getElementById("bounty-parent-comment-input")?.value.trim(), confirmed = document.getElementById("domain-parent-confirm")?.checked;
+    if (!b || b.status !== "accepted" || !b.evidence?.some((m) => m.path) || !comment || !confirmed) {
+      showIslandToast("\u8BF7\u5148\u63ED\u699C\u3001\u4E0A\u4F20\u771F\u5B9E\u7269\u8BC1\uFF0C\u5E76\u7531\u5BB6\u957F\u586B\u5199\u5BC4\u8BED\u53CA\u52FE\u9009\u6838\u9A8C");
+      return false;
+    }
+    b.status = "redeemed";
+    b.parentComment = comment;
+    b.verifiedAt = (/* @__PURE__ */ new Date()).toISOString();
+    b.verifiedDate = domainDate();
+    b.verifiedBy = getDomainState().family.guardianNames || "\u4EB2\u5B50\u5171\u540C\u6838\u9A8C";
+    const id = domainId("record");
+    getDomainState().records.push({ id, taskInstanceId: "bounty-" + b.id + "@" + b.acceptedDate, taskId: b.id, nodeId: null, projectId: null, pavilionId: b.pavilionId, bountyId: b.id, scheduledDate: b.endDate, completedAt: b.verifiedAt, date: domainDate(), title: b.title, media: b.evidence, focusSeconds: 0, validated: true, kind: "bounty", reflection: comment });
+    const award = { id: domainId("achievement"), bountyId: b.id, sourceRecordId: id, title: "\u4EB2\u5B50\u5951\u7EA6 \xB7 " + b.title, date: domainDate(), projectType: b.pavilionId, projectName: b.title, projectTypeLabel: b.pavilionLabel, metrics: [{ name: "\u4EBA\u5DE5\u9A8C\u6536", target: b.criteria, actual: comment }], media: b.evidence, proof: b.evidence.map((m) => m.path).join("\n"), issuer: b.verifiedBy, desc: comment };
+    window2.ACHIEVEMENT_STATE.cultivationItems.push(award);
+    b.achievementId = award.id;
+    syncDomainMilestones();
+    renderBountyModalAndBillboard();
+    refreshDomainProjections();
+    domainEvent("bounty.redeemed", b.id, "\u4EB2\u5B50\u6838\u9A8C\u5151\u73B0\u300A" + b.title + "\u300B", { recordId: id, achievementId: award.id });
+    return true;
+  };
+  convertInquiryToPlan = function(idOrQuestion, quote) {
+    const state = getDomainState(), inquiry = (window2.INQUIRY_POOL_STATE || []).find((x) => x.id === idOrQuestion || x.question === idOrQuestion);
+    if (!inquiry) {
+      showIslandToast("\u8BF7\u5148\u628A\u56F0\u60D1\u5B58\u5165\u95EE\u9053\u6C60");
+      return false;
+    }
+    if (inquiry.linkedProjectId && state.projects.some((p) => p.id === inquiry.linkedProjectId)) {
+      enterSecondaryWorkspace("cultivation", "gantt");
+      return inquiry.linkedProjectId;
+    }
+    const project = { id: domainId("project"), title: ("\u95EE\u9053\u7B03\u884C \xB7 " + inquiry.question).slice(0, 30), desc: inquiry.classicFull || quote || inquiry.classic, pavilion: "cultivation", category: "\u4FEE\u8EAB\u7ACB\u5BAA", startDate: domainDate(), endDate: domainShift(domainDate(), 6), sourceInquiryId: inquiry.id, completedDays: [], isArchived: false, createdAt: (/* @__PURE__ */ new Date()).toISOString() };
+    state.projects.push(project);
+    window2.PROJECT_CANVAS_STORE[project.id] = buildStarterCanvasForProject(project);
+    state.nodesByProject[project.id] = window2.PROJECT_CANVAS_STORE[project.id].nodes;
+    const drill = state.nodesByProject[project.id].find((n) => n.nodeType === "drill");
+    drill.cardPayload.description = project.desc;
+    drill.cardPayload.evidenceType = "text";
+    drill.cardPayload.plannedMinutes = 15;
+    inquiry.converted = true;
+    inquiry.linkedProjectId = project.id;
+    inquiry.resolutionStatus = "practicing";
+    closeInquiryModal();
+    refreshDomainProjections();
+    enterSecondaryWorkspace("cultivation", "gantt");
+    domainEvent("inquiry.converted", inquiry.id, "\u56F0\u60D1\u5DF2\u8F6C\u5316\u4E3A\u4FEE\u8EAB\u9879\u76EE\u300A" + project.title + "\u300B", { projectId: project.id });
+    return project.id;
+  };
+  const domainOldInquiryRender = renderInquiryPoolList;
+  renderInquiryPoolList = function() {
+    const list = document.getElementById("inquiry-items-list"), items = window2.INQUIRY_POOL_STATE || [];
+    if (!list)
+      return;
+    const badge = document.getElementById("inquiry-count-badge");
+    if (badge)
+      badge.textContent = items.filter((i) => !i.linkedProjectId).length + " \u4E2A\u5F85\u89C4\u5212\u56F0\u60D1";
+    list.innerHTML = items.map((inquiry) => {
+      const project = getDomainState().projects.find((p) => p.id === inquiry.linkedProjectId), progress = project ? computeProjectProgressAndStatus(project) : null;
+      inquiry.resolutionStatus = progress?.complete ? "resolved" : project ? "practicing" : "pending";
+      return '<article class="note-card-box"><h4>' + escapeIslandText(inquiry.question) + "</h4><p>\u672C\u5730\u7ECF\u5178\u53C2\u8003\uFF1A" + escapeIslandText(inquiry.classicFull || inquiry.classic || "\u5C1A\u65E0\u5339\u914D") + "</p><p>" + escapeIslandText(inquiry.guide || "\u8BF7\u4E0E\u5BB6\u957F\u8BA8\u8BBA\u5177\u4F53\u884C\u52A8") + "</p><p>" + { resolved: "\u2713 \u5173\u8054\u9879\u76EE\u5DF2\u5B8C\u6210", practicing: "\u8DF5\u884C\u4E2D \xB7 \u8282\u70B9\u9A8C\u6536 " + (progress?.progress || 0) + "%", pending: "\u5C1A\u672A\u5EFA\u7ACB\u8DF5\u884C\u9879\u76EE" }[inquiry.resolutionStatus] + '</p><button class="ui-btn" onclick="' + (project ? "enterTertiaryWorkspace('" + project.id + "')" : "convertInquiryToPlan('" + inquiry.id + "')") + '">' + (project ? "\u6253\u5F00\u5173\u8054\u9879\u76EE" : "\u751F\u6210\u4FEE\u8EAB\u89C4\u5212") + "</button></article>";
+    }).join("") || "<p>\u8FD8\u6CA1\u6709\u4FDD\u5B58\u56F0\u60D1</p>";
+  };
+  function openFamilyProfile() {
+    const family = getDomainState().family;
+    document.getElementById("domain-family-editor")?.remove();
+    const modal = document.createElement("div");
+    modal.id = "domain-family-editor";
+    modal.className = "domain-modal";
+    modal.innerHTML = `<div class="note-card-box"><h3>\u4EB2\u5B50\u5BB6\u5EAD\u6863\u6848\u4E0E\u516C\u7EA6</h3><label>\u5B69\u5B50\u59D3\u540D<input id="domain-child"></label><label>\u76D1\u62A4\u4EBA\u59D3\u540D<input id="domain-guardians"></label><label>\u5171\u540C\u786E\u7ACB\u7684\u6761\u6B3E\uFF08\u6BCF\u884C\u4E00\u6761\uFF09<textarea id="domain-clauses" style="min-height:140px;"></textarea></label><label><input type="checkbox" id="domain-family-signed">\u53CC\u65B9\u5171\u540C\u786E\u8BA4\u4EE5\u4E0A\u6761\u6B3E\uFF0C\u5E76\u540C\u610F\u7B7E\u7F72\u672C\u7248\u672C</label><button class="ui-btn primary" onclick="saveFamilyProfile()">\u4FDD\u5B58\u5E76\u7B7E\u7F72</button><button class="ui-btn" onclick="document.getElementById('domain-family-editor').remove()">\u53D6\u6D88</button></div>`;
+    (document.querySelector(".youth-island-plugin-root") || document.body).appendChild(modal);
+    document.getElementById("domain-child").value = family.childName;
+    document.getElementById("domain-guardians").value = family.guardianNames;
+    document.getElementById("domain-clauses").value = family.clauses.map((c) => c.text).join("\n");
+  }
+  function saveFamilyProfile() {
+    const child = document.getElementById("domain-child").value.trim(), guardians = document.getElementById("domain-guardians").value.trim(), clauses = document.getElementById("domain-clauses").value.split("\n").map((x) => x.trim()).filter(Boolean);
+    if (!child || !guardians || !clauses.length || !document.getElementById("domain-family-signed").checked) {
+      showIslandToast("\u8BF7\u586B\u5199\u53CC\u65B9\u59D3\u540D\u548C\u6761\u6B3E\uFF0C\u5E76\u5171\u540C\u786E\u8BA4\u7B7E\u7F72");
+      return false;
+    }
+    const old = getDomainState().family;
+    getDomainState().family = { childName: child, guardianNames: guardians, version: (old.version || 0) + 1, signedAt: (/* @__PURE__ */ new Date()).toISOString(), clauses: clauses.map((text) => ({ id: old.clauses.find((c) => c.text === text)?.id || domainId("clause"), text })), versions: [...old.versions || [], ...old.signedAt ? [{ ...old, versions: void 0 }] : []] };
+    document.getElementById("domain-family-editor").remove();
+    openFamilyPactModal();
+    domainEvent("family.signed", String(getDomainState().family.version), "\u4EB2\u5B50\u5171\u540C\u7B7E\u7F72\u516C\u7EA6\u7248\u672C " + getDomainState().family.version);
+    return true;
+  }
+  openFamilyPactModal = function() {
+    const modal = document.getElementById("family-pact-modal"), f = getDomainState().family;
+    modal.innerHTML = '<div class="note-card-box domain-pact-sheet"><h2>\u4EB2\u5B50\u516C\u7EA6 \xB7 ' + (f.signedAt ? "\u7B2C" + f.version + "\u7248" : "\u5C1A\u672A\u7B7E\u7F72") + "</h2><p>\u5B69\u5B50\uFF1A" + escapeIslandText(f.childName || "\u672A\u586B\u5199") + "\uFF1B\u76D1\u62A4\u4EBA\uFF1A" + escapeIslandText(f.guardianNames || "\u672A\u586B\u5199") + "</p><p>\u7B7E\u7F72\u65F6\u95F4\uFF1A" + escapeIslandText(f.signedAt || "\u5C1A\u65E0\u5171\u540C\u7B7E\u7F72\u8BB0\u5F55") + "</p><ol>" + f.clauses.map((c) => "<li>" + escapeIslandText(c.text) + "</li>").join("") + '</ol><button class="ui-btn" onclick="openFamilyProfile()">\u7EF4\u62A4\u5BB6\u5EAD\u6863\u6848\u4E0E\u6761\u6B3E</button><button class="ui-btn" onclick="printFamilyPact()">\u5BFC\u51FA\u516C\u7EA6\u6863\u6848</button><section id="pact-violation-console"><h3>\u4EB2\u5B50\u5171\u540C\u786E\u8BA4 \xB7 \u8FDD\u7EA6\u4E8B\u5B9E\u4E0E\u8865\u6551</h3><select id="pact-violation-clause">' + f.clauses.map((c) => '<option value="' + c.id + '">' + escapeIslandText(c.text) + "</option>").join("") + '</select><input id="pact-violation-reason" placeholder="\u5BA2\u89C2\u4E8B\u5B9E"><label><input type="checkbox" id="pact-violation-confirm-chk">\u53CC\u65B9\u5DF2\u5E73\u9759\u6838\u5B9E\u4E8B\u5B9E</label><button class="ui-btn" onclick="submitPactViolationAdjudication()">\u767B\u8BB0\u5E76\u6D3E\u53D1\u4E03\u65E5\u8865\u6551</button><div id="pact-violation-history-list">' + window2.USER_PROFILE_STATE.violationRecords.map((r) => "<p>" + escapeIslandText(r.reason) + " \xB7 " + escapeIslandText(r.time || r.date) + "</p>").join("") + '</div></section><button class="ui-btn" onclick="closeFamilyPactModal()">\u5173\u95ED</button></div>';
+    modal.style.display = "flex";
+  };
+  renderTreeSpecializedWorkspace = function() {
+    const f = getDomainState().family;
+    return '<div class="note-card-box"><h2>\u5DF2\u5171\u540C\u786E\u7ACB\u7684\u884C\u4E3A\u89C4\u8303</h2><p>' + (f.signedAt ? "\u516C\u7EA6\u7248\u672C " + f.version + "\uFF0C\u53CC\u65B9\u5171\u540C\u7B7E\u7F72\u4E8E " + escapeIslandText(f.signedAt) : "\u5C1A\u672A\u5171\u540C\u786E\u7ACB\u5BB6\u5EAD\u6761\u6B3E\u3002\u7ECF\u5178\u8D44\u6599\u53EF\u4F9B\u8BA8\u8BBA\uFF0C\u4E0D\u4EE3\u8868\u5DF2\u7B7E\u7F72\u3002") + "</p><ol>" + f.clauses.map((c) => "<li>" + escapeIslandText(c.text) + "</li>").join("") + '</ol><button class="ui-btn" onclick="openFamilyPactModal()">\u516C\u7EA6\u5168\u6587\u4E0E\u5171\u540C\u88C1\u51B3</button><button class="ui-btn" onclick="openDaxuePhilosophyModal()">\u7ECF\u5178\u53C2\u8003\u8D44\u6599</button></div>';
+  };
+  submitPactViolationAdjudication = function() {
+    const s = getDomainState(), f = s.family, reason = document.getElementById("pact-violation-reason")?.value.trim(), clauseId = document.getElementById("pact-violation-clause")?.value, clause = f.clauses.find((c) => c.id === clauseId);
+    if (!f.signedAt || !clause || !reason || !document.getElementById("pact-violation-confirm-chk")?.checked) {
+      showIslandToast("\u8BF7\u5148\u5171\u540C\u786E\u7ACB\u6761\u6B3E\uFF0C\u518D\u6838\u5B9E\u4E8B\u5B9E\u5E76\u786E\u8BA4");
+      return false;
+    }
+    const id = domainId("violation"), project = { id: domainId("project"), title: "\u4E03\u65E5\u4FEE\u8EAB\u5F25\u8865 \xB7 " + clause.text.slice(0, 12), pavilion: "cultivation", category: "\u4FEE\u8EAB\u7ACB\u5BAA", desc: reason, startDate: domainDate(), endDate: domainShift(domainDate(), 6), completedDays: [], isArchived: false, sourceViolationId: id };
+    s.projects.push(project);
+    const node = domainNode({ title: "\u6BCF\u65E5\u614E\u72EC\u8DF5\u884C\u4E0E\u590D\u76D8", archetype: "habit", frequency: "daily", evidenceType: "text", checklistItems: ["\u6838\u9A8C\u5DF2\u7EA6\u5B9A\u6761\u6B3E\uFF1A" + clause.text, "\u843D\u5B9E\u5F53\u5929\u6539\u5584\u884C\u52A8"], description: reason }, project);
+    s.nodesByProject[project.id] = [node];
+    window2.PROJECT_CANVAS_STORE[project.id] = { nodes: [node], edges: [], cardsHtml: "" };
+    const record = { id, date: domainDate(), time: (/* @__PURE__ */ new Date()).toISOString(), clauseId, clause: clause.text, reason, familyVersion: f.version, remedyProjectId: project.id };
+    window2.USER_PROFILE_STATE.violationRecords.unshift(record);
+    window2.USER_PROFILE_STATE.violationCount = window2.USER_PROFILE_STATE.violationRecords.length;
+    domainEvent("pact.violation", id, "\u5171\u540C\u786E\u8BA4\u8FDD\u7EA6\u5E76\u6D3E\u53D1\u4E03\u65E5\u8865\u6551\uFF1A" + reason, { projectId: project.id });
+    refreshDomainProjections();
+    openFamilyPactModal();
+    return record;
+  };
+  renderGanttChart = function() {
+    const state = getDomainState(), all = state.projects, labels = { "\u5F85\u89C4\u5212": "planned", "\u5F85\u6267\u884C": "pending", "\u8FDB\u884C\u4E2D": "exec", "\u5DF2\u5B8C\u6210": "done", "\u5DF2\u5F52\u6863": "archived" }, counts = { all: all.length, planned: 0, pending: 0, exec: 0, done: 0, archived: 0 };
+    for (const p of all)
+      counts[labels[computeProjectProgressAndStatus(p).status]]++;
+    for (const [key, value] of Object.entries(counts)) {
+      const el = document.getElementById("count-" + key);
+      if (el)
+        el.textContent = value;
+    }
+    const projects = all.filter((p) => (currentGanttCategory === "all" || p.category === currentGanttCategory) && (currentGanttStatus === "all" || labels[computeProjectProgressAndStatus(p).status] === currentGanttStatus));
+    const table = document.getElementById("gantt-table-rows"), header = document.getElementById("gantt-timeline-header"), rows = document.getElementById("gantt-timeline-rows");
+    if (!table || !header || !rows)
+      return;
+    table.innerHTML = projects.map((p) => {
+      const r = computeProjectProgressAndStatus(p);
+      return '<div class="gantt-project-row"><div>' + escapeIslandText(p.category || PAVILION_META[p.pavilion]?.name || "\u89C4\u5212") + "</div><div><strong>" + escapeIslandText(p.title) + "</strong><p>" + escapeIslandText(p.desc || p.description || "") + "</p></div><div>" + p.startDate + " \uFF5E " + p.endDate + "<p>\u8282\u70B9\u9A8C\u6536 " + r.progress + "%\uFF08" + r.completedNodesCount + "/" + r.totalNodesCount + "\uFF09</p></div><div>" + r.status + `</div><div><button class="gantt-op-btn" onclick="openEditProjectModal('` + p.id + `')">\u7F16\u8F91</button><button class="gantt-op-btn" onclick="enterTertiaryWorkspace('` + p.id + `')">\u8111\u56FE</button><button class="gantt-op-btn" onclick="handleOpenObsidianCanvas('` + p.id + `')">\u5BFC\u51FA/\u6253\u5F00Canvas</button><button class="gantt-op-btn" onclick="importDomainCanvas('` + p.id + `')">\u5BFC\u5165Canvas\u5E03\u5C40</button><button class="gantt-op-btn" onclick="toggleProjectArchive('` + p.id + `')">` + (p.isArchived ? "\u6062\u590D" : "\u5F52\u6863") + "</button></div></div>";
+    }).join("") || "<p>\u6682\u65E0\u9879\u76EE</p>";
+    const start = projects.reduce((date, p) => p.startDate < date ? p.startDate : date, domainDate()), end = projects.reduce((date, p) => p.endDate > date ? p.endDate : date, domainDate());
+    const count = Math.min(3660, diffGanttDays(start, end) + 1), width = count * 38;
+    window2.domainGanttRangeStart = start;
+    header.innerHTML = '<div class="gantt-timeline-inner" style="width:' + width + 'px"><div class="gantt-month-row">' + start + " \uFF5E " + end + '</div><div class="gantt-day-row">' + Array.from({ length: count }, (_, i) => '<div class="gantt-day-cell" style="width:38px">' + domainShift(start, i).slice(5) + "</div>").join("") + "</div></div>";
+    rows.innerHTML = '<div class="gantt-timeline-inner" style="width:' + width + 'px">' + projects.map((p) => '<div class="gantt-timeline-row">' + Array.from({ length: count }, (_, i) => {
+      const date = domainShift(start, i);
+      if (date < p.startDate || date > p.endDate)
+        return "";
+      const records = state.records.filter((r) => r.projectId === p.id && r.date === date && r.validated === true), done = records.length > 0;
+      return '<div class="gantt-day-square ' + (done ? "sq-done" : "sq-pending") + '" data-id="' + p.id + '" data-date="' + date + '" style="position:absolute;left:' + (i * 38 + 4) + 'px" title="' + date + "\uFF1A\u771F\u5B9E\u6267\u884C\u8BB0\u5F55 " + records.length + ` \u9879" onclick="openDomainProjectDay('` + p.id + "','" + date + `')">` + (done ? "\u2713" : date.slice(-2)) + "</div>";
+    }).join("") + "</div>").join("") + "</div>";
+  };
+  const domainDataGantt = renderGanttChart;
+  renderGanttChart = function() {
+    domainDataGantt();
+    document.querySelectorAll(".gantt-toolbar-actions button").forEach((button) => {
+      const action = button.getAttribute("onclick") || "";
+      if (action.includes("scrollGanttToToday"))
+        button.textContent = "\u{1F4CD} \u56DE\u5230\u4ECA\u65E5 (" + domainDate().slice(5).replace("-", "/") + ")";
+      if (action.includes("openInquiryModal"))
+        button.textContent = "\u2753 \u95EE\u9053\u6C60 \xB7 " + (window2.INQUIRY_POOL_STATE || []).filter((i) => !i.linkedProjectId).length + "\u4E2A\u5F85\u89C4\u5212";
+    });
+    document.querySelectorAll("#gantt-table-rows button").forEach((button) => {
+      if ((button.getAttribute("onclick") || "").includes("handleOpenObsidianCanvas")) {
+        button.textContent = "\u6253\u5F00Canvas";
+        button.title = "\u9996\u6B21\u751F\u6210\uFF0C\u4E4B\u540E\u6253\u5F00\u5DF2\u6709\u6587\u4EF6\uFF1B\u539F\u751F\u7F16\u8F91\u4E0D\u4F1A\u88AB\u540E\u53F0\u8986\u76D6";
+      }
+    });
+  };
+  scrollGanttToToday = function() {
+    const col = document.getElementById("gantt-timeline-col");
+    if (col)
+      col.scrollTo({ left: Math.max(0, diffGanttDays(window2.domainGanttRangeStart || domainDate(), domainDate()) * 38 - col.clientWidth / 2), behavior: "smooth" });
+  };
+  function openDomainProjectDay(projectId, date) {
+    const records = getDomainState().records.filter((r) => r.projectId === projectId && r.date === date);
+    document.getElementById("domain-day-records")?.remove();
+    const modal = document.createElement("div");
+    modal.id = "domain-day-records";
+    modal.className = "domain-modal";
+    modal.innerHTML = '<div class="note-card-box"><h3>' + escapeIslandText(date) + " \u539F\u59CB\u6267\u884C\u8BB0\u5F55</h3>" + records.map((r) => "<article><h4>" + escapeIslandText(r.title) + "</h4><p>\u5B9E\u9645\u4E13\u6CE8 " + Math.floor(r.focusSeconds / 60) + " \u5206\u949F \xB7 " + escapeIslandText(r.completedAt || "\u5386\u53F2\u8BB0\u5F55") + "</p><p>" + escapeIslandText(r.reflection || "") + "</p>" + (r.media || []).map((m) => `<button class="ui-btn" onclick="openDomainMedia('` + m.id + `')">` + escapeIslandText(m.name) + "</button>").join("") + "</article>").join("") + `<button class="ui-btn" onclick="document.getElementById('domain-day-records').remove()">\u5173\u95ED</button></div>`;
+    if (!records.length)
+      modal.querySelector("h3").insertAdjacentHTML("afterend", "<p>\u5F53\u65E5\u5C1A\u65E0\u771F\u5B9E\u6267\u884C\u8BB0\u5F55</p>");
+    (document.querySelector(".youth-island-plugin-root") || document.body).appendChild(modal);
+  }
+  function importDomainCanvas(id) {
+    if (window2.__importIslandCanvas)
+      return window2.__importIslandCanvas(id).then((result) => {
+        if (result) {
+          bootstrapDomainState(true);
+          renderDomainCanvas(id);
+          refreshDomainProjections();
+        }
+      });
+    showIslandToast("\u8BBE\u8BA1\u9884\u89C8\u4E0D\u8FDE\u63A5Obsidian Canvas\uFF1B\u63D2\u4EF6\u4E2D\u53EF\u5BFC\u5165\u5E03\u5C40\u548C\u6587\u672C\u4FBF\u7B7E");
+  }
+  async function exportDomainDocument(path, title, content) {
+    if (window2.__exportIslandDocument)
+      return window2.__exportIslandDocument(path, content);
+    const url = URL.createObjectURL(new Blob([content], { type: "text/markdown;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = title + ".md";
+    link.click();
+    setTimeout2(() => URL.revokeObjectURL(url), 1e3);
+    return true;
+  }
+  printFamilyPact = async function() {
+    const f = getDomainState().family;
+    if (!f.signedAt) {
+      showIslandToast("\u8BF7\u5148\u5171\u540C\u7B7E\u7F72\u516C\u7EA6");
+      return false;
+    }
+    return exportDomainDocument("exports/family-pact-v" + f.version + ".md", "\u4EB2\u5B50\u516C\u7EA6", "# \u4EB2\u5B50\u5171\u540C\u516C\u7EA6\n\n\u5B69\u5B50\uFF1A" + f.childName + "\n\u76D1\u62A4\u4EBA\uFF1A" + f.guardianNames + "\n\u7248\u672C\uFF1A" + f.version + "\n\u7B7E\u7F72\u65F6\u95F4\uFF1A" + f.signedAt + "\n\n" + f.clauses.map((c) => "- " + c.text).join("\n"));
+  };
+  async function exportDomainAchievement(id) {
+    const a = [...window2.ACHIEVEMENT_STATE.cultivationItems, ...window2.ACHIEVEMENT_STATE.accidentalItems].find((a2) => a2.id === id);
+    if (!a)
+      return false;
+    return exportDomainDocument("exports/achievement-" + a.id + ".md", a.title, "# " + a.title + "\n\n\u65E5\u671F\uFF1A" + a.date + "\n\u6765\u6E90\u9879\u76EE\uFF1A" + (a.sourceProjectId || "\u751F\u6D3B\u9AD8\u5149") + "\n\n" + (a.metrics || []).map((m) => "- " + m.name + "\uFF1A\u76EE\u6807 " + m.target + "\uFF1B\u5B9E\u6D4B " + m.actual).join("\n") + "\n\n" + (a.desc || "") + "\n\n" + (a.media || []).map((m) => "![[" + m.path + "]]").join("\n"));
+  }
+  createImageEvidencePrompt = function() {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = async () => {
+      if (!input.files?.[0])
+        return;
+      try {
+        const m = await persistDomainMedia(input.files[0]);
+        const card = createTertiaryCustomPlanningCard({ archetype: "text", title: "\u56FE\u7247\u8D44\u6599 \xB7 " + input.files[0].name.slice(0, 15), content: "![[" + m.path + "]]" });
+        if (card)
+          domainEvent("resource.created", card.id, "\u63D2\u5165\u771F\u5B9E\u56FE\u7247\u8D44\u6599");
+      } catch (error) {
+        showIslandToast(error.message);
+      }
+    };
+    input.click();
+  };
+  createTextNotePrompt = function() {
+    openDomainEditor("\u65B0\u589E\u6587\u672C\u4FBF\u7B7E", "", (text) => createTertiaryCustomPlanningCard({ archetype: "text", title: text.slice(0, 25) || "\u6587\u672C\u4FBF\u7B7E", content: text }));
+  };
+  createTableDataPrompt = function() {
+    return createTertiaryCustomPlanningCard({ archetype: "text", title: "\u91CF\u5316\u89C2\u5BDF\u8BB0\u5F55\u8868", content: "| \u65E5\u671F | \u5B9E\u6D4B\u503C | \u89C2\u5BDF\u4E0E\u8BC1\u636E |\n| --- | --- | --- |\n| " + domainDate() + " | \u5F85\u5F55\u5165 | \u5F85\u8BB0\u5F55 |" });
+  };
+  function acknowledgeDomainText(id) {
+    const node = getDomainNode(id);
+    if (!node || node.nodeType !== "text")
+      return;
+    node.readCount++;
+    node.lastReadTime = (/* @__PURE__ */ new Date()).toISOString();
+    domainEvent("text.read", id, "\u6E29\u4E60\u300A" + node.title + "\u300B", { projectId: node.projectId });
+    renderDomainCanvas(node.projectId);
+    saveCurrentProjectCanvasSnapshot();
+  }
+  updatePavilionBadges = function() {
+    for (const [key, meta] of Object.entries(PAVILION_META)) {
+      const node = document.getElementById("node-" + key), badge = node?.querySelector(".pavilion-view-badge");
+      if (badge)
+        badge.textContent = getDomainState().projects.filter((p) => p.pavilion === key && !p.isArchived).length + " \u4E2A\u89C4\u5212\u9879\u76EE";
+    }
+  };
+  renderHomeSemesterGoalsBanner = function() {
+    const list = document.getElementById("island-goal-cards-list");
+    if (!list)
+      return;
+    const projects = getDomainState().projects.filter((p) => !p.isArchived);
+    list.innerHTML = projects.map((p) => {
+      const progress = computeProjectProgressAndStatus(p);
+      return `<div class="island-goal-item-card" onclick="enterTertiaryWorkspace('` + p.id + `')"><div class="goal-card-top-row"><span class="goal-card-pav-tag">` + escapeIslandText(PAVILION_META[p.pavilion]?.name || p.pavilion) + '</span><span class="goal-card-pct-badge">' + progress.progress + '%</span></div><div class="goal-card-title">' + escapeIslandText(p.title) + '</div><div class="goal-card-desc-text">\u8282\u70B9\u9A8C\u6536 ' + progress.completedNodesCount + "/" + progress.totalNodesCount + "</div></div>";
+    }).join("") || "<p>\u5C1A\u65E0\u89C4\u5212\u9879\u76EE\uFF0C\u8BF7\u8FDB\u5165\u573A\u9986\u65B0\u5EFA\u9879\u76EE</p>";
+  };
+  const domainOriginalInspector = inspectMonthDate;
+  inspectMonthDate = function(y, m, d) {
+    domainOriginalInspector(y, m, d);
+    const date = y + "-" + String(m).padStart(2, "0") + "-" + String(d).padStart(2, "0"), tasks = domainTasks().filter((t) => t.date === date);
+    window2.activeDomainInspectorDate = date;
+    for (const [id, filter] of [["inspector-list-done", (t) => t.status === "completed"], ["inspector-list-overdue", (t) => t.status === "overdue"], ["inspector-list-pending", (t) => !["completed", "overdue"].includes(t.status)]]) {
+      const el = document.getElementById(id);
+      if (el)
+        el.innerHTML = tasks.filter(filter).map((t) => `<button class="ui-btn" onclick="closeDayInspector();openDomainTask('` + t.id + `')">` + escapeIslandText(t.title) + " \xB7 " + escapeIslandText({ blocked: "\u524D\u7F6E\u672A\u5B8C\u6210", ready: "\u5C31\u7EEA", scheduled: "\u672A\u5230\u671F", completed: "\u5DF2\u5B8C\u6210", overdue: "\u903E\u671F" }[t.status]) + "</button>").join("") || "<p>\u6682\u65E0\u4E8B\u9879</p>";
+    }
+    document.getElementById("domain-actual-deliveries")?.remove();
+    const list = document.createElement("section");
+    list.id = "domain-actual-deliveries";
+    const records = getDomainState().records.filter((r) => r.date === date && r.validated === true);
+    list.innerHTML = "<h4>\u672C\u65E5\u5B9E\u9645\u4EA4\u4ED8 " + records.length + " \u9879</h4>" + records.map((r) => "<p>" + escapeIslandText(r.title) + " \xB7 \u8BA1\u5212\u65E5 " + escapeIslandText(r.scheduledDate || r.date) + " \xB7 \u5B9E\u9645\u65E5 " + r.date + "</p>").join("");
+    document.getElementById("inspector-list-done")?.appendChild(list);
+  };
+  const domainOldMonth = renderMonthCalendar;
+  renderMonthCalendar = function() {
+    domainOldMonth();
+    const base = getCalendarBaseMonth();
+    document.querySelectorAll("#month-calendar-grid .month-day-cell:not(.other-month)").forEach((cell, i) => {
+      const date = domainDate(new Date(base.getFullYear(), base.getMonth(), i + 1)), records = getDomainState().records.filter((r) => r.date === date && r.validated === true), violations = window2.USER_PROFILE_STATE.violationRecords.filter((r) => (r.date || r.time || "").slice(0, 10) === date);
+      const pips = cell.querySelector(".month-pips-row");
+      if (!pips)
+        return;
+      pips.querySelectorAll(".month-pip").forEach((p) => {
+        if (p.textContent.includes("\u2696\uFE0F"))
+          p.remove();
+      });
+      if (records.length)
+        pips.insertAdjacentHTML("beforeend", '<span class="month-pip domain-actual-count">\u5B9E\u9645\u4EA4\u4ED8 ' + records.length + "</span>");
+      if (violations.length)
+        pips.insertAdjacentHTML("beforeend", '<span class="month-pip">\u2696\uFE0F \u672C\u65E5\u8FDD\u7EA6 ' + violations.length + "</span>");
+    });
+  };
+  openEvidenceGalleryForDay = function() {
+    const date = window2.activeDomainInspectorDate || domainDate(), state = getDomainState();
+    closeDayInspector();
+    document.getElementById("domain-day-gallery")?.remove();
+    const media = [...state.records.filter((r) => r.date === date).flatMap((r) => r.media || []), ...window2.NOTE_STATE.historyEntries.filter((e) => e.date === date).flatMap((e) => e.media || []), ...date === domainDate() ? window2.NOTE_STATE.mediaList : []];
+    const unique = [...new Map(media.filter((m) => m.path).map((m) => [m.id, m])).values()], modal = document.createElement("div");
+    modal.id = "domain-day-gallery";
+    modal.className = "domain-modal";
+    modal.innerHTML = '<div class="note-card-box"><h3>' + date + " \u5B9E\u9645\u9644\u4EF6\u539F\u4EF6</h3>" + (unique.map((m) => `<button class="ui-btn" onclick="openDomainMedia('` + m.id + `')">` + escapeIslandText(m.name) + "</button>").join("") || "<p>\u8BE5\u65E5\u671F\u6CA1\u6709\u4FDD\u5B58\u9644\u4EF6\u539F\u4EF6</p>") + `<button class="ui-btn" onclick="document.getElementById('domain-day-gallery').remove()">\u5173\u95ED</button></div>`;
+    (document.querySelector(".youth-island-plugin-root") || document.body).appendChild(modal);
+  };
+  const domainOldFreezeDialog = openStreakFreezeDialog;
+  openStreakFreezeDialog = function() {
+    domainOldFreezeDialog();
+    const modal = document.getElementById("island-freeze-dialog");
+    modal.classList.add("domain-modal");
+    modal.style.position = "fixed";
+    const history = document.createElement("section");
+    history.innerHTML = "<h4>\u672C\u6708\u5DF2\u6279\u51C6\u4FDD\u62A4</h4>" + (window2.USER_PROFILE_STATE.freezeRecords || []).filter((r) => r.date.slice(0, 7) === domainDate().slice(0, 7)).map((r) => "<p>" + r.date + " \xB7 " + escapeIslandText(r.reason) + " \xB7 " + escapeIslandText(r.approvedAt) + "</p>").join("");
+    modal.firstElementChild.appendChild(history);
+  };
+  submitStreakFreeze = function() {
+    const date = document.getElementById("island-freeze-date")?.value, reason = document.getElementById("island-freeze-reason")?.value.trim(), confirmed = document.getElementById("island-freeze-confirm")?.checked, today = ensureBusinessDate(), profile = window2.USER_PROFILE_STATE;
+    profile.freezeRecords = profile.freezeRecords || [];
+    profile.approvedFreezeDays = profile.approvedFreezeDays || [];
+    if (!domainValidDate(date) || date >= today || date.slice(0, 7) !== today.slice(0, 7) || !reason || !confirmed) {
+      showIslandToast("\u8BF7\u9009\u62E9\u672C\u6708\u5DF2\u8FC7\u53BB\u7684\u65E5\u671F\u3001\u586B\u5199\u539F\u56E0\u5E76\u7531\u5BB6\u957F\u6279\u51C6");
+      return false;
+    }
+    if (profile.approvedFreezeDays.includes(date) || getDomainState().records.some((r) => r.date === date && r.validated === true) || profile.violationRecords.some((r) => (r.date || r.time || "").slice(0, 10) === date)) {
+      showIslandToast("\u8BE5\u65E5\u5DF2\u6709\u4FDD\u62A4\u3001\u6709\u6548\u6267\u884C\u6216\u8FDD\u7EA6\u4E8B\u5B9E\uFF0C\u4E0D\u80FD\u6279\u51C6");
+      return false;
+    }
+    if (profile.freezeRecords.filter((r) => r.date.slice(0, 7) === date.slice(0, 7)).length >= 2) {
+      showIslandToast("\u672C\u6708\u4E24\u6B21\u4FDD\u62A4\u989D\u5EA6\u5DF2\u7528\u5B8C");
+      return false;
+    }
+    const record = { id: domainId("freeze"), date, reason, approvedAt: (/* @__PURE__ */ new Date()).toISOString() };
+    profile.freezeRecords.push(record);
+    profile.approvedFreezeDays.push(date);
+    profile.streakFreezeAllowance = 2;
+    profile.streakFreezeUsed = profile.freezeRecords.filter((r) => r.date.slice(0, 7) === date.slice(0, 7)).length;
+    domainEvent("streak.protected", record.id, "\u4EB2\u5B50\u6279\u51C6 " + date + " \u575A\u6301\u4FDD\u62A4\uFF1A" + reason);
+    recalcAndRenderGlobalHUD();
+    document.getElementById("island-freeze-dialog").remove();
+    return true;
+  };
+  const domainOriginalAchievementOpen = openAchievementDetailModal;
+  openAchievementDetailModal = function(type, id) {
+    window2.activeDomainAchievementId = id;
+    domainOriginalAchievementOpen(type, id);
+  };
+  function captureDomainLayout() {
+    for (const [key, meta] of Object.entries(PAVILION_META)) {
+      if (!key.startsWith("custom-"))
+        continue;
+      const node = document.getElementById("node-" + key);
+      if (node)
+        meta.position = { left: node.style.left, top: node.style.top };
+    }
+  }
+  const domainRestore = restoreBusinessViews;
+  restoreBusinessViews = function() {
+    domainRestore();
+    applyAvatarSettings();
+    const grid = document.getElementById("island-pavilion-grid");
+    for (const [key, meta] of Object.entries(PAVILION_META)) {
+      if (!key.startsWith("custom-") || !grid)
+        continue;
+      let node = document.getElementById("node-" + key);
+      if (!node) {
+        node = document.createElement("div");
+        node.id = "node-" + key;
+        node.className = "pavilion-node custom-module-node";
+        node.innerHTML = '<div class="pavilion-card-body"><div class="pavilion-3d-visual">' + escapeIslandText(meta.icon || "\u{1F3AF}") + '</div></div><div class="pavilion-card-label">' + escapeIslandText(meta.name) + '</div><div class="pavilion-view-badge"></div>';
+        node.onclick = () => handlePavilionClick(key);
+        grid.appendChild(node);
+        initNodeDragging(node);
+      }
+      node.style.left = meta.position?.left || "50%";
+      node.style.top = meta.position?.top || "50%";
+      for (const [container, cls, handler] of [["gantt-category-filters", "gantt-filter-btn", "filterGanttCategory"], ["proj-category-picker", "proj-cat-chip", "selectProjCategory"]]) {
+        const parent = document.getElementById(container);
+        if (parent && !Array.from(parent.children).some((el) => el.dataset.cat === meta.cat)) {
+          const button = document.createElement("button");
+          button.className = cls;
+          button.dataset.cat = meta.cat;
+          button.textContent = meta.name;
+          button.onclick = () => handler === "filterGanttCategory" ? filterGanttCategory(meta.cat) : selectProjCategory(button, meta.cat);
+          parent.appendChild(button);
+        }
+      }
+    }
+    updatePavilionBadges();
+    const st = window2.USER_PROFILE_STATE;
+    st.streakFreezeAllowance = 2;
+    st.streakFreezeUsed = (st.freezeRecords || []).filter((r) => r.date.slice(0, 7) === domainDate().slice(0, 7)).length;
+    const unimplemented = ["openCameraSettings", "toggleChildDetails", "toggleStatusFilterMenu", "toggleOperationTools", "openZoomScopeModal", "openStudyMakeUpModal", "openMoralTestModal", "deriveEbbinghausDemo", "incrementDojoReps", "recordTreeTestDemo"];
+    document.querySelectorAll("button[onclick]").forEach((button) => {
+      const code = button.getAttribute("onclick") || "";
+      if (unimplemented.some((name) => code.startsWith(name + "(")) || /^showIslandToast\(/.test(code) && /已生成|已插入|已上传|打卡成功|已完成|证书/.test(code)) {
+        button.disabled = true;
+        button.title = "\u8BE5\u5386\u53F2\u539F\u578B\u5DE5\u5177\u672A\u542F\u7528\uFF0C\u4E0D\u4F1A\u4EA7\u751F\u4E1A\u52A1\u8BB0\u5F55";
+      }
+    });
+  };
+  const domainOldRenderNote = renderNoteSpecializedWorkspace;
+  renderNoteSpecializedWorkspace = function() {
+    const text = domainOldRenderNote();
+    const prompts = ["\u4ECA\u5929\u9047\u5230\u7684\u4E00\u4E2A\u96BE\u70B9\u662F\u4EC0\u4E48\uFF1F\u4F60\u91C7\u7528\u4E86\u4EC0\u4E48\u529E\u6CD5\uFF1F", "\u4ECA\u5929\u54EA\u4E00\u6B21\u7EC3\u4E60\u6700\u4E13\u6CE8\uFF1F\u8BB0\u5F55\u4E00\u4E2A\u5177\u4F53\u7EC6\u8282\u3002", "\u4ECA\u5929\u7684\u5584\u610F\u4E0E\u81EA\u5F8B\u4F53\u73B0\u5728\u54EA\u4EF6\u5C0F\u4E8B\u4E0A\uFF1F"];
+    const ordinal = Math.floor((/* @__PURE__ */ new Date(domainDate() + "T12:00:00")).getTime() / 864e5);
+    return text.replace(/<button\b[^>]*onclick="addNoteDemoMedia[^"]*"[^>]*>[\s\S]*?<\/button>/g, "").replace("\u4ECA\u5929\u9762\u5BF9\u5361\u70B9\u6216\u75B2\u52B3\u65F6\uFF0C\u4F60\u662F\u5982\u4F55\u575A\u5B9A\u610F\u5FD7\u8DE8\u8FC7\u969C\u788D\u7684\uFF1F\u54EA\u4E00\u77AC\u95F4\u8BA9\u4F60\u6700\u6709\u6210\u5C31\u611F\uFF1F", prompts[ordinal % prompts.length]);
+  };
+  async function openDesignDatabase() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open("youth-island-design-v3", 1);
+      request.onupgradeneeded = () => request.result.createObjectStore("data");
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+  async function designData(key, value) {
+    const db = await openDesignDatabase();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction("data", value === void 0 ? "readonly" : "readwrite"), store = transaction.objectStore("data"), request = value === void 0 ? store.get(key) : store.put(value, key);
+      request.onsuccess = () => {
+        if (value === void 0)
+          resolve(request.result);
+      };
+      transaction.oncomplete = () => {
+        db.close();
+        if (value !== void 0)
+          resolve(value);
+      };
+      transaction.onerror = () => {
+        db.close();
+        reject(transaction.error);
+      };
+    });
+  }
+  if (!window2.__YOUTH_ISLAND_RUNTIME_BOOTED__) {
+    document.body.inert = true;
+    window2.__YOUTH_ISLAND_DESIGN_READY__ = false;
+    window2.__saveIslandAttachment = async (file) => {
+      const path = "attachments/design/" + domainId("file") + "-" + file.name;
+      await designData(path, file);
+      return { path };
+    };
+    const designUrls = /* @__PURE__ */ new Map();
+    window2.__islandAttachmentUrl = (path) => designUrls.get(path) || "";
+    const originalOpenDomainMedia = openDomainMedia;
+    openDomainMedia = async function(id) {
+      const media = allDomainMedia().find((m) => m.id === id);
+      if (media && !designUrls.has(media.path)) {
+        const blob = await designData(media.path);
+        if (blob)
+          designUrls.set(media.path, URL.createObjectURL(blob));
+      }
+      originalOpenDomainMedia(id);
+    };
+    setTimeout2(async () => {
+      document.body.classList.add("youth-island-plugin-root");
+      let canSave = true;
+      try {
+        const saved = await designData("state");
+        if (saved) {
+          if (!Array.isArray(saved.projects) || saved.domain?.schemaVersion !== 3 || !saved.profile || !saved.canvas || !saved.note || !saved.achievements)
+            throw new Error("Invalid preview data; auto-save paused");
+          window2.GANTT_PROJECTS.splice(0, window2.GANTT_PROJECTS.length, ...saved.projects);
+          window2.PROJECT_CANVAS_STORE = saved.canvas;
+          window2.USER_PROFILE_STATE = saved.profile;
+          window2.DOMAIN_STATE = saved.domain;
+          window2.NOTE_STATE = saved.note;
+          window2.ACHIEVEMENT_STATE = saved.achievements;
+          window2.INQUIRY_POOL_STATE = saved.inquiries;
+          window2.BOUNTY_STATE = saved.bounty;
+          Object.assign(PAVILION_META, saved.topology || {});
+        } else {
+          window2.INQUIRY_POOL_STATE = [];
+          window2.PROJECT_CANVAS_STORE = {};
+          window2.currentTertiaryProjId = null;
+        }
+      } catch (error) {
+        canSave = false;
+        showIslandToast("\u9884\u89C8\u6570\u636E\u8BFB\u53D6\u5931\u8D25\uFF0C\u81EA\u52A8\u4FDD\u5B58\u5DF2\u6682\u505C\uFF1A" + error.message);
+      }
+      restoreBusinessViews();
+      document.body.inert = false;
+      window2.__YOUTH_ISLAND_DESIGN_READY__ = true;
+      window2.addEventListener("youth-island:state-changed", () => {
+        if (!canSave)
+          return;
+        clearTimeout2(window2.__designSaveTimer);
+        window2.__designSaveTimer = setTimeout2(() => {
+          captureDomainLayout();
+          saveCurrentProjectCanvasSnapshot();
+          designData("state", { topology: PAVILION_META, projects: window2.GANTT_PROJECTS, canvas: window2.PROJECT_CANVAS_STORE, profile: window2.USER_PROFILE_STATE, domain: window2.DOMAIN_STATE, note: window2.NOTE_STATE, achievements: window2.ACHIEVEMENT_STATE, inquiries: window2.INQUIRY_POOL_STATE, bounty: window2.BOUNTY_STATE }).catch((error) => showIslandToast("\u9884\u89C8\u4FDD\u5B58\u5931\u8D25\uFF1A" + error.message));
+        }, 300);
+      });
+    }, 0);
+  }
   if (typeof applyIslandTransform === "function")
-    window.applyIslandTransform = applyIslandTransform;
+    window2.applyIslandTransform = applyIslandTransform;
   if (typeof zoomIslandCanvas === "function")
-    window.zoomIslandCanvas = zoomIslandCanvas;
+    window2.zoomIslandCanvas = zoomIslandCanvas;
   if (typeof resetIslandCanvasZoom === "function")
-    window.resetIslandCanvasZoom = resetIslandCanvasZoom;
+    window2.resetIslandCanvasZoom = resetIslandCanvasZoom;
   if (typeof updateIslandMinimap === "function")
-    window.updateIslandMinimap = updateIslandMinimap;
+    window2.updateIslandMinimap = updateIslandMinimap;
   if (typeof initIslandMinimapEvents === "function")
-    window.initIslandMinimapEvents = initIslandMinimapEvents;
+    window2.initIslandMinimapEvents = initIslandMinimapEvents;
   if (typeof toggleIslandMinimapDock === "function")
-    window.toggleIslandMinimapDock = toggleIslandMinimapDock;
+    window2.toggleIslandMinimapDock = toggleIslandMinimapDock;
   if (typeof toggleMinimap === "function")
-    window.toggleMinimap = toggleMinimap;
+    window2.toggleMinimap = toggleMinimap;
   if (typeof updateMinimapViewport === "function")
-    window.updateMinimapViewport = updateMinimapViewport;
+    window2.updateMinimapViewport = updateMinimapViewport;
   if (typeof toggleIslandGoalDock === "function")
-    window.toggleIslandGoalDock = toggleIslandGoalDock;
+    window2.toggleIslandGoalDock = toggleIslandGoalDock;
   if (typeof cycleHomeLayout === "function")
-    window.cycleHomeLayout = cycleHomeLayout;
+    window2.cycleHomeLayout = cycleHomeLayout;
   if (typeof fitHomeCanvasView === "function")
-    window.fitHomeCanvasView = fitHomeCanvasView;
+    window2.fitHomeCanvasView = fitHomeCanvasView;
   if (typeof focusHomeActiveNode === "function")
-    window.focusHomeActiveNode = focusHomeActiveNode;
+    window2.focusHomeActiveNode = focusHomeActiveNode;
   if (typeof centerHomeActiveNode === "function")
-    window.centerHomeActiveNode = centerHomeActiveNode;
+    window2.centerHomeActiveNode = centerHomeActiveNode;
   if (typeof toggleHomeViewScope === "function")
-    window.toggleHomeViewScope = toggleHomeViewScope;
+    window2.toggleHomeViewScope = toggleHomeViewScope;
   if (typeof openAddModuleModal === "function")
-    window.openAddModuleModal = openAddModuleModal;
+    window2.openAddModuleModal = openAddModuleModal;
   if (typeof closeAddModuleModal === "function")
-    window.closeAddModuleModal = closeAddModuleModal;
+    window2.closeAddModuleModal = closeAddModuleModal;
   if (typeof handleAddModuleBackdropClick === "function")
-    window.handleAddModuleBackdropClick = handleAddModuleBackdropClick;
+    window2.handleAddModuleBackdropClick = handleAddModuleBackdropClick;
   if (typeof pickModulePresetIcon === "function")
-    window.pickModulePresetIcon = pickModulePresetIcon;
+    window2.pickModulePresetIcon = pickModulePresetIcon;
   if (typeof handleCustomModuleIconInput === "function")
-    window.handleCustomModuleIconInput = handleCustomModuleIconInput;
+    window2.handleCustomModuleIconInput = handleCustomModuleIconInput;
   if (typeof confirmAddNewModule === "function")
-    window.confirmAddNewModule = confirmAddNewModule;
+    window2.confirmAddNewModule = confirmAddNewModule;
   if (typeof addHomeCustomNodePrompt === "function")
-    window.addHomeCustomNodePrompt = addHomeCustomNodePrompt;
+    window2.addHomeCustomNodePrompt = addHomeCustomNodePrompt;
   if (typeof handlePavilionClick === "function")
-    window.handlePavilionClick = handlePavilionClick;
+    window2.handlePavilionClick = handlePavilionClick;
   if (typeof initCanvasPanZoomAndDrag === "function")
-    window.initCanvasPanZoomAndDrag = initCanvasPanZoomAndDrag;
+    window2.initCanvasPanZoomAndDrag = initCanvasPanZoomAndDrag;
   if (typeof bindPavilionNodesClickGuards === "function")
-    window.bindPavilionNodesClickGuards = bindPavilionNodesClickGuards;
+    window2.bindPavilionNodesClickGuards = bindPavilionNodesClickGuards;
   if (typeof initNodeDragging === "function")
-    window.initNodeDragging = initNodeDragging;
+    window2.initNodeDragging = initNodeDragging;
   if (typeof updateTwinPathLine === "function")
-    window.updateTwinPathLine = updateTwinPathLine;
+    window2.updateTwinPathLine = updateTwinPathLine;
   if (typeof switchHomeGlobalView === "function")
-    window.switchHomeGlobalView = switchHomeGlobalView;
+    window2.switchHomeGlobalView = switchHomeGlobalView;
   if (typeof toggleIslandControlsGroup === "function")
-    window.toggleIslandControlsGroup = toggleIslandControlsGroup;
+    window2.toggleIslandControlsGroup = toggleIslandControlsGroup;
   if (typeof openOriginalSettingsPanel === "function")
-    window.openOriginalSettingsPanel = openOriginalSettingsPanel;
+    window2.openOriginalSettingsPanel = openOriginalSettingsPanel;
   if (typeof closeOriginalSettingsPanel === "function")
-    window.closeOriginalSettingsPanel = closeOriginalSettingsPanel;
+    window2.closeOriginalSettingsPanel = closeOriginalSettingsPanel;
   if (typeof toggleBrowseMode === "function")
-    window.toggleBrowseMode = toggleBrowseMode;
+    window2.toggleBrowseMode = toggleBrowseMode;
   if (typeof defaultIslandSettings === "function")
-    window.defaultIslandSettings = defaultIslandSettings;
+    window2.defaultIslandSettings = defaultIslandSettings;
   if (typeof loadIslandSettings === "function")
-    window.loadIslandSettings = loadIslandSettings;
+    window2.loadIslandSettings = loadIslandSettings;
   if (typeof getIslandSettings === "function")
-    window.getIslandSettings = getIslandSettings;
+    window2.getIslandSettings = getIslandSettings;
   if (typeof saveIslandSettings === "function")
-    window.saveIslandSettings = saveIslandSettings;
+    window2.saveIslandSettings = saveIslandSettings;
   if (typeof initIslandSettings === "function")
-    window.initIslandSettings = initIslandSettings;
+    window2.initIslandSettings = initIslandSettings;
   if (typeof applyAvatarSettings === "function")
-    window.applyAvatarSettings = applyAvatarSettings;
+    window2.applyAvatarSettings = applyAvatarSettings;
   if (typeof selectPlayerAvatar === "function")
-    window.selectPlayerAvatar = selectPlayerAvatar;
+    window2.selectPlayerAvatar = selectPlayerAvatar;
   if (typeof saveNickname === "function")
-    window.saveNickname = saveNickname;
+    window2.saveNickname = saveNickname;
   if (typeof resolveWallpaperFor === "function")
-    window.resolveWallpaperFor = resolveWallpaperFor;
+    window2.resolveWallpaperFor = resolveWallpaperFor;
   if (typeof applyIslandWallpaper === "function")
-    window.applyIslandWallpaper = applyIslandWallpaper;
+    window2.applyIslandWallpaper = applyIslandWallpaper;
   if (typeof applyPavilionWallpaper === "function")
-    window.applyPavilionWallpaper = applyPavilionWallpaper;
+    window2.applyPavilionWallpaper = applyPavilionWallpaper;
   if (typeof selectBgTarget === "function")
-    window.selectBgTarget = selectBgTarget;
+    window2.selectBgTarget = selectBgTarget;
   if (typeof applyWallpaper === "function")
-    window.applyWallpaper = applyWallpaper;
+    window2.applyWallpaper = applyWallpaper;
   if (typeof toggleGlobalBg === "function")
-    window.toggleGlobalBg = toggleGlobalBg;
+    window2.toggleGlobalBg = toggleGlobalBg;
   if (typeof syncBgEditor === "function")
-    window.syncBgEditor = syncBgEditor;
+    window2.syncBgEditor = syncBgEditor;
   if (typeof toggleEnvEffect === "function")
-    window.toggleEnvEffect = toggleEnvEffect;
+    window2.toggleEnvEffect = toggleEnvEffect;
   if (typeof syncEnvButtons === "function")
-    window.syncEnvButtons = syncEnvButtons;
+    window2.syncEnvButtons = syncEnvButtons;
   if (typeof saveImmersivePref === "function")
-    window.saveImmersivePref = saveImmersivePref;
+    window2.saveImmersivePref = saveImmersivePref;
   if (typeof syncImmersiveCheckboxes === "function")
-    window.syncImmersiveCheckboxes = syncImmersiveCheckboxes;
+    window2.syncImmersiveCheckboxes = syncImmersiveCheckboxes;
   if (typeof applyImmersiveClasses === "function")
-    window.applyImmersiveClasses = applyImmersiveClasses;
+    window2.applyImmersiveClasses = applyImmersiveClasses;
   if (typeof enterImmersiveModeNow === "function")
-    window.enterImmersiveModeNow = enterImmersiveModeNow;
+    window2.enterImmersiveModeNow = enterImmersiveModeNow;
   if (typeof launchQuickFocusTimer === "function")
-    window.launchQuickFocusTimer = launchQuickFocusTimer;
+    window2.launchQuickFocusTimer = launchQuickFocusTimer;
   if (typeof toggleImmersiveMode === "function")
-    window.toggleImmersiveMode = toggleImmersiveMode;
+    window2.toggleImmersiveMode = toggleImmersiveMode;
   if (typeof showIslandToast === "function")
-    window.showIslandToast = showIslandToast;
+    window2.showIslandToast = showIslandToast;
   if (typeof switchMainSection === "function")
-    window.switchMainSection = switchMainSection;
+    window2.switchMainSection = switchMainSection;
   if (typeof toggleTabletFrameMode === "function")
-    window.toggleTabletFrameMode = toggleTabletFrameMode;
+    window2.toggleTabletFrameMode = toggleTabletFrameMode;
   if (typeof openCardCheckinFromPlanning === "function")
-    window.openCardCheckinFromPlanning = openCardCheckinFromPlanning;
+    window2.openCardCheckinFromPlanning = openCardCheckinFromPlanning;
   if (typeof enterModuleExecutionView === "function")
-    window.enterModuleExecutionView = enterModuleExecutionView;
+    window2.enterModuleExecutionView = enterModuleExecutionView;
   if (typeof openExecutionWorkspace === "function")
-    window.openExecutionWorkspace = openExecutionWorkspace;
+    window2.openExecutionWorkspace = openExecutionWorkspace;
   if (typeof normalizeExecCheckinType === "function")
-    window.normalizeExecCheckinType = normalizeExecCheckinType;
+    window2.normalizeExecCheckinType = normalizeExecCheckinType;
   if (typeof syncFormStateToAttributes === "function")
-    window.syncFormStateToAttributes = syncFormStateToAttributes;
+    window2.syncFormStateToAttributes = syncFormStateToAttributes;
   if (typeof notifyIslandStateChanged === "function")
-    window.notifyIslandStateChanged = notifyIslandStateChanged;
+    window2.notifyIslandStateChanged = notifyIslandStateChanged;
   if (typeof toggleObsidianTabletFullscreen === "function")
-    window.toggleObsidianTabletFullscreen = toggleObsidianTabletFullscreen;
+    window2.toggleObsidianTabletFullscreen = toggleObsidianTabletFullscreen;
   if (typeof renderTailoredExecutionStage === "function")
-    window.renderTailoredExecutionStage = renderTailoredExecutionStage;
+    window2.renderTailoredExecutionStage = renderTailoredExecutionStage;
   if (typeof openExecCardPopupView === "function")
-    window.openExecCardPopupView = openExecCardPopupView;
+    window2.openExecCardPopupView = openExecCardPopupView;
   if (typeof closeExecutionWorkspace === "function")
-    window.closeExecutionWorkspace = closeExecutionWorkspace;
+    window2.closeExecutionWorkspace = closeExecutionWorkspace;
   if (typeof closeExecCardPopupView === "function")
-    window.closeExecCardPopupView = closeExecCardPopupView;
+    window2.closeExecCardPopupView = closeExecCardPopupView;
   if (typeof toggleExecPopupProjectNodesView === "function")
-    window.toggleExecPopupProjectNodesView = toggleExecPopupProjectNodesView;
+    window2.toggleExecPopupProjectNodesView = toggleExecPopupProjectNodesView;
   if (typeof renderExecProjectAssociatedNodes === "function")
-    window.renderExecProjectAssociatedNodes = renderExecProjectAssociatedNodes;
+    window2.renderExecProjectAssociatedNodes = renderExecProjectAssociatedNodes;
   if (typeof initExecProjectCanvasPan === "function")
-    window.initExecProjectCanvasPan = initExecProjectCanvasPan;
+    window2.initExecProjectCanvasPan = initExecProjectCanvasPan;
   if (typeof toggleExecPopupTimer === "function")
-    window.toggleExecPopupTimer = toggleExecPopupTimer;
+    window2.toggleExecPopupTimer = toggleExecPopupTimer;
   if (typeof resetExecPopupTimer === "function")
-    window.resetExecPopupTimer = resetExecPopupTimer;
+    window2.resetExecPopupTimer = resetExecPopupTimer;
   if (typeof computeCurrentFulfillmentRate === "function")
-    window.computeCurrentFulfillmentRate = computeCurrentFulfillmentRate;
+    window2.computeCurrentFulfillmentRate = computeCurrentFulfillmentRate;
   if (typeof recalcAndRenderGlobalHUD === "function")
-    window.recalcAndRenderGlobalHUD = recalcAndRenderGlobalHUD;
+    window2.recalcAndRenderGlobalHUD = recalcAndRenderGlobalHUD;
   if (typeof appendDailyAutoLog === "function")
-    window.appendDailyAutoLog = appendDailyAutoLog;
+    window2.appendDailyAutoLog = appendDailyAutoLog;
   if (typeof renderHomeSemesterGoalsBanner === "function")
-    window.renderHomeSemesterGoalsBanner = renderHomeSemesterGoalsBanner;
+    window2.renderHomeSemesterGoalsBanner = renderHomeSemesterGoalsBanner;
   if (typeof triggerGlobalCheckinClosedLoop === "function")
-    window.triggerGlobalCheckinClosedLoop = triggerGlobalCheckinClosedLoop;
+    window2.triggerGlobalCheckinClosedLoop = triggerGlobalCheckinClosedLoop;
   if (typeof handleExecPopupMainCheckin === "function")
-    window.handleExecPopupMainCheckin = handleExecPopupMainCheckin;
+    window2.handleExecPopupMainCheckin = handleExecPopupMainCheckin;
   if (typeof handleTertiaryModuleFileUpload === "function")
-    window.handleTertiaryModuleFileUpload = handleTertiaryModuleFileUpload;
+    window2.handleTertiaryModuleFileUpload = handleTertiaryModuleFileUpload;
   if (typeof removeTertiaryModuleUploadedFile === "function")
-    window.removeTertiaryModuleUploadedFile = removeTertiaryModuleUploadedFile;
+    window2.removeTertiaryModuleUploadedFile = removeTertiaryModuleUploadedFile;
   if (typeof handleTaskCardClick === "function")
-    window.handleTaskCardClick = handleTaskCardClick;
+    window2.handleTaskCardClick = handleTaskCardClick;
   if (typeof enterSecondaryWorkspace === "function")
-    window.enterSecondaryWorkspace = enterSecondaryWorkspace;
+    window2.enterSecondaryWorkspace = enterSecondaryWorkspace;
   if (typeof switchSecondarySubView === "function")
-    window.switchSecondarySubView = switchSecondarySubView;
+    window2.switchSecondarySubView = switchSecondarySubView;
   if (typeof exitSecondaryWorkspace === "function")
-    window.exitSecondaryWorkspace = exitSecondaryWorkspace;
+    window2.exitSecondaryWorkspace = exitSecondaryWorkspace;
   if (typeof renderWorkspaceContent === "function")
-    window.renderWorkspaceContent = renderWorkspaceContent;
+    window2.renderWorkspaceContent = renderWorkspaceContent;
   if (typeof switchGlobalViewMode === "function")
-    window.switchGlobalViewMode = switchGlobalViewMode;
+    window2.switchGlobalViewMode = switchGlobalViewMode;
   if (typeof updatePavilionBadges === "function")
-    window.updatePavilionBadges = updatePavilionBadges;
+    window2.updatePavilionBadges = updatePavilionBadges;
   if (typeof renderBountyModalAndBillboard === "function")
-    window.renderBountyModalAndBillboard = renderBountyModalAndBillboard;
+    window2.renderBountyModalAndBillboard = renderBountyModalAndBillboard;
   if (typeof openBountyModal === "function")
-    window.openBountyModal = openBountyModal;
+    window2.openBountyModal = openBountyModal;
   if (typeof closeBountyModal === "function")
-    window.closeBountyModal = closeBountyModal;
+    window2.closeBountyModal = closeBountyModal;
   if (typeof handleBountyBackdropClick === "function")
-    window.handleBountyBackdropClick = handleBountyBackdropClick;
+    window2.handleBountyBackdropClick = handleBountyBackdropClick;
   if (typeof toggleBountyPublishForm === "function")
-    window.toggleBountyPublishForm = toggleBountyPublishForm;
+    window2.toggleBountyPublishForm = toggleBountyPublishForm;
   if (typeof submitNewParentBounty === "function")
-    window.submitNewParentBounty = submitNewParentBounty;
+    window2.submitNewParentBounty = submitNewParentBounty;
   if (typeof acceptParentBounty === "function")
-    window.acceptParentBounty = acceptParentBounty;
+    window2.acceptParentBounty = acceptParentBounty;
   if (typeof uploadBountyEvidence === "function")
-    window.uploadBountyEvidence = uploadBountyEvidence;
+    window2.uploadBountyEvidence = uploadBountyEvidence;
   if (typeof completeBountyDemo === "function")
-    window.completeBountyDemo = completeBountyDemo;
+    window2.completeBountyDemo = completeBountyDemo;
   if (typeof initPomodoroDisplay === "function")
-    window.initPomodoroDisplay = initPomodoroDisplay;
+    window2.initPomodoroDisplay = initPomodoroDisplay;
   if (typeof togglePomodoroTimer === "function")
-    window.togglePomodoroTimer = togglePomodoroTimer;
+    window2.togglePomodoroTimer = togglePomodoroTimer;
   if (typeof resetPomodoroTimer === "function")
-    window.resetPomodoroTimer = resetPomodoroTimer;
+    window2.resetPomodoroTimer = resetPomodoroTimer;
   if (typeof updatePomoText === "function")
-    window.updatePomoText = updatePomoText;
+    window2.updatePomoText = updatePomoText;
   if (typeof toggleWsMinimap === "function")
-    window.toggleWsMinimap = toggleWsMinimap;
+    window2.toggleWsMinimap = toggleWsMinimap;
   if (typeof filterGallery === "function")
-    window.filterGallery = filterGallery;
+    window2.filterGallery = filterGallery;
   if (typeof getCheckinEl === "function")
-    window.getCheckinEl = getCheckinEl;
+    window2.getCheckinEl = getCheckinEl;
   if (typeof addCheckinPageGoalMetric === "function")
-    window.addCheckinPageGoalMetric = addCheckinPageGoalMetric;
+    window2.addCheckinPageGoalMetric = addCheckinPageGoalMetric;
   if (typeof switchCheckinPageGoalDeliverable === "function")
-    window.switchCheckinPageGoalDeliverable = switchCheckinPageGoalDeliverable;
+    window2.switchCheckinPageGoalDeliverable = switchCheckinPageGoalDeliverable;
   if (typeof handleCheckinPageGoalFile === "function")
-    window.handleCheckinPageGoalFile = handleCheckinPageGoalFile;
+    window2.handleCheckinPageGoalFile = handleCheckinPageGoalFile;
   if (typeof handleCheckinPageGoalDeposit === "function")
-    window.handleCheckinPageGoalDeposit = handleCheckinPageGoalDeposit;
+    window2.handleCheckinPageGoalDeposit = handleCheckinPageGoalDeposit;
   if (typeof handleCheckinPageDrillMedia === "function")
-    window.handleCheckinPageDrillMedia = handleCheckinPageDrillMedia;
+    window2.handleCheckinPageDrillMedia = handleCheckinPageDrillMedia;
   if (typeof changeCheckinPageDrillDuration === "function")
-    window.changeCheckinPageDrillDuration = changeCheckinPageDrillDuration;
+    window2.changeCheckinPageDrillDuration = changeCheckinPageDrillDuration;
   if (typeof toggleCheckinPageDrillTimer === "function")
-    window.toggleCheckinPageDrillTimer = toggleCheckinPageDrillTimer;
+    window2.toggleCheckinPageDrillTimer = toggleCheckinPageDrillTimer;
   if (typeof resetCheckinPageDrillTimer === "function")
-    window.resetCheckinPageDrillTimer = resetCheckinPageDrillTimer;
+    window2.resetCheckinPageDrillTimer = resetCheckinPageDrillTimer;
   if (typeof updateCheckinPageHabitProgress === "function")
-    window.updateCheckinPageHabitProgress = updateCheckinPageHabitProgress;
+    window2.updateCheckinPageHabitProgress = updateCheckinPageHabitProgress;
   if (typeof addCheckinPageHabitItem === "function")
-    window.addCheckinPageHabitItem = addCheckinPageHabitItem;
+    window2.addCheckinPageHabitItem = addCheckinPageHabitItem;
   if (typeof removeCheckinPageHabitItem === "function")
-    window.removeCheckinPageHabitItem = removeCheckinPageHabitItem;
+    window2.removeCheckinPageHabitItem = removeCheckinPageHabitItem;
   if (typeof addCheckinPageReflectionItem === "function")
-    window.addCheckinPageReflectionItem = addCheckinPageReflectionItem;
+    window2.addCheckinPageReflectionItem = addCheckinPageReflectionItem;
   if (typeof removeCheckinPageReflectionItem === "function")
-    window.removeCheckinPageReflectionItem = removeCheckinPageReflectionItem;
+    window2.removeCheckinPageReflectionItem = removeCheckinPageReflectionItem;
   if (typeof addCheckinPageCustomField === "function")
-    window.addCheckinPageCustomField = addCheckinPageCustomField;
+    window2.addCheckinPageCustomField = addCheckinPageCustomField;
   if (typeof completeCheckinPageCard === "function")
-    window.completeCheckinPageCard = completeCheckinPageCard;
+    window2.completeCheckinPageCard = completeCheckinPageCard;
   if (typeof alignGridLayout === "function")
-    window.alignGridLayout = alignGridLayout;
+    window2.alignGridLayout = alignGridLayout;
   if (typeof addCustomNodePrompt === "function")
-    window.addCustomNodePrompt = addCustomNodePrompt;
+    window2.addCustomNodePrompt = addCustomNodePrompt;
   if (typeof fitCanvasView === "function")
-    window.fitCanvasView = fitCanvasView;
+    window2.fitCanvasView = fitCanvasView;
   if (typeof focusActiveNode === "function")
-    window.focusActiveNode = focusActiveNode;
+    window2.focusActiveNode = focusActiveNode;
   if (typeof centerActiveNode === "function")
-    window.centerActiveNode = centerActiveNode;
+    window2.centerActiveNode = centerActiveNode;
   if (typeof openZoomScopeModal === "function")
-    window.openZoomScopeModal = openZoomScopeModal;
+    window2.openZoomScopeModal = openZoomScopeModal;
   if (typeof createModulePrompt === "function")
-    window.createModulePrompt = createModulePrompt;
+    window2.createModulePrompt = createModulePrompt;
   if (typeof createImageEvidencePrompt === "function")
-    window.createImageEvidencePrompt = createImageEvidencePrompt;
+    window2.createImageEvidencePrompt = createImageEvidencePrompt;
   if (typeof createTableDataPrompt === "function")
-    window.createTableDataPrompt = createTableDataPrompt;
+    window2.createTableDataPrompt = createTableDataPrompt;
   if (typeof createTextNotePrompt === "function")
-    window.createTextNotePrompt = createTextNotePrompt;
+    window2.createTextNotePrompt = createTextNotePrompt;
   if (typeof toggleChildrenFollowToolbar === "function")
-    window.toggleChildrenFollowToolbar = toggleChildrenFollowToolbar;
+    window2.toggleChildrenFollowToolbar = toggleChildrenFollowToolbar;
   if (typeof toggleChildrenFollowSetting === "function")
-    window.toggleChildrenFollowSetting = toggleChildrenFollowSetting;
+    window2.toggleChildrenFollowSetting = toggleChildrenFollowSetting;
   if (typeof openCameraSettings === "function")
-    window.openCameraSettings = openCameraSettings;
+    window2.openCameraSettings = openCameraSettings;
   if (typeof toggleArchiveView === "function")
-    window.toggleArchiveView = toggleArchiveView;
+    window2.toggleArchiveView = toggleArchiveView;
   if (typeof toggleTertiaryRouteSetup === "function")
-    window.toggleTertiaryRouteSetup = toggleTertiaryRouteSetup;
+    window2.toggleTertiaryRouteSetup = toggleTertiaryRouteSetup;
   if (typeof pushTertiaryHistory === "function")
-    window.pushTertiaryHistory = pushTertiaryHistory;
+    window2.pushTertiaryHistory = pushTertiaryHistory;
   if (typeof updateTertiaryNodeCountBadge === "function")
-    window.updateTertiaryNodeCountBadge = updateTertiaryNodeCountBadge;
+    window2.updateTertiaryNodeCountBadge = updateTertiaryNodeCountBadge;
   if (typeof saveCurrentProjectCanvasSnapshot === "function")
-    window.saveCurrentProjectCanvasSnapshot = saveCurrentProjectCanvasSnapshot;
+    window2.saveCurrentProjectCanvasSnapshot = saveCurrentProjectCanvasSnapshot;
   if (typeof buildStarterCanvasForProject === "function")
-    window.buildStarterCanvasForProject = buildStarterCanvasForProject;
+    window2.buildStarterCanvasForProject = buildStarterCanvasForProject;
   if (typeof enterTertiaryWorkspace === "function")
-    window.enterTertiaryWorkspace = enterTertiaryWorkspace;
+    window2.enterTertiaryWorkspace = enterTertiaryWorkspace;
   if (typeof exitTertiaryWorkspace === "function")
-    window.exitTertiaryWorkspace = exitTertiaryWorkspace;
+    window2.exitTertiaryWorkspace = exitTertiaryWorkspace;
   if (typeof updateTertiaryMinimap === "function")
-    window.updateTertiaryMinimap = updateTertiaryMinimap;
+    window2.updateTertiaryMinimap = updateTertiaryMinimap;
   if (typeof initTertiaryMinimapEvents === "function")
-    window.initTertiaryMinimapEvents = initTertiaryMinimapEvents;
+    window2.initTertiaryMinimapEvents = initTertiaryMinimapEvents;
   if (typeof toggleTertiaryMinimapDock === "function")
-    window.toggleTertiaryMinimapDock = toggleTertiaryMinimapDock;
+    window2.toggleTertiaryMinimapDock = toggleTertiaryMinimapDock;
   if (typeof toggleTertiaryMinimap === "function")
-    window.toggleTertiaryMinimap = toggleTertiaryMinimap;
+    window2.toggleTertiaryMinimap = toggleTertiaryMinimap;
   if (typeof cycleGridMode === "function")
-    window.cycleGridMode = cycleGridMode;
+    window2.cycleGridMode = cycleGridMode;
   if (typeof handleOpenObsidianCanvas === "function")
-    window.handleOpenObsidianCanvas = handleOpenObsidianCanvas;
+    window2.handleOpenObsidianCanvas = handleOpenObsidianCanvas;
   if (typeof openCurrentProjectInObsidianCanvas === "function")
-    window.openCurrentProjectInObsidianCanvas = openCurrentProjectInObsidianCanvas;
+    window2.openCurrentProjectInObsidianCanvas = openCurrentProjectInObsidianCanvas;
   if (typeof applyTertiaryTransform === "function")
-    window.applyTertiaryTransform = applyTertiaryTransform;
+    window2.applyTertiaryTransform = applyTertiaryTransform;
   if (typeof zoomTertiaryCanvas === "function")
-    window.zoomTertiaryCanvas = zoomTertiaryCanvas;
+    window2.zoomTertiaryCanvas = zoomTertiaryCanvas;
   if (typeof resetTertiaryCanvasZoom === "function")
-    window.resetTertiaryCanvasZoom = resetTertiaryCanvasZoom;
+    window2.resetTertiaryCanvasZoom = resetTertiaryCanvasZoom;
   if (typeof animateTertiaryEdgesDuringTransition === "function")
-    window.animateTertiaryEdgesDuringTransition = animateTertiaryEdgesDuringTransition;
+    window2.animateTertiaryEdgesDuringTransition = animateTertiaryEdgesDuringTransition;
   if (typeof step === "function")
-    window.step = step;
+    window2.step = step;
   if (typeof updateTertiaryEdgesFast === "function")
-    window.updateTertiaryEdgesFast = updateTertiaryEdgesFast;
+    window2.updateTertiaryEdgesFast = updateTertiaryEdgesFast;
   if (typeof scheduleTertiaryEdgeRefresh === "function")
-    window.scheduleTertiaryEdgeRefresh = scheduleTertiaryEdgeRefresh;
+    window2.scheduleTertiaryEdgeRefresh = scheduleTertiaryEdgeRefresh;
   if (typeof renderTertiaryConnections === "function")
-    window.renderTertiaryConnections = renderTertiaryConnections;
+    window2.renderTertiaryConnections = renderTertiaryConnections;
   if (typeof observeTertiaryCards === "function")
-    window.observeTertiaryCards = observeTertiaryCards;
+    window2.observeTertiaryCards = observeTertiaryCards;
   if (typeof initTertiaryWorkspace === "function")
-    window.initTertiaryWorkspace = initTertiaryWorkspace;
+    window2.initTertiaryWorkspace = initTertiaryWorkspace;
   if (typeof initTertiaryCanvasPanZoom === "function")
-    window.initTertiaryCanvasPanZoom = initTertiaryCanvasPanZoom;
+    window2.initTertiaryCanvasPanZoom = initTertiaryCanvasPanZoom;
   if (typeof toggleTertiaryCardMinimize === "function")
-    window.toggleTertiaryCardMinimize = toggleTertiaryCardMinimize;
+    window2.toggleTertiaryCardMinimize = toggleTertiaryCardMinimize;
   if (typeof toggleAllTertiaryCardsMinimize === "function")
-    window.toggleAllTertiaryCardsMinimize = toggleAllTertiaryCardsMinimize;
+    window2.toggleAllTertiaryCardsMinimize = toggleAllTertiaryCardsMinimize;
   if (typeof bindTertiaryCardsDrag === "function")
-    window.bindTertiaryCardsDrag = bindTertiaryCardsDrag;
+    window2.bindTertiaryCardsDrag = bindTertiaryCardsDrag;
   if (typeof getDownstreamChildCardIds === "function")
-    window.getDownstreamChildCardIds = getDownstreamChildCardIds;
+    window2.getDownstreamChildCardIds = getDownstreamChildCardIds;
   if (typeof bindCardDragSingle === "function")
-    window.bindCardDragSingle = bindCardDragSingle;
+    window2.bindCardDragSingle = bindCardDragSingle;
   if (typeof renderTertiaryEdges === "function")
-    window.renderTertiaryEdges = renderTertiaryEdges;
+    window2.renderTertiaryEdges = renderTertiaryEdges;
   if (typeof openEdgePopover === "function")
-    window.openEdgePopover = openEdgePopover;
+    window2.openEdgePopover = openEdgePopover;
   if (typeof reverseEdgeDirection === "function")
-    window.reverseEdgeDirection = reverseEdgeDirection;
+    window2.reverseEdgeDirection = reverseEdgeDirection;
   if (typeof handleEdgeHierarchy === "function")
-    window.handleEdgeHierarchy = handleEdgeHierarchy;
+    window2.handleEdgeHierarchy = handleEdgeHierarchy;
   if (typeof setEdgeArrowMode === "function")
-    window.setEdgeArrowMode = setEdgeArrowMode;
+    window2.setEdgeArrowMode = setEdgeArrowMode;
   if (typeof setEdgeLineStyle === "function")
-    window.setEdgeLineStyle = setEdgeLineStyle;
+    window2.setEdgeLineStyle = setEdgeLineStyle;
   if (typeof handleEdgeWidthInput === "function")
-    window.handleEdgeWidthInput = handleEdgeWidthInput;
+    window2.handleEdgeWidthInput = handleEdgeWidthInput;
   if (typeof handleEdgeColorSelect === "function")
-    window.handleEdgeColorSelect = handleEdgeColorSelect;
+    window2.handleEdgeColorSelect = handleEdgeColorSelect;
   if (typeof handleEdgeLabelChange === "function")
-    window.handleEdgeLabelChange = handleEdgeLabelChange;
+    window2.handleEdgeLabelChange = handleEdgeLabelChange;
   if (typeof handleEdgeTypeSelect === "function")
-    window.handleEdgeTypeSelect = handleEdgeTypeSelect;
+    window2.handleEdgeTypeSelect = handleEdgeTypeSelect;
   if (typeof handleDeleteActiveEdge === "function")
-    window.handleDeleteActiveEdge = handleDeleteActiveEdge;
+    window2.handleDeleteActiveEdge = handleDeleteActiveEdge;
   if (typeof handleTertiaryStageClick === "function")
-    window.handleTertiaryStageClick = handleTertiaryStageClick;
+    window2.handleTertiaryStageClick = handleTertiaryStageClick;
   if (typeof startOrFinishConnecting === "function")
-    window.startOrFinishConnecting = startOrFinishConnecting;
+    window2.startOrFinishConnecting = startOrFinishConnecting;
   if (typeof toggleTertiaryDropdown === "function")
-    window.toggleTertiaryDropdown = toggleTertiaryDropdown;
+    window2.toggleTertiaryDropdown = toggleTertiaryDropdown;
   if (typeof playNodeVideo === "function")
-    window.playNodeVideo = playNodeVideo;
+    window2.playNodeVideo = playNodeVideo;
   if (typeof viewNodeImage === "function")
-    window.viewNodeImage = viewNodeImage;
+    window2.viewNodeImage = viewNodeImage;
   if (typeof openTertiaryCreateModuleModal === "function")
-    window.openTertiaryCreateModuleModal = openTertiaryCreateModuleModal;
+    window2.openTertiaryCreateModuleModal = openTertiaryCreateModuleModal;
   if (typeof closeTertiaryCreateModuleModal === "function")
-    window.closeTertiaryCreateModuleModal = closeTertiaryCreateModuleModal;
+    window2.closeTertiaryCreateModuleModal = closeTertiaryCreateModuleModal;
   if (typeof handleTertiaryCreateModuleBackdropClick === "function")
-    window.handleTertiaryCreateModuleBackdropClick = handleTertiaryCreateModuleBackdropClick;
+    window2.handleTertiaryCreateModuleBackdropClick = handleTertiaryCreateModuleBackdropClick;
   if (typeof pickTertiaryModulePresetIcon === "function")
-    window.pickTertiaryModulePresetIcon = pickTertiaryModulePresetIcon;
+    window2.pickTertiaryModulePresetIcon = pickTertiaryModulePresetIcon;
   if (typeof handleTertiaryModuleIconInput === "function")
-    window.handleTertiaryModuleIconInput = handleTertiaryModuleIconInput;
+    window2.handleTertiaryModuleIconInput = handleTertiaryModuleIconInput;
   if (typeof handleConfirmTertiaryCreateModule === "function")
-    window.handleConfirmTertiaryCreateModule = handleConfirmTertiaryCreateModule;
+    window2.handleConfirmTertiaryCreateModule = handleConfirmTertiaryCreateModule;
   if (typeof openTertiaryAddNodeModal === "function")
-    window.openTertiaryAddNodeModal = openTertiaryAddNodeModal;
+    window2.openTertiaryAddNodeModal = openTertiaryAddNodeModal;
   if (typeof closeTertiaryAddNodeModal === "function")
-    window.closeTertiaryAddNodeModal = closeTertiaryAddNodeModal;
+    window2.closeTertiaryAddNodeModal = closeTertiaryAddNodeModal;
   if (typeof handleTertiaryAddNodeBackdropClick === "function")
-    window.handleTertiaryAddNodeBackdropClick = handleTertiaryAddNodeBackdropClick;
+    window2.handleTertiaryAddNodeBackdropClick = handleTertiaryAddNodeBackdropClick;
   if (typeof filterNodePickerByPavilion === "function")
-    window.filterNodePickerByPavilion = filterNodePickerByPavilion;
+    window2.filterNodePickerByPavilion = filterNodePickerByPavilion;
   if (typeof toggleNodePickerSelection === "function")
-    window.toggleNodePickerSelection = toggleNodePickerSelection;
+    window2.toggleNodePickerSelection = toggleNodePickerSelection;
   if (typeof updateNodePickerBatchCount === "function")
-    window.updateNodePickerBatchCount = updateNodePickerBatchCount;
+    window2.updateNodePickerBatchCount = updateNodePickerBatchCount;
   if (typeof selectNodePickerCategory === "function")
-    window.selectNodePickerCategory = selectNodePickerCategory;
+    window2.selectNodePickerCategory = selectNodePickerCategory;
   if (typeof clearNodePickerSelection === "function")
-    window.clearNodePickerSelection = clearNodePickerSelection;
+    window2.clearNodePickerSelection = clearNodePickerSelection;
   if (typeof addPickerCustomField === "function")
-    window.addPickerCustomField = addPickerCustomField;
+    window2.addPickerCustomField = addPickerCustomField;
   if (typeof getCardConfigFromPicker === "function")
-    window.getCardConfigFromPicker = getCardConfigFromPicker;
+    window2.getCardConfigFromPicker = getCardConfigFromPicker;
   if (typeof quickAddSingleNode === "function")
-    window.quickAddSingleNode = quickAddSingleNode;
+    window2.quickAddSingleNode = quickAddSingleNode;
   if (typeof handleConfirmBatchAddNodes === "function")
-    window.handleConfirmBatchAddNodes = handleConfirmBatchAddNodes;
+    window2.handleConfirmBatchAddNodes = handleConfirmBatchAddNodes;
   if (typeof createTertiaryNodeCard === "function")
-    window.createTertiaryNodeCard = createTertiaryNodeCard;
+    window2.createTertiaryNodeCard = createTertiaryNodeCard;
   if (typeof toggleTertiaryCustomCardField === "function")
-    window.toggleTertiaryCustomCardField = toggleTertiaryCustomCardField;
+    window2.toggleTertiaryCustomCardField = toggleTertiaryCustomCardField;
   if (typeof addComboCardField === "function")
-    window.addComboCardField = addComboCardField;
+    window2.addComboCardField = addComboCardField;
   if (typeof handleSubFieldCheckin === "function")
-    window.handleSubFieldCheckin = handleSubFieldCheckin;
+    window2.handleSubFieldCheckin = handleSubFieldCheckin;
   if (typeof handleNodeCheckin === "function")
-    window.handleNodeCheckin = handleNodeCheckin;
+    window2.handleNodeCheckin = handleNodeCheckin;
   if (typeof promptRenameCardTitle === "function")
-    window.promptRenameCardTitle = promptRenameCardTitle;
+    window2.promptRenameCardTitle = promptRenameCardTitle;
   if (typeof handleRenameCardTitle === "function")
-    window.handleRenameCardTitle = handleRenameCardTitle;
+    window2.handleRenameCardTitle = handleRenameCardTitle;
   if (typeof handleRenameNodeTask === "function")
-    window.handleRenameNodeTask = handleRenameNodeTask;
+    window2.handleRenameNodeTask = handleRenameNodeTask;
   if (typeof promptRenameCheckinItem === "function")
-    window.promptRenameCheckinItem = promptRenameCheckinItem;
+    window2.promptRenameCheckinItem = promptRenameCheckinItem;
   if (typeof handleRenameCheckinItem === "function")
-    window.handleRenameCheckinItem = handleRenameCheckinItem;
+    window2.handleRenameCheckinItem = handleRenameCheckinItem;
   if (typeof addCustomFieldToCard === "function")
-    window.addCustomFieldToCard = addCustomFieldToCard;
+    window2.addCustomFieldToCard = addCustomFieldToCard;
   if (typeof createCustomModule === "function")
-    window.createCustomModule = createCustomModule;
+    window2.createCustomModule = createCustomModule;
   if (typeof createBackgroundGroupPrompt === "function")
-    window.createBackgroundGroupPrompt = createBackgroundGroupPrompt;
+    window2.createBackgroundGroupPrompt = createBackgroundGroupPrompt;
   if (typeof createSequencePrompt === "function")
-    window.createSequencePrompt = createSequencePrompt;
+    window2.createSequencePrompt = createSequencePrompt;
   if (typeof toggleFocusMode === "function")
-    window.toggleFocusMode = toggleFocusMode;
+    window2.toggleFocusMode = toggleFocusMode;
   if (typeof toggleLockNodes === "function")
-    window.toggleLockNodes = toggleLockNodes;
+    window2.toggleLockNodes = toggleLockNodes;
   if (typeof toggleFixedNodes === "function")
-    window.toggleFixedNodes = toggleFixedNodes;
+    window2.toggleFixedNodes = toggleFixedNodes;
   if (typeof toggleStatusFilterMenu === "function")
-    window.toggleStatusFilterMenu = toggleStatusFilterMenu;
+    window2.toggleStatusFilterMenu = toggleStatusFilterMenu;
   if (typeof toggleOperationTools === "function")
-    window.toggleOperationTools = toggleOperationTools;
+    window2.toggleOperationTools = toggleOperationTools;
   if (typeof toggleChildDetails === "function")
-    window.toggleChildDetails = toggleChildDetails;
+    window2.toggleChildDetails = toggleChildDetails;
   if (typeof toggleEdgeLabels === "function")
-    window.toggleEdgeLabels = toggleEdgeLabels;
+    window2.toggleEdgeLabels = toggleEdgeLabels;
   if (typeof handleTertiaryUndo === "function")
-    window.handleTertiaryUndo = handleTertiaryUndo;
+    window2.handleTertiaryUndo = handleTertiaryUndo;
   if (typeof handleTertiaryRedo === "function")
-    window.handleTertiaryRedo = handleTertiaryRedo;
+    window2.handleTertiaryRedo = handleTertiaryRedo;
   if (typeof handleTertiaryDeleteNode === "function")
-    window.handleTertiaryDeleteNode = handleTertiaryDeleteNode;
+    window2.handleTertiaryDeleteNode = handleTertiaryDeleteNode;
   if (typeof openNodeSearchModal === "function")
-    window.openNodeSearchModal = openNodeSearchModal;
+    window2.openNodeSearchModal = openNodeSearchModal;
   if (typeof initWeatherEngine === "function")
-    window.initWeatherEngine = initWeatherEngine;
+    window2.initWeatherEngine = initWeatherEngine;
   if (typeof switchExecSubView === "function")
-    window.switchExecSubView = switchExecSubView;
+    window2.switchExecSubView = switchExecSubView;
   if (typeof updateDayCarousel === "function")
-    window.updateDayCarousel = updateDayCarousel;
+    window2.updateDayCarousel = updateDayCarousel;
   if (typeof nextDayCard === "function")
-    window.nextDayCard = nextDayCard;
+    window2.nextDayCard = nextDayCard;
   if (typeof prevDayCard === "function")
-    window.prevDayCard = prevDayCard;
+    window2.prevDayCard = prevDayCard;
   if (typeof goToDayCard === "function")
-    window.goToDayCard = goToDayCard;
+    window2.goToDayCard = goToDayCard;
   if (typeof setupCarouselGestures === "function")
-    window.setupCarouselGestures = setupCarouselGestures;
+    window2.setupCarouselGestures = setupCarouselGestures;
   if (typeof completeTask === "function")
-    window.completeTask = completeTask;
+    window2.completeTask = completeTask;
   if (typeof startTaskFocus === "function")
-    window.startTaskFocus = startTaskFocus;
+    window2.startTaskFocus = startTaskFocus;
   if (typeof uploadTaskEvidence === "function")
-    window.uploadTaskEvidence = uploadTaskEvidence;
+    window2.uploadTaskEvidence = uploadTaskEvidence;
   if (typeof openClassicLookup === "function")
-    window.openClassicLookup = openClassicLookup;
+    window2.openClassicLookup = openClassicLookup;
   if (typeof askParentHelp === "function")
-    window.askParentHelp = askParentHelp;
+    window2.askParentHelp = askParentHelp;
   if (typeof toggleTaskCheck === "function")
-    window.toggleTaskCheck = toggleTaskCheck;
+    window2.toggleTaskCheck = toggleTaskCheck;
   if (typeof recordDebateNotes === "function")
-    window.recordDebateNotes = recordDebateNotes;
+    window2.recordDebateNotes = recordDebateNotes;
   if (typeof openQuickNoteModal === "function")
-    window.openQuickNoteModal = openQuickNoteModal;
+    window2.openQuickNoteModal = openQuickNoteModal;
   if (typeof nourishBaselineTree === "function")
-    window.nourishBaselineTree = nourishBaselineTree;
+    window2.nourishBaselineTree = nourishBaselineTree;
   if (typeof addCustomDynamicFieldRow === "function")
-    window.addCustomDynamicFieldRow = addCustomDynamicFieldRow;
+    window2.addCustomDynamicFieldRow = addCustomDynamicFieldRow;
   if (typeof calPad2 === "function")
-    window.calPad2 = calPad2;
+    window2.calPad2 = calPad2;
   if (typeof calDateKey === "function")
-    window.calDateKey = calDateKey;
+    window2.calDateKey = calDateKey;
   if (typeof calMondayOf === "function")
-    window.calMondayOf = calMondayOf;
+    window2.calMondayOf = calMondayOf;
   if (typeof calIsoWeekNumber === "function")
-    window.calIsoWeekNumber = calIsoWeekNumber;
+    window2.calIsoWeekNumber = calIsoWeekNumber;
   if (typeof calLunarText === "function")
-    window.calLunarText = calLunarText;
+    window2.calLunarText = calLunarText;
   if (typeof syncWeekBoardToRealDate === "function")
-    window.syncWeekBoardToRealDate = syncWeekBoardToRealDate;
+    window2.syncWeekBoardToRealDate = syncWeekBoardToRealDate;
   if (typeof getTodayWeekCol === "function")
-    window.getTodayWeekCol = getTodayWeekCol;
+    window2.getTodayWeekCol = getTodayWeekCol;
   if (typeof updateWeekRangeLabel === "function")
-    window.updateWeekRangeLabel = updateWeekRangeLabel;
+    window2.updateWeekRangeLabel = updateWeekRangeLabel;
   if (typeof getWeekColsForOffset === "function")
-    window.getWeekColsForOffset = getWeekColsForOffset;
+    window2.getWeekColsForOffset = getWeekColsForOffset;
   if (typeof getRecordsForDate === "function")
-    window.getRecordsForDate = getRecordsForDate;
+    window2.getRecordsForDate = getRecordsForDate;
   if (typeof changeWeek === "function")
-    window.changeWeek = changeWeek;
+    window2.changeWeek = changeWeek;
   if (typeof resetToCurrentWeek === "function")
-    window.resetToCurrentWeek = resetToCurrentWeek;
+    window2.resetToCurrentWeek = resetToCurrentWeek;
   if (typeof filterWeekTasks === "function")
-    window.filterWeekTasks = filterWeekTasks;
+    window2.filterWeekTasks = filterWeekTasks;
   if (typeof renderWeekBoard === "function")
-    window.renderWeekBoard = renderWeekBoard;
+    window2.renderWeekBoard = renderWeekBoard;
   if (typeof showWeekTaskDetail === "function")
-    window.showWeekTaskDetail = showWeekTaskDetail;
+    window2.showWeekTaskDetail = showWeekTaskDetail;
   if (typeof closeTaskDetailModal === "function")
-    window.closeTaskDetailModal = closeTaskDetailModal;
+    window2.closeTaskDetailModal = closeTaskDetailModal;
   if (typeof getCalendarBaseMonth === "function")
-    window.getCalendarBaseMonth = getCalendarBaseMonth;
+    window2.getCalendarBaseMonth = getCalendarBaseMonth;
   if (typeof updateMonthTitleLabel === "function")
-    window.updateMonthTitleLabel = updateMonthTitleLabel;
+    window2.updateMonthTitleLabel = updateMonthTitleLabel;
   if (typeof changeMonth === "function")
-    window.changeMonth = changeMonth;
+    window2.changeMonth = changeMonth;
   if (typeof resetToCurrentMonth === "function")
-    window.resetToCurrentMonth = resetToCurrentMonth;
+    window2.resetToCurrentMonth = resetToCurrentMonth;
   if (typeof renderMonthCalendar === "function")
-    window.renderMonthCalendar = renderMonthCalendar;
+    window2.renderMonthCalendar = renderMonthCalendar;
   if (typeof inspectMonthDate === "function")
-    window.inspectMonthDate = inspectMonthDate;
+    window2.inspectMonthDate = inspectMonthDate;
   if (typeof closeDayInspector === "function")
-    window.closeDayInspector = closeDayInspector;
+    window2.closeDayInspector = closeDayInspector;
   if (typeof closeDayInspectorOnBackdrop === "function")
-    window.closeDayInspectorOnBackdrop = closeDayInspectorOnBackdrop;
+    window2.closeDayInspectorOnBackdrop = closeDayInspectorOnBackdrop;
   if (typeof openEvidenceGalleryForDay === "function")
-    window.openEvidenceGalleryForDay = openEvidenceGalleryForDay;
+    window2.openEvidenceGalleryForDay = openEvidenceGalleryForDay;
   if (typeof openStudyMakeUpModal === "function")
-    window.openStudyMakeUpModal = openStudyMakeUpModal;
+    window2.openStudyMakeUpModal = openStudyMakeUpModal;
   if (typeof openMoralTestModal === "function")
-    window.openMoralTestModal = openMoralTestModal;
+    window2.openMoralTestModal = openMoralTestModal;
   if (typeof openFamilyPactModal === "function")
-    window.openFamilyPactModal = openFamilyPactModal;
+    window2.openFamilyPactModal = openFamilyPactModal;
   if (typeof submitPactViolationAdjudication === "function")
-    window.submitPactViolationAdjudication = submitPactViolationAdjudication;
+    window2.submitPactViolationAdjudication = submitPactViolationAdjudication;
   if (typeof closeFamilyPactModal === "function")
-    window.closeFamilyPactModal = closeFamilyPactModal;
+    window2.closeFamilyPactModal = closeFamilyPactModal;
   if (typeof printFamilyPact === "function")
-    window.printFamilyPact = printFamilyPact;
+    window2.printFamilyPact = printFamilyPact;
   if (typeof openDaxuePhilosophyModal === "function")
-    window.openDaxuePhilosophyModal = openDaxuePhilosophyModal;
+    window2.openDaxuePhilosophyModal = openDaxuePhilosophyModal;
   if (typeof closeDaxuePhilosophyModal === "function")
-    window.closeDaxuePhilosophyModal = closeDaxuePhilosophyModal;
+    window2.closeDaxuePhilosophyModal = closeDaxuePhilosophyModal;
   if (typeof showDaxueEightPhilosophy === "function")
-    window.showDaxueEightPhilosophy = showDaxueEightPhilosophy;
+    window2.showDaxueEightPhilosophy = showDaxueEightPhilosophy;
   if (typeof locateDaxueItemFromModal === "function")
-    window.locateDaxueItemFromModal = locateDaxueItemFromModal;
+    window2.locateDaxueItemFromModal = locateDaxueItemFromModal;
   if (typeof switchTreasuryRecordType === "function")
-    window.switchTreasuryRecordType = switchTreasuryRecordType;
+    window2.switchTreasuryRecordType = switchTreasuryRecordType;
   if (typeof setQuickRecordAmount === "function")
-    window.setQuickRecordAmount = setQuickRecordAmount;
+    window2.setQuickRecordAmount = setQuickRecordAmount;
   if (typeof recordLiveTreasuryTransaction === "function")
-    window.recordLiveTreasuryTransaction = recordLiveTreasuryTransaction;
+    window2.recordLiveTreasuryTransaction = recordLiveTreasuryTransaction;
   if (typeof renderTreasuryLedgerRows === "function")
-    window.renderTreasuryLedgerRows = renderTreasuryLedgerRows;
+    window2.renderTreasuryLedgerRows = renderTreasuryLedgerRows;
   if (typeof updateTreasuryLiveDOM === "function")
-    window.updateTreasuryLiveDOM = updateTreasuryLiveDOM;
+    window2.updateTreasuryLiveDOM = updateTreasuryLiveDOM;
   if (typeof filterTreasuryLedgerRows === "function")
-    window.filterTreasuryLedgerRows = filterTreasuryLedgerRows;
+    window2.filterTreasuryLedgerRows = filterTreasuryLedgerRows;
   if (typeof scrollToTreasurySection === "function")
-    window.scrollToTreasurySection = scrollToTreasurySection;
+    window2.scrollToTreasurySection = scrollToTreasurySection;
   if (typeof executeThreeJarSplit === "function")
-    window.executeThreeJarSplit = executeThreeJarSplit;
+    window2.executeThreeJarSplit = executeThreeJarSplit;
   if (typeof recordLiveTreasuryExpense === "function")
-    window.recordLiveTreasuryExpense = recordLiveTreasuryExpense;
+    window2.recordLiveTreasuryExpense = recordLiveTreasuryExpense;
   if (typeof renderTreasurySpecializedWorkspace === "function")
-    window.renderTreasurySpecializedWorkspace = renderTreasurySpecializedWorkspace;
+    window2.renderTreasurySpecializedWorkspace = renderTreasurySpecializedWorkspace;
   if (typeof renderDaxueEightItemsHtml === "function")
-    window.renderDaxueEightItemsHtml = renderDaxueEightItemsHtml;
+    window2.renderDaxueEightItemsHtml = renderDaxueEightItemsHtml;
   if (typeof openDaxueItemDetailModal === "function")
-    window.openDaxueItemDetailModal = openDaxueItemDetailModal;
+    window2.openDaxueItemDetailModal = openDaxueItemDetailModal;
   if (typeof closeDaxueItemDetailModal === "function")
-    window.closeDaxueItemDetailModal = closeDaxueItemDetailModal;
+    window2.closeDaxueItemDetailModal = closeDaxueItemDetailModal;
   if (typeof renderDaxueItemModalBody === "function")
-    window.renderDaxueItemModalBody = renderDaxueItemModalBody;
+    window2.renderDaxueItemModalBody = renderDaxueItemModalBody;
   if (typeof switchDaxueTab === "function")
-    window.switchDaxueTab = switchDaxueTab;
+    window2.switchDaxueTab = switchDaxueTab;
   if (typeof renderTreeSpecializedWorkspace === "function")
-    window.renderTreeSpecializedWorkspace = renderTreeSpecializedWorkspace;
+    window2.renderTreeSpecializedWorkspace = renderTreeSpecializedWorkspace;
   if (typeof renderAchieveSpecializedWorkspace === "function")
-    window.renderAchieveSpecializedWorkspace = renderAchieveSpecializedWorkspace;
+    window2.renderAchieveSpecializedWorkspace = renderAchieveSpecializedWorkspace;
   if (typeof switchAchieveTab === "function")
-    window.switchAchieveTab = switchAchieveTab;
+    window2.switchAchieveTab = switchAchieveTab;
   if (typeof renderCultivationGroupsHtml === "function")
-    window.renderCultivationGroupsHtml = renderCultivationGroupsHtml;
+    window2.renderCultivationGroupsHtml = renderCultivationGroupsHtml;
   if (typeof renderAccidentalGroupsHtml === "function")
-    window.renderAccidentalGroupsHtml = renderAccidentalGroupsHtml;
+    window2.renderAccidentalGroupsHtml = renderAccidentalGroupsHtml;
   if (typeof jumpFromAchieveToProjectWorkspace === "function")
-    window.jumpFromAchieveToProjectWorkspace = jumpFromAchieveToProjectWorkspace;
+    window2.jumpFromAchieveToProjectWorkspace = jumpFromAchieveToProjectWorkspace;
   if (typeof syncAchievementToDailyNote === "function")
-    window.syncAchievementToDailyNote = syncAchievementToDailyNote;
+    window2.syncAchievementToDailyNote = syncAchievementToDailyNote;
   if (typeof openAchievementDetailModal === "function")
-    window.openAchievementDetailModal = openAchievementDetailModal;
+    window2.openAchievementDetailModal = openAchievementDetailModal;
   if (typeof closeAchievementDetailModal === "function")
-    window.closeAchievementDetailModal = closeAchievementDetailModal;
+    window2.closeAchievementDetailModal = closeAchievementDetailModal;
   if (typeof renderAchievementModalBody === "function")
-    window.renderAchievementModalBody = renderAchievementModalBody;
+    window2.renderAchievementModalBody = renderAchievementModalBody;
   if (typeof viewCultivationDetail === "function")
-    window.viewCultivationDetail = viewCultivationDetail;
+    window2.viewCultivationDetail = viewCultivationDetail;
   if (typeof viewAccidentalDetail === "function")
-    window.viewAccidentalDetail = viewAccidentalDetail;
+    window2.viewAccidentalDetail = viewAccidentalDetail;
   if (typeof openRegisterAccidentalAchievementModal === "function")
-    window.openRegisterAccidentalAchievementModal = openRegisterAccidentalAchievementModal;
+    window2.openRegisterAccidentalAchievementModal = openRegisterAccidentalAchievementModal;
   if (typeof closeRegisterAccidentalAchievementModal === "function")
-    window.closeRegisterAccidentalAchievementModal = closeRegisterAccidentalAchievementModal;
+    window2.closeRegisterAccidentalAchievementModal = closeRegisterAccidentalAchievementModal;
   if (typeof fillAccidentalSample === "function")
-    window.fillAccidentalSample = fillAccidentalSample;
+    window2.fillAccidentalSample = fillAccidentalSample;
   if (typeof handleAccidentalImageUpload === "function")
-    window.handleAccidentalImageUpload = handleAccidentalImageUpload;
+    window2.handleAccidentalImageUpload = handleAccidentalImageUpload;
   if (typeof submitRegisterAccidentalAchievement === "function")
-    window.submitRegisterAccidentalAchievement = submitRegisterAccidentalAchievement;
+    window2.submitRegisterAccidentalAchievement = submitRegisterAccidentalAchievement;
   if (typeof updateAchieveWorkspaceLiveDOM === "function")
-    window.updateAchieveWorkspaceLiveDOM = updateAchieveWorkspaceLiveDOM;
+    window2.updateAchieveWorkspaceLiveDOM = updateAchieveWorkspaceLiveDOM;
   if (typeof renderStudySpecializedWorkspace === "function")
-    window.renderStudySpecializedWorkspace = renderStudySpecializedWorkspace;
+    window2.renderStudySpecializedWorkspace = renderStudySpecializedWorkspace;
   if (typeof renderDojoSpecializedWorkspace === "function")
-    window.renderDojoSpecializedWorkspace = renderDojoSpecializedWorkspace;
+    window2.renderDojoSpecializedWorkspace = renderDojoSpecializedWorkspace;
   if (typeof renderCognitionSpecializedWorkspace === "function")
-    window.renderCognitionSpecializedWorkspace = renderCognitionSpecializedWorkspace;
+    window2.renderCognitionSpecializedWorkspace = renderCognitionSpecializedWorkspace;
   if (typeof renderNoteSpecializedWorkspace === "function")
-    window.renderNoteSpecializedWorkspace = renderNoteSpecializedWorkspace;
+    window2.renderNoteSpecializedWorkspace = renderNoteSpecializedWorkspace;
   if (typeof getNoteStatusSummaryText === "function")
-    window.getNoteStatusSummaryText = getNoteStatusSummaryText;
+    window2.getNoteStatusSummaryText = getNoteStatusSummaryText;
   if (typeof updateNoteTextCounter === "function")
-    window.updateNoteTextCounter = updateNoteTextCounter;
+    window2.updateNoteTextCounter = updateNoteTextCounter;
   if (typeof renderNoteMediaGalleryHtml === "function")
-    window.renderNoteMediaGalleryHtml = renderNoteMediaGalleryHtml;
+    window2.renderNoteMediaGalleryHtml = renderNoteMediaGalleryHtml;
   if (typeof renderNoteHistoryEntriesHtml === "function")
-    window.renderNoteHistoryEntriesHtml = renderNoteHistoryEntriesHtml;
+    window2.renderNoteHistoryEntriesHtml = renderNoteHistoryEntriesHtml;
   if (typeof switchNoteEnergy === "function")
-    window.switchNoteEnergy = switchNoteEnergy;
+    window2.switchNoteEnergy = switchNoteEnergy;
   if (typeof switchNoteMood === "function")
-    window.switchNoteMood = switchNoteMood;
+    window2.switchNoteMood = switchNoteMood;
   if (typeof triggerNotePhotoUpload === "function")
-    window.triggerNotePhotoUpload = triggerNotePhotoUpload;
+    window2.triggerNotePhotoUpload = triggerNotePhotoUpload;
   if (typeof handleNotePhotoFile === "function")
-    window.handleNotePhotoFile = handleNotePhotoFile;
+    window2.handleNotePhotoFile = handleNotePhotoFile;
   if (typeof triggerNoteVideoUpload === "function")
-    window.triggerNoteVideoUpload = triggerNoteVideoUpload;
+    window2.triggerNoteVideoUpload = triggerNoteVideoUpload;
   if (typeof handleNoteVideoFile === "function")
-    window.handleNoteVideoFile = handleNoteVideoFile;
+    window2.handleNoteVideoFile = handleNoteVideoFile;
   if (typeof addNoteDemoMedia === "function")
-    window.addNoteDemoMedia = addNoteDemoMedia;
+    window2.addNoteDemoMedia = addNoteDemoMedia;
   if (typeof removeNoteMedia === "function")
-    window.removeNoteMedia = removeNoteMedia;
+    window2.removeNoteMedia = removeNoteMedia;
   if (typeof refreshNoteMediaGallery === "function")
-    window.refreshNoteMediaGallery = refreshNoteMediaGallery;
+    window2.refreshNoteMediaGallery = refreshNoteMediaGallery;
   if (typeof openNoteMediaPreviewModal === "function")
-    window.openNoteMediaPreviewModal = openNoteMediaPreviewModal;
+    window2.openNoteMediaPreviewModal = openNoteMediaPreviewModal;
   if (typeof closeNoteMediaPreviewModal === "function")
-    window.closeNoteMediaPreviewModal = closeNoteMediaPreviewModal;
+    window2.closeNoteMediaPreviewModal = closeNoteMediaPreviewModal;
   if (typeof saveNoteDailyEntry === "function")
-    window.saveNoteDailyEntry = saveNoteDailyEntry;
+    window2.saveNoteDailyEntry = saveNoteDailyEntry;
   if (typeof scrollToNoteSection === "function")
-    window.scrollToNoteSection = scrollToNoteSection;
+    window2.scrollToNoteSection = scrollToNoteSection;
   if (typeof parseGanttDate === "function")
-    window.parseGanttDate = parseGanttDate;
+    window2.parseGanttDate = parseGanttDate;
   if (typeof formatGanttDate === "function")
-    window.formatGanttDate = formatGanttDate;
+    window2.formatGanttDate = formatGanttDate;
   if (typeof diffGanttDays === "function")
-    window.diffGanttDays = diffGanttDays;
+    window2.diffGanttDays = diffGanttDays;
   if (typeof computeProjectProgressAndStatus === "function")
-    window.computeProjectProgressAndStatus = computeProjectProgressAndStatus;
+    window2.computeProjectProgressAndStatus = computeProjectProgressAndStatus;
   if (typeof getStatusMeta === "function")
-    window.getStatusMeta = getStatusMeta;
+    window2.getStatusMeta = getStatusMeta;
   if (typeof getCategoryMeta === "function")
-    window.getCategoryMeta = getCategoryMeta;
+    window2.getCategoryMeta = getCategoryMeta;
   if (typeof filterGanttCategory === "function")
-    window.filterGanttCategory = filterGanttCategory;
+    window2.filterGanttCategory = filterGanttCategory;
   if (typeof filterGanttStatus === "function")
-    window.filterGanttStatus = filterGanttStatus;
+    window2.filterGanttStatus = filterGanttStatus;
   if (typeof scrollGanttToToday === "function")
-    window.scrollGanttToToday = scrollGanttToToday;
+    window2.scrollGanttToToday = scrollGanttToToday;
   if (typeof handleGanttEditPlan === "function")
-    window.handleGanttEditPlan = handleGanttEditPlan;
+    window2.handleGanttEditPlan = handleGanttEditPlan;
   if (typeof handleGanttArchive === "function")
-    window.handleGanttArchive = handleGanttArchive;
+    window2.handleGanttArchive = handleGanttArchive;
   if (typeof handleSquareReadOnlyClick === "function")
-    window.handleSquareReadOnlyClick = handleSquareReadOnlyClick;
+    window2.handleSquareReadOnlyClick = handleSquareReadOnlyClick;
   if (typeof toggleProjectArchive === "function")
-    window.toggleProjectArchive = toggleProjectArchive;
+    window2.toggleProjectArchive = toggleProjectArchive;
   if (typeof renderGanttChart === "function")
-    window.renderGanttChart = renderGanttChart;
+    window2.renderGanttChart = renderGanttChart;
   if (typeof openAddProjectModal === "function")
-    window.openAddProjectModal = openAddProjectModal;
+    window2.openAddProjectModal = openAddProjectModal;
   if (typeof openEditProjectModal === "function")
-    window.openEditProjectModal = openEditProjectModal;
+    window2.openEditProjectModal = openEditProjectModal;
   if (typeof closeAddProjectModal === "function")
-    window.closeAddProjectModal = closeAddProjectModal;
+    window2.closeAddProjectModal = closeAddProjectModal;
   if (typeof handleAddProjectBackdropClick === "function")
-    window.handleAddProjectBackdropClick = handleAddProjectBackdropClick;
+    window2.handleAddProjectBackdropClick = handleAddProjectBackdropClick;
   if (typeof selectProjCategory === "function")
-    window.selectProjCategory = selectProjCategory;
+    window2.selectProjCategory = selectProjCategory;
   if (typeof setProjDatePreset === "function")
-    window.setProjDatePreset = setProjDatePreset;
+    window2.setProjDatePreset = setProjDatePreset;
   if (typeof handleProjDateChange === "function")
-    window.handleProjDateChange = handleProjDateChange;
+    window2.handleProjDateChange = handleProjDateChange;
   if (typeof confirmAddNewProject === "function")
-    window.confirmAddNewProject = confirmAddNewProject;
+    window2.confirmAddNewProject = confirmAddNewProject;
   if (typeof syncNewNodeToHomeExecution === "function")
-    window.syncNewNodeToHomeExecution = syncNewNodeToHomeExecution;
+    window2.syncNewNodeToHomeExecution = syncNewNodeToHomeExecution;
   if (typeof deriveNodesFromReflectionCard === "function")
-    window.deriveNodesFromReflectionCard = deriveNodesFromReflectionCard;
+    window2.deriveNodesFromReflectionCard = deriveNodesFromReflectionCard;
   if (typeof handleCustomCardCheckin === "function")
-    window.handleCustomCardCheckin = handleCustomCardCheckin;
+    window2.handleCustomCardCheckin = handleCustomCardCheckin;
   if (typeof addPickerCustomDynamicField === "function")
-    window.addPickerCustomDynamicField = addPickerCustomDynamicField;
+    window2.addPickerCustomDynamicField = addPickerCustomDynamicField;
   if (typeof removePickerCustomDynamicField === "function")
-    window.removePickerCustomDynamicField = removePickerCustomDynamicField;
+    window2.removePickerCustomDynamicField = removePickerCustomDynamicField;
   if (typeof addGoalMetricModalRow === "function")
-    window.addGoalMetricModalRow = addGoalMetricModalRow;
+    window2.addGoalMetricModalRow = addGoalMetricModalRow;
   if (typeof removeGoalMetricModalRow === "function")
-    window.removeGoalMetricModalRow = removeGoalMetricModalRow;
+    window2.removeGoalMetricModalRow = removeGoalMetricModalRow;
   if (typeof addCardGoalMetricItem === "function")
-    window.addCardGoalMetricItem = addCardGoalMetricItem;
+    window2.addCardGoalMetricItem = addCardGoalMetricItem;
   if (typeof removeCardGoalMetricItem === "function")
-    window.removeCardGoalMetricItem = removeCardGoalMetricItem;
+    window2.removeCardGoalMetricItem = removeCardGoalMetricItem;
   if (typeof addHabitChecklistModalRow === "function")
-    window.addHabitChecklistModalRow = addHabitChecklistModalRow;
+    window2.addHabitChecklistModalRow = addHabitChecklistModalRow;
   if (typeof removeHabitChecklistModalRow === "function")
-    window.removeHabitChecklistModalRow = removeHabitChecklistModalRow;
+    window2.removeHabitChecklistModalRow = removeHabitChecklistModalRow;
   if (typeof addCardHabitChecklistItem === "function")
-    window.addCardHabitChecklistItem = addCardHabitChecklistItem;
+    window2.addCardHabitChecklistItem = addCardHabitChecklistItem;
   if (typeof removeCardHabitChecklistItem === "function")
-    window.removeCardHabitChecklistItem = removeCardHabitChecklistItem;
+    window2.removeCardHabitChecklistItem = removeCardHabitChecklistItem;
   if (typeof addReflectionImprovementModalRow === "function")
-    window.addReflectionImprovementModalRow = addReflectionImprovementModalRow;
+    window2.addReflectionImprovementModalRow = addReflectionImprovementModalRow;
   if (typeof removeReflectionImprovementModalRow === "function")
-    window.removeReflectionImprovementModalRow = removeReflectionImprovementModalRow;
+    window2.removeReflectionImprovementModalRow = removeReflectionImprovementModalRow;
   if (typeof addCardReflectionImprovementItem === "function")
-    window.addCardReflectionImprovementItem = addCardReflectionImprovementItem;
+    window2.addCardReflectionImprovementItem = addCardReflectionImprovementItem;
   if (typeof removeCardReflectionImprovementItem === "function")
-    window.removeCardReflectionImprovementItem = removeCardReflectionImprovementItem;
+    window2.removeCardReflectionImprovementItem = removeCardReflectionImprovementItem;
   if (typeof switchModalGoalDeliverable === "function")
-    window.switchModalGoalDeliverable = switchModalGoalDeliverable;
+    window2.switchModalGoalDeliverable = switchModalGoalDeliverable;
   if (typeof switchGoalDeliverableMode === "function")
-    window.switchGoalDeliverableMode = switchGoalDeliverableMode;
+    window2.switchGoalDeliverableMode = switchGoalDeliverableMode;
   if (typeof triggerGoalDeliverableUpload === "function")
-    window.triggerGoalDeliverableUpload = triggerGoalDeliverableUpload;
+    window2.triggerGoalDeliverableUpload = triggerGoalDeliverableUpload;
   if (typeof depositGoalToAchievement === "function")
-    window.depositGoalToAchievement = depositGoalToAchievement;
+    window2.depositGoalToAchievement = depositGoalToAchievement;
   if (typeof updateDrillCardDuration === "function")
-    window.updateDrillCardDuration = updateDrillCardDuration;
+    window2.updateDrillCardDuration = updateDrillCardDuration;
   if (typeof triggerDrillCardImage === "function")
-    window.triggerDrillCardImage = triggerDrillCardImage;
+    window2.triggerDrillCardImage = triggerDrillCardImage;
   if (typeof createTertiaryCustomPlanningCard === "function")
-    window.createTertiaryCustomPlanningCard = createTertiaryCustomPlanningCard;
+    window2.createTertiaryCustomPlanningCard = createTertiaryCustomPlanningCard;
   if (typeof executeCustomCardCheckin === "function")
-    window.executeCustomCardCheckin = executeCustomCardCheckin;
+    window2.executeCustomCardCheckin = executeCustomCardCheckin;
   if (typeof toggleCustomCardTimer === "function")
-    window.toggleCustomCardTimer = toggleCustomCardTimer;
+    window2.toggleCustomCardTimer = toggleCustomCardTimer;
   if (typeof uploadCustomCardEvidence === "function")
-    window.uploadCustomCardEvidence = uploadCustomCardEvidence;
+    window2.uploadCustomCardEvidence = uploadCustomCardEvidence;
   if (typeof recordCustomCardVideo === "function")
-    window.recordCustomCardVideo = recordCustomCardVideo;
+    window2.recordCustomCardVideo = recordCustomCardVideo;
   if (typeof editCustomPlanningCard === "function")
-    window.editCustomPlanningCard = editCustomPlanningCard;
+    window2.editCustomPlanningCard = editCustomPlanningCard;
   if (typeof removeCustomPlanningCard === "function")
-    window.removeCustomPlanningCard = removeCustomPlanningCard;
+    window2.removeCustomPlanningCard = removeCustomPlanningCard;
   if (typeof renderInquiryPoolList === "function")
-    window.renderInquiryPoolList = renderInquiryPoolList;
+    window2.renderInquiryPoolList = renderInquiryPoolList;
   if (typeof openInquiryModal === "function")
-    window.openInquiryModal = openInquiryModal;
+    window2.openInquiryModal = openInquiryModal;
   if (typeof closeInquiryModal === "function")
-    window.closeInquiryModal = closeInquiryModal;
+    window2.closeInquiryModal = closeInquiryModal;
   if (typeof submitNewInquiry === "function")
-    window.submitNewInquiry = submitNewInquiry;
+    window2.submitNewInquiry = submitNewInquiry;
   if (typeof convertInquiryToPlan === "function")
-    window.convertInquiryToPlan = convertInquiryToPlan;
+    window2.convertInquiryToPlan = convertInquiryToPlan;
   if (typeof deriveEbbinghausDemo === "function")
-    window.deriveEbbinghausDemo = deriveEbbinghausDemo;
+    window2.deriveEbbinghausDemo = deriveEbbinghausDemo;
   if (typeof incrementDojoReps === "function")
-    window.incrementDojoReps = incrementDojoReps;
+    window2.incrementDojoReps = incrementDojoReps;
   if (typeof recordTreeTestDemo === "function")
-    window.recordTreeTestDemo = recordTreeTestDemo;
+    window2.recordTreeTestDemo = recordTreeTestDemo;
+  if (typeof localDateKey2 === "function")
+    window2.localDateKey = localDateKey2;
+  if (typeof shiftDate === "function")
+    window2.shiftDate = shiftDate;
+  if (typeof computeStreak === "function")
+    window2.computeStreak = computeStreak;
+  if (typeof fulfillmentRate === "function")
+    window2.fulfillmentRate = fulfillmentRate;
+  if (typeof safeFileStem2 === "function")
+    window2.safeFileStem = safeFileStem2;
+  if (typeof validateVaultRoot2 === "function")
+    window2.validateVaultRoot = validateVaultRoot2;
+  if (typeof domainId === "function")
+    window2.domainId = domainId;
+  if (typeof domainDate === "function")
+    window2.domainDate = domainDate;
+  if (typeof domainShift === "function")
+    window2.domainShift = domainShift;
+  if (typeof domainValidDate === "function")
+    window2.domainValidDate = domainValidDate;
+  if (typeof domainType === "function")
+    window2.domainType = domainType;
+  if (typeof domainNode === "function")
+    window2.domainNode = domainNode;
+  if (typeof occurrenceDates === "function")
+    window2.occurrenceDates = occurrenceDates;
+  if (typeof taskInstanceId === "function")
+    window2.taskInstanceId = taskInstanceId;
+  if (typeof projectProgress === "function")
+    window2.projectProgress = projectProgress;
+  if (typeof scheduleDomain === "function")
+    window2.scheduleDomain = scheduleDomain;
+  if (typeof evaluateMetric === "function")
+    window2.evaluateMetric = evaluateMetric;
+  if (typeof validateDomainExecution === "function")
+    window2.validateDomainExecution = validateDomainExecution;
+  if (typeof ensureBusinessDate === "function")
+    window2.ensureBusinessDate = ensureBusinessDate;
+  if (typeof refreshBusinessMetrics === "function")
+    window2.refreshBusinessMetrics = refreshBusinessMetrics;
+  if (typeof getEvidenceElapsed === "function")
+    window2.getEvidenceElapsed = getEvidenceElapsed;
+  if (typeof toggleEvidenceTimer === "function")
+    window2.toggleEvidenceTimer = toggleEvidenceTimer;
+  if (typeof saveExecutionDraft === "function")
+    window2.saveExecutionDraft = saveExecutionDraft;
+  if (typeof paintEvidenceTime === "function")
+    window2.paintEvidenceTime = paintEvidenceTime;
+  if (typeof mountRealExecutionForm === "function")
+    window2.mountRealExecutionForm = mountRealExecutionForm;
+  if (typeof uploadExecutionEvidence === "function")
+    window2.uploadExecutionEvidence = uploadExecutionEvidence;
+  if (typeof submitRealExecution === "function")
+    window2.submitRealExecution = submitRealExecution;
+  if (typeof saveRealNoteMedia === "function")
+    window2.saveRealNoteMedia = saveRealNoteMedia;
+  if (typeof withSafeNote === "function")
+    window2.withSafeNote = withSafeNote;
+  if (typeof restoreBusinessViews === "function")
+    window2.restoreBusinessViews = restoreBusinessViews;
+  if (typeof captureBusinessCanvas === "function")
+    window2.captureBusinessCanvas = captureBusinessCanvas;
+  if (typeof applyBusinessHistory === "function")
+    window2.applyBusinessHistory = applyBusinessHistory;
+  if (typeof openStreakFreezeDialog === "function")
+    window2.openStreakFreezeDialog = openStreakFreezeDialog;
+  if (typeof submitStreakFreeze === "function")
+    window2.submitStreakFreeze = submitStreakFreeze;
+  if (typeof migrateCanvasNodes === "function")
+    window2.migrateCanvasNodes = migrateCanvasNodes;
+  if (typeof bootstrapDomainState === "function")
+    window2.bootstrapDomainState = bootstrapDomainState;
+  if (typeof getDomainState === "function")
+    window2.getDomainState = getDomainState;
+  if (typeof getDomainNode === "function")
+    window2.getDomainNode = getDomainNode;
+  if (typeof domainEvent === "function")
+    window2.domainEvent = domainEvent;
+  if (typeof domainNodeHtml === "function")
+    window2.domainNodeHtml = domainNodeHtml;
+  if (typeof renderDomainCanvas === "function")
+    window2.renderDomainCanvas = renderDomainCanvas;
+  if (typeof recordDomainHistory === "function")
+    window2.recordDomainHistory = recordDomainHistory;
+  if (typeof restoreDomainHistory === "function")
+    window2.restoreDomainHistory = restoreDomainHistory;
+  if (typeof updateDomainNode === "function")
+    window2.updateDomainNode = updateDomainNode;
+  if (typeof domainDependencyCycle === "function")
+    window2.domainDependencyCycle = domainDependencyCycle;
+  if (typeof updateDomainDependencies === "function")
+    window2.updateDomainDependencies = updateDomainDependencies;
+  if (typeof editDomainList === "function")
+    window2.editDomainList = editDomainList;
+  if (typeof openDomainEditor === "function")
+    window2.openDomainEditor = openDomainEditor;
+  if (typeof domainTasks === "function")
+    window2.domainTasks = domainTasks;
+  if (typeof domainTodayTasks === "function")
+    window2.domainTodayTasks = domainTodayTasks;
+  if (typeof resolveDomainTask === "function")
+    window2.resolveDomainTask = resolveDomainTask;
+  if (typeof taskForCalendar === "function")
+    window2.taskForCalendar = taskForCalendar;
+  if (typeof refreshDomainProjections === "function")
+    window2.refreshDomainProjections = refreshDomainProjections;
+  if (typeof openDomainTask === "function")
+    window2.openDomainTask = openDomainTask;
+  if (typeof openGoalAcceptance === "function")
+    window2.openGoalAcceptance = openGoalAcceptance;
+  if (typeof domainEvidenceLabel === "function")
+    window2.domainEvidenceLabel = domainEvidenceLabel;
+  if (typeof renderDomainExecution === "function")
+    window2.renderDomainExecution = renderDomainExecution;
+  if (typeof collectDomainExecution === "function")
+    window2.collectDomainExecution = collectDomainExecution;
+  if (typeof renderDomainEvidence === "function")
+    window2.renderDomainEvidence = renderDomainEvidence;
+  if (typeof syncDomainMilestones === "function")
+    window2.syncDomainMilestones = syncDomainMilestones;
+  if (typeof jumpToDomainSource === "function")
+    window2.jumpToDomainSource = jumpToDomainSource;
+  if (typeof persistDomainMedia === "function")
+    window2.persistDomainMedia = persistDomainMedia;
+  if (typeof allDomainMedia === "function")
+    window2.allDomainMedia = allDomainMedia;
+  if (typeof openDomainMedia === "function")
+    window2.openDomainMedia = openDomainMedia;
+  if (typeof sealDomainJournal === "function")
+    window2.sealDomainJournal = sealDomainJournal;
+  if (typeof selectDomainBounty === "function")
+    window2.selectDomainBounty = selectDomainBounty;
+  if (typeof openFamilyProfile === "function")
+    window2.openFamilyProfile = openFamilyProfile;
+  if (typeof saveFamilyProfile === "function")
+    window2.saveFamilyProfile = saveFamilyProfile;
+  if (typeof openDomainProjectDay === "function")
+    window2.openDomainProjectDay = openDomainProjectDay;
+  if (typeof importDomainCanvas === "function")
+    window2.importDomainCanvas = importDomainCanvas;
+  if (typeof exportDomainDocument === "function")
+    window2.exportDomainDocument = exportDomainDocument;
+  if (typeof exportDomainAchievement === "function")
+    window2.exportDomainAchievement = exportDomainAchievement;
+  if (typeof acknowledgeDomainText === "function")
+    window2.acknowledgeDomainText = acknowledgeDomainText;
+  if (typeof captureDomainLayout === "function")
+    window2.captureDomainLayout = captureDomainLayout;
+  if (typeof openDesignDatabase === "function")
+    window2.openDesignDatabase = openDesignDatabase;
+  if (typeof designData === "function")
+    window2.designData = designData;
   if (typeof USER_PROFILE_STATE !== "undefined")
-    window.USER_PROFILE_STATE = USER_PROFILE_STATE;
+    window2.USER_PROFILE_STATE = USER_PROFILE_STATE;
   if (typeof GANTT_PROJECTS !== "undefined")
-    window.GANTT_PROJECTS = GANTT_PROJECTS;
+    window2.GANTT_PROJECTS = GANTT_PROJECTS;
   if (typeof PROJECT_CANVAS_STORE !== "undefined")
-    window.PROJECT_CANVAS_STORE = PROJECT_CANVAS_STORE;
+    window2.PROJECT_CANVAS_STORE = PROJECT_CANVAS_STORE;
   if (typeof PAVILION_META !== "undefined")
-    window.PAVILION_META = PAVILION_META;
+    window2.PAVILION_META = PAVILION_META;
   if (typeof EXEC_CARDS_DATA !== "undefined")
-    window.EXEC_CARDS_DATA = EXEC_CARDS_DATA;
+    window2.EXEC_CARDS_DATA = EXEC_CARDS_DATA;
   if (typeof WEEK_BOARD_DATA !== "undefined")
-    window.WEEK_BOARD_DATA = WEEK_BOARD_DATA;
+    window2.WEEK_BOARD_DATA = WEEK_BOARD_DATA;
   if (typeof TREASURY_STATE !== "undefined")
-    window.TREASURY_STATE = TREASURY_STATE;
+    window2.TREASURY_STATE = TREASURY_STATE;
   if (typeof ACHIEVEMENT_STATE !== "undefined")
-    window.ACHIEVEMENT_STATE = ACHIEVEMENT_STATE;
+    window2.ACHIEVEMENT_STATE = ACHIEVEMENT_STATE;
   if (typeof NOTE_STATE !== "undefined")
-    window.NOTE_STATE = NOTE_STATE;
+    window2.NOTE_STATE = NOTE_STATE;
   if (typeof BOUNTY_STATE !== "undefined")
-    window.BOUNTY_STATE = BOUNTY_STATE;
+    window2.BOUNTY_STATE = BOUNTY_STATE;
   if (typeof INQUIRY_POOL_STATE !== "undefined")
-    window.INQUIRY_POOL_STATE = INQUIRY_POOL_STATE;
-  window.__reinitYouthIslandDom = function() {
+    window2.INQUIRY_POOL_STATE = INQUIRY_POOL_STATE;
+  window2.__reinitYouthIslandDom = function() {
     islandSettingsBound = false;
     if (typeof initIslandSettings === "function")
       initIslandSettings();
@@ -15645,6 +18495,8 @@ function bootPrototypeRuntime() {
       renderHomeSemesterGoalsBanner();
     if (typeof recalcAndRenderGlobalHUD === "function")
       recalcAndRenderGlobalHUD();
+    if (typeof restoreBusinessViews === "function")
+      restoreBusinessViews();
     if (typeof renderBountyModalAndBillboard === "function")
       renderBountyModalAndBillboard();
     if (typeof renderGanttChart === "function")
@@ -15654,17 +18506,19 @@ function bootPrototypeRuntime() {
     if (typeof switchHomeGlobalView === "function")
       switchHomeGlobalView("exec");
   };
-  window.__reinitYouthIslandDom();
+  window2.__reinitYouthIslandDom();
+  return () => runtimeScope.dispose();
 }
 
 // src/views/YouthIslandView.ts
 var VIEW_TYPE_YOUTH_ISLAND = "youth-holistic-growth-island-view";
-var REMOTE_RAW_BASE = "https://fastly.jsdelivr.net/gh/zuixianjian/test@master";
 var YouthIslandView = class extends import_obsidian2.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     this.hooksInstalled = false;
     this.stateChangeHandler = null;
+    this.disposeRuntime = null;
+    this.bodyClasses = /* @__PURE__ */ new Map();
     this.plugin = plugin;
   }
   getViewType() {
@@ -15683,37 +18537,21 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
       const scenesDir = (0, import_obsidian2.normalizePath)(`${pluginDir}/assets/scenes`);
       const plazaPath = (0, import_obsidian2.normalizePath)(`${scenesDir}/scene-plaza.png`);
       const deskPath = (0, import_obsidian2.normalizePath)(`${scenesDir}/scene-desk.png`);
-      const ensureRemoteAsset = async (localPath, relUrl, fallbackGradient, cssVar) => {
+      const ensureLocalAsset = async (localPath, fallbackGradient, cssVar) => {
         if (await this.app.vault.adapter.exists(localPath)) {
           const resourceUrl = this.app.vault.adapter.getResourcePath(localPath);
-          document.documentElement.style.setProperty(cssVar, `url("${resourceUrl}")`);
+          this.contentEl.style.setProperty(cssVar, `url("${resourceUrl}")`);
           return;
         }
-        const remoteUrl = `${REMOTE_RAW_BASE}/${relUrl}`;
-        document.documentElement.style.setProperty(cssVar, `url("${remoteUrl}"), ${fallbackGradient}`);
-        try {
-          if (!await this.app.vault.adapter.exists(scenesDir)) {
-            await this.app.vault.adapter.mkdir((0, import_obsidian2.normalizePath)(`${pluginDir}/assets`));
-            await this.app.vault.adapter.mkdir(scenesDir);
-          }
-          const resp = await (0, import_obsidian2.requestUrl)({ url: remoteUrl, method: "GET" });
-          if (resp.status === 200 && resp.arrayBuffer) {
-            await this.app.vault.adapter.writeBinary(localPath, resp.arrayBuffer);
-            const cachedUrl = this.app.vault.adapter.getResourcePath(localPath);
-            document.documentElement.style.setProperty(cssVar, `url("${cachedUrl}")`);
-          }
-        } catch {
-        }
+        this.contentEl.style.setProperty(cssVar, fallbackGradient);
       };
-      await ensureRemoteAsset(
+      await ensureLocalAsset(
         plazaPath,
-        "assets/scenes/scene-plaza.png",
         "linear-gradient(135deg, #1b382b 0%, #2f5436 45%, #182c1f 100%)",
         "--island-scene-plaza"
       );
-      await ensureRemoteAsset(
+      await ensureLocalAsset(
         deskPath,
-        "assets/scenes/scene-desk.png",
         "radial-gradient(ellipse at 50% 50%, #453221 0%, #251b12 100%)",
         "--island-scene-desk"
       );
@@ -15723,40 +18561,48 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
   async onOpen() {
     const { contentEl } = this;
     contentEl.empty();
-    document.documentElement.style.setProperty(
+    const existing = this.app.workspace.getLeavesOfType(VIEW_TYPE_YOUTH_ISLAND).find((leaf) => leaf !== this.leaf && leaf.view.containerEl.querySelector(".youth-island-plugin-root"));
+    if (existing) {
+      contentEl.createEl("p", { text: "\u7EC8\u8EAB\u5C9B\u6C11\u5DE5\u4F5C\u53F0\u5DF2\u5728\u53E6\u4E00\u4E2A\u6807\u7B7E\u9875\u6253\u5F00\u3002" });
+      const button = contentEl.createEl("button", { text: "\u5207\u6362\u5230\u5DF2\u6253\u5F00\u7684\u5DE5\u4F5C\u53F0" });
+      button.onclick = () => {
+        void this.app.workspace.revealLeaf(existing);
+      };
+      return;
+    }
+    this.contentEl.style.setProperty(
       "--island-scene-plaza",
       "linear-gradient(135deg, #1b382b 0%, #2f5436 45%, #182c1f 100%)"
     );
-    document.documentElement.style.setProperty(
+    this.contentEl.style.setProperty(
       "--island-scene-desk",
       "radial-gradient(ellipse at 50% 50%, #453221 0%, #251b12 100%)"
     );
     void this.configureSceneVariables();
-    document.body.classList.add("is-fullscreen-mode", "youth-island-tablet-fullscreen");
+    for (const cls of ["is-fullscreen-mode", "youth-island-tablet-fullscreen", "is-immersive", "has-exec-fullscreen", "imm-hide-left", "imm-hide-top", "imm-hide-bottom", "imm-hide-nodes"]) {
+      this.bodyClasses.set(cls, document.body.classList.contains(cls));
+    }
+    document.body.classList.add("is-fullscreen-mode");
+    const updateActiveState = () => document.body.classList.toggle("youth-island-tablet-fullscreen", this.app.workspace.activeLeaf?.view === this);
+    this.registerEvent(this.app.workspace.on("active-leaf-change", updateActiveState));
+    updateActiveState();
     const rootWrapper = contentEl.createDiv({
       cls: "youth-island-plugin-root youth-island-obsidian-view-root"
     });
     rootWrapper.innerHTML = ISLAND_UI_HTML;
-    const appAny = this.app;
-    if (appAny?.workspace) {
-      const workspaceProto = Object.getPrototypeOf(appAny.workspace);
-      if (workspaceProto && !workspaceProto.__youthIslandSwipePatched) {
-        const originalTrigger = workspaceProto.trigger;
-        workspaceProto.trigger = function(eventName, ...args) {
-          if (eventName === "swipe") {
-            const activeLeaf = appAny.workspace?.activeLeaf;
-            const isOurView = activeLeaf?.view?.getViewType?.() === VIEW_TYPE_YOUTH_ISLAND || document.activeElement?.closest(".youth-island-plugin-root") || document.querySelector(".youth-island-plugin-root");
-            if (isOurView) {
-              return;
-            }
-          }
-          return originalTrigger.apply(this, [eventName, ...args]);
-        };
-        workspaceProto.__youthIslandSwipePatched = true;
-      }
+    this.disposeRuntime = bootPrototypeRuntime();
+    try {
+      await this.plugin.vaultStorage.hydrateRuntimeFromVault();
+    } catch (error) {
+      this.disposeRuntime?.();
+      this.disposeRuntime = null;
+      for (const [cls, present] of this.bodyClasses)
+        document.body.classList.toggle(cls, present);
+      rootWrapper.empty();
+      rootWrapper.createEl("p", { text: String(error instanceof Error ? error.message : error) });
+      new import_obsidian2.Notice("\u6210\u957F\u6863\u6848\u8BFB\u53D6\u5931\u8D25\uFF0C\u81EA\u52A8\u4FDD\u5B58\u5DF2\u6682\u505C\uFF0C\u539F\u59CB\u6587\u4EF6\u672A\u88AB\u8986\u76D6\u3002");
+      return;
     }
-    bootPrototypeRuntime();
-    await this.plugin.vaultStorage.hydrateRuntimeFromVault();
     const win = window;
     if (typeof win.__reinitYouthIslandDom === "function") {
       win.__reinitYouthIslandDom();
@@ -15842,6 +18688,14 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
   }
   installRuntimePersistenceHooks(rootEl) {
     const win = window;
+    if (!this.hooksInstalled)
+      this.registerDomEvent(window, "youth-island:domain-event", (event) => {
+        const names = { "checkin.completed": "checkin:success", "project.created": "project:created", "inquiry.converted": "project:created", "pact.violation": "pact:violation", "achievement.created": "medal:unlocked", "achievement.accidental": "medal:unlocked", "bounty.redeemed": "bounty:updated", "treasury.recorded": "treasury:recorded", "journal.sealed": "journal:saved" };
+        globalIslandEventBus.emit("domain:committed", event.detail);
+        const name = names[event.detail?.kind];
+        if (name)
+          globalIslandEventBus.emit(name, event.detail);
+      });
     if (rootEl) {
       const onDomFormChange = () => {
         if (typeof win.syncFormStateToAttributes === "function") {
@@ -15854,6 +18708,8 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
       };
       rootEl.addEventListener("change", onDomFormChange, { passive: true });
       rootEl.addEventListener("input", onDomFormChange, { passive: true });
+      rootEl.addEventListener("click", () => this.plugin.vaultStorage.scheduleSync(400), { passive: true });
+      rootEl.addEventListener("pointerup", () => this.plugin.vaultStorage.scheduleSync(400), { passive: true });
     }
     if (!this.stateChangeHandler) {
       this.stateChangeHandler = () => {
@@ -15870,7 +18726,6 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
         return;
       const wrapped = (...args) => {
         const res = orig.apply(win, args);
-        globalIslandEventBus.emit(eventName, { fnName, args, timestamp: Date.now() });
         this.plugin.vaultStorage.scheduleSync(250);
         return res;
       };
@@ -15910,12 +18765,21 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
     hookFn("saveImmersivePref", "settings:updated");
   }
   async onClose() {
-    document.body.classList.remove("youth-island-tablet-fullscreen");
     if (this.stateChangeHandler) {
       window.removeEventListener("youth-island:state-changed", this.stateChangeHandler);
       this.stateChangeHandler = null;
     }
-    await this.plugin.vaultStorage.syncRuntimeToVault();
+    try {
+      window.saveExecutionDraft?.();
+      await this.plugin.vaultStorage.syncRuntimeToVault();
+    } finally {
+      this.disposeRuntime?.();
+      this.disposeRuntime = null;
+      this.hooksInstalled = false;
+      for (const [cls, present] of this.bodyClasses)
+        document.body.classList.toggle(cls, present);
+      this.contentEl.empty();
+    }
   }
 };
 
@@ -15933,24 +18797,34 @@ var YouthIslandSettingTab = class extends import_obsidian3.PluginSettingTab {
       text: "\u{1F3DD}\uFE0F \u7EC8\u8EAB\u5C9B\u6C11 \xB7 \u9752\u5C11\u513F\u5168\u4EBA\u6210\u957F\u4E0E\u81EA\u4E3B\u8FDB\u5316\u7CFB\u7EDF"
     });
     containerEl.createEl("p", {
-      text: "\u914D\u7F6E\u672C\u5730 Obsidian Vault \u77E5\u8BC6\u5E93\u5B58\u50A8\u8DEF\u5F84\u3001\u53CC\u94FE\u7B14\u8BB0\u81EA\u52A8\u751F\u6210\u4E0E\u9ED8\u8BA4\u542F\u52A8\u89C6\u53E3\uFF08\u4E25\u683C\u9075\u5FAA PRD \u7B2C 6 \u7AE0\u89C4\u8303\uFF09\u3002"
+      text: "\u914D\u7F6E\u672C\u5730\u4ED3\u5E93\u5B58\u50A8\u8DEF\u5F84\u3001\u53CC\u94FE\u7B14\u8BB0\u751F\u6210\u4E0E\u542F\u52A8\u884C\u4E3A\u3002"
     });
     new import_obsidian3.Setting(containerEl).setName("Vault \u6570\u636E\u5B58\u50A8\u6839\u76EE\u5F55").setDesc(
       "\u7559\u7A7A\u5219\u76F4\u63A5\u5728\u5F53\u524D Obsidian \u4ED3\u5E93\u6839\u76EE\u5F55\u4E0B\u521B\u5EFA 00_Island_Core ~ 09_Bounties_\u60AC\u8D4F\u516C\u544A \u5341\u5927\u6807\u51C6\u76EE\u5F55\uFF1B\u4E5F\u53EF\u6307\u5B9A\u5B50\u6587\u4EF6\u5939\uFF08\u4F8B\u5982\uFF1AYouth_Growth_Vault\uFF09\u3002"
     ).addText(
       (text) => text.setPlaceholder("\u7559\u7A7A\u9ED8\u8BA4\u4ED3\u5E93\u6839\u76EE\u5F55").setValue(this.plugin.settings.vaultRootFolder).onChange(async (value) => {
+        try {
+          validateVaultRoot(value);
+        } catch (error) {
+          new import_obsidian3.Notice(String(error.message));
+          return;
+        }
         this.plugin.settings.vaultRootFolder = value.trim();
         await this.plugin.saveSettings();
       })
     );
     new import_obsidian3.Setting(containerEl).setName("\u81EA\u52A8\u540C\u6B65\u751F\u6210 Obsidian \u53CC\u94FE Markdown \u7B14\u8BB0").setDesc(
-      "\u5F00\u542F\u540E\uFF0C\u6BCF\u6B21\u6253\u5361\u3001\u8BB0\u8D26\u3001\u4FDD\u5B58\u6BCF\u65E5\u968F\u8BB0\u6216\u7ACB\u9879\u65F6\uFF0C\u81EA\u52A8\u540C\u6B65\u66F4\u65B0 08_Daily_\u6BCF\u65E5\u968F\u8BB0/YYYY/YYYY-MM-DD.md\u300107_Baseline_\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303/personal_code.md \u53CA\u5404\u573A\u9986\u9879\u76EE\u53CC\u94FE\u7B14\u8BB0\u3002"
+      "\u5F00\u542F\u540E\uFF0C\u5C06\u5B9E\u9645\u968F\u8BB0\u548C\u9879\u76EE\u5BFC\u51FA\u4E3A\u53CC\u94FE\u7B14\u8BB0\u3002\u516C\u7EA6\u5728\u63D2\u4EF6\u5185\u5171\u540C\u7B7E\u7F72\u540E\u5355\u72EC\u5BFC\u51FA\uFF1B\u5DF2\u6709\u7684\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303\u4E0E\u539F\u751FCanvas\u7F16\u8F91\u4E0D\u4F1A\u88AB\u540E\u53F0\u8986\u76D6\u3002"
     ).addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.autoSyncVaultMarkdown).onChange(async (value) => {
         this.plugin.settings.autoSyncVaultMarkdown = value;
         await this.plugin.saveSettings();
       })
     );
+    new import_obsidian3.Setting(containerEl).setName("\u542F\u52A8 Obsidian \u65F6\u6253\u5F00\u6210\u957F\u5DE5\u4F5C\u53F0").setDesc("\u5173\u95ED\u540E\u4ECD\u53EF\u901A\u8FC7\u4FA7\u680F\u56FE\u6807\u6216\u547D\u4EE4\u6253\u5F00\u3002").addToggle((toggle) => toggle.setValue(this.plugin.settings.openOnStartup).onChange(async (value) => {
+      this.plugin.settings.openOnStartup = value;
+      await this.plugin.saveSettings();
+    }));
     new import_obsidian3.Setting(containerEl).setName("\u9ED8\u8BA4\u542F\u52A8\u4E3B\u89C6\u53E3").setDesc("\u6253\u5F00\u7EC8\u8EAB\u5C9B\u6C11\u5DE5\u4F5C\u53F0\u65F6\u9ED8\u8BA4\u5448\u73B0\u7684\u4E3B\u89C6\u53E3\uFF08\u53CC\u4E3B\u89C6\u53E3\u7269\u7406\u4E92\u65A5\u6A21\u578B\uFF09\u3002").addDropdown(
       (dropdown) => dropdown.addOption("exec", "\u26A1 \u9996\u9875\u6267\u884C\u4E2D\u5FC3\u89C6\u56FE (Task Execution Center)").addOption("plan", "\u{1F9ED} \u6D77\u5C9B\u89C4\u5212\u6C99\u76D8\u89C6\u56FE (Island Canvas Sandbox)").setValue(this.plugin.settings.defaultStartupView).onChange(async (value) => {
         this.plugin.settings.defaultStartupView = value;
@@ -15961,8 +18835,13 @@ var YouthIslandSettingTab = class extends import_obsidian3.PluginSettingTab {
       "\u5728\u5F53\u524D Obsidian \u4ED3\u5E93\u4E2D\u521B\u5EFA 00_Island_Core ~ 09_Bounties_\u60AC\u8D4F\u516C\u544A \u5341\u5927\u6807\u51C6\u76EE\u5F55\uFF0C\u5E76\u5C06\u5F53\u524D\u5168\u91CF\u72B6\u6001\u5199\u5165 JSON \u4E0E\u53CC\u94FE Markdown\u3002"
     ).addButton(
       (btn) => btn.setButtonText("\u{1F504} \u7ACB\u5373\u540C\u6B65\u81F3\u672C\u5730 Vault").setCta().onClick(async () => {
-        await this.plugin.vaultStorage.syncRuntimeToVault();
-        new import_obsidian3.Notice("\u2705 \u5DF2\u540C\u6B65 00_Island_Core ~ 09_Bounties_\u60AC\u8D4F\u516C\u544A \u5168\u91CF\u6570\u636E\u4E0E\u53CC\u94FE Markdown\uFF01");
+        try {
+          await this.plugin.activateIslandView();
+          const saved = await this.plugin.vaultStorage.syncRuntimeToVault();
+          new import_obsidian3.Notice(saved ? "\u2705 \u5DF2\u4FDD\u5B58\u5B8C\u6574\u6210\u957F\u6863\u6848\u53CA\u5F53\u524D\u542F\u7528\u7684\u5BFC\u51FA\u6587\u4EF6\u3002" : "\u6210\u957F\u6863\u6848\u5C1A\u672A\u5C31\u7EEA\uFF0C\u672A\u5199\u5165\u4EFB\u4F55\u6570\u636E\u3002\u8BF7\u5148\u68C0\u67E5\u5DE5\u4F5C\u53F0\u4E2D\u7684\u8BFB\u53D6\u63D0\u793A\u3002");
+        } catch (error) {
+          new import_obsidian3.Notice("\u540C\u6B65\u672A\u5B8C\u6210\uFF1A" + String(error instanceof Error ? error.message : error));
+        }
       })
     );
   }
@@ -15977,6 +18856,18 @@ var YouthGrowthIslandPlugin = class extends import_obsidian4.Plugin {
   async onload() {
     await this.loadSettings();
     this.vaultStorage = new VaultStorageAdapter(this.app, () => this.settings);
+    window.__saveIslandAttachment = (file) => this.vaultStorage.saveAttachment(file);
+    window.__islandAttachmentUrl = (path) => this.vaultStorage.attachmentUrl(path);
+    window.__exportIslandDocument = (path, content) => this.vaultStorage.exportDocument(path, content);
+    window.__importIslandCanvas = (id) => this.vaultStorage.importProjectCanvas(id);
+    this.register(() => {
+      delete window.__saveIslandAttachment;
+      delete window.__islandAttachmentUrl;
+      delete window.__exportIslandDocument;
+      delete window.__importIslandCanvas;
+      delete window.__openProjectInObsidianCanvas;
+      delete window.__toggleObsidianSidebar;
+    });
     window.__openProjectInObsidianCanvas = async (projId) => {
       await this.vaultStorage.openProjectInCanvas(projId);
     };
@@ -16087,6 +18978,7 @@ var YouthGrowthIslandPlugin = class extends import_obsidian4.Plugin {
       id: "sync-youth-island-vault",
       name: "\u7ACB\u5373\u540C\u6B65\u672C\u5730 Vault \u77E5\u8BC6\u5E93\u76EE\u5F55\u6811\u4E0E\u53CC\u94FE Markdown",
       callback: async () => {
+        await this.activateIslandView();
         await this.vaultStorage.syncRuntimeToVault();
         new import_obsidian4.Notice("\u2705 \u7EC8\u8EAB\u5C9B\u6C11\uFF1A\u5DF2\u540C\u6B65\u672C\u5730 Vault \u5341\u5927\u76EE\u5F55\u6811\u4E0E\u53CC\u94FE Markdown \u6863\u6848\uFF01");
       }
@@ -16094,6 +18986,8 @@ var YouthGrowthIslandPlugin = class extends import_obsidian4.Plugin {
     this.addSettingTab(new YouthIslandSettingTab(this.app, this));
     this.app.workspace.onLayoutReady(async () => {
       await this.vaultStorage.ensureVaultStructure();
+      if (this.settings.openOnStartup)
+        await this.activateIslandView();
     });
   }
   async activateIslandView(mode) {
@@ -16110,7 +19004,7 @@ var YouthGrowthIslandPlugin = class extends import_obsidian4.Plugin {
       });
     }
     if (leaf) {
-      workspace.revealLeaf(leaf);
+      await workspace.revealLeaf(leaf);
     }
     if (mode) {
       const win = window;
@@ -16134,5 +19028,7 @@ var YouthGrowthIslandPlugin = class extends import_obsidian4.Plugin {
   }
   async onunload() {
     await this.vaultStorage.syncRuntimeToVault();
+    this.app.workspace.detachLeavesOfType(VIEW_TYPE_YOUTH_ISLAND);
+    await this.vaultStorage.dispose();
   }
 };

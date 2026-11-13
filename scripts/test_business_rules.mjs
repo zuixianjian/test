@@ -1,0 +1,26 @@
+import assert from 'node:assert/strict';
+import { build } from 'esbuild';
+import vm from 'node:vm';
+import { scopeCss } from './scope_css.mjs';
+
+const result = await build({entryPoints:['src/core/GrowthMetrics.ts'], bundle:true, write:false, platform:'node', format:'cjs'});
+const module = {exports:{}};
+vm.runInNewContext(result.outputFiles[0].text, {module, exports:module.exports, Date});
+const {computeStreak, fulfillmentRate, localDateKey, validateVaultRoot, safeFileStem} = module.exports;
+assert.equal(localDateKey(new Date(2026, 10, 13, 0, 1)), '2026-11-13');
+assert.equal(computeStreak(['2026-11-11','2026-11-12'], [], [], '2026-11-13'), 2);
+assert.equal(computeStreak(['2026-11-10','2026-11-12','2026-11-13'], [], [], '2026-11-13'), 2);
+assert.equal(computeStreak(['2026-11-10','2026-11-12','2026-11-13'], [], ['2026-11-11'], '2026-11-13'), 3);
+assert.equal(computeStreak(['2026-11-12','2026-11-13'], ['2026-11-13'], [], '2026-11-13'), 0);
+assert.equal(computeStreak(['2026-11-10'], [], [], '2026-11-13'), 0);
+assert.equal(fulfillmentRate(1,2,0,1,1),25);
+assert.equal(fulfillmentRate(0,0,0,0,0),100);
+assert.equal(fulfillmentRate(0,1,0,1,30),0);
+for (const path of ['../outside','a/../../b','C:\\vault','/root','.obsidian/data','.git/data']) assert.throws(() => validateVaultRoot(path));
+assert.equal(validateVaultRoot('growth\\data/'),'growth/data');
+assert.ok(!safeFileStem('../../a:b').includes('/'));
+const css = scopeCss('body {margin:0} * {color:red} @media (max-width:600px) {.x{color:blue}} @keyframes spin {from{opacity:0}to{opacity:1}}');
+assert.ok(css.includes('.youth-island-plugin-root *'));
+assert.ok(css.includes('.youth-island-plugin-root .x'));
+assert.ok(css.includes('@keyframes spin {from{opacity:0}to{opacity:1}}'));
+console.log('PASS: local dates, streak gaps/freeze/violations, weighted fulfillment, safe paths and CSS isolation');

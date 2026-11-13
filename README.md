@@ -1,98 +1,54 @@
-# 🏝️ 终身岛民 · 青少儿全人成长与自主进化系统 (Obsidian Plugin)
+# 终身岛民 · Obsidian 成长工作台
 
-专为 7~15 岁青少儿打造的**全息终身自主进化系统** Obsidian 插件。系统以“晨曦海岛”为生命空间隐喻，采用**生命双主视口物理互斥调度机制**，依托客观事实留痕、5 大通用卡片原型拆解与跨模块本地双链闭环，培养青少儿自律坚毅的品格与自主进化的终身心智模型。
+当前版本 **1.1.0**。本版针对页面来源不清、任务上下游断开、验收过宽、原件未保存和快照覆盖领域文件等问题，统一了项目、节点、每日任务实例、执行记录及跨模块回写。
 
----
+产品契约见 [PRD](PRD_Youth_Holistic_Growth_System.md)，交互设计见 [高保真设计预览](high_fidelity_ui_preview.html)，修复与验收范围见 [1.1.0 交付记录](PLUGIN_REVIEW_1.1.0.md)。原始问题证据保留在 [审查报告](audit/PRD_DESIGN_PLUGIN_CLOSED_LOOP_AUDIT.md)。
 
-## 一、 核心架构与业务模块
+执行中心的日/周/月从同一调度结果读取任务。规划场馆使用项目甘特与结构化脑图；实训、习惯、复盘、目标及自定义表单按各自标准校验。验收记录连接源节点、真实附件、项目进度、随记和成果。悬赏需要家长寄语及核验，生活高光保存照片原件，亲子公约保存真实姓名、条款与签署版本。
 
-1. **生命双主视口物理互斥（Mode 1 / Mode 2）**
-   - **⚡ 首页执行中心视图 (Task Execution Center)**：个人自律档案 HUD（连续天数 `continuousDays`、综合履约率 `fulfillmentRate`）、置顶家长悬赏条、今日待办 3D Coverflow 轮播、周看板、月日历热力大盘、原位全屏沉浸打卡工位。
-   - **🧭 海岛规划沙盘视图 (Island Canvas Sandbox)**：全景手绘海岛大世界、四大主规划场馆（🏫 校史馆、🥋 武道馆/兴趣屋、🧠 思辨馆/认知台、🏛️ 修身阁）与自定义动态扩展场馆（`➕ 新增模块`）。
-2. **通用二级项目排程工作台（甘特管理页面）**
-   - 项目状态自动判定机（已完成 / 进行中 / 待执行 / 待规划 / 已归档）、只读客观打卡时间轴矩阵、修身阁问道池选惑立项。
-3. **通用三级自由脑图全景工作台（无限画布页面）**
-   - 5 大通用卡片原型（🎯 目标分解卡、⚡ 攻坚实训卡、🌿 习惯践行卡、📝 评估复盘卡、⚙️ 自定义配置卡）+ 📄 简单文本图元；
-   - 支持卡片最小化/展开、子级跟随平移、成组派生原子保护（`groupId`）、评估复盘卡一键派生下游实训节点、目标卡一键沉淀至成就馆。
-4. **底栏四大免规划模块与小岛设置中心**
-   - **💰 藏金屋**：少儿独立零用金收支台账（严禁与学习打卡对赌），自动同步财务流水至每日随记；
-   - **📜 个人行为规范**：《大学》三纲八目只读法典 + 《亲子立宪自律公约》违约事实裁决台（扣减 5% 履约率并自动向修身阁派发 7 天补救项目）；
-   - **📝 每日随记**：上半轨全自动客观事实流水 + 下半轨主观心流随笔与图文视频物证，自动归档为带 YAML Frontmatter 与 `[[双向链接]]` 的 Obsidian Markdown 笔记；
-   - **🏆 成就馆**：养成类成就与偶然类成就双轨荣誉殿堂，支持一键逆向穿透回源规划项目；
-   - **⚙️ 小岛设置中心**：🖼️ 背景设置（全局/分场馆壁纸）、👤 角色设置（昵称与化身全域 HUD 同步）、🍃 环境微粒设置（落叶/花瓣/萤火/细雨互斥单选与关闭）、🌿 沉浸专注模式设置（分区隐藏控制）。
+藏金屋只记录独立收支。经典指引来自本地参考语料。组件画板是设计样例；没有采集的能力评分、运动热量和智能识别结果不作为用户事实展示。
 
----
+## 开发与验证
 
-## 二、 工程目录结构
-
-```text
-├── manifest.json                     # Obsidian 插件清单 (id: youth-holistic-growth-island)
-├── versions.json                     # Obsidian 版本兼容映射
-├── main.js                           # 编译产出的 Obsidian 插件主入口包
-├── styles.css                        # 1:1 视觉样式表（提取自高保真原型）
-├── assets/                           # 复用的高清海岛场景与角色头像美术资产
-│   ├── scenes/                       # 广场中心、工坊工作台、公告栏等高清底图
-│   └── avatars/                      # 岛民角色头像素材
-├── src/
-│   ├── main.ts                       # Obsidian Plugin 主类（注册视图、Ribbon、6 大命令）
-│   ├── types/
-│   │   └── models.ts                 # PRD 第 5/6 章全局数据契约与 TypeScript 接口定义
-│   ├── core/
-│   │   └── EventBus.ts               # PRD 6.4 四大核心子系统内部事件总线
-│   ├── storage/
-│   │   └── VaultStorageAdapter.ts    # PRD 6.1~6.3 本地 Vault 十大目录树与双链 Markdown 同步引擎
-│   ├── settings/
-│   │   └── YouthIslandSettingTab.ts  # Obsidian 插件设置面板
-│   ├── views/
-│   │   └── YouthIslandView.ts        # Obsidian ItemView 视图容器与持久化钩子挂载
-│   ├── ui/
-│   │   └── template.ts               # 1:1 全量视图与模态弹窗 DOM 模板
-│   └── runtime/
-│       └── prototypeScript.ts        # 1:1 交互状态机与 9 大业务闭环控制器
-├── scripts/
-│   ├── extract_from_prototype.mjs    # 从高保真原型同步提取 CSS/HTML/Runtime 的构建脚本
-│   └── verify_plugin.mjs             # 自动化构建与闭环完整性校验脚本
-├── high_fidelity_ui_preview.html     # 唯一权威视觉与交互高保真原型设计图
-└── PRD_Youth_Holistic_Growth_System.md # 核心产品需求文档 (PRD)
+```powershell
+npm.cmd install
+npm.cmd run build
+npm.cmd run typecheck
+npm.cmd test
+npm.cmd run test:browser
+npm.cmd run test:design
+npm.cmd run package-android
 ```
 
----
+浏览器测试默认使用 Windows Chrome，可通过 `CHROME_PATH` 指定浏览器可执行文件。它运行实际提取后的插件代码和内存 Vault 适配器；独立设计测试打开实际HTML并使用独立IndexedDB。浏览器验证不能替代 Obsidian 与 Android 真机验收。
 
-## 三、 本地开发与构建指南
+## 维护入口
 
-### 1. 安装依赖
-```bash
-npm install
-```
+| 文件 | 用途 |
+| --- | --- |
+| `src/core/domain.mjs` | 无DOM依赖的节点、实例、依赖、进度与验收规则 |
+| `src/runtime/closedLoopRuntime.js` | 领域状态、规划编辑、同源任务与统计投影 |
+| `src/runtime/closedLoopWorkflows.js` | 执行草稿、原件、成果与复盘派生 |
+| `src/runtime/closedLoopModules.js` | 悬赏、公约、随记、真实导出、Canvas边界与设计适配器 |
+| `src/types/domain.ts` | schemaVersion 3数据契约；旧models接口仅用于兼容 |
+| `src/storage/VaultStorageAdapter.ts` | 串行完整提交、备份、领域投影、附件与Markdown |
+| `src/ui/closedLoop.css` | 共享表单、规划和弹窗样式 |
+| `high_fidelity_ui_preview.html` | 原始视觉与共享规则生成块，浏览器可直接打开 |
+| `scripts/sync_product_design.mjs` | 将共享规则与样式写入设计HTML |
+| `scripts/extract_from_prototype.mjs` | 提取模板、隔离CSS并封装运行时 |
 
-### 2. 常用命令
-```bash
-# 从高保真原型重新提取更新 styles.css、template.ts 与 prototypeScript.ts
-npm run extract
+修改共享规则后运行build。`prototypeScript.ts`、`template.ts`、`styles.css`和`main.js`是生成文件，不应单独修改它们来实现业务规则。
 
-# 生产环境构建（生成 main.js）
-npm run build
+## 安装
 
-# 开发监听模式
-npm run dev
+解压 `release/youth-holistic-growth-island-1.1.0.zip`，将其中整个 `youth-holistic-growth-island` 文件夹复制到知识库的 `.obsidian/plugins/`。安装文件包括 `manifest.json`、`versions.json`、`main.js`、`styles.css`和ASCII命名的场景/头像资源。已有仓库升级前保留一份备份，然后重启或重载插件。
 
-# 运行完整性与闭环自动化校验
-npm test
-```
+通过侧栏指南针或命令打开。设置中可指定数据子目录、默认执行/规划视图以及是否随Obsidian启动。
 
----
+## 数据与互操作
 
-## 四、 安装到 Obsidian 仓库
+`00_Island_Core/domain_state.json`是schemaVersion 3完整提交，包含节点、记录、边及其他模块状态；`.previous.json`保留上一版。项目与节点JSON按storageRevision导出，同版本外部修改可导入；过期导出不会覆盖较新的完整提交。损坏的主档案会暂停自动写入。会话快照与页面HTML不作为事实来源。
 
-1. 在你的 Obsidian 知识库目录下创建插件文件夹：
-   ```text
-   <你的Obsidian仓库>/.obsidian/plugins/youth-holistic-growth-island/
-   ```
-2. 将本项目根目录下的以下文件/文件夹复制到该目录中：
-   - `manifest.json`
-   - `versions.json`
-   - `main.js`
-   - `styles.css`
-   - `assets/`
-3. 打开 Obsidian -> **设置 (Settings)** -> **第三方插件 (Community plugins)** -> 启用 **「终身岛民 · 青少儿全人成长与自主进化系统」**。
-4. 点击左侧边栏的 **指南针图标 (🧭)** 或通过命令面板（`Ctrl/Cmd + P`）输入 `终身岛民` 即可开启！
+Obsidian Canvas首次生成后由用户维护，后台同步不会覆盖已有Canvas；“导入Canvas布局”显式导入同ID节点坐标及文本便签。执行标准仍在插件规划器内维护。独立HTML预览使用自己的浏览器数据，和Obsidian仓库互不混用。
+
+1.0.15的PRD与测试留在`docs/history/`供追溯，不能当作当前验收契约。当前没有自动语义冲突合并、传感器采集或AI识别能力。

@@ -1,5 +1,6 @@
 import { App, Notice, PluginSettingTab, Setting } from "obsidian";
 import type YouthGrowthIslandPlugin from "../main";
+import { validateVaultRoot } from "../core/GrowthMetrics";
 
 export class YouthIslandSettingTab extends PluginSettingTab {
   private plugin: YouthGrowthIslandPlugin;
@@ -17,7 +18,7 @@ export class YouthIslandSettingTab extends PluginSettingTab {
       text: "🏝️ 终身岛民 · 青少儿全人成长与自主进化系统",
     });
     containerEl.createEl("p", {
-      text: "配置本地 Obsidian Vault 知识库存储路径、双链笔记自动生成与默认启动视口（严格遵循 PRD 第 6 章规范）。",
+      text: "配置本地仓库存储路径、双链笔记生成与启动行为。",
     });
 
     new Setting(containerEl)
@@ -30,6 +31,8 @@ export class YouthIslandSettingTab extends PluginSettingTab {
           .setPlaceholder("留空默认仓库根目录")
           .setValue(this.plugin.settings.vaultRootFolder)
           .onChange(async (value) => {
+            try { validateVaultRoot(value); }
+            catch (error) { new Notice(String((error as Error).message)); return; }
             this.plugin.settings.vaultRootFolder = value.trim();
             await this.plugin.saveSettings();
           })
@@ -38,7 +41,7 @@ export class YouthIslandSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("自动同步生成 Obsidian 双链 Markdown 笔记")
       .setDesc(
-        "开启后，每次打卡、记账、保存每日随记或立项时，自动同步更新 08_Daily_每日随记/YYYY/YYYY-MM-DD.md、07_Baseline_个人行为规范/personal_code.md 及各场馆项目双链笔记。"
+        "开启后，将实际随记和项目导出为双链笔记。公约在插件内共同签署后单独导出；已有的个人行为规范与原生Canvas编辑不会被后台覆盖。"
       )
       .addToggle((toggle) =>
         toggle.setValue(this.plugin.settings.autoSyncVaultMarkdown).onChange(async (value) => {
@@ -46,6 +49,14 @@ export class YouthIslandSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         })
       );
+
+    new Setting(containerEl)
+      .setName("启动 Obsidian 时打开成长工作台")
+      .setDesc("关闭后仍可通过侧栏图标或命令打开。")
+      .addToggle(toggle => toggle.setValue(this.plugin.settings.openOnStartup).onChange(async value => {
+        this.plugin.settings.openOnStartup = value;
+        await this.plugin.saveSettings();
+      }));
 
     new Setting(containerEl)
       .setName("默认启动主视口")
@@ -71,8 +82,13 @@ export class YouthIslandSettingTab extends PluginSettingTab {
           .setButtonText("🔄 立即同步至本地 Vault")
           .setCta()
           .onClick(async () => {
-            await this.plugin.vaultStorage.syncRuntimeToVault();
-            new Notice("✅ 已同步 00_Island_Core ~ 09_Bounties_悬赏公告 全量数据与双链 Markdown！");
+            try {
+              await this.plugin.activateIslandView();
+              const saved = await this.plugin.vaultStorage.syncRuntimeToVault();
+              new Notice(saved ? "✅ 已保存完整成长档案及当前启用的导出文件。" : "成长档案尚未就绪，未写入任何数据。请先检查工作台中的读取提示。");
+            } catch (error) {
+              new Notice("同步未完成：" + String(error instanceof Error ? error.message : error));
+            }
           })
       );
   }

@@ -1,0 +1,3747 @@
+[
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "iPad Pro 11寸平板定制",
+    "visible": false,
+    "ancestor": ""
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🏝️",
+    "visible": false,
+    "ancestor": "btn-main-island"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "海岛全景",
+    "visible": false,
+    "ancestor": "btn-main-island"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🏫",
+    "visible": false,
+    "ancestor": "btn-main-ws"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "二级项目甘特",
+    "visible": false,
+    "ancestor": "btn-main-ws"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🔮",
+    "visible": false,
+    "ancestor": "btn-main-tertiary"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "三级脑图画布",
+    "visible": false,
+    "ancestor": "btn-main-tertiary"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "✅",
+    "visible": false,
+    "ancestor": "btn-main-checkin"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "打卡页面全览",
+    "visible": false,
+    "ancestor": "btn-main-checkin"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🌿 沉浸专注模式运行中",
+    "visible": false,
+    "ancestor": "island-canvas-stage"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "点击退出 (或按 Esc)",
+    "visible": false,
+    "ancestor": "island-canvas-stage"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📂",
+    "visible": true,
+    "ancestor": "home-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "左侧栏",
+    "visible": true,
+    "ancestor": "home-unified-topbar"
+  },
+  {
+    "id": "hud-avatar-emoji",
+    "tag": "SPAN",
+    "text": "👦",
+    "visible": true,
+    "ancestor": "hud-avatar-emoji"
+  },
+  {
+    "id": "hud-username-text",
+    "tag": "SPAN",
+    "text": "晨曦岛民 · 齐天",
+    "visible": true,
+    "ancestor": "hud-username-text"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🔥",
+    "visible": true,
+    "ancestor": "home-unified-topbar"
+  },
+  {
+    "id": "hud-streak-count",
+    "tag": "SPAN",
+    "text": "连续 0 天",
+    "visible": true,
+    "ancestor": "hud-streak-count"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📈",
+    "visible": true,
+    "ancestor": "home-unified-topbar"
+  },
+  {
+    "id": "hud-rate-percent",
+    "tag": "SPAN",
+    "text": "履约 100%",
+    "visible": true,
+    "ancestor": "hud-rate-percent"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📅",
+    "visible": true,
+    "ancestor": "btn-exec-day"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "今日待办",
+    "visible": true,
+    "ancestor": "btn-exec-day"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📊",
+    "visible": true,
+    "ancestor": "btn-exec-week"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "周看板",
+    "visible": true,
+    "ancestor": "btn-exec-week"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🗓️",
+    "visible": true,
+    "ancestor": "btn-exec-month"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "月日历",
+    "visible": true,
+    "ancestor": "btn-exec-month"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "▦",
+    "visible": false,
+    "ancestor": "btn-home-layout"
+  },
+  {
+    "id": "lbl-home-layout",
+    "tag": "SPAN",
+    "text": "自由布局",
+    "visible": false,
+    "ancestor": "lbl-home-layout"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "➕",
+    "visible": false,
+    "ancestor": "home-top-graph-toolbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "新增模块",
+    "visible": false,
+    "ancestor": "home-top-graph-toolbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⛶",
+    "visible": false,
+    "ancestor": "home-top-graph-toolbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "适应画布",
+    "visible": false,
+    "ancestor": "home-top-graph-toolbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🎯",
+    "visible": false,
+    "ancestor": "home-top-graph-toolbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "聚焦节点",
+    "visible": false,
+    "ancestor": "home-top-graph-toolbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⊙",
+    "visible": false,
+    "ancestor": "home-top-graph-toolbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "居中节点",
+    "visible": false,
+    "ancestor": "home-top-graph-toolbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "➕",
+    "visible": false,
+    "ancestor": "home-top-graph-toolbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "放大",
+    "visible": false,
+    "ancestor": "home-top-graph-toolbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "➖",
+    "visible": false,
+    "ancestor": "home-top-graph-toolbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "缩小",
+    "visible": false,
+    "ancestor": "home-top-graph-toolbar"
+  },
+  {
+    "id": "island-zoom-badge",
+    "tag": "SPAN",
+    "text": "100%",
+    "visible": false,
+    "ancestor": "island-zoom-badge"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "还原",
+    "visible": false,
+    "ancestor": "home-top-graph-toolbar"
+  },
+  {
+    "id": "home-bounty-tag",
+    "tag": "SPAN",
+    "text": "置顶悬赏",
+    "visible": true,
+    "ancestor": "home-bounty-tag"
+  },
+  {
+    "id": "home-bounty-title",
+    "tag": "SPAN",
+    "text": "暂无进行中的悬赏契约",
+    "visible": true,
+    "ancestor": "home-bounty-title"
+  },
+  {
+    "id": "home-bounty-timer",
+    "tag": "SPAN",
+    "text": "⏱️ 等待张榜",
+    "visible": true,
+    "ancestor": "home-bounty-timer"
+  },
+  {
+    "id": "home-bounty-reward",
+    "tag": "SPAN",
+    "text": "🎁 点击可发布新契约",
+    "visible": true,
+    "ancestor": "home-bounty-reward"
+  },
+  {
+    "id": "home-bounty-author",
+    "tag": "SPAN",
+    "text": "👨‍👩‍👦 亲子公约",
+    "visible": true,
+    "ancestor": "home-bounty-author"
+  },
+  {
+    "id": "home-bounty-cta",
+    "tag": "SPAN",
+    "text": "去发布 ›",
+    "visible": true,
+    "ancestor": "home-bounty-cta"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "达成:",
+    "visible": true,
+    "ancestor": "home-unified-topbar"
+  },
+  {
+    "id": "exec-stat-progress",
+    "tag": "SPAN",
+    "text": "0/0",
+    "visible": true,
+    "ancestor": "exec-stat-progress"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📑",
+    "visible": true,
+    "ancestor": "home-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "右侧栏",
+    "visible": true,
+    "ancestor": "home-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🌱 暂无进行中的学期规划项目",
+    "visible": true,
+    "ancestor": "island-goal-cards-list"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⟨",
+    "visible": true,
+    "ancestor": "exec-subview-day"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⟩",
+    "visible": true,
+    "ancestor": "exec-subview-day"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🏝️",
+    "visible": true,
+    "ancestor": "day-deck-empty-placeholder"
+  },
+  {
+    "id": "",
+    "tag": "H3",
+    "text": "今日暂无待办事项",
+    "visible": true,
+    "ancestor": "day-deck-empty-placeholder"
+  },
+  {
+    "id": "",
+    "tag": "P",
+    "text": "点击下方启动台进入【校史馆】、【武道馆】、【思辨馆】或【修身阁】建立成长规划，或点击上方告示牌发布家长悬赏契约，任务将自动同步至今日待办！",
+    "visible": true,
+    "ancestor": "day-deck-empty-placeholder"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🎯 目标分解",
+    "visible": true,
+    "ancestor": "exec-carousel-dots"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⚡ 攻坚实训",
+    "visible": true,
+    "ancestor": "exec-carousel-dots"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🌿 习惯践行",
+    "visible": true,
+    "ancestor": "exec-carousel-dots"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📝 评估复盘",
+    "visible": true,
+    "ancestor": "exec-carousel-dots"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⚙️ 自定义配置",
+    "visible": true,
+    "ancestor": "exec-carousel-dots"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🟢 已办: 0 项",
+    "visible": false,
+    "ancestor": "exec-subview-month"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🟡 待办: 0 项",
+    "visible": false,
+    "ancestor": "exec-subview-month"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🔴 未办: 0 项",
+    "visible": false,
+    "ancestor": "exec-subview-month"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⭐ 整体达成率: --",
+    "visible": false,
+    "ancestor": "exec-subview-month"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📅",
+    "visible": false,
+    "ancestor": "day-inspector-modal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🟢 已办事项",
+    "visible": false,
+    "ancestor": "day-inspector-modal"
+  },
+  {
+    "id": "inspector-count-done",
+    "tag": "SPAN",
+    "text": "2 项",
+    "visible": false,
+    "ancestor": "inspector-count-done"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🟡 待办事项",
+    "visible": false,
+    "ancestor": "day-inspector-modal"
+  },
+  {
+    "id": "inspector-count-pending",
+    "tag": "SPAN",
+    "text": "3 项",
+    "visible": false,
+    "ancestor": "inspector-count-pending"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🔴 未办 / 缺卡事项",
+    "visible": false,
+    "ancestor": "day-inspector-modal"
+  },
+  {
+    "id": "inspector-count-overdue",
+    "tag": "SPAN",
+    "text": "1 项",
+    "visible": false,
+    "ancestor": "inspector-count-overdue"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "◀️",
+    "visible": false,
+    "ancestor": "exec-task-workspace"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "返回待办",
+    "visible": false,
+    "ancestor": "exec-task-workspace"
+  },
+  {
+    "id": "exec-avatar-icon",
+    "tag": "SPAN",
+    "text": "⚡",
+    "visible": false,
+    "ancestor": "exec-avatar-icon"
+  },
+  {
+    "id": "exec-popup-badge",
+    "tag": "SPAN",
+    "text": "🏫 校史馆",
+    "visible": false,
+    "ancestor": "exec-popup-badge"
+  },
+  {
+    "id": "exec-popup-title",
+    "tag": "H3",
+    "text": "小学数学进退位口算达标与思维训练",
+    "visible": false,
+    "ancestor": "exec-popup-title"
+  },
+  {
+    "id": "exec-popup-breadcrumb",
+    "tag": "SPAN",
+    "text": "🏝️ 晨曦岛 ❯ ⚡ 执行中心 ❯ 🏫 校史馆 ❯ 口算达标攻坚",
+    "visible": false,
+    "ancestor": "exec-popup-breadcrumb"
+  },
+  {
+    "id": "exec-popup-toggle-icon",
+    "tag": "SPAN",
+    "text": "👁️",
+    "visible": false,
+    "ancestor": "exec-popup-toggle-icon"
+  },
+  {
+    "id": "exec-popup-toggle-text",
+    "tag": "SPAN",
+    "text": "查看项目",
+    "visible": false,
+    "ancestor": "exec-popup-toggle-text"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🎯 关联规划项目：",
+    "visible": false,
+    "ancestor": "exec-popup-task-view"
+  },
+  {
+    "id": "exec-task-project-name",
+    "tag": "STRONG",
+    "text": "《全息成长规划课题》",
+    "visible": false,
+    "ancestor": "exec-task-project-name"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "[点击展开节点图谱]",
+    "visible": false,
+    "ancestor": "exec-popup-task-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🎯 核心考点突破",
+    "visible": false,
+    "ancestor": "exec-popup-task-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⏱️ 25m 深度专注",
+    "visible": false,
+    "ancestor": "exec-popup-task-view"
+  },
+  {
+    "id": "exec-task-status-pill",
+    "tag": "SPAN",
+    "text": "⚡ 进行中 · 待交付",
+    "visible": false,
+    "ancestor": "exec-task-status-pill"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📷 演算手稿 / 成果物证",
+    "visible": false,
+    "ancestor": "exec-popup-task-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "必选存证",
+    "visible": false,
+    "ancestor": "exec-popup-task-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📄",
+    "visible": false,
+    "ancestor": "exec-task-evidence-preview"
+  },
+  {
+    "id": "exec-task-evidence-text",
+    "tag": "SPAN",
+    "text": "口算手稿与红笔订正拍照件 (点击查看)",
+    "visible": false,
+    "ancestor": "exec-task-evidence-text"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⏱️ 心流专注实训",
+    "visible": false,
+    "ancestor": "exec-popup-task-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "番茄钟实训",
+    "visible": false,
+    "ancestor": "exec-popup-task-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "专注攻关倒计时",
+    "visible": false,
+    "ancestor": "exec-popup-task-view"
+  },
+  {
+    "id": "exec-popup-timer-digits",
+    "tag": "SPAN",
+    "text": "25:00",
+    "visible": false,
+    "ancestor": "exec-popup-timer-digits"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🎧 伴奏：高山流水白噪音",
+    "visible": false,
+    "ancestor": "exec-popup-task-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "✍️ 攻坚顿悟心得便签",
+    "visible": false,
+    "ancestor": "exec-popup-task-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "易错点结晶",
+    "visible": false,
+    "ancestor": "exec-popup-task-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "#判别式先行 #齐次化通解",
+    "visible": false,
+    "ancestor": "exec-popup-task-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "交付校验：",
+    "visible": false,
+    "ancestor": "exec-popup-task-view"
+  },
+  {
+    "id": "exec-popup-verify-text",
+    "tag": "SPAN",
+    "text": "✓ 草稿原卷已附加 | ✓ 番茄钟 25分钟已记录 | ✓ 心得已录入",
+    "visible": false,
+    "ancestor": "exec-popup-verify-text"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🗺️ 关联项目全景节点图谱：",
+    "visible": false,
+    "ancestor": "exec-popup-project-view"
+  },
+  {
+    "id": "exec-project-map-title",
+    "tag": "STRONG",
+    "text": "《小学数学口算达标与逆向思维训练》",
+    "visible": false,
+    "ancestor": "exec-project-map-title"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📌 包含今日打卡节点",
+    "visible": false,
+    "ancestor": "exec-popup-project-view"
+  },
+  {
+    "id": "exec-project-map-summary",
+    "tag": "SPAN",
+    "text": "共 5 个项目节点 · 包含前置公式、今日待办、温故复盘与成果物证",
+    "visible": false,
+    "ancestor": "exec-project-map-summary"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "导航地图",
+    "visible": false,
+    "ancestor": "island-minimap-dock"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "地图",
+    "visible": true,
+    "ancestor": "island-minimap-toggle-btn"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⚡",
+    "visible": true,
+    "ancestor": "launcher-view-exec"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "执行视图",
+    "visible": true,
+    "ancestor": "launcher-view-exec"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🧭",
+    "visible": true,
+    "ancestor": "launcher-view-plan"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "规划视图",
+    "visible": true,
+    "ancestor": "launcher-view-plan"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "💰",
+    "visible": true,
+    "ancestor": "launcher-btn-treasury"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "藏金屋",
+    "visible": true,
+    "ancestor": "launcher-btn-treasury"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📜",
+    "visible": true,
+    "ancestor": "launcher-btn-tree"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "行为规范",
+    "visible": true,
+    "ancestor": "launcher-btn-tree"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📝",
+    "visible": true,
+    "ancestor": "launcher-btn-note"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "每日随记",
+    "visible": true,
+    "ancestor": "launcher-btn-note"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🏆",
+    "visible": true,
+    "ancestor": "launcher-btn-achieve"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "成就馆",
+    "visible": true,
+    "ancestor": "launcher-btn-achieve"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "❓",
+    "visible": true,
+    "ancestor": "launcher-btn-inquiry"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "古籍问道",
+    "visible": true,
+    "ancestor": "launcher-btn-inquiry"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⏱️",
+    "visible": true,
+    "ancestor": "launcher-btn-pomo"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "专注秒表",
+    "visible": true,
+    "ancestor": "launcher-btn-pomo"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📜",
+    "visible": true,
+    "ancestor": "launcher-btn-bounty"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "悬赏契约",
+    "visible": true,
+    "ancestor": "launcher-btn-bounty"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "小岛设置",
+    "visible": true,
+    "ancestor": "launcher-btn-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "背景设置",
+    "visible": false,
+    "ancestor": "launcher-btn-bg"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "角色设置",
+    "visible": false,
+    "ancestor": "launcher-btn-char"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🍃",
+    "visible": false,
+    "ancestor": "launcher-btn-env"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "环境微粒",
+    "visible": false,
+    "ancestor": "launcher-btn-env"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "沉浸模式",
+    "visible": false,
+    "ancestor": "launcher-btn-immersive"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🏝️",
+    "visible": false,
+    "ancestor": "modal-bg-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "全局小岛",
+    "visible": false,
+    "ancestor": "modal-bg-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "全局",
+    "visible": false,
+    "ancestor": "modal-bg-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🏫",
+    "visible": false,
+    "ancestor": "modal-bg-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "校史馆",
+    "visible": false,
+    "ancestor": "modal-bg-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🥋",
+    "visible": false,
+    "ancestor": "modal-bg-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "武道馆",
+    "visible": false,
+    "ancestor": "modal-bg-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🧠",
+    "visible": false,
+    "ancestor": "modal-bg-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "思辨馆",
+    "visible": false,
+    "ancestor": "modal-bg-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🏛️",
+    "visible": false,
+    "ancestor": "modal-bg-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "修身阁",
+    "visible": false,
+    "ancestor": "modal-bg-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "💰",
+    "visible": false,
+    "ancestor": "modal-bg-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "藏金屋",
+    "visible": false,
+    "ancestor": "modal-bg-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📜",
+    "visible": false,
+    "ancestor": "modal-bg-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "行为规范",
+    "visible": false,
+    "ancestor": "modal-bg-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📝",
+    "visible": false,
+    "ancestor": "modal-bg-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "每日随记",
+    "visible": false,
+    "ancestor": "modal-bg-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🏆",
+    "visible": false,
+    "ancestor": "modal-bg-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "成就馆",
+    "visible": false,
+    "ancestor": "modal-bg-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "开启全局背景（所有场馆统一使用「全局小岛」壁纸）",
+    "visible": false,
+    "ancestor": "modal-bg-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "👤 角色设置",
+    "visible": false,
+    "ancestor": "modal-char-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🍃 环境微粒设置",
+    "visible": false,
+    "ancestor": "modal-env-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🍃 微风落叶",
+    "visible": false,
+    "ancestor": "modal-env-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🌸 花瓣飘落",
+    "visible": false,
+    "ancestor": "modal-env-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "✨ 金色萤火",
+    "visible": false,
+    "ancestor": "modal-env-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🌧️ 专注细雨",
+    "visible": false,
+    "ancestor": "modal-env-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🌿 沉浸专注模式设置",
+    "visible": false,
+    "ancestor": "modal-immersive-settings"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "Esc 键",
+    "visible": false,
+    "ancestor": "modal-immersive-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "左边信息栏",
+    "visible": false,
+    "ancestor": "modal-immersive-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "隐藏玩家头像、成长数据与置顶悬赏",
+    "visible": false,
+    "ancestor": "modal-immersive-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "上方主导航栏",
+    "visible": false,
+    "ancestor": "modal-immersive-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "隐藏模式控制与真机设备画框顶栏",
+    "visible": false,
+    "ancestor": "modal-immersive-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "下方发射器工具栏",
+    "visible": false,
+    "ancestor": "modal-immersive-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "隐藏底栏小岛发射器按钮",
+    "visible": false,
+    "ancestor": "modal-immersive-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "主界面功能馆节点",
+    "visible": false,
+    "ancestor": "modal-immersive-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "仅保留纯粹自然海岛微粒与环境音，专注闭目修身",
+    "visible": false,
+    "ancestor": "modal-immersive-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "双击空白进入／退出",
+    "visible": false,
+    "ancestor": "modal-immersive-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "双击画布空白处快速自由切换沉浸状态",
+    "visible": false,
+    "ancestor": "modal-immersive-settings"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📂",
+    "visible": false,
+    "ancestor": "ws-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "左侧栏",
+    "visible": false,
+    "ancestor": "ws-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "◀️",
+    "visible": false,
+    "ancestor": "ws-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "返回大厅",
+    "visible": false,
+    "ancestor": "ws-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "👦",
+    "visible": false,
+    "ancestor": "ws-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "晨曦岛民 · 齐天",
+    "visible": false,
+    "ancestor": "ws-unified-topbar"
+  },
+  {
+    "id": "ws-crumb-pavilion-name",
+    "tag": "SPAN",
+    "text": "🏫 校史馆",
+    "visible": false,
+    "ancestor": "ws-crumb-pavilion-name"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🔥",
+    "visible": false,
+    "ancestor": "ws-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "连续 18 天",
+    "visible": false,
+    "ancestor": "ws-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📈",
+    "visible": false,
+    "ancestor": "ws-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "履约 98%",
+    "visible": false,
+    "ancestor": "ws-unified-topbar"
+  },
+  {
+    "id": "ws-crumb-view-leaf",
+    "tag": "SPAN",
+    "text": "📊 项目甘特总览",
+    "visible": false,
+    "ancestor": "ws-crumb-view-leaf"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "➕",
+    "visible": false,
+    "ancestor": "ws-top-action-btn"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "新增项目",
+    "visible": false,
+    "ancestor": "ws-top-action-btn"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🎯",
+    "visible": false,
+    "ancestor": "ws-top-today-btn"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "定位今日",
+    "visible": false,
+    "ancestor": "ws-top-today-btn"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "进行中:",
+    "visible": false,
+    "ancestor": "ws-top-stat-pill-box"
+  },
+  {
+    "id": "ws-top-active-count",
+    "tag": "SPAN",
+    "text": "2 个",
+    "visible": false,
+    "ancestor": "ws-top-active-count"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📑",
+    "visible": false,
+    "ancestor": "ws-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "右侧栏",
+    "visible": false,
+    "ancestor": "ws-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "分类:",
+    "visible": false,
+    "ancestor": "gantt-category-filters"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "状态:",
+    "visible": false,
+    "ancestor": "gantt-status-filters"
+  },
+  {
+    "id": "count-all",
+    "tag": "SPAN",
+    "text": "6",
+    "visible": false,
+    "ancestor": "count-all"
+  },
+  {
+    "id": "count-planned",
+    "tag": "SPAN",
+    "text": "1",
+    "visible": false,
+    "ancestor": "count-planned"
+  },
+  {
+    "id": "count-pending",
+    "tag": "SPAN",
+    "text": "1",
+    "visible": false,
+    "ancestor": "count-pending"
+  },
+  {
+    "id": "count-exec",
+    "tag": "SPAN",
+    "text": "2",
+    "visible": false,
+    "ancestor": "count-exec"
+  },
+  {
+    "id": "count-done",
+    "tag": "SPAN",
+    "text": "1",
+    "visible": false,
+    "ancestor": "count-done"
+  },
+  {
+    "id": "count-archived",
+    "tag": "SPAN",
+    "text": "1",
+    "visible": false,
+    "ancestor": "count-archived"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "|",
+    "visible": false,
+    "ancestor": "ws-gantt-main-container"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "待规划",
+    "visible": false,
+    "ancestor": "ws-gantt-main-container"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "待执行",
+    "visible": false,
+    "ancestor": "ws-gantt-main-container"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "进行中",
+    "visible": false,
+    "ancestor": "ws-gantt-main-container"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "已完成",
+    "visible": false,
+    "ancestor": "ws-gantt-main-container"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "已归档",
+    "visible": false,
+    "ancestor": "ws-gantt-main-container"
+  },
+  {
+    "id": "proj-modal-main-title",
+    "tag": "H2",
+    "text": "新增成长规划项目",
+    "visible": false,
+    "ancestor": "proj-modal-main-title"
+  },
+  {
+    "id": "proj-modal-sub-title",
+    "tag": "P",
+    "text": "设定起止周期与攻坚策略 · 系统自动判定状态并排入小方格甘特图",
+    "visible": false,
+    "ancestor": "proj-modal-sub-title"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "（必选）",
+    "visible": false,
+    "ancestor": "add-project-modal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "（必填，最多 24 字）",
+    "visible": false,
+    "ancestor": "add-project-modal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "（说明目标指标、日常动作与交付物，支持多行完整呈现）",
+    "visible": false,
+    "ancestor": "add-project-modal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "（系统将依据时间周期与实际执行情况自动判定状态：待规划、待执行、进行中、已完成、已归档）",
+    "visible": false,
+    "ancestor": "add-project-modal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "至",
+    "visible": false,
+    "ancestor": "add-project-modal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "系统自动判定状态：",
+    "visible": false,
+    "ancestor": "add-project-modal"
+  },
+  {
+    "id": "proj-status-preview-badge",
+    "tag": "SPAN",
+    "text": "进行中",
+    "visible": false,
+    "ancestor": "proj-status-preview-badge"
+  },
+  {
+    "id": "proj-status-preview-hint",
+    "tag": "SPAN",
+    "text": "当前起止周期覆盖今日，系统自动判定为【进行中】；小方格全部达成后自动升级为【已完成】。",
+    "visible": false,
+    "ancestor": "proj-status-preview-hint"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📂",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "左侧栏",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "◀️",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "返回甘特",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "👦",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "晨曦岛民 · 齐天",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "tertiary-crumb-leaf",
+    "tag": "SPAN",
+    "text": "⚡ 口算进退位突破",
+    "visible": false,
+    "ancestor": "tertiary-crumb-leaf"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🔥",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "连续 18 天",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📈",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "履约 98%",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🎨",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "原生Canvas",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "➕",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "新增节点",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🖼️",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "插入图片",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "➕",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "放大",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "➖",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "缩小",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "tertiary-zoom-badge",
+    "tag": "SPAN",
+    "text": "100%",
+    "visible": false,
+    "ancestor": "tertiary-zoom-badge"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "还原",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⛶",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "适应画布",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🧲",
+    "visible": false,
+    "ancestor": "btn-tertiary-children-follow"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "子级跟随",
+    "visible": false,
+    "ancestor": "btn-tertiary-children-follow"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "↩️",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "撤销",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "↪️",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "重做",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🗑️",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "删除节点",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🔍",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "搜索节点",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "▦",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "网格排布",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🗜️",
+    "visible": false,
+    "ancestor": "btn-tool-minimize-all"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "全部折叠",
+    "visible": false,
+    "ancestor": "btn-tool-minimize-all"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "节点数:",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "tertiary-stat-node-count",
+    "tag": "SPAN",
+    "text": "6 个",
+    "visible": false,
+    "ancestor": "tertiary-stat-node-count"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📑",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "右侧栏",
+    "visible": false,
+    "ancestor": "tertiary-unified-topbar"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🎯 目标分解",
+    "visible": false,
+    "ancestor": "tcard-1"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "口算达标与思维通关目标",
+    "visible": false,
+    "ancestor": "tcard-1"
+  },
+  {
+    "id": "status-text-tcard-1",
+    "tag": "SPAN",
+    "text": "阶段里程碑",
+    "visible": false,
+    "ancestor": "status-text-tcard-1"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🎯 量化通关指标 (指标名 / 指标数据)",
+    "visible": false,
+    "ancestor": "tcard-1"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "指标名",
+    "visible": false,
+    "ancestor": "tcard-1"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "指标数据",
+    "visible": false,
+    "ancestor": "tcard-1"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📅 期望完成截止时间:",
+    "visible": false,
+    "ancestor": "tcard-1"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📦 交付物提交:",
+    "visible": false,
+    "ancestor": "tcard-1"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "支持图文交付归档",
+    "visible": false,
+    "ancestor": "tcard-1"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⚡ 攻坚实训",
+    "visible": false,
+    "ancestor": "tcard-2"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "破十法心算极限实训",
+    "visible": false,
+    "ancestor": "tcard-2"
+  },
+  {
+    "id": "",
+    "tag": "P",
+    "text": "【核心攻坚要领】23 - 8 = 13 + (10 - 8) = 15，十位借一当十。",
+    "visible": false,
+    "ancestor": "tcard-2"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⏱️ 计划专注时长:",
+    "visible": false,
+    "ancestor": "tcard-2"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🎬 图片视频说明",
+    "visible": false,
+    "ancestor": "tcard-2"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📷 / 🎥 点击上传图片或视频 (进退位口算题卡.png)",
+    "visible": false,
+    "ancestor": "drill-img-box-tcard-2"
+  },
+  {
+    "id": "drill-footer-dur-tcard-2",
+    "tag": "SPAN",
+    "text": "预计专注：⏱️ 20 分钟",
+    "visible": false,
+    "ancestor": "drill-footer-dur-tcard-2"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🌿 习惯践行",
+    "visible": false,
+    "ancestor": "tcard-3"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "每日口算自律防守日课",
+    "visible": false,
+    "ancestor": "tcard-3"
+  },
+  {
+    "id": "status-text-tcard-3",
+    "tag": "SPAN",
+    "text": "日常守则",
+    "visible": false,
+    "ancestor": "status-text-tcard-3"
+  },
+  {
+    "id": "",
+    "tag": "P",
+    "text": "【知行合一日课】晨间 15 分钟独立口算盲刷，恪守无屏幕纯净时刻。",
+    "visible": false,
+    "ancestor": "tcard-3"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🛡️ 践行防守清单 (可增删多项)",
+    "visible": false,
+    "ancestor": "tcard-3"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🌿 习惯防守底线清单",
+    "visible": false,
+    "ancestor": "tcard-3"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📝 评估复盘",
+    "visible": false,
+    "ancestor": "tcard-4"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "口算错因归因与反思便签",
+    "visible": false,
+    "ancestor": "tcard-4"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🚀 提升清单 (可增删提升项)",
+    "visible": false,
+    "ancestor": "tcard-4"
+  },
+  {
+    "id": "status-text-tcard-4",
+    "tag": "SPAN",
+    "text": "复盘沉淀 · 靶向提升",
+    "visible": false,
+    "ancestor": "status-text-tcard-4"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⚙️ 自定义配置",
+    "visible": false,
+    "ancestor": "tcard-5"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "航天科普馆自主研学与水火箭制作",
+    "visible": false,
+    "ancestor": "tcard-5"
+  },
+  {
+    "id": "status-text-tcard-5",
+    "tag": "SPAN",
+    "text": "待打卡",
+    "visible": false,
+    "ancestor": "status-text-tcard-5"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📋 自定义动态业务字段 (可增删)",
+    "visible": false,
+    "ancestor": "tcard-5"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⏱️ 打卡需求:",
+    "visible": false,
+    "ancestor": "tcard-5"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📦 物证类型:",
+    "visible": false,
+    "ancestor": "tcard-5"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "个性化定制任务",
+    "visible": false,
+    "ancestor": "tcard-5"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "线条粗细",
+    "visible": false,
+    "ancestor": "tertiary-edge-popover"
+  },
+  {
+    "id": "edge-width-display",
+    "tag": "SPAN",
+    "text": "3档",
+    "visible": false,
+    "ancestor": "edge-width-display"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "脑图导航",
+    "visible": false,
+    "ancestor": "tertiary-minimap-dock"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "地图",
+    "visible": false,
+    "ancestor": "tertiary-minimap-toggle-btn"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "◀️",
+    "visible": false,
+    "ancestor": "gallery-stage-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "返回脑图",
+    "visible": false,
+    "ancestor": "gallery-stage-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "✅",
+    "visible": false,
+    "ancestor": "gallery-stage-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "专属打卡页面全集",
+    "visible": false,
+    "ancestor": "gallery-stage-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "1:1卡页匹配",
+    "visible": false,
+    "ancestor": "gallery-stage-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "覆盖全品类卡片沉淀交付态",
+    "visible": false,
+    "ancestor": "gallery-stage-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🌟",
+    "visible": false,
+    "ancestor": "gallery-stage-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "全部卡片",
+    "visible": false,
+    "ancestor": "gallery-stage-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🎯",
+    "visible": false,
+    "ancestor": "gallery-stage-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "目标分解",
+    "visible": false,
+    "ancestor": "gallery-stage-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⚡",
+    "visible": false,
+    "ancestor": "gallery-stage-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "攻坚实训",
+    "visible": false,
+    "ancestor": "gallery-stage-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🌿",
+    "visible": false,
+    "ancestor": "gallery-stage-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "习惯践行",
+    "visible": false,
+    "ancestor": "gallery-stage-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📝",
+    "visible": false,
+    "ancestor": "gallery-stage-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "评估复盘",
+    "visible": false,
+    "ancestor": "gallery-stage-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⚙️",
+    "visible": false,
+    "ancestor": "gallery-stage-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "自定配置",
+    "visible": false,
+    "ancestor": "gallery-stage-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📄",
+    "visible": false,
+    "ancestor": "gallery-stage-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "简单文本",
+    "visible": false,
+    "ancestor": "gallery-stage-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "打卡模板:",
+    "visible": false,
+    "ancestor": "gallery-stage-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "6 套",
+    "visible": false,
+    "ancestor": "gallery-stage-view"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "01",
+    "visible": false,
+    "ancestor": "checkin-frame-goal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🎯 目标分解节点卡 (`card-goal`) —— 阶段目标指标核验 · 交付物提交 · 沉淀到成就馆页面",
+    "visible": false,
+    "ancestor": "checkin-frame-goal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🎯 双列多指标核验 · 三模交付物提交 · 沉淀成就馆",
+    "visible": false,
+    "ancestor": "checkin-frame-goal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🎯 目标分解卡",
+    "visible": false,
+    "ancestor": "checkin-frame-goal"
+  },
+  {
+    "id": "checkin-page-goal-status",
+    "tag": "SPAN",
+    "text": "🎯 待交付沉淀",
+    "visible": false,
+    "ancestor": "checkin-page-goal-status"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🎯 量化通关指标 (两列显示：指标名 + 指标数据)",
+    "visible": false,
+    "ancestor": "checkin-frame-goal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "指标名",
+    "visible": false,
+    "ancestor": "checkin-frame-goal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "指标数据",
+    "visible": false,
+    "ancestor": "checkin-frame-goal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "操作",
+    "visible": false,
+    "ancestor": "checkin-frame-goal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📅 期望完成截止时间 (点击选择日期时间)：",
+    "visible": false,
+    "ancestor": "checkin-frame-goal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "📋 通关验收标准：",
+    "visible": false,
+    "ancestor": "checkin-frame-goal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📦 交付物提交 (已按规划卡片设定：📷 拍照提交模式)",
+    "visible": false,
+    "ancestor": "checkin-frame-goal"
+  },
+  {
+    "id": "checkin-page-goal-media-icon",
+    "tag": "SPAN",
+    "text": "📷",
+    "visible": false,
+    "ancestor": "checkin-page-goal-media-icon"
+  },
+  {
+    "id": "checkin-page-goal-media-label",
+    "tag": "SPAN",
+    "text": "点击拍照或上传阶段目标交付物照片存证",
+    "visible": false,
+    "ancestor": "checkin-page-goal-media-label"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "支持本地上传高清手稿照片或成果视频",
+    "visible": false,
+    "ancestor": "checkin-page-goal-media-box"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "✓ 指标与交付物核验就绪",
+    "visible": false,
+    "ancestor": "checkin-frame-goal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "双列量化指标：",
+    "visible": false,
+    "ancestor": "checkin-frame-goal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "期望完成截止时间：",
+    "visible": false,
+    "ancestor": "checkin-frame-goal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "交付物下拉提交：",
+    "visible": false,
+    "ancestor": "checkin-frame-goal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "沉淀到成就馆：",
+    "visible": false,
+    "ancestor": "checkin-frame-goal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "02",
+    "visible": false,
+    "ancestor": "checkin-frame-drill"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⚡ 攻坚实训节点卡 (`card-drill`) —— 5分钟起专注计时 · 统一图片视频说明上传框 · 实训打卡页面",
+    "visible": false,
+    "ancestor": "checkin-frame-drill"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⚡ 5分钟起番茄钟 · 🎬 图片视频说明统一上传框 · 圆满践行印章",
+    "visible": false,
+    "ancestor": "checkin-frame-drill"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⚡ 攻坚实训卡",
+    "visible": false,
+    "ancestor": "checkin-frame-drill"
+  },
+  {
+    "id": "checkin-page-drill-status",
+    "tag": "SPAN",
+    "text": "⚡ 实训待打卡",
+    "visible": false,
+    "ancestor": "checkin-page-drill-status"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📖 规划实训说明与参考范例 (只读对照)",
+    "visible": false,
+    "ancestor": "checkin-frame-drill"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "规划标准",
+    "visible": false,
+    "ancestor": "checkin-frame-drill"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "做题要求：",
+    "visible": false,
+    "ancestor": "checkin-frame-drill"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "参考物证：",
+    "visible": false,
+    "ancestor": "checkin-frame-drill"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "口算思维题卡范本.png",
+    "visible": false,
+    "ancestor": "checkin-frame-drill"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📷 上传真实实训作业草稿物证 (打卡交付)",
+    "visible": false,
+    "ancestor": "checkin-frame-drill"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "image/*, video/*",
+    "visible": false,
+    "ancestor": "checkin-frame-drill"
+  },
+  {
+    "id": "checkin-page-drill-media-preview",
+    "tag": "SPAN",
+    "text": "📷 / 🎥",
+    "visible": false,
+    "ancestor": "checkin-page-drill-media-preview"
+  },
+  {
+    "id": "checkin-page-drill-media-name",
+    "tag": "SPAN",
+    "text": "拍照或上传本次实际做题草稿物证",
+    "visible": false,
+    "ancestor": "checkin-page-drill-media-name"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⏱️ 计划专注时长 (从 5 分钟开始)",
+    "visible": false,
+    "ancestor": "checkin-frame-drill"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "心流专注倒计时表盘",
+    "visible": false,
+    "ancestor": "checkin-frame-drill"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📷 物证交付要求：",
+    "visible": false,
+    "ancestor": "checkin-frame-drill"
+  },
+  {
+    "id": "checkin-page-drill-footer-info",
+    "tag": "SPAN",
+    "text": "预计专注：⏱️ 20 分钟",
+    "visible": false,
+    "ancestor": "checkin-page-drill-footer-info"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "计划专注时长 5 分钟起：",
+    "visible": false,
+    "ancestor": "checkin-frame-drill"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "图片视频说明统一上传框：",
+    "visible": false,
+    "ancestor": "checkin-frame-drill"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "圆满践行打卡闭环：",
+    "visible": false,
+    "ancestor": "checkin-frame-drill"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "03",
+    "visible": false,
+    "ancestor": "checkin-frame-habit"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🌿 习惯践行节点卡 (`card-habit`) —— 多项践行防守清单核验与知行合一打卡页面",
+    "visible": false,
+    "ancestor": "checkin-frame-habit"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🌿 多项防守清单动态增删 · 逐项勾选核验 · 知行合一印章",
+    "visible": false,
+    "ancestor": "checkin-frame-habit"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🌿 习惯践行卡",
+    "visible": false,
+    "ancestor": "checkin-frame-habit"
+  },
+  {
+    "id": "checkin-page-habit-status",
+    "tag": "SPAN",
+    "text": "🌿 日常自律待打卡",
+    "visible": false,
+    "ancestor": "checkin-page-habit-status"
+  },
+  {
+    "id": "checkin-page-habit-progress",
+    "tag": "SPAN",
+    "text": "🛡️ 践行防守清单项 (分多项录入 · 已勾选 3/3 项)",
+    "visible": false,
+    "ancestor": "checkin-page-habit-progress"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🎙️ 物证交付方式",
+    "visible": false,
+    "ancestor": "checkin-frame-habit"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🎙️",
+    "visible": false,
+    "ancestor": "checkin-frame-habit"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "点击录制 60 秒晨读原声 / 上传自律生活照片",
+    "visible": false,
+    "ancestor": "checkin-frame-habit"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "已就绪 · 预计践行用时 ⏱️ 15 分钟",
+    "visible": false,
+    "ancestor": "checkin-frame-habit"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "✓ 防守清单与物证核验完毕",
+    "visible": false,
+    "ancestor": "checkin-frame-habit"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "践行防守清单多项录入：",
+    "visible": false,
+    "ancestor": "checkin-frame-habit"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "动态新增与删除：",
+    "visible": false,
+    "ancestor": "checkin-frame-habit"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "知行合一印章闭环：",
+    "visible": false,
+    "ancestor": "checkin-frame-habit"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "04",
+    "visible": false,
+    "ancestor": "checkin-frame-reflection"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📝 评估复盘节点卡 (`card-reflection`) —— 合并复盘说明与多项提升清单打卡页面",
+    "visible": false,
+    "ancestor": "checkin-frame-reflection"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📝 合并单一复盘说明 · 🚀 多项提升清单动态增删 · 已去除打分与维度标签",
+    "visible": false,
+    "ancestor": "checkin-frame-reflection"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📝 评估复盘卡",
+    "visible": false,
+    "ancestor": "checkin-frame-reflection"
+  },
+  {
+    "id": "checkin-page-reflection-status",
+    "tag": "SPAN",
+    "text": "📝 待复盘打卡",
+    "visible": false,
+    "ancestor": "checkin-page-reflection-status"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "统一复盘说明",
+    "visible": false,
+    "ancestor": "checkin-frame-reflection"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "💡 无行为打分与评估维度标签干扰，聚焦深度复盘",
+    "visible": false,
+    "ancestor": "checkin-frame-reflection"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🚀 提升清单 (可自定义新增和删除提升项)",
+    "visible": false,
+    "ancestor": "checkin-frame-reflection"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "复盘沉淀 · 靶向提升闭环",
+    "visible": false,
+    "ancestor": "checkin-frame-reflection"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "合并为单一复盘说明：",
+    "visible": false,
+    "ancestor": "checkin-frame-reflection"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "去除冗余打分与标签：",
+    "visible": false,
+    "ancestor": "checkin-frame-reflection"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "新增提升清单：",
+    "visible": false,
+    "ancestor": "checkin-frame-reflection"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "05",
+    "visible": false,
+    "ancestor": "checkin-frame-custom"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⚙️ 自定义配置节点卡 (`card-custom`) —— 自由增删动态业务字段与多模态物证打卡页面",
+    "visible": false,
+    "ancestor": "checkin-frame-custom"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⚙️ 动态自定义字段增删 · 已去除自定义印章与达成激励项",
+    "visible": false,
+    "ancestor": "checkin-frame-custom"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⚙️ 自定义配置卡",
+    "visible": false,
+    "ancestor": "checkin-frame-custom"
+  },
+  {
+    "id": "checkin-page-custom-status",
+    "tag": "SPAN",
+    "text": "⚙️ 待打卡交付",
+    "visible": false,
+    "ancestor": "checkin-page-custom-status"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📋 自定义动态业务字段 (数量由用户自定，可自由增删)",
+    "visible": false,
+    "ancestor": "checkin-frame-custom"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📷",
+    "visible": false,
+    "ancestor": "checkin-frame-custom"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "点击上传自定义任务交付物证 (照片/视频/笔记)",
+    "visible": false,
+    "ancestor": "checkin-frame-custom"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⚙️ 自定义任务配置就绪",
+    "visible": false,
+    "ancestor": "checkin-frame-custom"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "去除自定义印章与达成激励：",
+    "visible": false,
+    "ancestor": "checkin-frame-custom"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "动态业务字段：",
+    "visible": false,
+    "ancestor": "checkin-frame-custom"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "灵活打卡交付：",
+    "visible": false,
+    "ancestor": "checkin-frame-custom"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "06",
+    "visible": false,
+    "ancestor": "checkin-frame-text"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📄 简单文本节点卡片 (`card-text`) —— 极简「标题 + 内容」纯查阅页面（免打卡操作）",
+    "visible": false,
+    "ancestor": "checkin-frame-text"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📄 仅需输入和展示标题与内容 · 零打卡负担",
+    "visible": false,
+    "ancestor": "checkin-frame-text"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📄 简单文本节点",
+    "visible": false,
+    "ancestor": "checkin-frame-text"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📄 仅查阅 · 免操作",
+    "visible": false,
+    "ancestor": "checkin-frame-text"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📖 仅供查阅 · 无计时器 · 无物证上传负担",
+    "visible": false,
+    "ancestor": "checkin-frame-text"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "极简双项结构：",
+    "visible": false,
+    "ancestor": "checkin-frame-text"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "纯查阅免操作：",
+    "visible": false,
+    "ancestor": "checkin-frame-text"
+  },
+  {
+    "id": "",
+    "tag": "H2",
+    "text": "新增海岛规划模块",
+    "visible": false,
+    "ancestor": "add-module-modal"
+  },
+  {
+    "id": "",
+    "tag": "P",
+    "text": "自定义专属成长场馆 · 自由拖拽布局",
+    "visible": false,
+    "ancestor": "add-module-modal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "（必填，如：创客工坊、古琴雅室、自然探索）",
+    "visible": false,
+    "ancestor": "add-module-modal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "（点击选择预设或输入 Emoji）",
+    "visible": false,
+    "ancestor": "add-module-modal"
+  },
+  {
+    "id": "tertiary-module-upload-filename",
+    "tag": "SPAN",
+    "text": "已选设备图片",
+    "visible": false,
+    "ancestor": "tertiary-module-upload-filename"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "✓ 已从设备成功载入",
+    "visible": false,
+    "ancestor": "tertiary-module-upload-preview-container"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "(可选择预设图标、从本地设备上传图片或直接输入 Emoji/URL)",
+    "visible": false,
+    "ancestor": "add-module-modal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "当前所选图标：",
+    "visible": false,
+    "ancestor": "add-module-modal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "(可直接在此输入/粘贴任意 Emoji)",
+    "visible": false,
+    "ancestor": "add-module-modal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "（卡片下方展示的副标题）",
+    "visible": false,
+    "ancestor": "add-module-modal"
+  },
+  {
+    "id": "",
+    "tag": "H2",
+    "text": "新建三级攻坚模块",
+    "visible": false,
+    "ancestor": "modal-tertiary-create-module"
+  },
+  {
+    "id": "",
+    "tag": "P",
+    "text": "自定义攻坚课题名称 · 专属图标与图片 · 课题目标说明",
+    "visible": false,
+    "ancestor": "modal-tertiary-create-module"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "（必填，如：口算进退位专项突破、凑十破十法进阶）",
+    "visible": false,
+    "ancestor": "modal-tertiary-create-module"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "（点击选择预设图标或输入自定义图片/Emoji）",
+    "visible": false,
+    "ancestor": "modal-tertiary-create-module"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "当前所选图标：",
+    "visible": false,
+    "ancestor": "modal-tertiary-create-module"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "(可直接输入 Emoji 或图片 URL)",
+    "visible": false,
+    "ancestor": "modal-tertiary-create-module"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "（攻关目标、难点剖析与交付要求）",
+    "visible": false,
+    "ancestor": "modal-tertiary-create-module"
+  },
+  {
+    "id": "",
+    "tag": "H2",
+    "text": "➕ 新增三级任务节点（📚 通用卡片原型库 · 支持自定义参数、单加与批量添加）",
+    "visible": false,
+    "ancestor": "modal-tertiary-add-node"
+  },
+  {
+    "id": "",
+    "tag": "P",
+    "text": "全系统统一收敛为通用卡片原型体系，支持自定义卡片字段数量（自主增删）、打卡要求，以及纯查阅免操作的简单文本节点",
+    "visible": false,
+    "ancestor": "modal-tertiary-add-node"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "💡",
+    "visible": false,
+    "ancestor": "panel-node-template-library"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "通用卡片原型库",
+    "visible": false,
+    "ancestor": "panel-node-template-library"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "⚙️ 自定义配置卡",
+    "visible": false,
+    "ancestor": "panel-node-template-library"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "📄 简单文本节点",
+    "visible": false,
+    "ancestor": "panel-node-template-library"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🎯",
+    "visible": false,
+    "ancestor": "picker-card-goal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🎯 目标分解卡 (Goal)",
+    "visible": false,
+    "ancestor": "picker-card-goal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "多指标 · 交付沉淀",
+    "visible": false,
+    "ancestor": "picker-card-goal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "指标名",
+    "visible": false,
+    "ancestor": "picker-card-goal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "指标数据",
+    "visible": false,
+    "ancestor": "picker-card-goal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⚡",
+    "visible": false,
+    "ancestor": "picker-card-drill"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⚡ 攻坚实训卡 (Drill)",
+    "visible": false,
+    "ancestor": "picker-card-drill"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "5分钟起 · 图文实训",
+    "visible": false,
+    "ancestor": "picker-card-drill"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🌿",
+    "visible": false,
+    "ancestor": "picker-card-habit"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🌿 习惯践行卡 (Habit)",
+    "visible": false,
+    "ancestor": "picker-card-habit"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "日常自律 · 知行合一",
+    "visible": false,
+    "ancestor": "picker-card-habit"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📝",
+    "visible": false,
+    "ancestor": "picker-card-reflection"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📝 评估复盘卡 (Reflection)",
+    "visible": false,
+    "ancestor": "picker-card-reflection"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "复盘说明 · 提升清单",
+    "visible": false,
+    "ancestor": "picker-card-reflection"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⚙️",
+    "visible": false,
+    "ancestor": "picker-card-custom"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "⚙️ 自定义配置卡 (Custom Archetype)",
+    "visible": false,
+    "ancestor": "picker-card-custom"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "自由定义原型",
+    "visible": false,
+    "ancestor": "picker-card-custom"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📄",
+    "visible": false,
+    "ancestor": "picker-card-text"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "📄 简单文本节点 (Simple Text Node)",
+    "visible": false,
+    "ancestor": "picker-card-text"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "纯展示·免操作",
+    "visible": false,
+    "ancestor": "picker-card-text"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "✓ 仅供查阅 · 零操作负担",
+    "visible": false,
+    "ancestor": "picker-card-text"
+  },
+  {
+    "id": "node-picker-batch-count",
+    "tag": "SPAN",
+    "text": "0",
+    "visible": false,
+    "ancestor": "node-picker-batch-count"
+  },
+  {
+    "id": "note-preview-modal-icon",
+    "tag": "SPAN",
+    "text": "📷",
+    "visible": false,
+    "ancestor": "note-preview-modal-icon"
+  },
+  {
+    "id": "note-preview-modal-title",
+    "tag": "SPAN",
+    "text": "影像物证原卷查验",
+    "visible": false,
+    "ancestor": "note-preview-modal-title"
+  },
+  {
+    "id": "note-preview-modal-caption",
+    "tag": "SPAN",
+    "text": "影像物证说明",
+    "visible": false,
+    "ancestor": "note-preview-modal-caption"
+  },
+  {
+    "id": "bounty-modal-status-badge",
+    "tag": "SPAN",
+    "text": "⚡ 已揭榜攻坚中 · 7天内有效",
+    "visible": false,
+    "ancestor": "bounty-modal-status-badge"
+  },
+  {
+    "id": "bounty-modal-contract-no",
+    "tag": "P",
+    "text": "契约编号：BC-202611-MATH95 · 亲子共同协商荣誉契约 · 非金钱精神/体验心愿激励",
+    "visible": false,
+    "ancestor": "bounty-modal-contract-no"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "👨‍👩‍👦 家长发起新悬赏荣誉挑战（纯非金钱心愿激励）",
+    "visible": false,
+    "ancestor": "bounty-publish-form-box"
+  },
+  {
+    "id": "bounty-card-stage-pill",
+    "tag": "SPAN",
+    "text": "置顶荣誉挑战",
+    "visible": false,
+    "ancestor": "bounty-card-stage-pill"
+  },
+  {
+    "id": "bounty-modal-title",
+    "tag": "H3",
+    "text": "《小学数学口算达标与逆向思维训练》",
+    "visible": false,
+    "ancestor": "bounty-modal-title"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "心愿荣誉激励",
+    "visible": false,
+    "ancestor": "bounty-modal-backdrop"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "非金钱体验激励 ✨",
+    "visible": false,
+    "ancestor": "bounty-modal-backdrop"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "📋 契约验收标准：",
+    "visible": false,
+    "ancestor": "bounty-modal-criteria"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "1. 家长发布悬赏",
+    "visible": false,
+    "ancestor": "bounty-modal-backdrop"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "✓ 已张榜",
+    "visible": false,
+    "ancestor": "bounty-modal-backdrop"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "心愿承诺已立约",
+    "visible": false,
+    "ancestor": "bounty-modal-backdrop"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "2. 孩子揭榜交付",
+    "visible": false,
+    "ancestor": "bounty-modal-backdrop"
+  },
+  {
+    "id": "bounty-stage2-status",
+    "tag": "SPAN",
+    "text": "⚡ 正在攻坚",
+    "visible": false,
+    "ancestor": "bounty-stage2-status"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "3. 亲子验收兑现",
+    "visible": false,
+    "ancestor": "bounty-modal-backdrop"
+  },
+  {
+    "id": "bounty-stage3-status",
+    "tag": "SPAN",
+    "text": "🟡 待核验",
+    "visible": false,
+    "ancestor": "bounty-stage3-status"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "💬 家长验收寄语：",
+    "visible": false,
+    "ancestor": "bounty-modal-backdrop"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "双方画押存证：",
+    "visible": false,
+    "ancestor": "bounty-modal-backdrop"
+  },
+  {
+    "id": "bounty-child-sign-pill",
+    "tag": "SPAN",
+    "text": "✓ 孩子已揭榜署名 (齐天)",
+    "visible": false,
+    "ancestor": "bounty-child-sign-pill"
+  },
+  {
+    "id": "bounty-parent-sign-pill",
+    "tag": "SPAN",
+    "text": "⌛ 家长待核准 (爸爸)",
+    "visible": false,
+    "ancestor": "bounty-parent-sign-pill"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📁 存证路径：09_Bounties_悬赏公告/bounty-2026-midterm-math.md",
+    "visible": false,
+    "ancestor": "bounty-modal-backdrop"
+  },
+  {
+    "id": "td-modal-pavilion-badge",
+    "tag": "SPAN",
+    "text": "🏫 校史馆",
+    "visible": false,
+    "ancestor": "td-modal-pavilion-badge"
+  },
+  {
+    "id": "td-modal-status-pill",
+    "tag": "SPAN",
+    "text": "🟢 已完成打卡",
+    "visible": false,
+    "ancestor": "td-modal-status-pill"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📋 规划攻坚要领与交付标准",
+    "visible": false,
+    "ancestor": "task-detail-inspector-modal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📷 打卡物证与成果交付档案",
+    "visible": false,
+    "ancestor": "td-modal-evidence-box"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "✍️ 少年成长反思与卡点突破",
+    "visible": false,
+    "ancestor": "td-modal-reflection-box"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "❓",
+    "visible": false,
+    "ancestor": "inquiry-pool-modal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "少年修身问道池 · 圣贤智慧引路",
+    "visible": false,
+    "ancestor": "inquiry-pool-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "问道池说明",
+    "visible": false,
+    "ancestor": "inquiry-pool-modal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📜 问道池待化解困惑与古籍研读推荐",
+    "visible": false,
+    "ancestor": "inquiry-pool-modal"
+  },
+  {
+    "id": "inquiry-count-badge",
+    "tag": "SPAN",
+    "text": "3 个待规划困惑",
+    "visible": false,
+    "ancestor": "inquiry-count-badge"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🤝 同伴交往",
+    "visible": false,
+    "ancestor": "inquiry-items-list"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "古籍指引",
+    "visible": false,
+    "ancestor": "inquiry-items-list"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "践行要领",
+    "visible": false,
+    "ancestor": "inquiry-items-list"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📖 学业毅力",
+    "visible": false,
+    "ancestor": "inquiry-items-list"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "古籍指引",
+    "visible": false,
+    "ancestor": "inquiry-items-list"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "践行要领",
+    "visible": false,
+    "ancestor": "inquiry-items-list"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🧘 情绪自控",
+    "visible": false,
+    "ancestor": "inquiry-items-list"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "古籍指引",
+    "visible": false,
+    "ancestor": "inquiry-items-list"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "践行要领",
+    "visible": false,
+    "ancestor": "inquiry-items-list"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "✨",
+    "visible": false,
+    "ancestor": "register-accidental-achievement-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "记录一项生活/学习偶然成就",
+    "visible": false,
+    "ancestor": "register-accidental-achievement-modal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "⚡ 快速体验样例：",
+    "visible": false,
+    "ancestor": "register-accidental-achievement-modal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "支持手机相机实拍或电脑本地相片选取",
+    "visible": false,
+    "ancestor": "register-accidental-achievement-modal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📜",
+    "visible": false,
+    "ancestor": "family-pact-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "齐天家庭成长第一宪章 · 亲子立宪自律公约正本",
+    "visible": false,
+    "ancestor": "family-pact-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "【立宪序言】",
+    "visible": false,
+    "ancestor": "family-pact-modal"
+  },
+  {
+    "id": "",
+    "tag": "H4",
+    "text": "第一章 · 少年立宪自律守则（孩子承诺恪守）",
+    "visible": false,
+    "ancestor": "family-pact-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "1. 诚意慎独：",
+    "visible": false,
+    "ancestor": "family-pact-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "2. 屏幕守度：",
+    "visible": false,
+    "ancestor": "family-pact-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "3. 作息如钟：",
+    "visible": false,
+    "ancestor": "family-pact-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "4. 孝亲自立：",
+    "visible": false,
+    "ancestor": "family-pact-modal"
+  },
+  {
+    "id": "",
+    "tag": "H4",
+    "text": "第二章 · 家长护航支持承诺（父母承诺恪守）",
+    "visible": false,
+    "ancestor": "family-pact-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "1. 尊重隐私：",
+    "visible": false,
+    "ancestor": "family-pact-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "2. 平等沟通：",
+    "visible": false,
+    "ancestor": "family-pact-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "3. 守诺兑现：",
+    "visible": false,
+    "ancestor": "family-pact-modal"
+  },
+  {
+    "id": "",
+    "tag": "H4",
+    "text": "第三章 · 违约裁决与敏捷复盘程序",
+    "visible": false,
+    "ancestor": "pact-violation-section"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "1. 制度管人：",
+    "visible": false,
+    "ancestor": "pact-violation-section"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "2. 修身弥补：",
+    "visible": false,
+    "ancestor": "pact-violation-section"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "⚖️ 亲子共同确认 · 违约事实裁决与修身派发台",
+    "visible": false,
+    "ancestor": "pact-violation-console"
+  },
+  {
+    "id": "pact-current-rate-badge",
+    "tag": "SPAN",
+    "text": "当前综合履约率：96%（累计违约 0 次）",
+    "visible": false,
+    "ancestor": "pact-current-rate-badge"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "家长与孩子双方已心平气和核实事实，同意依约扣减 5% 履约分并派发修身复盘",
+    "visible": false,
+    "ancestor": "pact-violation-console"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🔒 齐天家庭最高自律宪章 · 违约裁决直通修身阁复盘",
+    "visible": false,
+    "ancestor": "family-pact-modal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🏛️",
+    "visible": false,
+    "ancestor": "daxue-philosophy-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "《大学》三纲八目修身哲学全息解构馆",
+    "visible": false,
+    "ancestor": "daxue-philosophy-modal"
+  },
+  {
+    "id": "",
+    "tag": "H4",
+    "text": "🌟 终极追求：三纲领 (Three Core Principles)",
+    "visible": false,
+    "ancestor": "daxue-philosophy-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "① 明明德",
+    "visible": false,
+    "ancestor": "daxue-philosophy-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "② 亲民",
+    "visible": false,
+    "ancestor": "daxue-philosophy-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "③ 止于至善",
+    "visible": false,
+    "ancestor": "daxue-philosophy-modal"
+  },
+  {
+    "id": "",
+    "tag": "H4",
+    "text": "🪜 实践阶梯：八条目与青少儿现代成长映射",
+    "visible": false,
+    "ancestor": "daxue-philosophy-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "【内圣之基 · 认知与心性修持】",
+    "visible": false,
+    "ancestor": "daxue-philosophy-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "1. 格物：",
+    "visible": false,
+    "ancestor": "daxue-philosophy-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "2. 致知：",
+    "visible": false,
+    "ancestor": "daxue-philosophy-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "3. 诚意：",
+    "visible": false,
+    "ancestor": "daxue-philosophy-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "4. 正心：",
+    "visible": false,
+    "ancestor": "daxue-philosophy-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "【外王之成 · 律己与天下经纶】",
+    "visible": false,
+    "ancestor": "daxue-philosophy-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "5. 修身：",
+    "visible": false,
+    "ancestor": "daxue-philosophy-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "6. 齐家：",
+    "visible": false,
+    "ancestor": "daxue-philosophy-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "7. 治国：",
+    "visible": false,
+    "ancestor": "daxue-philosophy-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "8. 平天下：",
+    "visible": false,
+    "ancestor": "daxue-philosophy-modal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "💡 个人行为规范全部条款均严格依据此八目体系确立",
+    "visible": false,
+    "ancestor": "daxue-philosophy-modal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "📜",
+    "visible": false,
+    "ancestor": "daxue-item-detail-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "《大学》八目修身法典 · 圣言详注与立宪细则",
+    "visible": false,
+    "ancestor": "daxue-item-detail-modal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🔒 亲子立宪公约条款 · 一体恪守 · 终身履约",
+    "visible": false,
+    "ancestor": "daxue-item-detail-modal"
+  },
+  {
+    "id": "",
+    "tag": "SPAN",
+    "text": "🏆",
+    "visible": false,
+    "ancestor": "achievement-detail-modal"
+  },
+  {
+    "id": "",
+    "tag": "STRONG",
+    "text": "成就馆 · 成长史诗高光成果档案",
+    "visible": false,
+    "ancestor": "achievement-detail-modal"
+  }
+]

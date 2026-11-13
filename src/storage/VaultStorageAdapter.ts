@@ -1,750 +1,390 @@
 import { App, normalizePath, Notice, TFile } from "obsidian";
 import { YouthIslandPluginSettings } from "../types/models";
 import { globalIslandEventBus } from "../core/EventBus";
+import { localDateKey, safeFileStem, validateVaultRoot } from "../core/GrowthMetrics";
 
-const PAVILION_DIR_MAP: Record<string, string> = {
-  study: "01_School_校史馆",
-  dojo: "02_Dojo_武道馆",
-  cognition: "03_Cognition_思辨馆",
-  cultivation: "04_Classics_修身阁",
+const PAVILIONS: Record<string, string> = {
+  study: "01_School_校史馆", dojo: "02_Dojo_武道馆",
+  cognition: "03_Cognition_思辨馆", cultivation: "04_Classics_修身阁"
 };
+const SNAPSHOT = "00_Island_Core/app_state_snapshot.json";
+const STORES = ["USER_PROFILE_STATE", "DOMAIN_STATE", "GANTT_PROJECTS", "PROJECT_CANVAS_STORE", "PAVILION_META", "WEEK_BOARD_DATA", "TASK_HISTORY_BY_DATE", "TREASURY_STATE", "ACHIEVEMENT_STATE", "NOTE_STATE", "BOUNTY_STATE", "INQUIRY_POOL_STATE"];
 
 export class VaultStorageAdapter {
-  private app: App;
-  private getSettings: () => YouthIslandPluginSettings;
   private syncTimer: ReturnType<typeof setTimeout> | null = null;
+  private queue: Promise<void> = Promise.resolve();
+  private hydrated = false;
+  private disposed = false;
+  private blocked = false;
+  private capturing = false;
+  constructor(private app: App, private getSettings: () => YouthIslandPluginSettings) {}
 
-  constructor(app: App, getSettings: () => YouthIslandPluginSettings) {
-    this.app = app;
-    this.getSettings = getSettings;
+  private resolvePath(relative: string): string {
+    const root = validateVaultRoot(this.getSettings().vaultRootFolder || "");
+    return normalizePath(root ? `${root}/${relative}` : relative);
   }
-
-  private resolvePath(relPath: string): string {
-    const root = (this.getSettings().vaultRootFolder || "").trim().replace(/^\/+|\/+$/g, "");
-    return normalizePath(root ? `${root}/${relPath}` : relPath);
+  private pavilionDir(key: string): string {
+    return PAVILIONS[key] || `10_Custom_自定义场馆/${safeFileStem(key)}`;
   }
-
-  private async ensureFolder(folderPath: string): Promise<void> {
-    const norm = normalizePath(folderPath);
-    if (!norm || norm === ".") return;
-    const parts = norm.split("/");
+  private async ensureFolder(path: string): Promise<void> {
     let current = "";
-    for (const part of parts) {
+    for (const part of normalizePath(path).split("/")) {
+      if (!part) continue;
       current = current ? `${current}/${part}` : part;
-      const exists = await this.app.vault.adapter.exists(current);
-      if (!exists) {
-        try {
-          await this.app.vault.createFolder(current);
-        } catch {
-          // Ignore race condition if folder already exists
-        }
+      if (!(await this.app.vault.adapter.exists(current))) {
+        try { await this.app.vault.createFolder(current); }
+        catch (error) { if (!(await this.app.vault.adapter.exists(current))) throw error; }
       }
     }
   }
-
-  private async writeJson(relPath: string, data: unknown): Promise<void> {
-    const fullPath = this.resolvePath(relPath);
-    const parentDir = fullPath.includes("/") ? fullPath.slice(0, fullPath.lastIndexOf("/")) : "";
-    if (parentDir) await this.ensureFolder(parentDir);
-    await this.app.vault.adapter.write(fullPath, JSON.stringify(data, null, 2));
+  private async writeText(relative: string, text: string): Promise<void> {
+    const path = this.resolvePath(relative);
+    await this.ensureFolder(path.slice(0, path.lastIndexOf("/")));
+    const adapter = this.app.vault.adapter;
+    if (await adapter.exists(path) && await adapter.read(path) === text) return;
+    await adapter.write(path, text);
+  }
+  private async writeJson(path: string, value: unknown): Promise<void> {
+    await this.writeText(path, JSON.stringify(value, null, 2));
+  }
+  private async readJson(path: string): Promise<any> {
+    const full = this.resolvePath(path);
+    if (!(await this.app.vault.adapter.exists(full))) return undefined;
+    // A parse/read failure is not an empty vault: never overwrite the damaged original.
+    return JSON.parse(await this.app.vault.adapter.read(full));
   }
 
-  private async readJson<T>(relPath: string): Promise<T | null> {
-    const fullPath = this.resolvePath(relPath);
-    try {
-      if (!(await this.app.vault.adapter.exists(fullPath))) return null;
-      const text = await this.app.vault.adapter.read(fullPath);
-      return JSON.parse(text) as T;
-    } catch {
-      return null;
-    }
-  }
-
-  private async writeMarkdown(relPath: string, content: string): Promise<void> {
-    const fullPath = this.resolvePath(relPath);
-    const parentDir = fullPath.includes("/") ? fullPath.slice(0, fullPath.lastIndexOf("/")) : "";
-    if (parentDir) await this.ensureFolder(parentDir);
-    await this.app.vault.adapter.write(fullPath, content);
-  }
-
-  /**
-   * PRD 6.1: 初始化本地 Vault 十大标准目录树
-   */
   public async ensureVaultStructure(): Promise<void> {
-    const dirs = [
-      "00_Island_Core",
-      "01_School_校史馆",
-      "01_School_校史馆/01_Exam_Papers",
-      "01_School_校史馆/02_Projects",
-      "02_Dojo_武道馆",
-      "02_Dojo_武道馆/01_Action_Clips",
-      "02_Dojo_武道馆/02_Projects",
-      "03_Cognition_思辨馆",
-      "03_Cognition_思辨馆/02_Projects",
-      "04_Classics_修身阁",
-      "04_Classics_修身阁/01_Inquiry_Pool",
-      "04_Classics_修身阁/02_Projects",
-      "05_Treasury_藏金屋",
-      "06_Achievements_成就馆",
-      "07_Baseline_个人行为规范",
-      "08_Daily_每日随记",
-      "09_Bounties_悬赏公告",
-    ];
-    for (const dir of dirs) {
-      await this.ensureFolder(this.resolvePath(dir));
-    }
+    const dirs = ["00_Island_Core", ...Object.values(PAVILIONS),
+      "01_School_校史馆/01_Exam_Papers", "02_Dojo_武道馆/01_Action_Clips",
+      "04_Classics_修身阁/01_Inquiry_Pool", "05_Treasury_藏金屋", "06_Achievements_成就馆",
+      "07_Baseline_个人行为规范", "08_Daily_每日随记", "09_Bounties_悬赏公告", "attachments"];
+    for (const dir of dirs) await this.ensureFolder(this.resolvePath(dir));
   }
 
-  /**
-   * 从本地 Vault 读取已有 JSON 档案并注入运行时状态机
-   */
   public async hydrateRuntimeFromVault(): Promise<void> {
+    this.hydrated = false;
+    this.blocked = false;
     const win = window as any;
-
-    // 0. 读取全量运行时快照（如果存在，则优先还原完整业务状态）
-    const appSnapshot = await this.readJson<Record<string, any>>(
-      "00_Island_Core/app_state_snapshot.json"
-    );
-    if (appSnapshot) {
-      if (appSnapshot.USER_PROFILE_STATE && win.USER_PROFILE_STATE) {
-        Object.assign(win.USER_PROFILE_STATE, appSnapshot.USER_PROFILE_STATE);
-      }
-      if (Array.isArray(appSnapshot.GANTT_PROJECTS) && Array.isArray(win.GANTT_PROJECTS)) {
-        win.GANTT_PROJECTS.splice(0, win.GANTT_PROJECTS.length, ...appSnapshot.GANTT_PROJECTS);
-      }
-      if (appSnapshot.PROJECT_CANVAS_STORE && win.PROJECT_CANVAS_STORE) {
-        Object.assign(win.PROJECT_CANVAS_STORE, appSnapshot.PROJECT_CANVAS_STORE);
-      }
-      if (appSnapshot.PAVILION_META && win.PAVILION_META) {
-        Object.assign(win.PAVILION_META, appSnapshot.PAVILION_META);
-      }
-      if (Array.isArray(appSnapshot.WEEK_BOARD_DATA) && Array.isArray(win.WEEK_BOARD_DATA)) {
-        win.WEEK_BOARD_DATA.splice(0, win.WEEK_BOARD_DATA.length, ...appSnapshot.WEEK_BOARD_DATA);
-      }
-      if (appSnapshot.TASK_HISTORY_BY_DATE && typeof appSnapshot.TASK_HISTORY_BY_DATE === "object") {
-        win.TASK_HISTORY_BY_DATE = appSnapshot.TASK_HISTORY_BY_DATE;
-      }
-      if (appSnapshot.TREASURY_STATE && win.TREASURY_STATE) {
-        Object.assign(win.TREASURY_STATE, appSnapshot.TREASURY_STATE);
-      }
-      if (appSnapshot.ACHIEVEMENT_STATE && win.ACHIEVEMENT_STATE) {
-        Object.assign(win.ACHIEVEMENT_STATE, appSnapshot.ACHIEVEMENT_STATE);
-      }
-      if (appSnapshot.NOTE_STATE && win.NOTE_STATE) {
-        Object.assign(win.NOTE_STATE, appSnapshot.NOTE_STATE);
-      }
-      if (appSnapshot.BOUNTY_STATE && win.BOUNTY_STATE) {
-        Object.assign(win.BOUNTY_STATE, appSnapshot.BOUNTY_STATE);
-      }
-      if (appSnapshot.INQUIRY_POOL_STATE && win.INQUIRY_POOL_STATE) {
-        Object.assign(win.INQUIRY_POOL_STATE, appSnapshot.INQUIRY_POOL_STATE);
-      }
-      if (typeof appSnapshot.dayCardDeckHtml === "string" && appSnapshot.dayCardDeckHtml.trim().length > 0) {
-        const deck = typeof document !== "undefined" ? document.getElementById("day-card-deck") : null;
-        if (deck) {
-          deck.innerHTML = appSnapshot.dayCardDeckHtml;
+    try {
+      const primary = await this.readJson("00_Island_Core/domain_state.json");
+      if (primary && (primary.schemaVersion !== 3 || !Array.isArray(primary.projects) || !Array.isArray(primary.records))) throw new Error("领域档案结构不正确，已暂停保存");
+      let snapshot: any;
+      try { snapshot = await this.readJson(SNAPSHOT); }
+      catch (error) {
+        // Keep both files untouched on corruption, even when the backup can be read.
+        if (!primary) {
+          this.blocked = true;
+          throw new Error("成长数据快照无法读取。已暂停自动写入，请先备份并检查 app_state_snapshot.json 和 .previous.json。");
         }
       }
-    }
-
-    const savedProfile = await this.readJson<Record<string, any>>("00_Island_Core/user_profile.json");
-    if (savedProfile && win.USER_PROFILE_STATE) {
-      Object.assign(win.USER_PROFILE_STATE, savedProfile);
-    }
-
-    const savedSettings = await this.readJson<Record<string, any>>("00_Island_Core/island_settings.json");
-    if (savedSettings && win.USER_PROFILE_STATE) {
-      win.USER_PROFILE_STATE.settings = Object.assign(
-        win.USER_PROFILE_STATE.settings || {},
-        savedSettings
-      );
-      try {
-        window.localStorage.setItem("island-user-settings-v1", JSON.stringify(win.USER_PROFILE_STATE.settings));
-      } catch {
-        // ignore storage quota errors
+      if (snapshot && (!Array.isArray(snapshot.GANTT_PROJECTS) || !snapshot.USER_PROFILE_STATE)) {
+        if (!primary) throw new Error("成长数据快照结构不完整，已暂停写入。");
+        snapshot = undefined;
       }
-      if (typeof win.initIslandSettings === "function") {
-        win.initIslandSettings();
-      }
-    }
-
-    const savedTreasury = await this.readJson<Record<string, any>>("05_Treasury_藏金屋/ledger.json");
-    if (savedTreasury && win.TREASURY_STATE) {
-      Object.assign(win.TREASURY_STATE, savedTreasury);
-    }
-
-    const savedAchievements = await this.readJson<Record<string, any>>("06_Achievements_成就馆/achievements.json");
-    if (savedAchievements && win.ACHIEVEMENT_STATE) {
-      Object.assign(win.ACHIEVEMENT_STATE, savedAchievements);
-    }
-
-    const savedBounty = await this.readJson<Record<string, any>>("09_Bounties_悬赏公告/bounties.json");
-    if (savedBounty && win.BOUNTY_STATE) {
-      Object.assign(win.BOUNTY_STATE, savedBounty);
-    }
-
-    // 彻底清除所有历史遗留的假测试数据
-    this.purgeLegacyDemoData(win);
-  }
-
-  /**
-   * 清除开发与原型阶段预置的假数据，确保用户环境纯净
-   */
-  private purgeLegacyDemoData(win: any): void {
-    if (!win) return;
-
-    // 1. 清除假甘特项目
-    if (Array.isArray(win.GANTT_PROJECTS)) {
-      const demoTitles = [
-        "小学数学口算达标与逆向思维训练",
-        "少儿跳绳连跳突破与协调性训练",
-        "《大学》经典晨读与知行合一践行计划",
-        "少儿多元思维与亲子议题思辨训练",
-        "少儿汉字规范书写与看图写话攻坚",
-      ];
-      const filtered = win.GANTT_PROJECTS.filter((p: any) => {
-        if (!p) return false;
-        if (["p1", "p2", "p3", "p4", "p5"].includes(p.id)) return false;
-        if (p.title && demoTitles.some((t) => p.title.includes(t))) return false;
-        return true;
-      });
-      win.GANTT_PROJECTS.splice(0, win.GANTT_PROJECTS.length, ...filtered);
-    }
-
-    // 2. 清除假藏金屋台账
-    if (win.TREASURY_STATE) {
-      if (Array.isArray(win.TREASURY_STATE.ledger)) {
-        win.TREASURY_STATE.ledger = win.TREASURY_STATE.ledger.filter((item: any) => {
-          if (!item || !item.id) return false;
-          return !item.id.startsWith("TX-202610");
-        });
-      }
-      if (win.TREASURY_STATE.totalBalance === 3280 && win.TREASURY_STATE.totalIncome === 4200) {
-        win.TREASURY_STATE.totalBalance = 0;
-        win.TREASURY_STATE.totalIncome = 0;
-        win.TREASURY_STATE.totalExpense = 0;
-      }
-    }
-
-    // 3. 清除假成就数据
-    if (win.ACHIEVEMENT_STATE) {
-      if (Array.isArray(win.ACHIEVEMENT_STATE.cultivationItems)) {
-        win.ACHIEVEMENT_STATE.cultivationItems = win.ACHIEVEMENT_STATE.cultivationItems.filter(
-          (item: any) => item && item.id && !item.id.startsWith("ACH-CULT-202610")
-        );
-      }
-      if (Array.isArray(win.ACHIEVEMENT_STATE.accidentalItems)) {
-        win.ACHIEVEMENT_STATE.accidentalItems = win.ACHIEVEMENT_STATE.accidentalItems.filter(
-          (item: any) => item && item.id && !item.id.startsWith("ACH-ACC-202610")
-        );
-      }
-    }
-
-    // 4. 清除假悬赏契约
-    if (win.BOUNTY_STATE && win.BOUNTY_STATE.id === "BC-202611-MATH95") {
-      win.BOUNTY_STATE = null;
-    }
-
-    // 5. 清除假周看板待办
-    if (Array.isArray(win.WEEK_BOARD_DATA)) {
-      win.WEEK_BOARD_DATA.forEach((col: any) => {
-        if (Array.isArray(col.tasks)) {
-          col.tasks = col.tasks.filter((t: any) => t && t.id && !t.id.startsWith("w-task-"));
+      const restore = (key: string, value: any) => {
+        if (value === undefined) return;
+        if (Array.isArray(value) && Array.isArray(win[key])) win[key].splice(0, win[key].length, ...value);
+        else if (value && typeof value === "object" && !Array.isArray(value) && win[key] && !Array.isArray(win[key])) {
+          for (const old of Object.keys(win[key])) delete win[key][old];
+          Object.assign(win[key], value);
+        } else win[key] = value; // null bounty and null -> active bounty are both meaningful.
+      };
+      if (snapshot) {
+        if (!Array.isArray(snapshot.GANTT_PROJECTS) || !snapshot.USER_PROFILE_STATE) throw new Error("成长数据快照结构不完整，已暂停写入。");
+        for (const key of STORES) if (Object.prototype.hasOwnProperty.call(snapshot, key)) restore(key, snapshot[key]);
+        // HTML is a view cache. Structured domain entities are loaded below.
+        const deck = document.getElementById("day-card-deck");
+        if (deck && typeof snapshot.dayCardDeckHtml === "string") deck.innerHTML = snapshot.dayCardDeckHtml;
+        win.currentTertiaryProjId = snapshot.currentTertiaryProjId || null;
+        win.__restoredCanvasProjectId = win.currentTertiaryProjId;
+      } else {
+        const files: Record<string, string> = {
+          USER_PROFILE_STATE: "00_Island_Core/user_profile.json", PAVILION_META: "00_Island_Core/island_topology.json",
+          TREASURY_STATE: "05_Treasury_藏金屋/ledger.json", ACHIEVEMENT_STATE: "06_Achievements_成就馆/achievements.json",
+          NOTE_STATE: "08_Daily_每日随记/journal.json", BOUNTY_STATE: "09_Bounties_悬赏公告/bounties.json",
+          INQUIRY_POOL_STATE: "04_Classics_修身阁/01_Inquiry_Pool/inquiries.json"
+        };
+        for (const [key, path] of Object.entries(files)) {
+          const saved = await this.readJson(path);
+          if (key === "BOUNTY_STATE" && saved?.schemaVersion === 3 && Array.isArray(saved.items)) {
+            restore("BOUNTY_STATE", saved.items.find((b: any) => b.id === saved.activeId) || null);
+            win.DOMAIN_STATE = { ...(win.DOMAIN_STATE || {}), bounties: saved.items };
+          } else restore(key, saved);
         }
-      });
-    }
-
-    // 6. 清除假 HUD 连胜与履约统计
-    if (win.USER_PROFILE_STATE) {
-      if (win.USER_PROFILE_STATE.streakDays === 18 && win.USER_PROFILE_STATE.baseFulfillmentRate === 96) {
-        win.USER_PROFILE_STATE.streakDays = 0;
-        win.USER_PROFILE_STATE.baseFulfillmentRate = 100;
-        win.USER_PROFILE_STATE.completedTodayCount = 0;
-        win.USER_PROFILE_STATE.totalTodayCount = 0;
+        const keys = new Set([...Object.keys(PAVILIONS), ...Object.keys(win.PAVILION_META || {}).filter(key => key.startsWith("custom-"))]);
+        const projects: any[] = [];
+        for (const key of keys) {
+          const list = await this.readJson(`${this.pavilionDir(key)}/projects.json`);
+          if (list !== undefined && !Array.isArray(list)) throw new Error("项目索引格式不正确");
+          for (const project of list || []) {
+            projects.push(project);
+            const data = await this.readJson(`${this.pavilionDir(key)}/02_Projects/nodes_${safeFileStem(project.id)}.json`);
+            if (data) win.PROJECT_CANVAS_STORE[project.id] = data;
+          }
+        }
+        restore("GANTT_PROJECTS", projects);
+        const settings = await this.readJson("00_Island_Core/island_settings.json");
+        if (settings) win.USER_PROFILE_STATE.settings = settings;
+        // Fresh vaults start without the prototype's sample inquiry and canvas.
+        if (!await this.app.vault.adapter.exists(this.resolvePath(files.USER_PROFILE_STATE))) {
+          restore("INQUIRY_POOL_STATE", []);
+          win.PROJECT_CANVAS_STORE = {};
+          win.currentTertiaryProjId = null;
+        }
       }
+      if (primary) {
+        for (const [key, value] of Object.entries(primary.stores || {})) if (STORES.includes(key) && !["DOMAIN_STATE", "GANTT_PROJECTS", "PROJECT_CANVAS_STORE"].includes(key)) restore(key, value);
+        restore("DOMAIN_STATE", primary);
+        restore("GANTT_PROJECTS", primary.projects);
+        for (const [id, nodes] of Object.entries(primary.nodesByProject || {})) win.PROJECT_CANVAS_STORE[id] = { ...(win.PROJECT_CANVAS_STORE[id] || {}), nodes, edges: primary.edgesByProject?.[id] || win.PROJECT_CANVAS_STORE[id]?.edges || [] };
+        win.USER_PROFILE_STATE.checkinRecords = primary.records;
+      }
+      // Read editable domain projections even when a session snapshot exists.
+      // An old projection from an interrupted export cannot roll back a newer aggregate.
+      const topology = await this.readJson("00_Island_Core/island_topology.json");
+      if (topology && !primary?.stores) restore("PAVILION_META", topology);
+      const keys = new Set([...Object.keys(PAVILIONS), ...Object.keys(win.PAVILION_META || {}).filter(key => key.startsWith("custom-")), ...(primary?.projects || []).map((p: any) => p.pavilion)]);
+      const loadedProjects: any[] = []; let foundIndex = false;
+      for (const key of keys as Set<string>) {
+        let list = await this.readJson(`${this.pavilionDir(key)}/projects.json`);
+        if (list === undefined) { list = (primary?.projects || []).filter((p: any) => p.pavilion === key); }
+        else { foundIndex = true; if (!Array.isArray(list)) throw new Error("项目列表必须是数组"); }
+        const indexRevision = await this.readJson(`${this.pavilionDir(key)}/projects.revision.json`);
+        if (primary && indexRevision && indexRevision.storageRevision < primary.storageRevision) list = primary.projects.filter((p: any) => p.pavilion === key);
+        if (primary && list.some((p: any) => (p.storageRevision || 0) < (primary.storageRevision || 0))) list = primary.projects.filter((p: any) => p.pavilion === key);
+        for (const project of list) {
+          loadedProjects.push(project);
+          const data = await this.readJson(`${this.pavilionDir(key)}/02_Projects/nodes_${safeFileStem(project.id)}.json`);
+          if (data && (!primary || (data.storageRevision || 0) >= (primary.storageRevision || 0))) win.PROJECT_CANVAS_STORE[project.id] = data;
+        }
+      }
+      if (foundIndex || primary) restore("GANTT_PROJECTS", loadedProjects);
+      for (const [key, path] of Object.entries({ TREASURY_STATE: "05_Treasury_藏金屋/ledger.json", ACHIEVEMENT_STATE: "06_Achievements_成就馆/achievements.json", NOTE_STATE: "08_Daily_每日随记/journal.json", INQUIRY_POOL_STATE: "04_Classics_修身阁/01_Inquiry_Pool/inquiries.json" })) {
+        if (primary?.stores && Object.prototype.hasOwnProperty.call(primary.stores, key)) continue;
+        const saved = await this.readJson(path); if (saved !== undefined) restore(key, saved);
+      }
+      this.hydrated = true;
+    } catch (error) {
+      this.blocked = true;
+      throw error;
     }
   }
 
-  /**
-   * 防抖触发全量 Vault 同步
-   */
-  public scheduleSync(delayMs = 300): void {
+  public scheduleSync(delay = 300): void {
+    if (this.disposed || !this.hydrated || this.blocked || this.capturing) return;
     if (this.syncTimer) clearTimeout(this.syncTimer);
     this.syncTimer = setTimeout(() => {
-      this.syncRuntimeToVault().catch((err) =>
-        console.error("[VaultStorageAdapter] Failed to sync runtime to Vault:", err)
-      );
-    }, delayMs);
+      this.syncTimer = null;
+      void this.syncRuntimeToVault().catch(error => {
+        console.error("[YouthIsland] 保存失败", error);
+        new Notice("成长数据保存失败，请检查仓库空间与文件权限；当前内容仍保留在界面中。");
+      });
+    }, delay);
   }
 
-  /**
-   * PRD 6.1, 6.2, 6.3: 将运行时状态全量写入本地 Vault JSON 与 Markdown 双链网络
-   */
-  public async syncRuntimeToVault(): Promise<void> {
-    await this.ensureVaultStructure();
+  public async syncRuntimeToVault(): Promise<boolean> {
+    if (!this.hydrated || this.blocked) return false; // Commands before opening the view cannot erase saved data.
+    if (this.syncTimer) { clearTimeout(this.syncTimer); this.syncTimer = null; }
     const win = window as any;
-
-    // 1. 00_Island_Core
-    if (win.USER_PROFILE_STATE) {
-      await this.writeJson("00_Island_Core/user_profile.json", win.USER_PROFILE_STATE);
-      if (win.USER_PROFILE_STATE.settings) {
-        await this.writeJson("00_Island_Core/island_settings.json", win.USER_PROFILE_STATE.settings);
-      }
-    }
-    if (win.PAVILION_META) {
-      await this.writeJson("00_Island_Core/island_topology.json", win.PAVILION_META);
-    }
-
-    // 2. 01~04 四大规划场馆 projects.json 与 02_Projects/nodes_{id}.json + 双链索引笔记
-    const allProjects: any[] = Array.isArray(win.GANTT_PROJECTS) ? win.GANTT_PROJECTS : [];
-    const canvasStore: Record<string, any> = win.PROJECT_CANVAS_STORE || {};
-
-    for (const [pavKey, dirName] of Object.entries(PAVILION_DIR_MAP)) {
-      const pavProjects = allProjects.filter((p) => (p.pavilion || p.moduleKey || "study") === pavKey);
-      await this.writeJson(`${dirName}/projects.json`, pavProjects);
-
-      for (const proj of pavProjects) {
-        const projId = proj.id || proj.projectId || "default";
-        const canvasData = canvasStore[projId] || canvasStore[pavKey] || { nodes: [], edges: [] };
-        await this.writeJson(`${dirName}/02_Projects/nodes_${projId}.json`, canvasData);
-
-        const safeTitle = String(proj.title || projId).replace(/[\\/:*?"<>|]/g, "_");
-        const canvasJson = this.buildObsidianCanvasJson(proj, pavKey, canvasData);
-        await this.writeJson(`${dirName}/02_Projects/${safeTitle}.canvas`, canvasJson);
-
-        if (this.getSettings().autoSyncVaultMarkdown && proj.title) {
-          const md = this.buildProjectMarkdown(proj, pavKey, canvasData);
-          await this.writeMarkdown(`${dirName}/02_Projects/${safeTitle}.md`, md);
-        }
-      }
-    }
-
-    // 3. 05_Treasury_藏金屋/ledger.json
-    if (win.TREASURY_STATE) {
-      await this.writeJson("05_Treasury_藏金屋/ledger.json", win.TREASURY_STATE);
-    }
-
-    // 4. 06_Achievements_成就馆/achievements.json
-    if (win.ACHIEVEMENT_STATE) {
-      await this.writeJson("06_Achievements_成就馆/achievements.json", win.ACHIEVEMENT_STATE);
-    }
-
-    // 5. 07_Baseline_个人行为规范/personal_code.md
-    if (this.getSettings().autoSyncVaultMarkdown) {
-      await this.writeMarkdown(
-        "07_Baseline_个人行为规范/personal_code.md",
-        this.buildPersonalCodeMarkdown(win.USER_PROFILE_STATE)
-      );
-    }
-
-    // 6. 08_Daily_每日随记/YYYY/YYYY-MM-DD.md (PRD 6.2 YAML Frontmatter + 6.3 双链)
-    if (win.NOTE_STATE && this.getSettings().autoSyncVaultMarkdown) {
-      const entries: any[] = Array.isArray(win.NOTE_STATE.historyEntries)
-        ? win.NOTE_STATE.historyEntries
-        : [];
-      const todayIso = new Date().toISOString().slice(0, 10);
-      const todayEntry = entries[0] || {
-        date: todayIso,
-        mood: "focused",
-        energy: 4,
-        autoLogs: [],
-        content: "",
-      };
-      const dateStr = /^\d{4}-\d{2}-\d{2}$/.test(todayEntry.date) ? todayEntry.date : todayIso;
-      const year = dateStr.slice(0, 4);
-      await this.writeMarkdown(
-        `08_Daily_每日随记/${year}/${dateStr}.md`,
-        this.buildDailyJournalMarkdown(dateStr, todayEntry, allProjects)
-      );
-    }
-
-    // 7. 09_Bounties_悬赏公告/bounties.json
-    if (win.BOUNTY_STATE) {
-      await this.writeJson("09_Bounties_悬赏公告/bounties.json", win.BOUNTY_STATE);
-    }
-
-    // 8. 00_Island_Core/app_state_snapshot.json (全量业务闭环快照：确保平板重启 Obsidian 后卡片状态、脑图拓扑、周看板等 100% 还原)
-    const deckEl = typeof document !== "undefined" ? document.getElementById("day-card-deck") : null;
-    if (deckEl && typeof win.syncFormStateToAttributes === "function") {
-      win.syncFormStateToAttributes(deckEl);
-    }
-    await this.writeJson("00_Island_Core/app_state_snapshot.json", {
-      updatedAt: new Date().toISOString(),
-      USER_PROFILE_STATE: win.USER_PROFILE_STATE || null,
-      GANTT_PROJECTS: win.GANTT_PROJECTS || null,
-      PROJECT_CANVAS_STORE: win.PROJECT_CANVAS_STORE || null,
-      PAVILION_META: win.PAVILION_META || null,
-      WEEK_BOARD_DATA: win.WEEK_BOARD_DATA || null,
-      TASK_HISTORY_BY_DATE: win.TASK_HISTORY_BY_DATE || null,
-      TREASURY_STATE: win.TREASURY_STATE || null,
-      ACHIEVEMENT_STATE: win.ACHIEVEMENT_STATE || null,
-      NOTE_STATE: win.NOTE_STATE || null,
-      BOUNTY_STATE: win.BOUNTY_STATE || null,
-      INQUIRY_POOL_STATE: win.INQUIRY_POOL_STATE || null,
-      dayCardDeckHtml: deckEl ? deckEl.innerHTML : null,
-    });
-
-    globalIslandEventBus.emit("vault:synced", { timestamp: new Date().toISOString() });
-  }
-
-  /**
-   * PRD 6.2 & 6.3: 生成每日随记 Markdown (YAML Frontmatter + 双轨流水 + [[双向链接]])
-   */
-  private buildDailyJournalMarkdown(dateStr: string, entry: any, projects: any[]): string {
-    const autoLogs: string[] = Array.isArray(entry.autoLogs) ? entry.autoLogs : [];
-    const mood = entry.moodKey || entry.mood || "focused";
-    const energy = Number(entry.energy || entry.energyLevel || 4);
-    const reflection = String(entry.reflection || entry.content || entry.text || "").trim();
-    const mediaList: any[] = Array.isArray(entry.mediaList) ? entry.mediaList : [];
-
-    const yamlLogs =
-      autoLogs.length > 0
-        ? autoLogs.map((l) => `  - ${JSON.stringify(String(l))}`).join("\n")
-        : `  - "🌅 今日晨曦小岛自律档案已开启"`;
-
-    const yamlMedia =
-      mediaList.length > 0
-        ? mediaList
-            .map(
-              (m) =>
-                `  - type: ${m.type || "image"}\n    path: ${JSON.stringify(m.url || m.path || "")}\n    desc: ${JSON.stringify(m.title || m.desc || "实训物证")}`
-            )
-            .join("\n")
-        : "  []";
-
-    const projectLinks = projects
-      .slice(0, 6)
-      .map((p) => `- [[${String(p.title || p.name || "专项攻坚课题").replace(/[\\/:*?"<>|]/g, "_")}]]`)
-      .join("\n");
-
-    return `---
-type: daily-journal
-date: ${dateStr}
-mood: "${mood}"
-energy_level: ${energy}
-auto_logs:
-${yamlLogs}
-media_attachments:
-${yamlMedia}
-content_reflection: ${JSON.stringify(reflection || "今日专注笃行，水滴石穿。")}
----
-
-# 📝 ${dateStr} 每日随记（客观真实流水 + 主观心流随笔）
-
-## 一、 ⏱️ 全自动客观事实流水（Upper Track）
-${autoLogs.map((log) => `- ${log}`).join("\n") || "- 暂无自动打卡流水"}
-
-## 二、 ✍️ 主观心流随笔与顿悟（Lower Track）
-${reflection || "> 今日专注于既定课题攻坚，保持慎独自律。"}
-
-## 三、 🔗 关联课题与双链生命网络（PRD 6.3 双向链接）
-${projectLinks || "- [[personal_code|个人行为规范·大学八目法典]]"}
-- [[personal_code|个人行为规范·大学八目法典]]
-`;
-  }
-
-  /**
-   * PRD 6.3: 生成规划项目双链 Markdown 档案
-   */
-  private buildProjectMarkdown(proj: any, pavKey: string, canvasData: any): string {
-    const nodes: any[] = Array.isArray(canvasData?.nodes) ? canvasData.nodes : [];
-    const nodeLines = nodes
-      .map(
-        (n) =>
-          `- [${n.status === "completed" || n.isCompleted ? "x" : " "}] **${n.title || n.name || n.id}** (\`${n.cardType || n.type || "card-drill"}\`)`
-      )
-      .join("\n");
-
-    return `---
-type: growth-project
-project_id: "${proj.id || ""}"
-pavilion: "${pavKey}"
-category: "${proj.category || ""}"
-status: "${proj.status || "in_progress"}"
-progress_percent: ${Number(proj.progress ?? proj.progressPercent ?? 0)}
-start_date: "${proj.startDate || ""}"
-end_date: "${proj.endDate || ""}"
----
-
-# 🎯 ${proj.title || "专项规划课题"}
-
-- **所属场馆**：\`${pavKey}\`
-- **起止周期**：${proj.startDate || "2026-10-01"} ~ ${proj.endDate || "2026-11-30"}
-- **当前进度**：${Number(proj.progress ?? proj.progressPercent ?? 0)}%
-- **行为准绳**：[[personal_code|个人行为规范·大学八目法典]]
-
-## 三级脑图任务拓扑节点
-${nodeLines || "- 尚无拆解节点"}
-`;
-  }
-
-  /**
-   * PRD 4.9 & 6.1: 生成《个人行为规范 · 大学八目法典》Markdown
-   */
-  private buildPersonalCodeMarkdown(profile: any): string {
-    const rate = profile?.fulfillmentRate ?? 98;
-    const days = profile?.streakDays ?? profile?.continuousDays ?? 18;
-    return `---
-type: personal-constitution
-title: "个人行为规范 · 大学八目生命法典"
-continuous_days: ${days}
-fulfillment_rate: ${rate}
----
-
-# 📜 个人行为规范 · 《大学》三纲八目立宪法典
-
-> **“物格而后知至，知至而后意诚，意诚而后心正，心正而后身修，身修而后家齐，家齐而后国治，国治而后天下平。”**
-
-## 内圣之基 · 认知与心性修持
-1. **【格物 · 穷究事理】**：做题与研习必究底层原理，草稿手稿规范留痕，绝不盲猜敷衍。
-2. **【致知 · 启智博学】**：每日晨诵圣贤经典，将先贤智慧与日常困惑相互印证。
-3. **【诚意 · 慎独不欺】**：无人监督测验绝不抄袭看答案，重诺守信，不自欺欺人。
-4. **【正心 · 定力克浮】**：进入实训前自觉封存娱乐设备，胜不骄败不馁，平心静气复盘。
-
-## 外王之成 · 律己与担当
-5. **【修身 · 强健律己】**：每晚 21:30 准时熄灯，晨起利落，每日体能实训风雨无阻。
-6. **【齐家 · 孝亲担当】**：出必告、反必面，内务书桌自主整理，主动分担洗碗备餐家务。
-7. **【治国 · 遵规守纪】**：严守校规班纪与公共秩序，爱护集体荣誉。
-8. **【平天下 · 志存高远】**：厉行节约、友爱互助，立志成为笃行守正之少年君子。
-`;
-  }
-
-  /**
-   * PRD 3.2.2 & Obsidian Canvas 核心插件集成:
-   * 将三级工作台脑图拓扑数据转换为 Obsidian 原生 .canvas 标准规范 JSON (硬件加速，60/120fps 丝滑拖拽缩放)
-   */
-  public buildObsidianCanvasJson(
-    proj: any,
-    pavKey: string,
-    canvasData?: any
-  ): { nodes: any[]; edges: any[] } {
-    const pTitle = proj?.title || "专项规划课题";
-    const pDesc = proj?.desc || "稳步推进阶段量化攻坚与日常打卡";
-    const projId = proj?.id || "p1";
-
-    const canvasNodes: any[] = [];
-    const canvasEdges: any[] = [];
-
-    // 1. 如果 canvasData 包含结构化 nodes 数组
-    if (Array.isArray(canvasData?.nodes) && canvasData.nodes.length > 0) {
-      canvasData.nodes.forEach((n: any, idx: number) => {
-        const type = String(n.cardType || n.type || "drill");
-        let color = "2"; // 默认橙色攻坚实训
-        if (type.includes("goal")) color = "5"; // 蓝色目标
-        else if (type.includes("reflection")) color = "6"; // 紫色复盘
-        else if (type.includes("habit")) color = "3"; // 黄色习惯
-        else if (type.includes("evidence")) color = "1"; // 红色物证
-        else if (type.includes("resource")) color = "4"; // 绿色资源
-
-        const textLines = [
-          `### ${n.icon || "🎯"} ${n.title || `节点 ${idx + 1}`}`,
-          n.status ? `**状态**：\`${n.status}\`` : "",
-          n.desc ? `> ${n.desc}` : "",
-          n.checklist && Array.isArray(n.checklist)
-            ? n.checklist.map((c: any) => `- [${c.done ? "x" : " "}] ${c.text}`).join("\n")
-            : "",
-        ].filter(Boolean).join("\n\n");
-
-        canvasNodes.push({
-          id: n.id || `node-${idx + 1}`,
-          x: typeof n.x === "number" ? n.x : 80 + idx * 380,
-          y: typeof n.y === "number" ? n.y : 90,
-          width: n.width || 340,
-          height: n.height || 220,
-          type: "text",
-          text: textLines,
-          color,
-        });
-      });
-    } else if (typeof canvasData?.cardsHtml === "string" && canvasData.cardsHtml.trim()) {
-      // 2. 从 HTML 字符串中提取卡片
-      const cardRegex = /<div\s+class="([^"]*tertiary-card[^"]*)"\s+id="([^"]+)"(?:[^>]*data-label="([^"]*)")?[^>]*style="([^"]*)"[^>]*>([\s\S]*?)<\/div>\s*(?=<div\s+class="[^"]*tertiary-card"|$)/gi;
-      let match: RegExpExecArray | null;
-      let cardIdx = 0;
-
-      while ((match = cardRegex.exec(canvasData.cardsHtml)) !== null) {
-        const className = match[1] || "";
-        const cardId = match[2];
-        const styleStr = match[4] || "";
-        const innerHtml = match[5] || "";
-
-        // 解析坐标
-        const topMatch = styleStr.match(/top:\s*(\d+)px/);
-        const leftMatch = styleStr.match(/left:\s*(\d+)px/);
-        const widthMatch = styleStr.match(/width:\s*(\d+)px/);
-        const x = leftMatch ? parseInt(leftMatch[1], 10) : 80 + cardIdx * 380;
-        const y = topMatch ? parseInt(topMatch[1], 10) : 90;
-        const width = widthMatch ? parseInt(widthMatch[1], 10) : 340;
-
-        // 提取标题与色彩
-        let color = "2";
-        let cardTypeName = "攻坚实训";
-        if (className.includes("goal")) {
-          color = "5";
-          cardTypeName = "目标分解";
-        } else if (className.includes("reflection")) {
-          color = "6";
-          cardTypeName = "评估复盘";
-        } else if (className.includes("drill")) {
-          color = "2";
-          cardTypeName = "攻坚实训";
-        } else if (className.includes("resource")) {
-          color = "4";
-          cardTypeName = "资源支撑";
-        } else if (className.includes("evidence")) {
-          color = "1";
-          cardTypeName = "物证交付";
-        }
-
-        const titleMatch = innerHtml.match(/class="[^"]*work-node-title[^"]*"[^>]*>([^<]+)<\/span>/);
-        const badgeMatch = innerHtml.match(/class="[^"]*work-node-badge[^"]*"[^>]*>([^<]+)<\/span>/);
-        const cardTitle = titleMatch ? titleMatch[1].trim() : `${pTitle} · ${cardTypeName}`;
-        const cardBadge = badgeMatch ? badgeMatch[1].trim() : `🎯 ${cardTypeName}`;
-
-        // 提取正文纯文本与复选清单
-        const cleanBody = innerHtml
-          .replace(/<button[\s\S]*?<\/button>/gi, "")
-          .replace(/<div class="work-card-connect-handle"[\s\S]*?<\/div>/gi, "")
-          .replace(/<span class="work-node-badge"[\s\S]*?<\/span>/gi, "")
-          .replace(/<span class="work-node-title"[\s\S]*?<\/span>/gi, "")
-          .replace(/<input\s+type="checkbox"[^>]*>/gi, "- [ ] ")
-          .replace(/<input\s+type="text"[^>]*value="([^"]*)"[^>]*>/gi, "$1\n")
-          .replace(/<[^>]+>/g, " ")
-          .replace(/\s+/g, " ")
-          .trim();
-
-        canvasNodes.push({
-          id: cardId,
-          x,
-          y,
-          width,
-          height: 220,
-          type: "text",
-          text: `### ${cardBadge}\n**${cardTitle}**\n\n${cleanBody}`,
-          color,
-        });
-        cardIdx++;
-      }
-    }
-
-    // 如果未提取到任何节点，提供开箱即用的三大基准标准节点
-    if (canvasNodes.length === 0) {
-      const c1 = `projnode-${projId}-1`;
-      const c2 = `projnode-${projId}-2`;
-      const c3 = `projnode-${projId}-3`;
-
-      canvasNodes.push(
-        {
-          id: c1,
-          x: 80,
-          y: 90,
-          width: 340,
-          height: 200,
-          type: "text",
-          text: `### 🎯 目标分解 · 通关目标\n**《${pTitle}》**\n\n> 📋 验收标准：${pDesc}\n\n- [ ] 制定里程碑分解指标\n- [ ] 归档至成就馆`,
-          color: "5",
-        },
-        {
-          id: c2,
-          x: 480,
-          y: 90,
-          width: 340,
-          height: 200,
-          type: "text",
-          text: `### ⚡ 攻坚实训 · 每日打卡\n**《${pTitle}》实战突破**\n\n- 预计专注时长：⏱️ 20 分钟\n- 执行要领：保持慎独自律，逐项推导留痕\n- [ ] 今日实训打卡完成`,
-          color: "2",
-        },
-        {
-          id: c3,
-          x: 880,
-          y: 90,
-          width: 340,
-          height: 200,
-          type: "text",
-          text: `### 📝 评估复盘 · 改进清单\n**《${pTitle}》周期审视**\n\n> 【复盘指引】记录执行卡点与顿悟经验\n\n- [x] 1. 拆解薄弱动作/卡点进行二次强化\n- [ ] 2. 派生为下一阶段新实训节点`,
-          color: "6",
-        }
-      );
-
-      canvasEdges.push(
-        {
-          id: `edge-${c1}-${c2}`,
-          fromNode: c1,
-          fromSide: "right",
-          toNode: c2,
-          toSide: "left",
-          label: "拆解执行",
-        },
-        {
-          id: `edge-${c2}-${c3}`,
-          fromNode: c2,
-          fromSide: "right",
-          toNode: c3,
-          toSide: "left",
-          label: "复盘纠偏",
-        }
-      );
-    }
-
-    // 转换连线数据
-    const rawEdges: any[] = Array.isArray(canvasData?.edges) ? canvasData.edges : [];
-    if (rawEdges.length > 0) {
-      rawEdges.forEach((e: any, idx: number) => {
-        canvasEdges.push({
-          id: e.id || `edge-${idx + 1}`,
-          fromNode: e.sourceId || e.fromNode,
-          fromSide: "right",
-          toNode: e.targetId || e.toNode,
-          toSide: "left",
-          label: e.label || "关联",
-        });
-      });
-    }
-
-    return { nodes: canvasNodes, edges: canvasEdges };
-  }
-
-  /**
-   * PRD 3.2.2: 在 Obsidian 原生 Canvas 核心插件中打开指定项目画布
-   */
-  public async openProjectInCanvas(projId: string): Promise<boolean> {
+    if (typeof win.captureDomainLayout === "function") win.captureDomainLayout();
+    this.capturing = true;
     try {
-      const win = window as any;
-      const allProjects: any[] = Array.isArray(win.GANTT_PROJECTS) ? win.GANTT_PROJECTS : [];
-      let proj = allProjects.find((p) => p.id === projId);
-      if (!proj && allProjects.length > 0) {
-        proj = allProjects[0];
-      }
-      const pavKey = proj?.pavilion || proj?.moduleKey || "study";
-      const dirName = PAVILION_DIR_MAP[pavKey] || "01_School_校史馆";
-      const safeTitle = String(proj?.title || projId || "成长规划项目").replace(/[\\/:*?"<>|]/g, "_");
-      const canvasRelPath = `${dirName}/02_Projects/${safeTitle}.canvas`;
-      const fullPath = this.resolvePath(canvasRelPath);
+      if (typeof win.saveCurrentProjectCanvasSnapshot === "function" && win.currentTertiaryProjId) win.saveCurrentProjectCanvasSnapshot();
+    } finally { this.capturing = false; }
+    const deck = document.getElementById("day-card-deck");
+    if (deck && typeof win.syncFormStateToAttributes === "function") win.syncFormStateToAttributes(deck);
+    const state: any = { schemaVersion: 3, updatedAt: new Date().toISOString(), currentTertiaryProjId: win.currentTertiaryProjId || null, dayCardDeckHtml: "" };
+    for (const key of STORES) state[key] = win[key] ?? null;
+    // Freeze the state before the first await. Serialized saves cannot mix revisions.
+    const copy = JSON.parse(JSON.stringify(state));
+    const root = this.getSettings().vaultRootFolder;
+    const save = this.queue.catch(() => {}).then(async () => {
+      if (root !== this.getSettings().vaultRootFolder) throw new Error("保存期间数据目录发生变化，请重新同步");
+      await this.persist(copy);
+    });
+    this.queue = save;
+    await save;
+    return true;
+  }
 
-      // Check if file exists, if not generate it
-      const canvasStore: Record<string, any> = win.PROJECT_CANVAS_STORE || {};
-      const canvasData =
-        (proj && proj.id && canvasStore[proj.id]) ||
-        canvasStore[projId] || { nodes: [], edges: [] };
-      const canvasJson = this.buildObsidianCanvasJson(proj, pavKey, canvasData);
-      await this.writeJson(canvasRelPath, canvasJson);
-
-      const file = this.app.vault.getAbstractFileByPath(fullPath);
-      if (file instanceof TFile && file.extension === "canvas") {
-        const leaf = this.app.workspace.getLeaf(true);
-        await leaf.openFile(file);
-        new Notice(`🎨 已在 Obsidian 原生 Canvas 核心画布中打开《${proj?.title || safeTitle}》！`);
-        return true;
-      } else {
-        new Notice(
-          `💡 画布文件已就绪：${canvasRelPath}\n请在 Obsidian 文件列表中点击打开，或确保在【设置 -> 核心插件】中已启用 Canvas 画布功能。`
-        );
-        return true;
-      }
-    } catch (err: any) {
-      console.error("[VaultStorageAdapter] Failed to open project in Obsidian Canvas:", err);
-      new Notice(`⚠️ 打开 Canvas 画布失败: ${err?.message || err}`);
-      return false;
+  private async persist(state: any): Promise<void> {
+    await this.ensureVaultStructure();
+    const fullSnapshot = this.resolvePath(SNAPSHOT);
+    const adapter = this.app.vault.adapter;
+    if (state.DOMAIN_STATE) {
+      const previousDomain = await this.readJson("00_Island_Core/domain_state.json");
+      const revision = Math.max(Date.now(), (previousDomain?.storageRevision || 0) + 1);
+      state.DOMAIN_STATE.storageRevision = revision;
+      state.DOMAIN_STATE.projects = state.GANTT_PROJECTS;
+      state.DOMAIN_STATE.nodesByProject = Object.fromEntries(Object.entries(state.PROJECT_CANVAS_STORE || {}).filter(([, data]: any) => Array.isArray(data.nodes)).map(([id, data]: any) => [id, data.nodes]));
+      state.DOMAIN_STATE.edgesByProject = Object.fromEntries(Object.entries(state.PROJECT_CANVAS_STORE || {}).map(([id, data]: any) => [id, data.edges || []]));
+      state.DOMAIN_STATE.stores = Object.fromEntries(STORES.filter(key => !["DOMAIN_STATE", "GANTT_PROJECTS", "PROJECT_CANVAS_STORE", "WEEK_BOARD_DATA", "TASK_HISTORY_BY_DATE"].includes(key)).map(key => [key, state[key]]));
+      await this.writeJson("00_Island_Core/domain_state.pending.json", state.DOMAIN_STATE);
+      if (previousDomain) await this.writeJson("00_Island_Core/domain_state.previous.json", previousDomain);
+      await adapter.rename(this.resolvePath("00_Island_Core/domain_state.pending.json"), this.resolvePath("00_Island_Core/domain_state.json"));
     }
+    // Commit the primary snapshot first; derived exports can always be regenerated.
+    if (await adapter.exists(fullSnapshot)) {
+      const previous = await adapter.read(fullSnapshot);
+      try {
+        JSON.parse(previous);
+        await this.writeText("00_Island_Core/app_state_snapshot.previous.json", previous);
+      } catch (error) {
+        if (!state.DOMAIN_STATE) throw error;
+        await this.writeText(`00_Island_Core/app_state_snapshot.corrupt-${Date.now()}.json`, previous);
+      }
+    }
+    const pending = "00_Island_Core/app_state_snapshot.pending.json";
+    await this.writeJson(pending, state);
+    await adapter.rename(this.resolvePath(pending), fullSnapshot);
+    await this.writeJson("00_Island_Core/user_profile.json", state.USER_PROFILE_STATE);
+    await this.writeJson("00_Island_Core/island_settings.json", state.USER_PROFILE_STATE.settings || {});
+    await this.writeJson("00_Island_Core/island_topology.json", state.PAVILION_META);
+    const projects = state.GANTT_PROJECTS || [];
+    const keys = new Set([...Object.keys(PAVILIONS), ...projects.map((p: any) => p.pavilion || p.moduleKey || "study"), ...Object.keys(state.PAVILION_META || {}).filter(key => key.startsWith("custom-"))]);
+    for (const key of keys as Set<string>) {
+      const dir = this.pavilionDir(key);
+      const list = projects.filter((p: any) => (p.pavilion || p.moduleKey || "study") === key);
+      await this.writeJson(`${dir}/projects.json`, list.map((p: any) => ({ ...p, storageRevision: state.DOMAIN_STATE?.storageRevision || 0 })));
+      await this.writeJson(`${dir}/projects.revision.json`, { storageRevision: state.DOMAIN_STATE?.storageRevision || 0 });
+      for (const project of list) {
+        const data = state.PROJECT_CANVAS_STORE?.[project.id] || { cardsHtml: "", edges: [] };
+        await this.writeJson(`${dir}/02_Projects/nodes_${safeFileStem(project.id)}.json`, { ...data, storageRevision: state.DOMAIN_STATE?.storageRevision || 0 });
+        const stem = `${safeFileStem(project.title)}--${safeFileStem(project.id)}`;
+        const canvas = `${dir}/02_Projects/${stem}.canvas`;
+        // Native Canvas is user-editable; never overwrite it during background sync.
+        if (!(await adapter.exists(this.resolvePath(canvas)))) await this.writeJson(canvas, this.buildObsidianCanvasJson(project, key, data));
+        if (this.getSettings().autoSyncVaultMarkdown) await this.writeText(`${dir}/02_Projects/${stem}.md`, this.projectMarkdown(project, key, data, state.DOMAIN_STATE));
+      }
+    }
+    await this.writeJson("05_Treasury_藏金屋/ledger.json", state.TREASURY_STATE);
+    await this.writeJson("06_Achievements_成就馆/achievements.json", state.ACHIEVEMENT_STATE);
+    await this.writeJson("09_Bounties_悬赏公告/bounties.json", { schemaVersion: 3, activeId: state.BOUNTY_STATE?.id || null, items: state.DOMAIN_STATE?.bounties || [] });
+    await this.writeJson("04_Classics_修身阁/01_Inquiry_Pool/inquiries.json", state.INQUIRY_POOL_STATE);
+    await this.writeJson("08_Daily_每日随记/journal.json", state.NOTE_STATE);
+    await this.writeJson("07_Baseline_个人行为规范/family_pact.json", state.DOMAIN_STATE?.family || null);
+    if (this.getSettings().autoSyncVaultMarkdown) {
+      let entries = [...(state.NOTE_STATE?.historyEntries || [])];
+      const note = state.NOTE_STATE;
+      const date = note?.dateKey || localDateKey();
+      if (note && !entries.some((e: any) => e.date === date) && (note.journalText || note.todayAutoLogs?.length || note.mediaList?.length)) {
+        entries.push({ date, text: note.journalText, autoLogs: note.todayAutoLogs, media: note.mediaList, mood: note.currentMood, energy: note.currentEnergy });
+      } else if (note) {
+        entries = entries.map((entry: any) => entry.date === date ? { ...entry, text: note.journalText ?? entry.text, draft: entry.draft || note.journalText !== entry.text, autoLogs: note.todayAutoLogs, media: note.mediaList, mood: note.currentMood, energy: note.currentEnergy } : entry);
+      }
+      const written = new Set<string>();
+      for (const entry of entries) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(entry.date) || written.has(entry.date)) continue;
+        written.add(entry.date);
+        await this.writeText(`08_Daily_每日随记/${entry.date.slice(0, 4)}/${entry.date}.md`, this.dailyMarkdown(entry, state.DOMAIN_STATE));
+      }
+      const code = "07_Baseline_个人行为规范/personal_code.md";
+      // The family's actual constitution must not be replaced by a hardcoded sample.
+      if (!(await adapter.exists(this.resolvePath(code)))) await this.writeText(code, "---\ntype: personal-constitution\n---\n\n# 个人行为规范\n\n请在亲子共同讨论后，记录已确立的行为规范。\n");
+    }
+    globalIslandEventBus.emit("vault:synced", { timestamp: state.updatedAt });
+  }
+
+  public async saveAttachment(file: File): Promise<{ path: string; url: string }> {
+    if (!/^(image|video|audio)\//.test(file.type)) throw new Error("请选择照片、视频或音频文件");
+    if (file.size > 200 * 1024 * 1024) throw new Error("单个附件不能超过 200 MB");
+    const path = this.resolvePath(`attachments/${localDateKey()}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${safeFileStem(file.name.replace(/\.[^.]+$/, ""))}.${file.name.split(".").pop()?.replace(/[^a-z0-9]/gi, "") || "bin"}`);
+    await this.ensureFolder(path.slice(0, path.lastIndexOf("/")));
+    await this.app.vault.adapter.writeBinary(path, await file.arrayBuffer());
+    return { path, url: this.app.vault.adapter.getResourcePath(path) };
+  }
+  public attachmentUrl(path: string): string { return this.app.vault.adapter.getResourcePath(path); }
+  public async exportDocument(path: string, content: string): Promise<void> {
+    await this.writeText(path, content);
+    new Notice(`已导出真实档案：${path}`);
+  }
+  public async importProjectCanvas(id: string): Promise<boolean> {
+    const win = window as any;
+    const project = win.GANTT_PROJECTS.find((p: any) => p.id === id);
+    if (!project) return false;
+    const relative = `${this.pavilionDir(project.pavilion)}/02_Projects/${safeFileStem(project.title)}--${safeFileStem(id)}.canvas`;
+    const canvas = await this.readJson(relative);
+    if (!canvas || !Array.isArray(canvas.nodes)) { new Notice("请先导出项目Canvas"); return false; }
+    const nodes = win.DOMAIN_STATE.nodesByProject[id] || [];
+    for (const item of canvas.nodes) {
+      const node = nodes.find((n: any) => n.id === item.id);
+      if (node && Number.isFinite(item.x) && Number.isFinite(item.y)) {
+        node.canvasPosition = { x: item.x, y: item.y };
+        const element = typeof document === "undefined" ? null : document.getElementById(node.id);
+        if (element && win.currentTertiaryProjId === id) { element.style.left = `${item.x}px`; element.style.top = `${item.y}px`; }
+        if (node.nodeType === "text" && typeof item.text === "string") node.cardPayload.textContent = item.text;
+      }
+    }
+    win.PROJECT_CANVAS_STORE[id].nodes = nodes;
+    await this.syncRuntimeToVault();
+    return true;
+  }
+
+  private dailyMarkdown(entry: any, domain?: any): string {
+    const logs = (entry.autoLogs || []).map((log: any) => {
+      if (typeof log === "string") return log;
+      const project = domain?.projects?.find((p: any) => p.id === log.projectId);
+      const link = project ? ` [[${this.resolvePath(`${this.pavilionDir(project.pavilion)}/02_Projects/${safeFileStem(project.title)}--${safeFileStem(project.id)}.md`)}|来源项目]]` : "";
+      return `${log.time ? `[${log.time}] ` : ""}${log.text || ""}${log.sourceId ? `（来源ID: ${log.sourceId}）` : ""}${link}`;
+    });
+    const media = entry.media || entry.mediaList || [];
+    const text = String(entry.text || entry.reflection || entry.content || "");
+    return `---\ntype: daily-journal\ndate: ${entry.date}\nmood: ${JSON.stringify(entry.mood || "focused")}\nenergy_level: ${entry.energy ?? 4}\nauto_logs: ${JSON.stringify(logs)}\nmedia_attachments: ${JSON.stringify(media.map((m: any) => ({ type: m.type, path: m.path || "", desc: m.caption || m.name || "" })))}\ncontent_reflection: ${JSON.stringify(text)}\n---\n\n# ${entry.date} 每日随记\n\n## 客观事实流水\n${logs.map((l: string) => `- ${l}`).join("\n")}\n\n## 心流随笔\n${text}\n\n## 影像物证\n${media.filter((m: any) => m.path).map((m: any) => `![[${m.path}]]`).join("\n")}\n\n[[${this.resolvePath("07_Baseline_个人行为规范/personal_code.md")}|个人行为规范]]\n`;
+  }
+  private projectMarkdown(project: any, key: string, data: any, domain?: any): string {
+    const canvas = this.buildObsidianCanvasJson(project, key, data);
+    const records = (domain?.records || []).filter((r: any) => r.projectId === project.id);
+    const executions = records.map((record: any) => {
+      const actual = [
+        ...(record.metrics || []).map((m: any) => `- ${m.name}：目标 ${m.targetValue}；实测 ${m.actual}`),
+        ...Object.entries(record.customFieldValues || {}).map(([name, value]) => `- ${record.sourceSnapshot?.cardPayload?.customFieldsSchema?.find((f: any) => f.key === name)?.label || name}：${value}`),
+        ...(record.improvementList || []).map((item: any) => `- 后续提升：${item.actionItem}`)
+      ].join("\n");
+      return `### ${record.title || "执行记录"}\n记录ID: ${record.id}\n源节点ID: ${record.nodeId}\n计划日: ${record.scheduledDate || record.date}\n实际提交日: ${record.date}\n验收: ${record.validated ? "通过" : "历史未核验"}\n实际专注: ${record.focusSeconds || 0}秒\n\n${record.reflection || ""}\n\n${actual}\n\n${(record.media || []).filter((m: any) => m.path).map((m: any) => `![[${m.path}]]`).join("\n")}\n\n[[${this.resolvePath(`08_Daily_每日随记/${record.date.slice(0, 4)}/${record.date}.md`)}|当日随记]]`;
+    }).join("\n\n");
+    return `---\ntype: growth-project\nproject_id: ${JSON.stringify(project.id)}\npavilion: ${JSON.stringify(key)}\ncategory: ${JSON.stringify(project.category || "")}\nstart_date: ${JSON.stringify(project.startDate || "")}\nend_date: ${JSON.stringify(project.endDate || "")}\n---\n\n# ${project.title}\n\n${project.desc || ""}\n\n## 当前规划\n\n${canvas.nodes.map(n => n.text).join("\n\n")}\n\n## 原始执行记录\n\n${executions || "尚无执行记录"}\n\n[[${this.resolvePath("07_Baseline_个人行为规范/personal_code.md")}|个人行为规范]]\n`;
+  }
+
+  public buildObsidianCanvasJson(project: any, key: string, data?: any): { nodes: any[]; edges: any[] } {
+    let nodes: any[] = [];
+    if (Array.isArray(data?.nodes)) {
+      nodes = data.nodes.map((n: any, i: number) => ({ id: n.id || n.nodeId || `node-${i}`, x: n.x ?? n.canvasPosition?.x ?? 80, y: n.y ?? n.canvasPosition?.y ?? 90, width: n.width || 340, height: n.height || 220, type: "text", text: n.nodeType === "text" ? n.cardPayload?.textContent || "" : `### ${n.title || "节点"}\n${n.desc || n.cardPayload?.description || ""}\n${(n.cardPayload?.metrics || []).map((m: any) => `${m.name}: ${m.targetValue}`).join("\n")}`, color: "2" }));
+    } else if (data?.cardsHtml && typeof document !== "undefined") {
+      const holder = document.createElement("div");
+      holder.innerHTML = data.cardsHtml;
+      nodes = Array.from(holder.querySelectorAll<HTMLElement>(".tertiary-card")).map((card, i) => {
+        const clone = card.cloneNode(true) as HTMLElement;
+        clone.querySelectorAll("button, .work-card-connect-handle").forEach(el => el.remove());
+        clone.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("input, textarea").forEach(el => {
+          const text = document.createTextNode(el.type === "checkbox" ? ((el as HTMLInputElement).checked ? "[x] " : "[ ] ") : `${el.value}\n`);
+          el.replaceWith(text);
+        });
+        return { id: card.id || `node-${i}`, x: parseFloat(card.style.left) || 0, y: parseFloat(card.style.top) || 0, width: parseFloat(card.style.width) || 340, height: 240, type: "text", text: clone.textContent?.trim() || "", color: card.className.includes("goal") ? "5" : card.className.includes("reflection") ? "6" : "2" };
+      });
+    }
+    const ids = new Set(nodes.map(n => n.id));
+    const edges = (data?.edges || []).map((e: any, i: number) => ({ id: e.id || `edge-${i}`, fromNode: e.sourceId || e.fromNode, fromSide: "right", toNode: e.targetId || e.toNode, toSide: "left", label: e.label || "关联" })).filter((e: any) => ids.has(e.fromNode) && ids.has(e.toNode));
+    return { nodes, edges };
+  }
+
+  public async openProjectInCanvas(id: string): Promise<boolean> {
+    const win = window as any;
+    const project = (win.GANTT_PROJECTS || []).find((p: any) => p.id === id);
+    if (!project) { new Notice("请先选择一个已有规划项目"); return false; }
+    if (win.currentTertiaryProjId === id) win.saveCurrentProjectCanvasSnapshot?.();
+    const key = project.pavilion || "study";
+    const rel = `${this.pavilionDir(key)}/02_Projects/${safeFileStem(project.title)}--${safeFileStem(id)}.canvas`;
+    const path = this.resolvePath(rel);
+    if (!(await this.app.vault.adapter.exists(path))) await this.writeJson(rel, this.buildObsidianCanvasJson(project, key, win.PROJECT_CANVAS_STORE?.[id]));
+    const file = this.app.vault.getAbstractFileByPath(path);
+    if (file instanceof TFile) { await this.app.workspace.getLeaf(true).openFile(file); return true; }
+    new Notice("画布已保存，请在仓库文件列表中打开；请确认已启用 Canvas 核心插件。");
+    return false;
+  }
+  public async dispose(): Promise<void> {
+    this.disposed = true;
+    if (this.syncTimer) { clearTimeout(this.syncTimer); this.syncTimer = null; }
+    await this.queue;
   }
 }

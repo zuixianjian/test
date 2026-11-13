@@ -1,16 +1,17 @@
-import { ItemView, Platform, WorkspaceLeaf, normalizePath, requestUrl } from "obsidian";
+import { ItemView, Notice, WorkspaceLeaf, normalizePath } from "obsidian";
 import type YouthGrowthIslandPlugin from "../main";
 import { ISLAND_UI_HTML } from "../ui/template";
 import { bootPrototypeRuntime } from "../runtime/prototypeScript";
 import { globalIslandEventBus } from "../core/EventBus";
 
 export const VIEW_TYPE_YOUTH_ISLAND = "youth-holistic-growth-island-view";
-const REMOTE_RAW_BASE = "https://fastly.jsdelivr.net/gh/zuixianjian/test@master";
 
 export class YouthIslandView extends ItemView {
   private plugin: YouthGrowthIslandPlugin;
   private hooksInstalled = false;
   private stateChangeHandler: (() => void) | null = null;
+  private disposeRuntime: (() => void) | null = null;
+  private bodyClasses = new Map<string, boolean>();
 
   constructor(leaf: WorkspaceLeaf, plugin: YouthGrowthIslandPlugin) {
     super(leaf);
@@ -37,40 +38,22 @@ export class YouthIslandView extends ItemView {
       const plazaPath = normalizePath(`${scenesDir}/scene-plaza.png`);
       const deskPath = normalizePath(`${scenesDir}/scene-desk.png`);
 
-      const ensureRemoteAsset = async (localPath: string, relUrl: string, fallbackGradient: string, cssVar: string) => {
+      const ensureLocalAsset = async (localPath: string, fallbackGradient: string, cssVar: string) => {
         if (await this.app.vault.adapter.exists(localPath)) {
           const resourceUrl = this.app.vault.adapter.getResourcePath(localPath);
-          document.documentElement.style.setProperty(cssVar, `url("${resourceUrl}")`);
+          this.contentEl.style.setProperty(cssVar, `url("${resourceUrl}")`);
           return;
         }
-        // Use remote raw URL with gradient fallback immediately, and cache locally in background
-        const remoteUrl = `${REMOTE_RAW_BASE}/${relUrl}`;
-        document.documentElement.style.setProperty(cssVar, `url("${remoteUrl}"), ${fallbackGradient}`);
-        try {
-          if (!(await this.app.vault.adapter.exists(scenesDir))) {
-            await this.app.vault.adapter.mkdir(normalizePath(`${pluginDir}/assets`));
-            await this.app.vault.adapter.mkdir(scenesDir);
-          }
-          const resp = await requestUrl({ url: remoteUrl, method: "GET" });
-          if (resp.status === 200 && resp.arrayBuffer) {
-            await this.app.vault.adapter.writeBinary(localPath, resp.arrayBuffer);
-            const cachedUrl = this.app.vault.adapter.getResourcePath(localPath);
-            document.documentElement.style.setProperty(cssVar, `url("${cachedUrl}")`);
-          }
-        } catch {
-          // Keep remote URL / gradient fallback if offline
-        }
+        this.contentEl.style.setProperty(cssVar, fallbackGradient);
       };
 
-      await ensureRemoteAsset(
+      await ensureLocalAsset(
         plazaPath,
-        "assets/scenes/scene-plaza.png",
         "linear-gradient(135deg, #1b382b 0%, #2f5436 45%, #182c1f 100%)",
         "--island-scene-plaza"
       );
-      await ensureRemoteAsset(
+      await ensureLocalAsset(
         deskPath,
-        "assets/scenes/scene-desk.png",
         "radial-gradient(ellipse at 50% 50%, #453221 0%, #251b12 100%)",
         "--island-scene-desk"
       );
@@ -82,20 +65,34 @@ export class YouthIslandView extends ItemView {
   public async onOpen(): Promise<void> {
     const { contentEl } = this;
     contentEl.empty();
+    const existing = this.app.workspace.getLeavesOfType(VIEW_TYPE_YOUTH_ISLAND)
+      .find(leaf => leaf !== this.leaf && leaf.view.containerEl.querySelector(".youth-island-plugin-root"));
+    if (existing) {
+      contentEl.createEl("p", { text: "终身岛民工作台已在另一个标签页打开。" });
+      const button = contentEl.createEl("button", { text: "切换到已打开的工作台" });
+      button.onclick = () => { void this.app.workspace.revealLeaf(existing); };
+      return;
+    }
 
     // Immediately set fallback scene gradients and load high-res background scenes asynchronously in background (never block UI startup)
-    document.documentElement.style.setProperty(
+    this.contentEl.style.setProperty(
       "--island-scene-plaza",
       "linear-gradient(135deg, #1b382b 0%, #2f5436 45%, #182c1f 100%)"
     );
-    document.documentElement.style.setProperty(
+    this.contentEl.style.setProperty(
       "--island-scene-desk",
       "radial-gradient(ellipse at 50% 50%, #453221 0%, #251b12 100%)"
     );
     void this.configureSceneVariables();
 
     // Enable 100% full-screen tablet mode inside Obsidian (eliminates prototype switcher bar, iPad frame, and Obsidian chrome)
-    document.body.classList.add("is-fullscreen-mode", "youth-island-tablet-fullscreen");
+    for (const cls of ["is-fullscreen-mode", "youth-island-tablet-fullscreen", "is-immersive", "has-exec-fullscreen", "imm-hide-left", "imm-hide-top", "imm-hide-bottom", "imm-hide-nodes"]) {
+      this.bodyClasses.set(cls, document.body.classList.contains(cls));
+    }
+    document.body.classList.add("is-fullscreen-mode");
+    const updateActiveState = () => document.body.classList.toggle("youth-island-tablet-fullscreen", this.app.workspace.activeLeaf?.view === this);
+    this.registerEvent(this.app.workspace.on("active-leaf-change", updateActiveState));
+    updateActiveState();
 
     // Mount 1:1 UI DOM
     const rootWrapper = contentEl.createDiv({
@@ -103,34 +100,20 @@ export class YouthIslandView extends ItemView {
     });
     rootWrapper.innerHTML = ISLAND_UI_HTML;
 
-    // 彻底拦截 Obsidian 移动端横向滑动手势误打开侧边栏 (由顶栏左右侧边栏按钮精准接管)
-    const appAny = this.app as any;
-    if (appAny?.workspace) {
-      const workspaceProto = Object.getPrototypeOf(appAny.workspace);
-      if (workspaceProto && !workspaceProto.__youthIslandSwipePatched) {
-        const originalTrigger = workspaceProto.trigger;
-        workspaceProto.trigger = function (eventName: string, ...args: any[]) {
-          if (eventName === "swipe") {
-            const activeLeaf = appAny.workspace?.activeLeaf;
-            const isOurView =
-              activeLeaf?.view?.getViewType?.() === VIEW_TYPE_YOUTH_ISLAND ||
-              document.activeElement?.closest(".youth-island-plugin-root") ||
-              document.querySelector(".youth-island-plugin-root");
-            if (isOurView) {
-              return; // 屏蔽原生滑出侧边栏，保障脑图与规划沙盘自由平移
-            }
-          }
-          return originalTrigger.apply(this, [eventName, ...args]);
-        };
-        workspaceProto.__youthIslandSwipePatched = true;
-      }
-    }
-
     // Boot interactive runtime
-    bootPrototypeRuntime();
+    this.disposeRuntime = bootPrototypeRuntime();
 
     // Hydrate from Obsidian Vault files (00_Island_Core ~ 09_Bounties_悬赏公告)
-    await this.plugin.vaultStorage.hydrateRuntimeFromVault();
+    try {
+      await this.plugin.vaultStorage.hydrateRuntimeFromVault();
+    } catch (error) {
+      this.disposeRuntime?.(); this.disposeRuntime = null;
+      for (const [cls, present] of this.bodyClasses) document.body.classList.toggle(cls, present);
+      rootWrapper.empty();
+      rootWrapper.createEl("p", { text: String(error instanceof Error ? error.message : error) });
+      new Notice("成长档案读取失败，自动保存已暂停，原始文件未被覆盖。");
+      return;
+    }
 
     // Refresh UI after Vault hydration
     const win = window as any;
@@ -230,6 +213,12 @@ export class YouthIslandView extends ItemView {
 
   private installRuntimePersistenceHooks(rootEl?: HTMLElement): void {
     const win = window as any;
+    if (!this.hooksInstalled) this.registerDomEvent(window, "youth-island:domain-event" as any, ((event: CustomEvent) => {
+      const names: Record<string, any> = { "checkin.completed": "checkin:success", "project.created": "project:created", "inquiry.converted": "project:created", "pact.violation": "pact:violation", "achievement.created": "medal:unlocked", "achievement.accidental": "medal:unlocked", "bounty.redeemed": "bounty:updated", "treasury.recorded": "treasury:recorded", "journal.sealed": "journal:saved" };
+      globalIslandEventBus.emit("domain:committed", event.detail);
+      const name = names[event.detail?.kind];
+      if (name) globalIslandEventBus.emit(name, event.detail);
+    }) as any);
 
     if (rootEl) {
       const onDomFormChange = () => {
@@ -243,6 +232,10 @@ export class YouthIslandView extends ItemView {
       };
       rootEl.addEventListener("change", onDomFormChange, { passive: true });
       rootEl.addEventListener("input", onDomFormChange, { passive: true });
+      // Most prototype functions call each other through lexical bindings, so
+      // wrapping only window functions misses mutations from internal callbacks.
+      rootEl.addEventListener("click", () => this.plugin.vaultStorage.scheduleSync(400), { passive: true });
+      rootEl.addEventListener("pointerup", () => this.plugin.vaultStorage.scheduleSync(400), { passive: true });
     }
 
     if (!this.stateChangeHandler) {
@@ -260,7 +253,7 @@ export class YouthIslandView extends ItemView {
       if (typeof orig !== "function" || orig.__vaultHooked) return;
       const wrapped = (...args: any[]) => {
         const res = orig.apply(win, args);
-        globalIslandEventBus.emit(eventName, { fnName, args, timestamp: Date.now() });
+        // Business success is emitted by the validated domain transaction above.
         this.plugin.vaultStorage.scheduleSync(250);
         return res;
       };
@@ -313,11 +306,19 @@ export class YouthIslandView extends ItemView {
   }
 
   public async onClose(): Promise<void> {
-    document.body.classList.remove("youth-island-tablet-fullscreen");
     if (this.stateChangeHandler) {
       window.removeEventListener("youth-island:state-changed", this.stateChangeHandler);
       this.stateChangeHandler = null;
     }
-    await this.plugin.vaultStorage.syncRuntimeToVault();
+    try {
+      (window as any).saveExecutionDraft?.();
+      await this.plugin.vaultStorage.syncRuntimeToVault();
+    }
+    finally {
+      this.disposeRuntime?.(); this.disposeRuntime = null;
+      this.hooksInstalled = false;
+      for (const [cls, present] of this.bodyClasses) document.body.classList.toggle(cls, present);
+      this.contentEl.empty();
+    }
   }
 }

@@ -1,0 +1,38 @@
+/* Shared visual rules for the standalone design and the Obsidian projection. */
+.domain-planning-body { display:flex; flex-direction:column; gap:9px; max-height:440px; overflow:auto; }
+.domain-planning-body label, .island-real-execution-entry label { display:flex; flex-direction:column; gap:5px; font-size:12px; }
+.domain-planning-body input, .domain-planning-body select, .domain-planning-body textarea,
+.island-real-execution-entry input:not([type=checkbox]), .island-real-execution-entry textarea { width:100%; min-width:0; border:1px solid #b8c9d4; padding:7px; border-radius:7px; font:inherit; background:#fff; color:#334155; }
+.domain-planning-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.domain-planning-row label { flex:1; min-width:100px; }
+.domain-modal { position:fixed; inset:0; z-index:24000; background:#0009; display:flex; align-items:center; justify-content:center; padding:16px; }
+.domain-modal > .note-card-box { background:#fffcf5; color:#334155; width:680px; max-width:100%; max-height:92vh; overflow:auto; padding:22px; border-radius:18px; display:flex; flex-direction:column; gap:12px; }
+.domain-modal input:not([type=checkbox]), .domain-modal textarea, .domain-modal select { border:1px solid #b8c9d4; border-radius:7px; padding:7px; max-width:100%; background:#fff; color:#334155; }
+.domain-pact-sheet { width:760px; max-width:95%; max-height:90vh; overflow:auto; color:#334155; }
+.domain-list-row { display:flex; align-items:center; gap:8px; margin:8px 0; flex-wrap:wrap; }
+.domain-list-row input { flex:1; min-width:120px; }
+.domain-check-row { flex-direction:row!important; align-items:center; margin:8px 0; }
+#domain-exec-errors { color:#b91c1c; font-size:12px; margin:8px 0; }
+.island-real-execution-form { width:min(960px,calc(100% - 24px)); margin:20px auto; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.2fr); gap:20px; color:#334155; }
+.island-real-execution-form > h3 { grid-column:1/-1; }
+.island-real-execution-entry { min-width:0; display:flex; flex-direction:column; gap:12px; }
+.island-real-execution-entry textarea { min-height:90px; }
+.gantt-project-row { display:grid; grid-template-columns:80px minmax(110px,1fr) 145px 55px 130px; height:132px; min-height:132px; gap:8px; padding:12px; border-bottom:1px solid #d4c5a9; font-size:12px; overflow:auto; }
+.gantt-table-header { display:grid; grid-template-columns:80px minmax(110px,1fr) 145px 55px 130px; gap:8px; padding:12px; }
+.gantt-table-header > div { width:auto!important; min-width:0; }
+.gantt-project-row .gantt-op-btn { max-width:100%; font-size:10px; padding:4px 6px; margin:2px; }
+.gantt-project-row > div { min-width:0; }
+.gantt-project-row > div:last-child { display:flex; flex-wrap:wrap; align-content:flex-start; align-items:flex-start; gap:3px; }
+.gantt-project-row .gantt-op-btn { min-height:0!important; padding:3px 5px; margin:0; }
+.gantt-timeline-row { height:132px; min-height:132px; position:relative; }
+.product-contract-banner { font-size:12px; color:#fef3c7; padding:8px 14px; height:auto; }
+@media(max-width:900px) {
+  .island-real-execution-form { grid-template-columns:minmax(0,1fr); }
+  .domain-modal { padding:6px; }
+  .global-header { gap:8px; }
+  .global-header .system-title-group, .global-header #btn-toggle-frame { display:none!important; }
+  .global-header .top-mode-pills { min-width:0; overflow-x:auto; }
+  .global-header .mode-pill-btn { padding:5px 8px; }
+  .global-header .header-right-tools { flex-shrink:0; }
+  .product-contract-banner { font-size:11px; min-height:32px; line-height:1.4; }
+}

@@ -1,0 +1,6126 @@
+[
+  {
+    "event": "click",
+    "code": "switchMainSection('island')",
+    "names": [
+      "switchMainSection"
+    ],
+    "templateLine": 14,
+    "functions": [
+      {
+        "name": "switchMainSection",
+        "line": 1466,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "enterSecondaryWorkspace('study', 'gantt')",
+    "names": [
+      "enterSecondaryWorkspace"
+    ],
+    "templateLine": 17,
+    "functions": [
+      {
+        "name": "enterSecondaryWorkspace",
+        "line": 3273,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "switchMainSection('tertiary')",
+    "names": [
+      "switchMainSection"
+    ],
+    "templateLine": 20,
+    "functions": [
+      {
+        "name": "switchMainSection",
+        "line": 1466,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "switchMainSection('checkin')",
+    "names": [
+      "switchMainSection"
+    ],
+    "templateLine": 23,
+    "functions": [
+      {
+        "name": "switchMainSection",
+        "line": 1466,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleTabletFrameMode()",
+    "names": [
+      "toggleTabletFrameMode"
+    ],
+    "templateLine": 29,
+    "functions": [
+      {
+        "name": "toggleTabletFrameMode",
+        "line": 1515,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "openBountyModal()",
+    "names": [
+      "openBountyModal"
+    ],
+    "templateLine": 32,
+    "functions": [
+      {
+        "name": "openBountyModal",
+        "line": 3759,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleImmersiveMode()",
+    "names": [
+      "toggleImmersiveMode"
+    ],
+    "templateLine": 50,
+    "functions": [
+      {
+        "name": "toggleImmersiveMode",
+        "line": 1430,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleObsidianSplit('left')",
+    "names": [
+      "toggleObsidianSplit"
+    ],
+    "templateLine": 61,
+    "functions": [
+      {
+        "name": "toggleObsidianSplit",
+        "line": 1438,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "openOriginalSettingsPanel('char')",
+    "names": [
+      "openOriginalSettingsPanel"
+    ],
+    "templateLine": 67,
+    "functions": [
+      {
+        "name": "openOriginalSettingsPanel",
+        "line": 1114,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "openFamilyPactModal(true)",
+    "names": [
+      "openFamilyPactModal"
+    ],
+    "templateLine": 80,
+    "functions": [
+      {
+        "name": "openFamilyPactModal",
+        "line": 12863,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "switchExecSubView('day')",
+    "names": [
+      "switchExecSubView"
+    ],
+    "templateLine": 93,
+    "functions": [
+      {
+        "name": "switchExecSubView",
+        "line": 7043,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "switchExecSubView('week')",
+    "names": [
+      "switchExecSubView"
+    ],
+    "templateLine": 97,
+    "functions": [
+      {
+        "name": "switchExecSubView",
+        "line": 7043,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "switchExecSubView('month')",
+    "names": [
+      "switchExecSubView"
+    ],
+    "templateLine": 101,
+    "functions": [
+      {
+        "name": "switchExecSubView",
+        "line": 7043,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "cycleHomeLayout()",
+    "names": [
+      "cycleHomeLayout"
+    ],
+    "templateLine": 109,
+    "functions": [
+      {
+        "name": "cycleHomeLayout",
+        "line": 292,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "openAddModuleModal()",
+    "names": [
+      "openAddModuleModal"
+    ],
+    "templateLine": 113,
+    "functions": [
+      {
+        "name": "openAddModuleModal",
+        "line": 421,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "fitHomeCanvasView()",
+    "names": [
+      "fitHomeCanvasView"
+    ],
+    "templateLine": 118,
+    "functions": [
+      {
+        "name": "fitHomeCanvasView",
+        "line": 343,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "focusHomeActiveNode()",
+    "names": [
+      "focusHomeActiveNode"
+    ],
+    "templateLine": 122,
+    "functions": [
+      {
+        "name": "focusHomeActiveNode",
+        "line": 352,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "centerHomeActiveNode()",
+    "names": [
+      "centerHomeActiveNode"
+    ],
+    "templateLine": 126,
+    "functions": [
+      {
+        "name": "centerHomeActiveNode",
+        "line": 370,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "zoomIslandCanvas(1.18)",
+    "names": [
+      "zoomIslandCanvas"
+    ],
+    "templateLine": 131,
+    "functions": [
+      {
+        "name": "zoomIslandCanvas",
+        "line": 78,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "zoomIslandCanvas(0.85)",
+    "names": [
+      "zoomIslandCanvas"
+    ],
+    "templateLine": 135,
+    "functions": [
+      {
+        "name": "zoomIslandCanvas",
+        "line": 78,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "resetIslandCanvasZoom()",
+    "names": [
+      "resetIslandCanvasZoom"
+    ],
+    "templateLine": 139,
+    "functions": [
+      {
+        "name": "resetIslandCanvasZoom",
+        "line": 93,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "openBountyModal()",
+    "names": [
+      "openBountyModal"
+    ],
+    "templateLine": 148,
+    "functions": [
+      {
+        "name": "openBountyModal",
+        "line": 3759,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleObsidianSplit('right')",
+    "names": [
+      "toggleObsidianSplit"
+    ],
+    "templateLine": 169,
+    "functions": [
+      {
+        "name": "toggleObsidianSplit",
+        "line": 1438,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "switchMainSection('ws'); openAddProjectModal();",
+    "names": [
+      "switchMainSection",
+      "openAddProjectModal"
+    ],
+    "templateLine": 189,
+    "functions": [
+      {
+        "name": "switchMainSection",
+        "line": 1466,
+        "kind": "declaration"
+      },
+      {
+        "name": "openAddProjectModal",
+        "line": 12709,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "prevDayCard()",
+    "names": [
+      "prevDayCard"
+    ],
+    "templateLine": 199,
+    "functions": [
+      {
+        "name": "prevDayCard",
+        "line": 7115,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "nextDayCard()",
+    "names": [
+      "nextDayCard"
+    ],
+    "templateLine": 202,
+    "functions": [
+      {
+        "name": "nextDayCard",
+        "line": 7109,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "switchHomeGlobalView('plan')",
+    "names": [
+      "switchHomeGlobalView"
+    ],
+    "templateLine": 213,
+    "functions": [
+      {
+        "name": "switchHomeGlobalView",
+        "line": 1029,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "goToDayCard(0)",
+    "names": [
+      "goToDayCard"
+    ],
+    "templateLine": 220,
+    "functions": [
+      {
+        "name": "goToDayCard",
+        "line": 7121,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "goToDayCard(1)",
+    "names": [
+      "goToDayCard"
+    ],
+    "templateLine": 224,
+    "functions": [
+      {
+        "name": "goToDayCard",
+        "line": 7121,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "goToDayCard(2)",
+    "names": [
+      "goToDayCard"
+    ],
+    "templateLine": 228,
+    "functions": [
+      {
+        "name": "goToDayCard",
+        "line": 7121,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "goToDayCard(3)",
+    "names": [
+      "goToDayCard"
+    ],
+    "templateLine": 232,
+    "functions": [
+      {
+        "name": "goToDayCard",
+        "line": 7121,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "goToDayCard(4)",
+    "names": [
+      "goToDayCard"
+    ],
+    "templateLine": 236,
+    "functions": [
+      {
+        "name": "goToDayCard",
+        "line": 7121,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "changeWeek(-1)",
+    "names": [
+      "changeWeek"
+    ],
+    "templateLine": 249,
+    "functions": [
+      {
+        "name": "changeWeek",
+        "line": 7503,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "changeWeek(1)",
+    "names": [
+      "changeWeek"
+    ],
+    "templateLine": 251,
+    "functions": [
+      {
+        "name": "changeWeek",
+        "line": 7503,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "resetToCurrentWeek()",
+    "names": [
+      "resetToCurrentWeek"
+    ],
+    "templateLine": 252,
+    "functions": [
+      {
+        "name": "resetToCurrentWeek",
+        "line": 7510,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "filterWeekTasks('all')",
+    "names": [
+      "filterWeekTasks"
+    ],
+    "templateLine": 257,
+    "functions": [
+      {
+        "name": "filterWeekTasks",
+        "line": 7517,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "filterWeekTasks('pending')",
+    "names": [
+      "filterWeekTasks"
+    ],
+    "templateLine": 260,
+    "functions": [
+      {
+        "name": "filterWeekTasks",
+        "line": 7517,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "filterWeekTasks('done')",
+    "names": [
+      "filterWeekTasks"
+    ],
+    "templateLine": 263,
+    "functions": [
+      {
+        "name": "filterWeekTasks",
+        "line": 7517,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "filterWeekTasks('overdue')",
+    "names": [
+      "filterWeekTasks"
+    ],
+    "templateLine": 266,
+    "functions": [
+      {
+        "name": "filterWeekTasks",
+        "line": 7517,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "changeMonth(-1)",
+    "names": [
+      "changeMonth"
+    ],
+    "templateLine": 284,
+    "functions": [
+      {
+        "name": "changeMonth",
+        "line": 7712,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "changeMonth(1)",
+    "names": [
+      "changeMonth"
+    ],
+    "templateLine": 286,
+    "functions": [
+      {
+        "name": "changeMonth",
+        "line": 7712,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "resetToCurrentMonth()",
+    "names": [
+      "resetToCurrentMonth"
+    ],
+    "templateLine": 287,
+    "functions": [
+      {
+        "name": "resetToCurrentMonth",
+        "line": 7719,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeDayInspectorOnBackdrop(event)",
+    "names": [
+      "closeDayInspectorOnBackdrop"
+    ],
+    "templateLine": 316,
+    "functions": [
+      {
+        "name": "closeDayInspectorOnBackdrop",
+        "line": 7860,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeDayInspector()",
+    "names": [
+      "closeDayInspector"
+    ],
+    "templateLine": 326,
+    "functions": [
+      {
+        "name": "closeDayInspector",
+        "line": 7855,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "openEvidenceGalleryForDay()",
+    "names": [
+      "openEvidenceGalleryForDay"
+    ],
+    "templateLine": 366,
+    "functions": [
+      {
+        "name": "openEvidenceGalleryForDay",
+        "line": 7866,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeDayInspector()",
+    "names": [
+      "closeDayInspector"
+    ],
+    "templateLine": 367,
+    "functions": [
+      {
+        "name": "closeDayInspector",
+        "line": 7855,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeExecCardPopupView()",
+    "names": [
+      "closeExecCardPopupView"
+    ],
+    "templateLine": 388,
+    "functions": [
+      {
+        "name": "closeExecCardPopupView",
+        "line": 12793,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleExecPopupProjectNodesView()",
+    "names": [
+      "toggleExecPopupProjectNodesView"
+    ],
+    "templateLine": 409,
+    "functions": [
+      {
+        "name": "toggleExecPopupProjectNodesView",
+        "line": 12796,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleExecPopupProjectNodesView()",
+    "names": [
+      "toggleExecPopupProjectNodesView"
+    ],
+    "templateLine": 421,
+    "functions": [
+      {
+        "name": "toggleExecPopupProjectNodesView",
+        "line": 12796,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "viewNodeImage()",
+    "names": [
+      "viewNodeImage"
+    ],
+    "templateLine": 444,
+    "functions": [
+      {
+        "name": "viewNodeImage",
+        "line": 5884,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "uploadTaskEvidence()",
+    "names": [
+      "uploadTaskEvidence"
+    ],
+    "templateLine": 449,
+    "functions": [
+      {
+        "name": "uploadTaskEvidence",
+        "line": 7294,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "viewNodeImage()",
+    "names": [
+      "viewNodeImage"
+    ],
+    "templateLine": 450,
+    "functions": [
+      {
+        "name": "viewNodeImage",
+        "line": 5884,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleExecPopupTimer()",
+    "names": [
+      "toggleExecPopupTimer"
+    ],
+    "templateLine": 467,
+    "functions": [
+      {
+        "name": "toggleExecPopupTimer",
+        "line": 2900,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "resetExecPopupTimer()",
+    "names": [
+      "resetExecPopupTimer"
+    ],
+    "templateLine": 468,
+    "functions": [
+      {
+        "name": "resetExecPopupTimer",
+        "line": 2928,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "showIslandToast('📝 心得便签已自动保存')",
+    "names": [
+      "showIslandToast"
+    ],
+    "templateLine": 481,
+    "functions": [
+      {
+        "name": "showIslandToast",
+        "line": 1446,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "handleExecPopupMainCheckin()",
+    "names": [
+      "handleExecPopupMainCheckin"
+    ],
+    "templateLine": 492,
+    "functions": [
+      {
+        "name": "handleExecPopupMainCheckin",
+        "line": 3165,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleExecPopupProjectNodesView()",
+    "names": [
+      "toggleExecPopupProjectNodesView"
+    ],
+    "templateLine": 509,
+    "functions": [
+      {
+        "name": "toggleExecPopupProjectNodesView",
+        "line": 12796,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "handlePavilionClick('study')",
+    "names": [
+      "handlePavilionClick"
+    ],
+    "templateLine": 545,
+    "functions": [
+      {
+        "name": "handlePavilionClick",
+        "line": 578,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "handlePavilionClick('dojo')",
+    "names": [
+      "handlePavilionClick"
+    ],
+    "templateLine": 554,
+    "functions": [
+      {
+        "name": "handlePavilionClick",
+        "line": 578,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "handlePavilionClick('cultivation')",
+    "names": [
+      "handlePavilionClick"
+    ],
+    "templateLine": 563,
+    "functions": [
+      {
+        "name": "handlePavilionClick",
+        "line": 578,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "handlePavilionClick('cognition')",
+    "names": [
+      "handlePavilionClick"
+    ],
+    "templateLine": 572,
+    "functions": [
+      {
+        "name": "handlePavilionClick",
+        "line": 578,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleIslandMinimapDock()",
+    "names": [
+      "toggleIslandMinimapDock"
+    ],
+    "templateLine": 587,
+    "functions": [
+      {
+        "name": "toggleIslandMinimapDock",
+        "line": 269,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation(); toggleIslandMinimapDock();",
+    "names": [
+      "toggleIslandMinimapDock"
+    ],
+    "templateLine": 592,
+    "functions": [
+      {
+        "name": "toggleIslandMinimapDock",
+        "line": 269,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleIslandMinimapDock()",
+    "names": [
+      "toggleIslandMinimapDock"
+    ],
+    "templateLine": 604,
+    "functions": [
+      {
+        "name": "toggleIslandMinimapDock",
+        "line": 269,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "switchHomeGlobalView('exec')",
+    "names": [
+      "switchHomeGlobalView"
+    ],
+    "templateLine": 647,
+    "functions": [
+      {
+        "name": "switchHomeGlobalView",
+        "line": 1029,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "switchHomeGlobalView('plan')",
+    "names": [
+      "switchHomeGlobalView"
+    ],
+    "templateLine": 651,
+    "functions": [
+      {
+        "name": "switchHomeGlobalView",
+        "line": 1029,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "enterSecondaryWorkspace('treasury', 'specialized')",
+    "names": [
+      "enterSecondaryWorkspace"
+    ],
+    "templateLine": 660,
+    "functions": [
+      {
+        "name": "enterSecondaryWorkspace",
+        "line": 3273,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "enterSecondaryWorkspace('tree', 'specialized')",
+    "names": [
+      "enterSecondaryWorkspace"
+    ],
+    "templateLine": 664,
+    "functions": [
+      {
+        "name": "enterSecondaryWorkspace",
+        "line": 3273,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "enterSecondaryWorkspace('note', 'specialized')",
+    "names": [
+      "enterSecondaryWorkspace"
+    ],
+    "templateLine": 668,
+    "functions": [
+      {
+        "name": "enterSecondaryWorkspace",
+        "line": 3273,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "enterSecondaryWorkspace('achieve', 'specialized')",
+    "names": [
+      "enterSecondaryWorkspace"
+    ],
+    "templateLine": 672,
+    "functions": [
+      {
+        "name": "enterSecondaryWorkspace",
+        "line": 3273,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "openInquiryModal()",
+    "names": [
+      "openInquiryModal"
+    ],
+    "templateLine": 676,
+    "functions": [
+      {
+        "name": "openInquiryModal",
+        "line": 11844,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "launchQuickFocusTimer()",
+    "names": [
+      "launchQuickFocusTimer"
+    ],
+    "templateLine": 685,
+    "functions": [
+      {
+        "name": "launchQuickFocusTimer",
+        "line": 1424,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "openBountyModal()",
+    "names": [
+      "openBountyModal"
+    ],
+    "templateLine": 689,
+    "functions": [
+      {
+        "name": "openBountyModal",
+        "line": 3759,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleIslandControlsGroup()",
+    "names": [
+      "toggleIslandControlsGroup"
+    ],
+    "templateLine": 698,
+    "functions": [
+      {
+        "name": "toggleIslandControlsGroup",
+        "line": 1093,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "openOriginalSettingsPanel('bg')",
+    "names": [
+      "openOriginalSettingsPanel"
+    ],
+    "templateLine": 710,
+    "functions": [
+      {
+        "name": "openOriginalSettingsPanel",
+        "line": 1114,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "openOriginalSettingsPanel('char')",
+    "names": [
+      "openOriginalSettingsPanel"
+    ],
+    "templateLine": 721,
+    "functions": [
+      {
+        "name": "openOriginalSettingsPanel",
+        "line": 1114,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "openOriginalSettingsPanel('env')",
+    "names": [
+      "openOriginalSettingsPanel"
+    ],
+    "templateLine": 733,
+    "functions": [
+      {
+        "name": "openOriginalSettingsPanel",
+        "line": 1114,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "openOriginalSettingsPanel('immersive')",
+    "names": [
+      "openOriginalSettingsPanel"
+    ],
+    "templateLine": 738,
+    "functions": [
+      {
+        "name": "openOriginalSettingsPanel",
+        "line": 1114,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeOriginalSettingsPanel()",
+    "names": [
+      "closeOriginalSettingsPanel"
+    ],
+    "templateLine": 758,
+    "functions": [
+      {
+        "name": "closeOriginalSettingsPanel",
+        "line": 1142,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "selectBgTarget('all')",
+    "names": [
+      "selectBgTarget"
+    ],
+    "templateLine": 766,
+    "functions": [
+      {
+        "name": "selectBgTarget",
+        "line": 1322,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "selectBgTarget('study')",
+    "names": [
+      "selectBgTarget"
+    ],
+    "templateLine": 769,
+    "functions": [
+      {
+        "name": "selectBgTarget",
+        "line": 1322,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "selectBgTarget('dojo')",
+    "names": [
+      "selectBgTarget"
+    ],
+    "templateLine": 772,
+    "functions": [
+      {
+        "name": "selectBgTarget",
+        "line": 1322,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "selectBgTarget('cognition')",
+    "names": [
+      "selectBgTarget"
+    ],
+    "templateLine": 775,
+    "functions": [
+      {
+        "name": "selectBgTarget",
+        "line": 1322,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "selectBgTarget('cultivation')",
+    "names": [
+      "selectBgTarget"
+    ],
+    "templateLine": 778,
+    "functions": [
+      {
+        "name": "selectBgTarget",
+        "line": 1322,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "selectBgTarget('treasury')",
+    "names": [
+      "selectBgTarget"
+    ],
+    "templateLine": 781,
+    "functions": [
+      {
+        "name": "selectBgTarget",
+        "line": 1322,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "selectBgTarget('tree')",
+    "names": [
+      "selectBgTarget"
+    ],
+    "templateLine": 784,
+    "functions": [
+      {
+        "name": "selectBgTarget",
+        "line": 1322,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "selectBgTarget('note')",
+    "names": [
+      "selectBgTarget"
+    ],
+    "templateLine": 787,
+    "functions": [
+      {
+        "name": "selectBgTarget",
+        "line": 1322,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "selectBgTarget('achieve')",
+    "names": [
+      "selectBgTarget"
+    ],
+    "templateLine": 790,
+    "functions": [
+      {
+        "name": "selectBgTarget",
+        "line": 1322,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "change",
+    "code": "toggleGlobalBg(this.checked)",
+    "names": [
+      "toggleGlobalBg"
+    ],
+    "templateLine": 801,
+    "functions": [
+      {
+        "name": "toggleGlobalBg",
+        "line": 1339,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "applyWallpaper('plaza')",
+    "names": [
+      "applyWallpaper"
+    ],
+    "templateLine": 809,
+    "functions": [
+      {
+        "name": "applyWallpaper",
+        "line": 1327,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "applyWallpaper('desk')",
+    "names": [
+      "applyWallpaper"
+    ],
+    "templateLine": 810,
+    "functions": [
+      {
+        "name": "applyWallpaper",
+        "line": 1327,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "applyWallpaper('board')",
+    "names": [
+      "applyWallpaper"
+    ],
+    "templateLine": 811,
+    "functions": [
+      {
+        "name": "applyWallpaper",
+        "line": 1327,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "applyWallpaper('star')",
+    "names": [
+      "applyWallpaper"
+    ],
+    "templateLine": 812,
+    "functions": [
+      {
+        "name": "applyWallpaper",
+        "line": 1327,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "applyWallpaper('white')",
+    "names": [
+      "applyWallpaper"
+    ],
+    "templateLine": 819,
+    "functions": [
+      {
+        "name": "applyWallpaper",
+        "line": 1327,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "applyWallpaper('black')",
+    "names": [
+      "applyWallpaper"
+    ],
+    "templateLine": 820,
+    "functions": [
+      {
+        "name": "applyWallpaper",
+        "line": 1327,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "applyWallpaper('grid')",
+    "names": [
+      "applyWallpaper"
+    ],
+    "templateLine": 821,
+    "functions": [
+      {
+        "name": "applyWallpaper",
+        "line": 1327,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "applyWallpaper('reset')",
+    "names": [
+      "applyWallpaper"
+    ],
+    "templateLine": 822,
+    "functions": [
+      {
+        "name": "applyWallpaper",
+        "line": 1327,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeOriginalSettingsPanel()",
+    "names": [
+      "closeOriginalSettingsPanel"
+    ],
+    "templateLine": 833,
+    "functions": [
+      {
+        "name": "closeOriginalSettingsPanel",
+        "line": 1142,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "saveNickname()",
+    "names": [
+      "saveNickname"
+    ],
+    "templateLine": 840,
+    "functions": [
+      {
+        "name": "saveNickname",
+        "line": 1280,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "selectPlayerAvatar('👦')",
+    "names": [
+      "selectPlayerAvatar"
+    ],
+    "templateLine": 845,
+    "functions": [
+      {
+        "name": "selectPlayerAvatar",
+        "line": 1273,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "selectPlayerAvatar('👧')",
+    "names": [
+      "selectPlayerAvatar"
+    ],
+    "templateLine": 850,
+    "functions": [
+      {
+        "name": "selectPlayerAvatar",
+        "line": 1273,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "selectPlayerAvatar('🧑‍🎓')",
+    "names": [
+      "selectPlayerAvatar"
+    ],
+    "templateLine": 855,
+    "functions": [
+      {
+        "name": "selectPlayerAvatar",
+        "line": 1273,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "selectPlayerAvatar('🛡️')",
+    "names": [
+      "selectPlayerAvatar"
+    ],
+    "templateLine": 860,
+    "functions": [
+      {
+        "name": "selectPlayerAvatar",
+        "line": 1273,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeOriginalSettingsPanel()",
+    "names": [
+      "closeOriginalSettingsPanel"
+    ],
+    "templateLine": 868,
+    "functions": [
+      {
+        "name": "closeOriginalSettingsPanel",
+        "line": 1142,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeOriginalSettingsPanel()",
+    "names": [
+      "closeOriginalSettingsPanel"
+    ],
+    "templateLine": 875,
+    "functions": [
+      {
+        "name": "closeOriginalSettingsPanel",
+        "line": 1142,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleEnvEffect('leaves')",
+    "names": [
+      "toggleEnvEffect"
+    ],
+    "templateLine": 881,
+    "functions": [
+      {
+        "name": "toggleEnvEffect",
+        "line": 1369,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleEnvEffect('petals')",
+    "names": [
+      "toggleEnvEffect"
+    ],
+    "templateLine": 885,
+    "functions": [
+      {
+        "name": "toggleEnvEffect",
+        "line": 1369,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleEnvEffect('gold')",
+    "names": [
+      "toggleEnvEffect"
+    ],
+    "templateLine": 889,
+    "functions": [
+      {
+        "name": "toggleEnvEffect",
+        "line": 1369,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleEnvEffect('rain')",
+    "names": [
+      "toggleEnvEffect"
+    ],
+    "templateLine": 893,
+    "functions": [
+      {
+        "name": "toggleEnvEffect",
+        "line": 1369,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeOriginalSettingsPanel()",
+    "names": [
+      "closeOriginalSettingsPanel"
+    ],
+    "templateLine": 898,
+    "functions": [
+      {
+        "name": "closeOriginalSettingsPanel",
+        "line": 1142,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeOriginalSettingsPanel()",
+    "names": [
+      "closeOriginalSettingsPanel"
+    ],
+    "templateLine": 905,
+    "functions": [
+      {
+        "name": "closeOriginalSettingsPanel",
+        "line": 1142,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "change",
+    "code": "saveImmersivePref()",
+    "names": [
+      "saveImmersivePref"
+    ],
+    "templateLine": 915,
+    "functions": [
+      {
+        "name": "saveImmersivePref",
+        "line": 1389,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "change",
+    "code": "saveImmersivePref()",
+    "names": [
+      "saveImmersivePref"
+    ],
+    "templateLine": 926,
+    "functions": [
+      {
+        "name": "saveImmersivePref",
+        "line": 1389,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "change",
+    "code": "saveImmersivePref()",
+    "names": [
+      "saveImmersivePref"
+    ],
+    "templateLine": 937,
+    "functions": [
+      {
+        "name": "saveImmersivePref",
+        "line": 1389,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "change",
+    "code": "saveImmersivePref()",
+    "names": [
+      "saveImmersivePref"
+    ],
+    "templateLine": 948,
+    "functions": [
+      {
+        "name": "saveImmersivePref",
+        "line": 1389,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "change",
+    "code": "saveImmersivePref()",
+    "names": [
+      "saveImmersivePref"
+    ],
+    "templateLine": 959,
+    "functions": [
+      {
+        "name": "saveImmersivePref",
+        "line": 1389,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "enterImmersiveModeNow()",
+    "names": [
+      "enterImmersiveModeNow"
+    ],
+    "templateLine": 969,
+    "functions": [
+      {
+        "name": "enterImmersiveModeNow",
+        "line": 1416,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleObsidianTabletFullscreen()",
+    "names": [
+      "toggleObsidianTabletFullscreen"
+    ],
+    "templateLine": 973,
+    "functions": [
+      {
+        "name": "toggleObsidianTabletFullscreen",
+        "line": 2549,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeOriginalSettingsPanel()",
+    "names": [
+      "closeOriginalSettingsPanel"
+    ],
+    "templateLine": 977,
+    "functions": [
+      {
+        "name": "closeOriginalSettingsPanel",
+        "line": 1142,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleObsidianSplit('left')",
+    "names": [
+      "toggleObsidianSplit"
+    ],
+    "templateLine": 994,
+    "functions": [
+      {
+        "name": "toggleObsidianSplit",
+        "line": 1438,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "exitSecondaryWorkspace()",
+    "names": [
+      "exitSecondaryWorkspace"
+    ],
+    "templateLine": 999,
+    "functions": [
+      {
+        "name": "exitSecondaryWorkspace",
+        "line": 3297,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "openOriginalSettingsPanel('char')",
+    "names": [
+      "openOriginalSettingsPanel"
+    ],
+    "templateLine": 1005,
+    "functions": [
+      {
+        "name": "openOriginalSettingsPanel",
+        "line": 1114,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "openFamilyPactModal(true)",
+    "names": [
+      "openFamilyPactModal"
+    ],
+    "templateLine": 1018,
+    "functions": [
+      {
+        "name": "openFamilyPactModal",
+        "line": 12863,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "openAddProjectModal()",
+    "names": [
+      "openAddProjectModal"
+    ],
+    "templateLine": 1031,
+    "functions": [
+      {
+        "name": "openAddProjectModal",
+        "line": 12709,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "scrollGanttToToday()",
+    "names": [
+      "scrollGanttToToday"
+    ],
+    "templateLine": 1036,
+    "functions": [
+      {
+        "name": "scrollGanttToToday",
+        "line": 10233,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleObsidianSplit('right')",
+    "names": [
+      "toggleObsidianSplit"
+    ],
+    "templateLine": 1049,
+    "functions": [
+      {
+        "name": "toggleObsidianSplit",
+        "line": 1438,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "filterGanttCategory('all')",
+    "names": [
+      "filterGanttCategory"
+    ],
+    "templateLine": 1069,
+    "functions": [
+      {
+        "name": "filterGanttCategory",
+        "line": 10217,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "filterGanttCategory('学业攻坚')",
+    "names": [
+      "filterGanttCategory"
+    ],
+    "templateLine": 1070,
+    "functions": [
+      {
+        "name": "filterGanttCategory",
+        "line": 10217,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "filterGanttCategory('修身立宪')",
+    "names": [
+      "filterGanttCategory"
+    ],
+    "templateLine": 1071,
+    "functions": [
+      {
+        "name": "filterGanttCategory",
+        "line": 10217,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "filterGanttCategory('兴趣特长')",
+    "names": [
+      "filterGanttCategory"
+    ],
+    "templateLine": 1072,
+    "functions": [
+      {
+        "name": "filterGanttCategory",
+        "line": 10217,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "filterGanttCategory('认知思辨')",
+    "names": [
+      "filterGanttCategory"
+    ],
+    "templateLine": 1073,
+    "functions": [
+      {
+        "name": "filterGanttCategory",
+        "line": 10217,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "filterGanttCategory('实践探索')",
+    "names": [
+      "filterGanttCategory"
+    ],
+    "templateLine": 1074,
+    "functions": [
+      {
+        "name": "filterGanttCategory",
+        "line": 10217,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "filterGanttStatus('all')",
+    "names": [
+      "filterGanttStatus"
+    ],
+    "templateLine": 1080,
+    "functions": [
+      {
+        "name": "filterGanttStatus",
+        "line": 10225,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "filterGanttStatus('待规划')",
+    "names": [
+      "filterGanttStatus"
+    ],
+    "templateLine": 1081,
+    "functions": [
+      {
+        "name": "filterGanttStatus",
+        "line": 10225,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "filterGanttStatus('待执行')",
+    "names": [
+      "filterGanttStatus"
+    ],
+    "templateLine": 1082,
+    "functions": [
+      {
+        "name": "filterGanttStatus",
+        "line": 10225,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "filterGanttStatus('进行中')",
+    "names": [
+      "filterGanttStatus"
+    ],
+    "templateLine": 1083,
+    "functions": [
+      {
+        "name": "filterGanttStatus",
+        "line": 10225,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "filterGanttStatus('已完成')",
+    "names": [
+      "filterGanttStatus"
+    ],
+    "templateLine": 1084,
+    "functions": [
+      {
+        "name": "filterGanttStatus",
+        "line": 10225,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "filterGanttStatus('已归档')",
+    "names": [
+      "filterGanttStatus"
+    ],
+    "templateLine": 1085,
+    "functions": [
+      {
+        "name": "filterGanttStatus",
+        "line": 10225,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "openInquiryModal()",
+    "names": [
+      "openInquiryModal"
+    ],
+    "templateLine": 1090,
+    "functions": [
+      {
+        "name": "openInquiryModal",
+        "line": 11844,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "scrollGanttToToday()",
+    "names": [
+      "scrollGanttToToday"
+    ],
+    "templateLine": 1093,
+    "functions": [
+      {
+        "name": "scrollGanttToToday",
+        "line": 10233,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "handleAddProjectBackdropClick(event)",
+    "names": [
+      "handleAddProjectBackdropClick"
+    ],
+    "templateLine": 1149,
+    "functions": [
+      {
+        "name": "handleAddProjectBackdropClick",
+        "line": 10566,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeAddProjectModal()",
+    "names": [
+      "closeAddProjectModal"
+    ],
+    "templateLine": 1159,
+    "functions": [
+      {
+        "name": "closeAddProjectModal",
+        "line": 10557,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "selectProjCategory(this, '学业攻坚')",
+    "names": [
+      "selectProjCategory"
+    ],
+    "templateLine": 1171,
+    "functions": [
+      {
+        "name": "selectProjCategory",
+        "line": 10572,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "selectProjCategory(this, '修身立宪')",
+    "names": [
+      "selectProjCategory"
+    ],
+    "templateLine": 1172,
+    "functions": [
+      {
+        "name": "selectProjCategory",
+        "line": 10572,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "selectProjCategory(this, '兴趣特长')",
+    "names": [
+      "selectProjCategory"
+    ],
+    "templateLine": 1173,
+    "functions": [
+      {
+        "name": "selectProjCategory",
+        "line": 10572,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "selectProjCategory(this, '认知思辨')",
+    "names": [
+      "selectProjCategory"
+    ],
+    "templateLine": 1174,
+    "functions": [
+      {
+        "name": "selectProjCategory",
+        "line": 10572,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "selectProjCategory(this, '实践探索')",
+    "names": [
+      "selectProjCategory"
+    ],
+    "templateLine": 1175,
+    "functions": [
+      {
+        "name": "selectProjCategory",
+        "line": 10572,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "change",
+    "code": "handleProjDateChange()",
+    "names": [
+      "handleProjDateChange"
+    ],
+    "templateLine": 1201,
+    "functions": [
+      {
+        "name": "handleProjDateChange",
+        "line": 10596,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "change",
+    "code": "handleProjDateChange()",
+    "names": [
+      "handleProjDateChange"
+    ],
+    "templateLine": 1203,
+    "functions": [
+      {
+        "name": "handleProjDateChange",
+        "line": 10596,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "setProjDatePreset(7)",
+    "names": [
+      "setProjDatePreset"
+    ],
+    "templateLine": 1208,
+    "functions": [
+      {
+        "name": "setProjDatePreset",
+        "line": 10579,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "setProjDatePreset(14)",
+    "names": [
+      "setProjDatePreset"
+    ],
+    "templateLine": 1209,
+    "functions": [
+      {
+        "name": "setProjDatePreset",
+        "line": 10579,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "setProjDatePreset(30)",
+    "names": [
+      "setProjDatePreset"
+    ],
+    "templateLine": 1210,
+    "functions": [
+      {
+        "name": "setProjDatePreset",
+        "line": 10579,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "setProjDatePreset(60)",
+    "names": [
+      "setProjDatePreset"
+    ],
+    "templateLine": 1211,
+    "functions": [
+      {
+        "name": "setProjDatePreset",
+        "line": 10579,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeAddProjectModal()",
+    "names": [
+      "closeAddProjectModal"
+    ],
+    "templateLine": 1224,
+    "functions": [
+      {
+        "name": "closeAddProjectModal",
+        "line": 10557,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "confirmAddNewProject()",
+    "names": [
+      "confirmAddNewProject"
+    ],
+    "templateLine": 1227,
+    "functions": [
+      {
+        "name": "confirmAddNewProject",
+        "line": 12711,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleObsidianSplit('left')",
+    "names": [
+      "toggleObsidianSplit"
+    ],
+    "templateLine": 1245,
+    "functions": [
+      {
+        "name": "toggleObsidianSplit",
+        "line": 1438,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "exitTertiaryWorkspace()",
+    "names": [
+      "exitTertiaryWorkspace"
+    ],
+    "templateLine": 1250,
+    "functions": [
+      {
+        "name": "exitTertiaryWorkspace",
+        "line": 4644,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "openOriginalSettingsPanel('char')",
+    "names": [
+      "openOriginalSettingsPanel"
+    ],
+    "templateLine": 1256,
+    "functions": [
+      {
+        "name": "openOriginalSettingsPanel",
+        "line": 1114,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "openFamilyPactModal(true)",
+    "names": [
+      "openFamilyPactModal"
+    ],
+    "templateLine": 1269,
+    "functions": [
+      {
+        "name": "openFamilyPactModal",
+        "line": 12863,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "openCurrentProjectInObsidianCanvas()",
+    "names": [
+      "openCurrentProjectInObsidianCanvas"
+    ],
+    "templateLine": 1282,
+    "functions": [
+      {
+        "name": "openCurrentProjectInObsidianCanvas",
+        "line": 4851,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "openTertiaryAddNodeModal()",
+    "names": [
+      "openTertiaryAddNodeModal"
+    ],
+    "templateLine": 1288,
+    "functions": [
+      {
+        "name": "openTertiaryAddNodeModal",
+        "line": 5997,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "createImageEvidencePrompt()",
+    "names": [
+      "createImageEvidencePrompt"
+    ],
+    "templateLine": 1292,
+    "functions": [
+      {
+        "name": "createImageEvidencePrompt",
+        "line": 12880,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "zoomTertiaryCanvas(1.18)",
+    "names": [
+      "zoomTertiaryCanvas"
+    ],
+    "templateLine": 1300,
+    "functions": [
+      {
+        "name": "zoomTertiaryCanvas",
+        "line": 4896,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "zoomTertiaryCanvas(0.85)",
+    "names": [
+      "zoomTertiaryCanvas"
+    ],
+    "templateLine": 1304,
+    "functions": [
+      {
+        "name": "zoomTertiaryCanvas",
+        "line": 4896,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "resetTertiaryCanvasZoom()",
+    "names": [
+      "resetTertiaryCanvasZoom"
+    ],
+    "templateLine": 1308,
+    "functions": [
+      {
+        "name": "resetTertiaryCanvasZoom",
+        "line": 4911,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "fitCanvasView()",
+    "names": [
+      "fitCanvasView"
+    ],
+    "templateLine": 1312,
+    "functions": [
+      {
+        "name": "fitCanvasView",
+        "line": 4919,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleChildrenFollowToolbar()",
+    "names": [
+      "toggleChildrenFollowToolbar"
+    ],
+    "templateLine": 1316,
+    "functions": [
+      {
+        "name": "toggleChildrenFollowToolbar",
+        "line": 4394,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "handleTertiaryUndo()",
+    "names": [
+      "handleTertiaryUndo"
+    ],
+    "templateLine": 1324,
+    "functions": [
+      {
+        "name": "handleTertiaryUndo",
+        "line": 12659,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "handleTertiaryRedo()",
+    "names": [
+      "handleTertiaryRedo"
+    ],
+    "templateLine": 1328,
+    "functions": [
+      {
+        "name": "handleTertiaryRedo",
+        "line": 12659,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "handleTertiaryDeleteNode()",
+    "names": [
+      "handleTertiaryDeleteNode"
+    ],
+    "templateLine": 1336,
+    "functions": [
+      {
+        "name": "handleTertiaryDeleteNode",
+        "line": 12705,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "openNodeSearchModal()",
+    "names": [
+      "openNodeSearchModal"
+    ],
+    "templateLine": 1340,
+    "functions": [
+      {
+        "name": "openNodeSearchModal",
+        "line": 6932,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "cycleGridMode()",
+    "names": [
+      "cycleGridMode"
+    ],
+    "templateLine": 1344,
+    "functions": [
+      {
+        "name": "cycleGridMode",
+        "line": 4838,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleAllTertiaryCardsMinimize()",
+    "names": [
+      "toggleAllTertiaryCardsMinimize"
+    ],
+    "templateLine": 1348,
+    "functions": [
+      {
+        "name": "toggleAllTertiaryCardsMinimize",
+        "line": 5439,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleObsidianSplit('right')",
+    "names": [
+      "toggleObsidianSplit"
+    ],
+    "templateLine": 1361,
+    "functions": [
+      {
+        "name": "toggleObsidianSplit",
+        "line": 1438,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "handleTertiaryStageClick(event)",
+    "names": [
+      "handleTertiaryStageClick"
+    ],
+    "templateLine": 1369,
+    "functions": [
+      {
+        "name": "handleTertiaryStageClick",
+        "line": 5813,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "dblclick",
+    "code": "toggleTertiaryCardMinimize('tcard-1', event)",
+    "names": [
+      "toggleTertiaryCardMinimize"
+    ],
+    "templateLine": 1388,
+    "functions": [
+      {
+        "name": "toggleTertiaryCardMinimize",
+        "line": 5415,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleTertiaryCardMinimize('tcard-1', event)",
+    "names": [
+      "toggleTertiaryCardMinimize"
+    ],
+    "templateLine": 1392,
+    "functions": [
+      {
+        "name": "toggleTertiaryCardMinimize",
+        "line": 5415,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 1396,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "addCardGoalMetricItem('tcard-1-metrics', event)",
+    "names": [
+      "addCardGoalMetricItem"
+    ],
+    "templateLine": 1399,
+    "functions": [
+      {
+        "name": "addCardGoalMetricItem",
+        "line": 10955,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removeCardGoalMetricItem(this, event)",
+    "names": [
+      "removeCardGoalMetricItem"
+    ],
+    "templateLine": 1410,
+    "functions": [
+      {
+        "name": "removeCardGoalMetricItem",
+        "line": 10971,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removeCardGoalMetricItem(this, event)",
+    "names": [
+      "removeCardGoalMetricItem"
+    ],
+    "templateLine": 1415,
+    "functions": [
+      {
+        "name": "removeCardGoalMetricItem",
+        "line": 10971,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 1425,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "if(this.showPicker) this.showPicker();",
+    "names": [],
+    "templateLine": 1427,
+    "functions": []
+  },
+  {
+    "event": "change",
+    "code": "showIslandToast('📅 已更新期望完成截止时间：' + this.value.replace('T', ' '))",
+    "names": [
+      "showIslandToast"
+    ],
+    "templateLine": 1427,
+    "functions": [
+      {
+        "name": "showIslandToast",
+        "line": 1446,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 1431,
+    "functions": []
+  },
+  {
+    "event": "change",
+    "code": "switchGoalDeliverableMode('tcard-1', this.value)",
+    "names": [
+      "switchGoalDeliverableMode"
+    ],
+    "templateLine": 1434,
+    "functions": [
+      {
+        "name": "switchGoalDeliverableMode",
+        "line": 11129,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "triggerGoalDeliverableUpload('tcard-1', event)",
+    "names": [
+      "triggerGoalDeliverableUpload"
+    ],
+    "templateLine": 1441,
+    "functions": [
+      {
+        "name": "triggerGoalDeliverableUpload",
+        "line": 12429,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 1449,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "depositGoalToAchievement('tcard-1', event)",
+    "names": [
+      "depositGoalToAchievement"
+    ],
+    "templateLine": 1451,
+    "functions": [
+      {
+        "name": "depositGoalToAchievement",
+        "line": 12800,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "startOrFinishConnecting('tcard-1', event)",
+    "names": [
+      "startOrFinishConnecting"
+    ],
+    "templateLine": 1454,
+    "functions": [
+      {
+        "name": "startOrFinishConnecting",
+        "line": 12680,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "dblclick",
+    "code": "toggleTertiaryCardMinimize('tcard-2', event)",
+    "names": [
+      "toggleTertiaryCardMinimize"
+    ],
+    "templateLine": 1459,
+    "functions": [
+      {
+        "name": "toggleTertiaryCardMinimize",
+        "line": 5415,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleTertiaryCardMinimize('tcard-2', event)",
+    "names": [
+      "toggleTertiaryCardMinimize"
+    ],
+    "templateLine": 1462,
+    "functions": [
+      {
+        "name": "toggleTertiaryCardMinimize",
+        "line": 5415,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 1468,
+    "functions": []
+  },
+  {
+    "event": "change",
+    "code": "updateDrillCardDuration('tcard-2', this.value)",
+    "names": [
+      "updateDrillCardDuration"
+    ],
+    "templateLine": 1470,
+    "functions": [
+      {
+        "name": "updateDrillCardDuration",
+        "line": 11305,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 1482,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "triggerDrillCardImage('tcard-2', event)",
+    "names": [
+      "triggerDrillCardImage"
+    ],
+    "templateLine": 1484,
+    "functions": [
+      {
+        "name": "triggerDrillCardImage",
+        "line": 11313,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "handleNodeCheckin(this, 'tcard-2', 'timer'); event.stopPropagation();",
+    "names": [
+      "handleNodeCheckin"
+    ],
+    "templateLine": 1492,
+    "functions": [
+      {
+        "name": "handleNodeCheckin",
+        "line": 12794,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "startOrFinishConnecting('tcard-2', event)",
+    "names": [
+      "startOrFinishConnecting"
+    ],
+    "templateLine": 1495,
+    "functions": [
+      {
+        "name": "startOrFinishConnecting",
+        "line": 12680,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "dblclick",
+    "code": "toggleTertiaryCardMinimize('tcard-3', event)",
+    "names": [
+      "toggleTertiaryCardMinimize"
+    ],
+    "templateLine": 1500,
+    "functions": [
+      {
+        "name": "toggleTertiaryCardMinimize",
+        "line": 5415,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleTertiaryCardMinimize('tcard-3', event)",
+    "names": [
+      "toggleTertiaryCardMinimize"
+    ],
+    "templateLine": 1504,
+    "functions": [
+      {
+        "name": "toggleTertiaryCardMinimize",
+        "line": 5415,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 1509,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "addCardHabitChecklistItem('tcard-3-checklist', event)",
+    "names": [
+      "addCardHabitChecklistItem"
+    ],
+    "templateLine": 1512,
+    "functions": [
+      {
+        "name": "addCardHabitChecklistItem",
+        "line": 11016,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removeCardHabitChecklistItem(this, event)",
+    "names": [
+      "removeCardHabitChecklistItem"
+    ],
+    "templateLine": 1518,
+    "functions": [
+      {
+        "name": "removeCardHabitChecklistItem",
+        "line": 11036,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removeCardHabitChecklistItem(this, event)",
+    "names": [
+      "removeCardHabitChecklistItem"
+    ],
+    "templateLine": 1523,
+    "functions": [
+      {
+        "name": "removeCardHabitChecklistItem",
+        "line": 11036,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removeCardHabitChecklistItem(this, event)",
+    "names": [
+      "removeCardHabitChecklistItem"
+    ],
+    "templateLine": 1528,
+    "functions": [
+      {
+        "name": "removeCardHabitChecklistItem",
+        "line": 11036,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "handleNodeCheckin(this, 'tcard-3', 'habit'); event.stopPropagation();",
+    "names": [
+      "handleNodeCheckin"
+    ],
+    "templateLine": 1534,
+    "functions": [
+      {
+        "name": "handleNodeCheckin",
+        "line": 12794,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "startOrFinishConnecting('tcard-3', event)",
+    "names": [
+      "startOrFinishConnecting"
+    ],
+    "templateLine": 1537,
+    "functions": [
+      {
+        "name": "startOrFinishConnecting",
+        "line": 12680,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "dblclick",
+    "code": "toggleTertiaryCardMinimize('tcard-4', event)",
+    "names": [
+      "toggleTertiaryCardMinimize"
+    ],
+    "templateLine": 1542,
+    "functions": [
+      {
+        "name": "toggleTertiaryCardMinimize",
+        "line": 5415,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleTertiaryCardMinimize('tcard-4', event)",
+    "names": [
+      "toggleTertiaryCardMinimize"
+    ],
+    "templateLine": 1545,
+    "functions": [
+      {
+        "name": "toggleTertiaryCardMinimize",
+        "line": 5415,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 1548,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 1553,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "addCardReflectionImprovementItem('tcard-4-improvements', event)",
+    "names": [
+      "addCardReflectionImprovementItem"
+    ],
+    "templateLine": 1556,
+    "functions": [
+      {
+        "name": "addCardReflectionImprovementItem",
+        "line": 11081,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removeCardReflectionImprovementItem(this, event)",
+    "names": [
+      "removeCardReflectionImprovementItem"
+    ],
+    "templateLine": 1562,
+    "functions": [
+      {
+        "name": "removeCardReflectionImprovementItem",
+        "line": 11101,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removeCardReflectionImprovementItem(this, event)",
+    "names": [
+      "removeCardReflectionImprovementItem"
+    ],
+    "templateLine": 1567,
+    "functions": [
+      {
+        "name": "removeCardReflectionImprovementItem",
+        "line": 11101,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "deriveNodesFromReflectionCard('tcard-4', event)",
+    "names": [
+      "deriveNodesFromReflectionCard"
+    ],
+    "templateLine": 1573,
+    "functions": [
+      {
+        "name": "deriveNodesFromReflectionCard",
+        "line": 12799,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "startOrFinishConnecting('tcard-4', event)",
+    "names": [
+      "startOrFinishConnecting"
+    ],
+    "templateLine": 1576,
+    "functions": [
+      {
+        "name": "startOrFinishConnecting",
+        "line": 12680,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "dblclick",
+    "code": "toggleTertiaryCardMinimize('tcard-5', event)",
+    "names": [
+      "toggleTertiaryCardMinimize"
+    ],
+    "templateLine": 1581,
+    "functions": [
+      {
+        "name": "toggleTertiaryCardMinimize",
+        "line": 5415,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleTertiaryCardMinimize('tcard-5', event)",
+    "names": [
+      "toggleTertiaryCardMinimize"
+    ],
+    "templateLine": 1585,
+    "functions": [
+      {
+        "name": "toggleTertiaryCardMinimize",
+        "line": 5415,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 1588,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "addCustomDynamicFieldRow('tcard-5-fields')",
+    "names": [
+      "addCustomDynamicFieldRow"
+    ],
+    "templateLine": 1591,
+    "functions": [
+      {
+        "name": "addCustomDynamicFieldRow",
+        "line": 7333,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 1594,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "removePickerCustomDynamicField(this)",
+    "names": [
+      "removePickerCustomDynamicField"
+    ],
+    "templateLine": 1616,
+    "functions": [
+      {
+        "name": "removePickerCustomDynamicField",
+        "line": 10915,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removePickerCustomDynamicField(this)",
+    "names": [
+      "removePickerCustomDynamicField"
+    ],
+    "templateLine": 1621,
+    "functions": [
+      {
+        "name": "removePickerCustomDynamicField",
+        "line": 10915,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removePickerCustomDynamicField(this)",
+    "names": [
+      "removePickerCustomDynamicField"
+    ],
+    "templateLine": 1626,
+    "functions": [
+      {
+        "name": "removePickerCustomDynamicField",
+        "line": 10915,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "handleNodeCheckin(this, 'tcard-5', 'custom'); event.stopPropagation();",
+    "names": [
+      "handleNodeCheckin"
+    ],
+    "templateLine": 1632,
+    "functions": [
+      {
+        "name": "handleNodeCheckin",
+        "line": 12794,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "startOrFinishConnecting('tcard-5', event)",
+    "names": [
+      "startOrFinishConnecting"
+    ],
+    "templateLine": 1635,
+    "functions": [
+      {
+        "name": "startOrFinishConnecting",
+        "line": 12680,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 1639,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "handleEdgeHierarchy(false)",
+    "names": [
+      "handleEdgeHierarchy"
+    ],
+    "templateLine": 1646,
+    "functions": [
+      {
+        "name": "handleEdgeHierarchy",
+        "line": 5735,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "handleEdgeHierarchy(true)",
+    "names": [
+      "handleEdgeHierarchy"
+    ],
+    "templateLine": 1647,
+    "functions": [
+      {
+        "name": "handleEdgeHierarchy",
+        "line": 5735,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "reverseEdgeDirection()",
+    "names": [
+      "reverseEdgeDirection"
+    ],
+    "templateLine": 1653,
+    "functions": [
+      {
+        "name": "reverseEdgeDirection",
+        "line": 5719,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "setEdgeArrowMode('single')",
+    "names": [
+      "setEdgeArrowMode"
+    ],
+    "templateLine": 1654,
+    "functions": [
+      {
+        "name": "setEdgeArrowMode",
+        "line": 5745,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "setEdgeArrowMode('double')",
+    "names": [
+      "setEdgeArrowMode"
+    ],
+    "templateLine": 1655,
+    "functions": [
+      {
+        "name": "setEdgeArrowMode",
+        "line": 5745,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "setEdgeArrowMode('none')",
+    "names": [
+      "setEdgeArrowMode"
+    ],
+    "templateLine": 1656,
+    "functions": [
+      {
+        "name": "setEdgeArrowMode",
+        "line": 5745,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "setEdgeLineStyle('solid')",
+    "names": [
+      "setEdgeLineStyle"
+    ],
+    "templateLine": 1657,
+    "functions": [
+      {
+        "name": "setEdgeLineStyle",
+        "line": 5756,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "setEdgeLineStyle('dashed')",
+    "names": [
+      "setEdgeLineStyle"
+    ],
+    "templateLine": 1658,
+    "functions": [
+      {
+        "name": "setEdgeLineStyle",
+        "line": 5756,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "input",
+    "code": "handleEdgeWidthInput(this.value)",
+    "names": [
+      "handleEdgeWidthInput"
+    ],
+    "templateLine": 1667,
+    "functions": [
+      {
+        "name": "handleEdgeWidthInput",
+        "line": 5767,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "input",
+    "code": "handleEdgeLabelChange(this.value)",
+    "names": [
+      "handleEdgeLabelChange"
+    ],
+    "templateLine": 1676,
+    "functions": [
+      {
+        "name": "handleEdgeLabelChange",
+        "line": 5785,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "change",
+    "code": "handleEdgeTypeSelect(this.value)",
+    "names": [
+      "handleEdgeTypeSelect"
+    ],
+    "templateLine": 1679,
+    "functions": [
+      {
+        "name": "handleEdgeTypeSelect",
+        "line": 12681,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "handleDeleteActiveEdge()",
+    "names": [
+      "handleDeleteActiveEdge"
+    ],
+    "templateLine": 1690,
+    "functions": [
+      {
+        "name": "handleDeleteActiveEdge",
+        "line": 12692,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleTertiaryMinimapDock()",
+    "names": [
+      "toggleTertiaryMinimapDock"
+    ],
+    "templateLine": 1699,
+    "functions": [
+      {
+        "name": "toggleTertiaryMinimapDock",
+        "line": 4818,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation(); toggleTertiaryMinimapDock();",
+    "names": [
+      "toggleTertiaryMinimapDock"
+    ],
+    "templateLine": 1704,
+    "functions": [
+      {
+        "name": "toggleTertiaryMinimapDock",
+        "line": 4818,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleTertiaryMinimapDock()",
+    "names": [
+      "toggleTertiaryMinimapDock"
+    ],
+    "templateLine": 1716,
+    "functions": [
+      {
+        "name": "toggleTertiaryMinimapDock",
+        "line": 4818,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "switchMainSection('tertiary')",
+    "names": [
+      "switchMainSection"
+    ],
+    "templateLine": 1761,
+    "functions": [
+      {
+        "name": "switchMainSection",
+        "line": 1466,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "filterGallery('all')",
+    "names": [
+      "filterGallery"
+    ],
+    "templateLine": 1783,
+    "functions": [
+      {
+        "name": "filterGallery",
+        "line": 3981,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "filterGallery('goal')",
+    "names": [
+      "filterGallery"
+    ],
+    "templateLine": 1787,
+    "functions": [
+      {
+        "name": "filterGallery",
+        "line": 3981,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "filterGallery('drill')",
+    "names": [
+      "filterGallery"
+    ],
+    "templateLine": 1791,
+    "functions": [
+      {
+        "name": "filterGallery",
+        "line": 3981,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "filterGallery('habit')",
+    "names": [
+      "filterGallery"
+    ],
+    "templateLine": 1795,
+    "functions": [
+      {
+        "name": "filterGallery",
+        "line": 3981,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "filterGallery('reflection')",
+    "names": [
+      "filterGallery"
+    ],
+    "templateLine": 1799,
+    "functions": [
+      {
+        "name": "filterGallery",
+        "line": 3981,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "filterGallery('custom')",
+    "names": [
+      "filterGallery"
+    ],
+    "templateLine": 1803,
+    "functions": [
+      {
+        "name": "filterGallery",
+        "line": 3981,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "filterGallery('text')",
+    "names": [
+      "filterGallery"
+    ],
+    "templateLine": 1807,
+    "functions": [
+      {
+        "name": "filterGallery",
+        "line": 3981,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "addCheckinPageGoalMetric()",
+    "names": [
+      "addCheckinPageGoalMetric"
+    ],
+    "templateLine": 1858,
+    "functions": [
+      {
+        "name": "addCheckinPageGoalMetric",
+        "line": 4010,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removeGoalMetricModalRow(this)",
+    "names": [
+      "removeGoalMetricModalRow"
+    ],
+    "templateLine": 1869,
+    "functions": [
+      {
+        "name": "removeGoalMetricModalRow",
+        "line": 10943,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removeGoalMetricModalRow(this)",
+    "names": [
+      "removeGoalMetricModalRow"
+    ],
+    "templateLine": 1874,
+    "functions": [
+      {
+        "name": "removeGoalMetricModalRow",
+        "line": 10943,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removeGoalMetricModalRow(this)",
+    "names": [
+      "removeGoalMetricModalRow"
+    ],
+    "templateLine": 1879,
+    "functions": [
+      {
+        "name": "removeGoalMetricModalRow",
+        "line": 10943,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "if(this.showPicker) this.showPicker();",
+    "names": [],
+    "templateLine": 1887,
+    "functions": []
+  },
+  {
+    "event": "change",
+    "code": "showIslandToast('📅 已更新期望完成截止时间：' + this.value.replace('T', ' '))",
+    "names": [
+      "showIslandToast"
+    ],
+    "templateLine": 1887,
+    "functions": [
+      {
+        "name": "showIslandToast",
+        "line": 1446,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "change",
+    "code": "switchCheckinPageGoalDeliverable(this.value)",
+    "names": [
+      "switchCheckinPageGoalDeliverable"
+    ],
+    "templateLine": 1901,
+    "functions": [
+      {
+        "name": "switchCheckinPageGoalDeliverable",
+        "line": 4024,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "change",
+    "code": "handleCheckinPageGoalFile(this)",
+    "names": [
+      "handleCheckinPageGoalFile"
+    ],
+    "templateLine": 1913,
+    "functions": [
+      {
+        "name": "handleCheckinPageGoalFile",
+        "line": 4042,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "handleCheckinPageGoalDeposit(this)",
+    "names": [
+      "handleCheckinPageGoalDeposit"
+    ],
+    "templateLine": 1923,
+    "functions": [
+      {
+        "name": "handleCheckinPageGoalDeposit",
+        "line": 4053,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "change",
+    "code": "handleCheckinPageDrillMedia(this)",
+    "names": [
+      "handleCheckinPageDrillMedia"
+    ],
+    "templateLine": 2001,
+    "functions": [
+      {
+        "name": "handleCheckinPageDrillMedia",
+        "line": 4106,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "change",
+    "code": "changeCheckinPageDrillDuration(this.value)",
+    "names": [
+      "changeCheckinPageDrillDuration"
+    ],
+    "templateLine": 2012,
+    "functions": [
+      {
+        "name": "changeCheckinPageDrillDuration",
+        "line": 4123,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleCheckinPageDrillTimer()",
+    "names": [
+      "toggleCheckinPageDrillTimer"
+    ],
+    "templateLine": 2028,
+    "functions": [
+      {
+        "name": "toggleCheckinPageDrillTimer",
+        "line": 4139,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "resetCheckinPageDrillTimer()",
+    "names": [
+      "resetCheckinPageDrillTimer"
+    ],
+    "templateLine": 2029,
+    "functions": [
+      {
+        "name": "resetCheckinPageDrillTimer",
+        "line": 4166,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "completeCheckinPageCard('drill', this, '圆满践行')",
+    "names": [
+      "completeCheckinPageCard"
+    ],
+    "templateLine": 2047,
+    "functions": [
+      {
+        "name": "completeCheckinPageCard",
+        "line": 4246,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "addCheckinPageHabitItem()",
+    "names": [
+      "addCheckinPageHabitItem"
+    ],
+    "templateLine": 2106,
+    "functions": [
+      {
+        "name": "addCheckinPageHabitItem",
+        "line": 4180,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "change",
+    "code": "updateCheckinPageHabitProgress()",
+    "names": [
+      "updateCheckinPageHabitProgress"
+    ],
+    "templateLine": 2110,
+    "functions": [
+      {
+        "name": "updateCheckinPageHabitProgress",
+        "line": 4171,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removeCheckinPageHabitItem(this)",
+    "names": [
+      "removeCheckinPageHabitItem"
+    ],
+    "templateLine": 2112,
+    "functions": [
+      {
+        "name": "removeCheckinPageHabitItem",
+        "line": 4196,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "change",
+    "code": "updateCheckinPageHabitProgress()",
+    "names": [
+      "updateCheckinPageHabitProgress"
+    ],
+    "templateLine": 2115,
+    "functions": [
+      {
+        "name": "updateCheckinPageHabitProgress",
+        "line": 4171,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removeCheckinPageHabitItem(this)",
+    "names": [
+      "removeCheckinPageHabitItem"
+    ],
+    "templateLine": 2117,
+    "functions": [
+      {
+        "name": "removeCheckinPageHabitItem",
+        "line": 4196,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "change",
+    "code": "updateCheckinPageHabitProgress()",
+    "names": [
+      "updateCheckinPageHabitProgress"
+    ],
+    "templateLine": 2120,
+    "functions": [
+      {
+        "name": "updateCheckinPageHabitProgress",
+        "line": 4171,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removeCheckinPageHabitItem(this)",
+    "names": [
+      "removeCheckinPageHabitItem"
+    ],
+    "templateLine": 2122,
+    "functions": [
+      {
+        "name": "removeCheckinPageHabitItem",
+        "line": 4196,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "showIslandToast('🎙️ 正在录制 60 秒晨读/自律原声存证...')",
+    "names": [
+      "showIslandToast"
+    ],
+    "templateLine": 2140,
+    "functions": [
+      {
+        "name": "showIslandToast",
+        "line": 1446,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "completeCheckinPageCard('habit', this, '知行合一')",
+    "names": [
+      "completeCheckinPageCard"
+    ],
+    "templateLine": 2149,
+    "functions": [
+      {
+        "name": "completeCheckinPageCard",
+        "line": 4246,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "showIslandToast('💾 复盘说明已保存')",
+    "names": [
+      "showIslandToast"
+    ],
+    "templateLine": 2207,
+    "functions": [
+      {
+        "name": "showIslandToast",
+        "line": 1446,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "addCheckinPageReflectionItem()",
+    "names": [
+      "addCheckinPageReflectionItem"
+    ],
+    "templateLine": 2216,
+    "functions": [
+      {
+        "name": "addCheckinPageReflectionItem",
+        "line": 4207,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removeCheckinPageReflectionItem(this)",
+    "names": [
+      "removeCheckinPageReflectionItem"
+    ],
+    "templateLine": 2222,
+    "functions": [
+      {
+        "name": "removeCheckinPageReflectionItem",
+        "line": 4222,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removeCheckinPageReflectionItem(this)",
+    "names": [
+      "removeCheckinPageReflectionItem"
+    ],
+    "templateLine": 2227,
+    "functions": [
+      {
+        "name": "removeCheckinPageReflectionItem",
+        "line": 4222,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removeCheckinPageReflectionItem(this)",
+    "names": [
+      "removeCheckinPageReflectionItem"
+    ],
+    "templateLine": 2232,
+    "functions": [
+      {
+        "name": "removeCheckinPageReflectionItem",
+        "line": 4222,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "completeCheckinPageCard('reflection', this, '笃行复盘')",
+    "names": [
+      "completeCheckinPageCard"
+    ],
+    "templateLine": 2239,
+    "functions": [
+      {
+        "name": "completeCheckinPageCard",
+        "line": 4246,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "addCheckinPageCustomField()",
+    "names": [
+      "addCheckinPageCustomField"
+    ],
+    "templateLine": 2290,
+    "functions": [
+      {
+        "name": "addCheckinPageCustomField",
+        "line": 4232,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removePickerCustomDynamicField(this)",
+    "names": [
+      "removePickerCustomDynamicField"
+    ],
+    "templateLine": 2296,
+    "functions": [
+      {
+        "name": "removePickerCustomDynamicField",
+        "line": 10915,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removePickerCustomDynamicField(this)",
+    "names": [
+      "removePickerCustomDynamicField"
+    ],
+    "templateLine": 2301,
+    "functions": [
+      {
+        "name": "removePickerCustomDynamicField",
+        "line": 10915,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removePickerCustomDynamicField(this)",
+    "names": [
+      "removePickerCustomDynamicField"
+    ],
+    "templateLine": 2306,
+    "functions": [
+      {
+        "name": "removePickerCustomDynamicField",
+        "line": 10915,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "change",
+    "code": "showIslandToast('📸 已切换自定义卡物证交付类型为：' + this.options[this.selectedIndex].text)",
+    "names": [
+      "showIslandToast"
+    ],
+    "templateLine": 2324,
+    "functions": [
+      {
+        "name": "showIslandToast",
+        "line": 1446,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "createImageEvidencePrompt()",
+    "names": [
+      "createImageEvidencePrompt"
+    ],
+    "templateLine": 2335,
+    "functions": [
+      {
+        "name": "createImageEvidencePrompt",
+        "line": 12880,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "completeCheckinPageCard('custom', this, '完成打卡')",
+    "names": [
+      "completeCheckinPageCard"
+    ],
+    "templateLine": 2343,
+    "functions": [
+      {
+        "name": "completeCheckinPageCard",
+        "line": 4246,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "showIslandToast('📖 已完成简单文本节点查阅！')",
+    "names": [
+      "showIslandToast"
+    ],
+    "templateLine": 2396,
+    "functions": [
+      {
+        "name": "showIslandToast",
+        "line": 1446,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "handleAddModuleBackdropClick(event)",
+    "names": [
+      "handleAddModuleBackdropClick"
+    ],
+    "templateLine": 2416,
+    "functions": [
+      {
+        "name": "handleAddModuleBackdropClick",
+        "line": 438,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeAddModuleModal()",
+    "names": [
+      "closeAddModuleModal"
+    ],
+    "templateLine": 2426,
+    "functions": [
+      {
+        "name": "closeAddModuleModal",
+        "line": 433,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "pickModulePresetIcon(this, '🎨')",
+    "names": [
+      "pickModulePresetIcon"
+    ],
+    "templateLine": 2444,
+    "functions": [
+      {
+        "name": "pickModulePresetIcon",
+        "line": 444,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "pickModulePresetIcon(this, '🔬')",
+    "names": [
+      "pickModulePresetIcon"
+    ],
+    "templateLine": 2445,
+    "functions": [
+      {
+        "name": "pickModulePresetIcon",
+        "line": 444,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "pickModulePresetIcon(this, '♟️')",
+    "names": [
+      "pickModulePresetIcon"
+    ],
+    "templateLine": 2446,
+    "functions": [
+      {
+        "name": "pickModulePresetIcon",
+        "line": 444,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "pickModulePresetIcon(this, '🚀')",
+    "names": [
+      "pickModulePresetIcon"
+    ],
+    "templateLine": 2447,
+    "functions": [
+      {
+        "name": "pickModulePresetIcon",
+        "line": 444,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "pickModulePresetIcon(this, '🎹')",
+    "names": [
+      "pickModulePresetIcon"
+    ],
+    "templateLine": 2448,
+    "functions": [
+      {
+        "name": "pickModulePresetIcon",
+        "line": 444,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "pickModulePresetIcon(this, '🥋')",
+    "names": [
+      "pickModulePresetIcon"
+    ],
+    "templateLine": 2449,
+    "functions": [
+      {
+        "name": "pickModulePresetIcon",
+        "line": 444,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "pickModulePresetIcon(this, '📚')",
+    "names": [
+      "pickModulePresetIcon"
+    ],
+    "templateLine": 2450,
+    "functions": [
+      {
+        "name": "pickModulePresetIcon",
+        "line": 444,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "pickModulePresetIcon(this, '🤖')",
+    "names": [
+      "pickModulePresetIcon"
+    ],
+    "templateLine": 2451,
+    "functions": [
+      {
+        "name": "pickModulePresetIcon",
+        "line": 444,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "pickModulePresetIcon(this, '🧗')",
+    "names": [
+      "pickModulePresetIcon"
+    ],
+    "templateLine": 2452,
+    "functions": [
+      {
+        "name": "pickModulePresetIcon",
+        "line": 444,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "pickModulePresetIcon(this, '🌿')",
+    "names": [
+      "pickModulePresetIcon"
+    ],
+    "templateLine": 2453,
+    "functions": [
+      {
+        "name": "pickModulePresetIcon",
+        "line": 444,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "pickModulePresetIcon(this, '🔭')",
+    "names": [
+      "pickModulePresetIcon"
+    ],
+    "templateLine": 2454,
+    "functions": [
+      {
+        "name": "pickModulePresetIcon",
+        "line": 444,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "pickModulePresetIcon(this, '🏹')",
+    "names": [
+      "pickModulePresetIcon"
+    ],
+    "templateLine": 2455,
+    "functions": [
+      {
+        "name": "pickModulePresetIcon",
+        "line": 444,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "pickModulePresetIcon(this, '🏕️')",
+    "names": [
+      "pickModulePresetIcon"
+    ],
+    "templateLine": 2456,
+    "functions": [
+      {
+        "name": "pickModulePresetIcon",
+        "line": 444,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "pickModulePresetIcon(this, '🏊')",
+    "names": [
+      "pickModulePresetIcon"
+    ],
+    "templateLine": 2457,
+    "functions": [
+      {
+        "name": "pickModulePresetIcon",
+        "line": 444,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removeTertiaryModuleUploadedFile()",
+    "names": [
+      "removeTertiaryModuleUploadedFile"
+    ],
+    "templateLine": 2467,
+    "functions": [
+      {
+        "name": "removeTertiaryModuleUploadedFile",
+        "line": 3236,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "document.getElementById('input-tertiary-module-file').click()",
+    "names": [],
+    "templateLine": 2471,
+    "functions": []
+  },
+  {
+    "event": "change",
+    "code": "handleTertiaryModuleFileUpload(this)",
+    "names": [
+      "handleTertiaryModuleFileUpload"
+    ],
+    "templateLine": 2472,
+    "functions": [
+      {
+        "name": "handleTertiaryModuleFileUpload",
+        "line": 3208,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "input",
+    "code": "handleCustomModuleIconInput(this.value)",
+    "names": [
+      "handleCustomModuleIconInput"
+    ],
+    "templateLine": 2478,
+    "functions": [
+      {
+        "name": "handleCustomModuleIconInput",
+        "line": 452,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeAddModuleModal()",
+    "names": [
+      "closeAddModuleModal"
+    ],
+    "templateLine": 2493,
+    "functions": [
+      {
+        "name": "closeAddModuleModal",
+        "line": 433,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "confirmAddNewModule()",
+    "names": [
+      "confirmAddNewModule"
+    ],
+    "templateLine": 2496,
+    "functions": [
+      {
+        "name": "confirmAddNewModule",
+        "line": 461,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "handleTertiaryCreateModuleBackdropClick(event)",
+    "names": [
+      "handleTertiaryCreateModuleBackdropClick"
+    ],
+    "templateLine": 2510,
+    "functions": [
+      {
+        "name": "handleTertiaryCreateModuleBackdropClick",
+        "line": 5912,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 2511,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "closeTertiaryCreateModuleModal()",
+    "names": [
+      "closeTertiaryCreateModuleModal"
+    ],
+    "templateLine": 2520,
+    "functions": [
+      {
+        "name": "closeTertiaryCreateModuleModal",
+        "line": 5903,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "pickTertiaryModulePresetIcon(this, '⚡')",
+    "names": [
+      "pickTertiaryModulePresetIcon"
+    ],
+    "templateLine": 2538,
+    "functions": [
+      {
+        "name": "pickTertiaryModulePresetIcon",
+        "line": 5918,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "pickTertiaryModulePresetIcon(this, '📐')",
+    "names": [
+      "pickTertiaryModulePresetIcon"
+    ],
+    "templateLine": 2539,
+    "functions": [
+      {
+        "name": "pickTertiaryModulePresetIcon",
+        "line": 5918,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "pickTertiaryModulePresetIcon(this, '📘')",
+    "names": [
+      "pickTertiaryModulePresetIcon"
+    ],
+    "templateLine": 2540,
+    "functions": [
+      {
+        "name": "pickTertiaryModulePresetIcon",
+        "line": 5918,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "pickTertiaryModulePresetIcon(this, '🎯')",
+    "names": [
+      "pickTertiaryModulePresetIcon"
+    ],
+    "templateLine": 2541,
+    "functions": [
+      {
+        "name": "pickTertiaryModulePresetIcon",
+        "line": 5918,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "pickTertiaryModulePresetIcon(this, '🧠')",
+    "names": [
+      "pickTertiaryModulePresetIcon"
+    ],
+    "templateLine": 2542,
+    "functions": [
+      {
+        "name": "pickTertiaryModulePresetIcon",
+        "line": 5918,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "pickTertiaryModulePresetIcon(this, '🏛️')",
+    "names": [
+      "pickTertiaryModulePresetIcon"
+    ],
+    "templateLine": 2543,
+    "functions": [
+      {
+        "name": "pickTertiaryModulePresetIcon",
+        "line": 5918,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "pickTertiaryModulePresetIcon(this, '🔬')",
+    "names": [
+      "pickTertiaryModulePresetIcon"
+    ],
+    "templateLine": 2544,
+    "functions": [
+      {
+        "name": "pickTertiaryModulePresetIcon",
+        "line": 5918,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "pickTertiaryModulePresetIcon(this, '🎨')",
+    "names": [
+      "pickTertiaryModulePresetIcon"
+    ],
+    "templateLine": 2545,
+    "functions": [
+      {
+        "name": "pickTertiaryModulePresetIcon",
+        "line": 5918,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "pickTertiaryModulePresetIcon(this, '💡')",
+    "names": [
+      "pickTertiaryModulePresetIcon"
+    ],
+    "templateLine": 2546,
+    "functions": [
+      {
+        "name": "pickTertiaryModulePresetIcon",
+        "line": 5918,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "pickTertiaryModulePresetIcon(this, '🏆')",
+    "names": [
+      "pickTertiaryModulePresetIcon"
+    ],
+    "templateLine": 2547,
+    "functions": [
+      {
+        "name": "pickTertiaryModulePresetIcon",
+        "line": 5918,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "pickTertiaryModulePresetIcon(this, '🚀')",
+    "names": [
+      "pickTertiaryModulePresetIcon"
+    ],
+    "templateLine": 2548,
+    "functions": [
+      {
+        "name": "pickTertiaryModulePresetIcon",
+        "line": 5918,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "pickTertiaryModulePresetIcon(this, '📖')",
+    "names": [
+      "pickTertiaryModulePresetIcon"
+    ],
+    "templateLine": 2549,
+    "functions": [
+      {
+        "name": "pickTertiaryModulePresetIcon",
+        "line": 5918,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "input",
+    "code": "handleTertiaryModuleIconInput(this.value)",
+    "names": [
+      "handleTertiaryModuleIconInput"
+    ],
+    "templateLine": 2553,
+    "functions": [
+      {
+        "name": "handleTertiaryModuleIconInput",
+        "line": 5928,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeTertiaryCreateModuleModal()",
+    "names": [
+      "closeTertiaryCreateModuleModal"
+    ],
+    "templateLine": 2568,
+    "functions": [
+      {
+        "name": "closeTertiaryCreateModuleModal",
+        "line": 5903,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "handleConfirmTertiaryCreateModule()",
+    "names": [
+      "handleConfirmTertiaryCreateModule"
+    ],
+    "templateLine": 2571,
+    "functions": [
+      {
+        "name": "handleConfirmTertiaryCreateModule",
+        "line": 5943,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "handleTertiaryAddNodeBackdropClick(event)",
+    "names": [
+      "handleTertiaryAddNodeBackdropClick"
+    ],
+    "templateLine": 2580,
+    "functions": [
+      {
+        "name": "handleTertiaryAddNodeBackdropClick",
+        "line": 6020,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 2581,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "closeTertiaryAddNodeModal()",
+    "names": [
+      "closeTertiaryAddNodeModal"
+    ],
+    "templateLine": 2590,
+    "functions": [
+      {
+        "name": "closeTertiaryAddNodeModal",
+        "line": 6007,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleNodePickerSelection('card-goal', this, event)",
+    "names": [
+      "toggleNodePickerSelection"
+    ],
+    "templateLine": 2604,
+    "functions": [
+      {
+        "name": "toggleNodePickerSelection",
+        "line": 6054,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation(); updateNodePickerBatchCount();",
+    "names": [
+      "updateNodePickerBatchCount"
+    ],
+    "templateLine": 2606,
+    "functions": [
+      {
+        "name": "updateNodePickerBatchCount",
+        "line": 6063,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 2618,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "addGoalMetricModalRow('picker-goal-metrics-list')",
+    "names": [
+      "addGoalMetricModalRow"
+    ],
+    "templateLine": 2626,
+    "functions": [
+      {
+        "name": "addGoalMetricModalRow",
+        "line": 10927,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removeGoalMetricModalRow(this)",
+    "names": [
+      "removeGoalMetricModalRow"
+    ],
+    "templateLine": 2637,
+    "functions": [
+      {
+        "name": "removeGoalMetricModalRow",
+        "line": 10943,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removeGoalMetricModalRow(this)",
+    "names": [
+      "removeGoalMetricModalRow"
+    ],
+    "templateLine": 2642,
+    "functions": [
+      {
+        "name": "removeGoalMetricModalRow",
+        "line": 10943,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "if(this.showPicker) this.showPicker();",
+    "names": [],
+    "templateLine": 2648,
+    "functions": []
+  },
+  {
+    "event": "change",
+    "code": "switchModalGoalDeliverable('picker', this.value)",
+    "names": [
+      "switchModalGoalDeliverable"
+    ],
+    "templateLine": 2657,
+    "functions": [
+      {
+        "name": "switchModalGoalDeliverable",
+        "line": 11114,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "createImageEvidencePrompt()",
+    "names": [
+      "createImageEvidencePrompt"
+    ],
+    "templateLine": 2663,
+    "functions": [
+      {
+        "name": "createImageEvidencePrompt",
+        "line": 12880,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 2670,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "quickAddSingleNode('card-goal')",
+    "names": [
+      "quickAddSingleNode"
+    ],
+    "templateLine": 2671,
+    "functions": [
+      {
+        "name": "quickAddSingleNode",
+        "line": 6253,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleNodePickerSelection('card-drill', this, event)",
+    "names": [
+      "toggleNodePickerSelection"
+    ],
+    "templateLine": 2676,
+    "functions": [
+      {
+        "name": "toggleNodePickerSelection",
+        "line": 6054,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation(); updateNodePickerBatchCount();",
+    "names": [
+      "updateNodePickerBatchCount"
+    ],
+    "templateLine": 2678,
+    "functions": [
+      {
+        "name": "updateNodePickerBatchCount",
+        "line": 6063,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 2690,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "createImageEvidencePrompt()",
+    "names": [
+      "createImageEvidencePrompt"
+    ],
+    "templateLine": 2702,
+    "functions": [
+      {
+        "name": "createImageEvidencePrompt",
+        "line": 12880,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 2731,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "quickAddSingleNode('card-drill')",
+    "names": [
+      "quickAddSingleNode"
+    ],
+    "templateLine": 2732,
+    "functions": [
+      {
+        "name": "quickAddSingleNode",
+        "line": 6253,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleNodePickerSelection('card-habit', this, event)",
+    "names": [
+      "toggleNodePickerSelection"
+    ],
+    "templateLine": 2737,
+    "functions": [
+      {
+        "name": "toggleNodePickerSelection",
+        "line": 6054,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation(); updateNodePickerBatchCount();",
+    "names": [
+      "updateNodePickerBatchCount"
+    ],
+    "templateLine": 2739,
+    "functions": [
+      {
+        "name": "updateNodePickerBatchCount",
+        "line": 6063,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 2751,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "addHabitChecklistModalRow('picker-habit-checklist-list')",
+    "names": [
+      "addHabitChecklistModalRow"
+    ],
+    "templateLine": 2763,
+    "functions": [
+      {
+        "name": "addHabitChecklistModalRow",
+        "line": 10985,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removeHabitChecklistModalRow(this)",
+    "names": [
+      "removeHabitChecklistModalRow"
+    ],
+    "templateLine": 2768,
+    "functions": [
+      {
+        "name": "removeHabitChecklistModalRow",
+        "line": 11004,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removeHabitChecklistModalRow(this)",
+    "names": [
+      "removeHabitChecklistModalRow"
+    ],
+    "templateLine": 2772,
+    "functions": [
+      {
+        "name": "removeHabitChecklistModalRow",
+        "line": 11004,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removeHabitChecklistModalRow(this)",
+    "names": [
+      "removeHabitChecklistModalRow"
+    ],
+    "templateLine": 2776,
+    "functions": [
+      {
+        "name": "removeHabitChecklistModalRow",
+        "line": 11004,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 2790,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "quickAddSingleNode('card-habit')",
+    "names": [
+      "quickAddSingleNode"
+    ],
+    "templateLine": 2791,
+    "functions": [
+      {
+        "name": "quickAddSingleNode",
+        "line": 6253,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleNodePickerSelection('card-reflection', this, event)",
+    "names": [
+      "toggleNodePickerSelection"
+    ],
+    "templateLine": 2796,
+    "functions": [
+      {
+        "name": "toggleNodePickerSelection",
+        "line": 6054,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation(); updateNodePickerBatchCount();",
+    "names": [
+      "updateNodePickerBatchCount"
+    ],
+    "templateLine": 2798,
+    "functions": [
+      {
+        "name": "updateNodePickerBatchCount",
+        "line": 6063,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 2810,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "addReflectionImprovementModalRow('picker-reflection-improvements-list')",
+    "names": [
+      "addReflectionImprovementModalRow"
+    ],
+    "templateLine": 2822,
+    "functions": [
+      {
+        "name": "addReflectionImprovementModalRow",
+        "line": 11050,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removeReflectionImprovementModalRow(this)",
+    "names": [
+      "removeReflectionImprovementModalRow"
+    ],
+    "templateLine": 2827,
+    "functions": [
+      {
+        "name": "removeReflectionImprovementModalRow",
+        "line": 11069,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removeReflectionImprovementModalRow(this)",
+    "names": [
+      "removeReflectionImprovementModalRow"
+    ],
+    "templateLine": 2831,
+    "functions": [
+      {
+        "name": "removeReflectionImprovementModalRow",
+        "line": 11069,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 2837,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "quickAddSingleNode('card-reflection')",
+    "names": [
+      "quickAddSingleNode"
+    ],
+    "templateLine": 2838,
+    "functions": [
+      {
+        "name": "quickAddSingleNode",
+        "line": 6253,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleNodePickerSelection('card-custom', this, event)",
+    "names": [
+      "toggleNodePickerSelection"
+    ],
+    "templateLine": 2842,
+    "functions": [
+      {
+        "name": "toggleNodePickerSelection",
+        "line": 6054,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation(); updateNodePickerBatchCount();",
+    "names": [
+      "updateNodePickerBatchCount"
+    ],
+    "templateLine": 2844,
+    "functions": [
+      {
+        "name": "updateNodePickerBatchCount",
+        "line": 6063,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 2858,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 2864,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 2886,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "addPickerCustomDynamicField()",
+    "names": [
+      "addPickerCustomDynamicField"
+    ],
+    "templateLine": 2889,
+    "functions": [
+      {
+        "name": "addPickerCustomDynamicField",
+        "line": 10901,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removePickerCustomDynamicField(this)",
+    "names": [
+      "removePickerCustomDynamicField"
+    ],
+    "templateLine": 2895,
+    "functions": [
+      {
+        "name": "removePickerCustomDynamicField",
+        "line": 10915,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "removePickerCustomDynamicField(this)",
+    "names": [
+      "removePickerCustomDynamicField"
+    ],
+    "templateLine": 2900,
+    "functions": [
+      {
+        "name": "removePickerCustomDynamicField",
+        "line": 10915,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 2905,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "quickAddSingleNode('card-custom')",
+    "names": [
+      "quickAddSingleNode"
+    ],
+    "templateLine": 2906,
+    "functions": [
+      {
+        "name": "quickAddSingleNode",
+        "line": 6253,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleNodePickerSelection('card-text', this, event)",
+    "names": [
+      "toggleNodePickerSelection"
+    ],
+    "templateLine": 2910,
+    "functions": [
+      {
+        "name": "toggleNodePickerSelection",
+        "line": 6054,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation(); updateNodePickerBatchCount();",
+    "names": [
+      "updateNodePickerBatchCount"
+    ],
+    "templateLine": 2912,
+    "functions": [
+      {
+        "name": "updateNodePickerBatchCount",
+        "line": 6063,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 2926,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 2932,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "event.stopPropagation()",
+    "names": [],
+    "templateLine": 2937,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "quickAddSingleNode('card-text')",
+    "names": [
+      "quickAddSingleNode"
+    ],
+    "templateLine": 2939,
+    "functions": [
+      {
+        "name": "quickAddSingleNode",
+        "line": 6253,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "selectNodePickerCategory('all')",
+    "names": [
+      "selectNodePickerCategory"
+    ],
+    "templateLine": 2947,
+    "functions": [
+      {
+        "name": "selectNodePickerCategory",
+        "line": 6087,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "clearNodePickerSelection()",
+    "names": [
+      "clearNodePickerSelection"
+    ],
+    "templateLine": 2948,
+    "functions": [
+      {
+        "name": "clearNodePickerSelection",
+        "line": 6108,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeTertiaryAddNodeModal()",
+    "names": [
+      "closeTertiaryAddNodeModal"
+    ],
+    "templateLine": 2955,
+    "functions": [
+      {
+        "name": "closeTertiaryAddNodeModal",
+        "line": 6007,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "handleConfirmBatchAddNodes()",
+    "names": [
+      "handleConfirmBatchAddNodes"
+    ],
+    "templateLine": 2958,
+    "functions": [
+      {
+        "name": "handleConfirmBatchAddNodes",
+        "line": 6263,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeNoteMediaPreviewModal()",
+    "names": [
+      "closeNoteMediaPreviewModal"
+    ],
+    "templateLine": 2982,
+    "functions": [
+      {
+        "name": "closeNoteMediaPreviewModal",
+        "line": 10008,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeNoteMediaPreviewModal()",
+    "names": [
+      "closeNoteMediaPreviewModal"
+    ],
+    "templateLine": 2989,
+    "functions": [
+      {
+        "name": "closeNoteMediaPreviewModal",
+        "line": 10008,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "handleBountyBackdropClick(event)",
+    "names": [
+      "handleBountyBackdropClick"
+    ],
+    "templateLine": 2994,
+    "functions": [
+      {
+        "name": "handleBountyBackdropClick",
+        "line": 3778,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleBountyPublishForm()",
+    "names": [
+      "toggleBountyPublishForm"
+    ],
+    "templateLine": 3009,
+    "functions": [
+      {
+        "name": "toggleBountyPublishForm",
+        "line": 3784,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeBountyModal()",
+    "names": [
+      "closeBountyModal"
+    ],
+    "templateLine": 3010,
+    "functions": [
+      {
+        "name": "closeBountyModal",
+        "line": 3770,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "toggleBountyPublishForm()",
+    "names": [
+      "toggleBountyPublishForm"
+    ],
+    "templateLine": 3021,
+    "functions": [
+      {
+        "name": "toggleBountyPublishForm",
+        "line": 3784,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "submitNewParentBounty()",
+    "names": [
+      "submitNewParentBounty"
+    ],
+    "templateLine": 3053,
+    "functions": [
+      {
+        "name": "submitNewParentBounty",
+        "line": 12845,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "acceptParentBounty()",
+    "names": [
+      "acceptParentBounty"
+    ],
+    "templateLine": 3103,
+    "functions": [
+      {
+        "name": "acceptParentBounty",
+        "line": 12846,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "uploadBountyEvidence()",
+    "names": [
+      "uploadBountyEvidence"
+    ],
+    "templateLine": 3104,
+    "functions": [
+      {
+        "name": "uploadBountyEvidence",
+        "line": 12847,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeBountyModal()",
+    "names": [
+      "closeBountyModal"
+    ],
+    "templateLine": 3146,
+    "functions": [
+      {
+        "name": "closeBountyModal",
+        "line": 3770,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "acceptParentBounty()",
+    "names": [
+      "acceptParentBounty"
+    ],
+    "templateLine": 3149,
+    "functions": [
+      {
+        "name": "acceptParentBounty",
+        "line": 12846,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "completeBountyDemo()",
+    "names": [
+      "completeBountyDemo"
+    ],
+    "templateLine": 3152,
+    "functions": [
+      {
+        "name": "completeBountyDemo",
+        "line": 12848,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeTaskDetailModal()",
+    "names": [
+      "closeTaskDetailModal"
+    ],
+    "templateLine": 3180,
+    "functions": [
+      {
+        "name": "closeTaskDetailModal",
+        "line": 7692,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeTaskDetailModal()",
+    "names": [
+      "closeTaskDetailModal"
+    ],
+    "templateLine": 3241,
+    "functions": [
+      {
+        "name": "closeTaskDetailModal",
+        "line": 7692,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeInquiryModal()",
+    "names": [
+      "closeInquiryModal"
+    ],
+    "templateLine": 3263,
+    "functions": [
+      {
+        "name": "closeInquiryModal",
+        "line": 11850,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "submitNewInquiry()",
+    "names": [
+      "submitNewInquiry"
+    ],
+    "templateLine": 3284,
+    "functions": [
+      {
+        "name": "submitNewInquiry",
+        "line": 11855,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "convertInquiryToPlan('同桌经常嘲笑别人，怎样坚持原则又不伤害友谊？', '《论语·卫灵公》“躬自厚而薄责于人”')",
+    "names": [
+      "convertInquiryToPlan"
+    ],
+    "templateLine": 3300,
+    "functions": [
+      {
+        "name": "convertInquiryToPlan",
+        "line": 12850,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "convertInquiryToPlan('做数学题很难想放弃，怎样克服懒惰和急躁？', '《传习录》“志不立，天下无可成之事”')",
+    "names": [
+      "convertInquiryToPlan"
+    ],
+    "templateLine": 3313,
+    "functions": [
+      {
+        "name": "convertInquiryToPlan",
+        "line": 12850,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "convertInquiryToPlan('羽毛球输掉积分赛特别生气，怎样平和面对输赢？', '《大学》“知止而后有定，定而后能静”')",
+    "names": [
+      "convertInquiryToPlan"
+    ],
+    "templateLine": 3326,
+    "functions": [
+      {
+        "name": "convertInquiryToPlan",
+        "line": 12850,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeInquiryModal()",
+    "names": [
+      "closeInquiryModal"
+    ],
+    "templateLine": 3341,
+    "functions": [
+      {
+        "name": "closeInquiryModal",
+        "line": 11850,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeRegisterAccidentalAchievementModal()",
+    "names": [
+      "closeRegisterAccidentalAchievementModal"
+    ],
+    "templateLine": 3363,
+    "functions": [
+      {
+        "name": "closeRegisterAccidentalAchievementModal",
+        "line": 9313,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "fillAccidentalSample('cook')",
+    "names": [
+      "fillAccidentalSample"
+    ],
+    "templateLine": 3369,
+    "functions": [
+      {
+        "name": "fillAccidentalSample",
+        "line": 9319,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "fillAccidentalSample('astro')",
+    "names": [
+      "fillAccidentalSample"
+    ],
+    "templateLine": 3370,
+    "functions": [
+      {
+        "name": "fillAccidentalSample",
+        "line": 9319,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "fillAccidentalSample('art')",
+    "names": [
+      "fillAccidentalSample"
+    ],
+    "templateLine": 3371,
+    "functions": [
+      {
+        "name": "fillAccidentalSample",
+        "line": 9319,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "change",
+    "code": "handleAccidentalImageUpload(this)",
+    "names": [
+      "handleAccidentalImageUpload"
+    ],
+    "templateLine": 3405,
+    "functions": [
+      {
+        "name": "handleAccidentalImageUpload",
+        "line": 12809,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "document.getElementById('accidental-image-file').click()",
+    "names": [],
+    "templateLine": 3406,
+    "functions": []
+  },
+  {
+    "event": "click",
+    "code": "closeRegisterAccidentalAchievementModal()",
+    "names": [
+      "closeRegisterAccidentalAchievementModal"
+    ],
+    "templateLine": 3430,
+    "functions": [
+      {
+        "name": "closeRegisterAccidentalAchievementModal",
+        "line": 9313,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "submitRegisterAccidentalAchievement()",
+    "names": [
+      "submitRegisterAccidentalAchievement"
+    ],
+    "templateLine": 3431,
+    "functions": [
+      {
+        "name": "submitRegisterAccidentalAchievement",
+        "line": 12810,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeFamilyPactModal()",
+    "names": [
+      "closeFamilyPactModal"
+    ],
+    "templateLine": 3452,
+    "functions": [
+      {
+        "name": "closeFamilyPactModal",
+        "line": 7995,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "submitPactViolationAdjudication()",
+    "names": [
+      "submitPactViolationAdjudication"
+    ],
+    "templateLine": 3518,
+    "functions": [
+      {
+        "name": "submitPactViolationAdjudication",
+        "line": 12865,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "printFamilyPact()",
+    "names": [
+      "printFamilyPact"
+    ],
+    "templateLine": 3568,
+    "functions": [
+      {
+        "name": "printFamilyPact",
+        "line": 12878,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeFamilyPactModal()",
+    "names": [
+      "closeFamilyPactModal"
+    ],
+    "templateLine": 3569,
+    "functions": [
+      {
+        "name": "closeFamilyPactModal",
+        "line": 7995,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeDaxuePhilosophyModal()",
+    "names": [
+      "closeDaxuePhilosophyModal"
+    ],
+    "templateLine": 3592,
+    "functions": [
+      {
+        "name": "closeDaxuePhilosophyModal",
+        "line": 8013,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "locateDaxueItemFromModal('gewu')",
+    "names": [
+      "locateDaxueItemFromModal"
+    ],
+    "templateLine": 3661,
+    "functions": [
+      {
+        "name": "locateDaxueItemFromModal",
+        "line": 8022,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeDaxuePhilosophyModal()",
+    "names": [
+      "closeDaxuePhilosophyModal"
+    ],
+    "templateLine": 3662,
+    "functions": [
+      {
+        "name": "closeDaxuePhilosophyModal",
+        "line": 8013,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeDaxueItemDetailModal()",
+    "names": [
+      "closeDaxueItemDetailModal"
+    ],
+    "templateLine": 3684,
+    "functions": [
+      {
+        "name": "closeDaxueItemDetailModal",
+        "line": 8735,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeDaxueItemDetailModal()",
+    "names": [
+      "closeDaxueItemDetailModal"
+    ],
+    "templateLine": 3695,
+    "functions": [
+      {
+        "name": "closeDaxueItemDetailModal",
+        "line": 8735,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeAchievementDetailModal()",
+    "names": [
+      "closeAchievementDetailModal"
+    ],
+    "templateLine": 3716,
+    "functions": [
+      {
+        "name": "closeAchievementDetailModal",
+        "line": 9182,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "jumpFromAchieveToProjectWorkspace('review', '四维体检与复盘')",
+    "names": [
+      "jumpFromAchieveToProjectWorkspace"
+    ],
+    "templateLine": 3727,
+    "functions": [
+      {
+        "name": "jumpFromAchieveToProjectWorkspace",
+        "line": 12802,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "jumpFromAchieveToProjectWorkspace('note', '每日随记')",
+    "names": [
+      "jumpFromAchieveToProjectWorkspace"
+    ],
+    "templateLine": 3730,
+    "functions": [
+      {
+        "name": "jumpFromAchieveToProjectWorkspace",
+        "line": 12802,
+        "kind": "override"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "showIslandToast('🖨️ 成就结业荣誉证书已生成打印长卷！')",
+    "names": [
+      "showIslandToast"
+    ],
+    "templateLine": 3735,
+    "functions": [
+      {
+        "name": "showIslandToast",
+        "line": 1446,
+        "kind": "declaration"
+      }
+    ]
+  },
+  {
+    "event": "click",
+    "code": "closeAchievementDetailModal()",
+    "names": [
+      "closeAchievementDetailModal"
+    ],
+    "templateLine": 3736,
+    "functions": [
+      {
+        "name": "closeAchievementDetailModal",
+        "line": 9182,
+        "kind": "declaration"
+      }
+    ]
+  }
+]

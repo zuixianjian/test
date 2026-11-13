@@ -1,0 +1,16 @@
+{
+  "version": "1.1.0",
+  "checks": [
+    "standalone design runs the shared schema-3 engine",
+    "design labels prototype and fact boundaries",
+    "standalone project creation is a real domain operation",
+    "standalone design dispatches real ready tasks",
+    "design uses its independent persistent attachment adapter",
+    "standalone attachment stores the original Blob",
+    "fresh design has no invented personal inquiries",
+    "standalone task opened from planning is visible",
+    "standalone design persists real structured state"
+  ],
+  "screenshot": true,
+  "portrait": true
+}

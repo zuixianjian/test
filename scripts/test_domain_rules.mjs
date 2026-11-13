@@ -1,0 +1,60 @@
+import assert from 'node:assert/strict';
+import {domainNode,domainShift,domainValidDate,occurrenceDates,scheduleDomain,taskInstanceId,projectProgress,evaluateMetric,validateDomainExecution} from '../src/core/domain.mjs';
+
+const project={id:'project',pavilion:'study',startDate:'2026-11-13',endDate:'2026-11-19'};
+const node=config=>domainNode({id:'node',title:'实际规划',...config},project);
+assert.equal(domainShift('2026-12-31',1),'2027-01-01');
+assert.equal(domainValidDate('2026-02-30'),false);
+assert.deepEqual(occurrenceDates(node({frequency:'daily'}),project),['2026-11-13','2026-11-14','2026-11-15','2026-11-16','2026-11-17','2026-11-18','2026-11-19']);
+assert.deepEqual(occurrenceDates(node({frequency:'weekdays'}),project),['2026-11-13','2026-11-16','2026-11-17','2026-11-18','2026-11-19']);
+assert.deepEqual(occurrenceDates(node({frequency:'weekly'}),{...project,endDate:'2026-11-27'}),['2026-11-13','2026-11-20','2026-11-27']);
+
+const daily=node({frequency:'daily',weight:3}),once=node({id:'once',weight:1}),text=node({archetype:'text',isCheckinNode:true});
+assert.equal(text.isCheckinNode,false);
+const record=(nodeId,date,actual=date)=>({id:nodeId+'-'+date,nodeId,projectId:project.id,taskInstanceId:taskInstanceId(nodeId,date),scheduledDate:date,date:actual,validated:true});
+const records=[...occurrenceDates(daily,project).slice(0,4).map(date=>record(daily.id,date)),record(once.id,project.startDate)];
+assert.equal(projectProgress(project,[daily,once,text],records).progress,68);
+assert.equal(projectProgress(project,[daily,once],records).complete,false);
+assert.equal(projectProgress(project,[],[]).complete,false);
+assert.equal(projectProgress(project,[once],[{...record(once.id,project.startDate),validated:false}]).progress,0);
+
+const review=node({id:'review',archetype:'review',dependencies:[once.id]});
+let state={projects:[project],nodesByProject:{[project.id]:[once,review,text]},records:[],bounties:[]};
+assert.equal(scheduleDomain(state,'2026-11-14').find(t=>t.nodeId===review.id).status,'blocked');
+state.records=[record(once.id,'2026-11-13','2026-11-14')];
+assert.equal(scheduleDomain(state,'2026-11-14').find(t=>t.nodeId===once.id).status,'completed');
+assert.equal(scheduleDomain(state,'2026-11-14').find(t=>t.nodeId===review.id).status,'overdue');
+assert.equal(projectProgress(project,[once],state.records).progress,100);
+assert.ok(!scheduleDomain(state).some(t=>t.nodeId===text.id));
+assert.equal(scheduleDomain({...state,projects:[{...project,isArchived:true}]}).length,0);
+const dailyReview=node({id:'daily-review',archetype:'review',frequency:'daily',dependencies:[daily.id]});
+const recurring=scheduleDomain({...state,nodesByProject:{[project.id]:[daily,dailyReview]},records:[record(daily.id,'2026-11-13','2026-11-14')]},'2026-11-14');
+assert.equal(recurring.find(t=>t.nodeId===dailyReview.id&&t.date==='2026-11-13').status,'overdue');
+assert.equal(recurring.find(t=>t.nodeId===dailyReview.id&&t.date==='2026-11-14').status,'blocked');
+
+for(const [target,actual,passed] of [['≥98%',99,true],['≥98%',95,false],['<=5',6,false],['>2',2,false],['<2',1,true],['3',3,true],['=3',4,false],['≥98%','',false]])assert.equal(evaluateMetric(target,actual).passed,passed);
+assert.equal(evaluateMetric('熟练演奏','已当面核验',false).passed,false);
+assert.equal(evaluateMetric('熟练演奏','已当面核验',true).passed,true);
+assert.equal(evaluateMetric('熟练演奏','',true).passed,false);
+const drill=node({duration:20,evidenceType:'photo'});
+assert.equal(validateDomainExecution(drill,{focusSeconds:1199,media:[{path:'actual.jpg',type:'image'}]}).valid,false);
+assert.equal(validateDomainExecution(drill,{focusSeconds:1200,reflection:'足够的文字也不能替代指定原件的验收规则'}).valid,false);
+assert.equal(validateDomainExecution(drill,{focusSeconds:Infinity,media:[{path:'actual.jpg',type:'image'}]}).valid,false);
+assert.equal(validateDomainExecution(drill,{focusSeconds:1200,media:[{path:'actual.jpg',type:'image'}]}).valid,true);
+assert.equal(validateDomainExecution(node({archetype:'goal',evidenceType:'text'}),{reflection:'即使有足够文字，也必须先维护目标的可核验指标。'}).valid,false);
+const habit=node({archetype:'habit',evidenceType:'none',checklistItems:[{id:'required',title:'必需',required:true}]});
+assert.equal(validateDomainExecution(habit,{checklistResults:{required:false}}).valid,false);
+assert.equal(validateDomainExecution(habit,{checklistResults:{required:true}}).valid,true);
+const custom=node({archetype:'custom',evidenceType:'none',fields:[{key:'actual',label:'实际量',type:'number',required:true},{key:'confirmed',type:'boolean',required:true}]});
+assert.equal(validateDomainExecution(custom,{customFieldValues:{actual:'abc',confirmed:false}}).valid,false);
+assert.equal(validateDomainExecution(custom,{customFieldValues:{actual:0,confirmed:false}}).valid,true);
+assert.equal(validateDomainExecution(node({archetype:'review',evidenceType:'none'}),{reflection:'分析了真实错因，并给出具体改善方向和下一步做法',improvementList:[]}).valid,false);
+
+const accepted={id:'bounty',title:'挑战',status:'accepted',acceptedDate:'2026-11-13',endDate:'2026-11-19'};
+const pending=scheduleDomain({...state,bounties:[accepted]},'2026-11-14').find(t=>t.bountyId);
+const redeemed=scheduleDomain({...state,records:[{id:'bounty-record',bountyId:accepted.id,validated:true,date:'2026-11-15'}],bounties:[{...accepted,status:'redeemed',verifiedDate:'2026-11-15'}]},'2026-11-15').find(t=>t.bountyId);
+assert.equal(pending.id,redeemed.id);
+assert.equal(pending.date,'2026-11-19');
+assert.equal(redeemed.date,'2026-11-15');
+assert.equal(scheduleDomain({...state,bounties:[{...accepted,status:'redeemed'}]}).some(t=>t.bountyId),false);
+console.log('PASS: recurrence, weighted nodes, late completion, per-day dependencies, evidence validation, actual metrics and independent bounty dates');
