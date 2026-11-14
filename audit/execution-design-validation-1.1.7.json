@@ -1,0 +1,30 @@
+{
+  "version": "1.1.7",
+  "suite": "execution",
+  "checks": [
+    "actual ItemView displays and exposes a hit-testable card for an explicitly scheduled task today",
+    "new task in an existing project defaults to today and appears on home: {\"plannedDate\":\"2026-11-14\",\"today\":\"2026-11-14\",\"cards\":[\"home-explicit\",\"home-new\"]}",
+    "home keeps unfinished past occurrences in its real execution queue",
+    "blocked tasks stay visible with their actual prerequisite explanation",
+    "future tasks, information-only nodes and notes do not become executable today",
+    "backlog visibility changes neither old planned dates nor today fulfillment denominator",
+    "home summary distinguishes pending, overdue and blocked counts",
+    "blocked card opens its real source planning node without bypassing execution prerequisites",
+    "real backlog button opens the correct occurrence and usable execution form",
+    "late delivery records the real submission day and original planned day",
+    "completion removes an old backlog occurrence and unlocks its dependent card immediately",
+    "completed occurrence today remains visible as a real recorded result",
+    "returning to home rebuilds its queue and always keeps one active carousel card",
+    "resuming across midnight dispatches the new day and retains uncompleted old tasks",
+    "a completed past occurrence is not incorrectly carried into the next day",
+    "new nodes in future projects respect their project start date",
+    "new nodes in ended projects remain within their period and show as overdue",
+    "making up yesterday on a recurring node cannot mark today complete or hide its pending card",
+    "yesterday and today accept distinct real executions even when submitted on the same day",
+    "future-only queue explains the next scheduled date instead of reporting missing data",
+    "genuinely empty queue explains how to add an executable task",
+    "active execution card stays visible in a portrait tablet viewport"
+  ],
+  "screenshot": true,
+  "portrait": true
+}

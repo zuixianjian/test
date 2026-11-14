@@ -150,9 +150,8 @@ export class VaultStorageAdapter {
       if (snapshot) {
         if (!Array.isArray(snapshot.GANTT_PROJECTS) || !snapshot.USER_PROFILE_STATE) throw new Error("成长数据快照结构不完整，已暂停写入。");
         for (const key of STORES) if (Object.prototype.hasOwnProperty.call(snapshot, key)) restore(key, snapshot[key]);
-        // HTML is a view cache. Structured domain entities are loaded below.
-        const deck = document.getElementById("day-card-deck");
-        if (deck && typeof snapshot.dayCardDeckHtml === "string") deck.innerHTML = snapshot.dayCardDeckHtml;
+        // Execution cards and their empty state are rebuilt from structured entities.
+        // Older snapshots deliberately store an empty deck string; restoring it erases the empty state.
         win.currentTertiaryProjId = snapshot.currentTertiaryProjId || null;
         win.__restoredCanvasProjectId = win.currentTertiaryProjId;
       } else {

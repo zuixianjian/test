@@ -1,0 +1,8 @@
+.home-execution-summary { position:absolute; top:3px; left:50%; transform:translateX(-50%); z-index:25; max-width:94%; padding:5px 12px; border:1px solid #d6c5a5; border-radius:12px; background:#fffaf0ed; color:#725b3e; font-size:11px; font-weight:700; white-space:nowrap; pointer-events:none; }
+.home-execution-card .home-task-origin { color:#8a7963; font-size:11px; }
+.home-execution-card .home-task-blocked { padding:10px; border:1px solid #efcf9a; border-radius:9px; background:#fff4dd; color:#966222; font-size:12px; overflow-wrap:anywhere; }
+.home-execution-card .task-status-pill.blocked { color:#94601e; background:#fff1d4; border:1px solid #e6c78d; }
+#exec-carousel-dots:empty { display:none!important; }
+#day-deck-empty-placeholder { flex-direction:column; align-items:center; justify-content:center; gap:10px; text-align:center; padding:30px 20px; border:2px dashed #b8b68e; border-radius:24px; width:460px; max-width:90%; margin:auto; background:linear-gradient(135deg,#fffcf3f5,#fef3c7f0); color:#725b3e; }
+#day-deck-empty-placeholder h3 { margin:0; font-size:17px; }
+#day-deck-empty-placeholder p { margin:0; font-size:12px; line-height:1.6; }

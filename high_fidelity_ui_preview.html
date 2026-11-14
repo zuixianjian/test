@@ -12372,11 +12372,20 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 .domain-node-card.is-minimized .node-card-title-row { margin-top:-22px; padding-right:30px; }
 .domain-node-card.is-minimized .work-node-title { max-width:none; font-size:13px!important; }
 
+.home-execution-summary { position:absolute; top:3px; left:50%; transform:translateX(-50%); z-index:25; max-width:94%; padding:5px 12px; border:1px solid #d6c5a5; border-radius:12px; background:#fffaf0ed; color:#725b3e; font-size:11px; font-weight:700; white-space:nowrap; pointer-events:none; }
+.home-execution-card .home-task-origin { color:#8a7963; font-size:11px; }
+.home-execution-card .home-task-blocked { padding:10px; border:1px solid #efcf9a; border-radius:9px; background:#fff4dd; color:#966222; font-size:12px; overflow-wrap:anywhere; }
+.home-execution-card .task-status-pill.blocked { color:#94601e; background:#fff1d4; border:1px solid #e6c78d; }
+#exec-carousel-dots:empty { display:none!important; }
+#day-deck-empty-placeholder { flex-direction:column; align-items:center; justify-content:center; gap:10px; text-align:center; padding:30px 20px; border:2px dashed #b8b68e; border-radius:24px; width:460px; max-width:90%; margin:auto; background:linear-gradient(135deg,#fffcf3f5,#fef3c7f0); color:#725b3e; }
+#day-deck-empty-placeholder h3 { margin:0; font-size:17px; }
+#day-deck-empty-placeholder p { margin:0; font-size:12px; line-height:1.6; }
+
 /* PRODUCT_CSS_END */
 </style>
 </head>
 <body>
-<div class="global-header product-contract-banner" data-product-contract="3">1.1.6 闭环交互预览 · 按项目/节点/每日任务实例关联 · 本预览数据保存在当前浏览器，组件画板样例不计为实际执行</div>
+<div class="global-header product-contract-banner" data-product-contract="3">1.1.7 闭环交互预览 · 按项目/节点/每日任务实例关联 · 本预览数据保存在当前浏览器，组件画板样例不计为实际执行</div>
   <!-- 顶部主控导航栏 (设备控制与主模态切换) -->
   <header class="global-header">
     <div class="system-title-group">
@@ -27515,6 +27524,14 @@ function domainId(prefix='id') { return prefix+'-'+(globalThis.crypto?.randomUUI
 function domainDate(date=new Date()) { return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0'); }
 function domainShift(key,days) { const [y,m,d]=key.split('-').map(Number);return domainDate(new Date(y,m-1,d+days,12)); }
 function domainValidDate(key) { return /^\d{4}-\d{2}-\d{2}$/.test(key||'') && domainDate(new Date(key+'T12:00:00'))===key; }
+function domainDefaultNodeDate(project,today=domainDate()) {
+  return today<project.startDate?project.startDate:today>project.endDate?project.endDate:today;
+}
+function domainExecutionQueue(tasks,today=domainDate()) {
+  const rank={ready:0,overdue:1,blocked:2,completed:3};
+  return tasks.filter(t=>t.date===today||(t.date<today&&['overdue','blocked'].includes(t.status))||(t.bountyId&&t.status!=='completed'))
+    .sort((a,b)=>(rank[a.status]??4)-(rank[b.status]??4)||a.date.localeCompare(b.date)||a.id.localeCompare(b.id));
+}
 function domainType(value) { return String(value||'drill').replace(/^card-/,'').replace('reflection','review'); }
 function domainNode(config, project) {
   const type=domainType(config.nodeType||config.cardType||config.archetype);
@@ -27551,10 +27568,13 @@ function occurrenceDates(node,project,from=project.startDate,to=project.endDate)
   }return result;
 }
 function taskInstanceId(nodeId,date) { return nodeId+'@'+date; }
+function domainRecordMatchesOccurrence(record,nodeId,date) {
+  return record.nodeId===nodeId&&(record.taskInstanceId?record.taskInstanceId===taskInstanceId(nodeId,date):(record.scheduledDate||record.date)===date);
+}
 function projectProgress(project,nodes,records) {
   const required=nodes.filter(n=>n.isCheckinNode&&n.status!=='archived');
   let weight=0,fulfilled=0,completedNodesCount=0,totalInstances=0,completedInstances=0;
-  for(const node of required){const dates=occurrenceDates(node,project);const done=dates.filter(date=>records.some(r=>r.projectId===project.id&&r.nodeId===node.id&&(r.taskInstanceId===taskInstanceId(node.id,date)||r.date===date)&&r.validated===true)).length;
+  for(const node of required){const dates=occurrenceDates(node,project);const done=dates.filter(date=>records.some(r=>r.projectId===project.id&&domainRecordMatchesOccurrence(r,node.id,date)&&r.validated===true)).length;
     const w=node.weight||1;weight+=w;fulfilled+=w*(dates.length?done/dates.length:0);totalInstances+=dates.length;completedInstances+=done;
     if(dates.length&&done===dates.length)completedNodesCount++;
   }
@@ -27567,7 +27587,7 @@ function scheduleDomain(state,today=domainDate()) {
     const nodes=state.nodesByProject?.[project.id]||[];
     for(const node of nodes){if(!node.isCheckinNode||node.status==='archived')continue;
       for(const date of occurrenceDates(node,project)){
-        const record=records.find(r=>r.nodeId===node.id&&r.projectId===project.id&&(r.taskInstanceId===taskInstanceId(node.id,date)||r.date===date)&&r.validated===true);
+        const record=records.find(r=>r.projectId===project.id&&domainRecordMatchesOccurrence(r,node.id,date)&&r.validated===true);
         const blocked=node.dependencies.some(id=>{const dep=nodes.find(n=>n.id===id);if(!dep)return true;
           return !records.some(r=>r.nodeId===id&&r.projectId===project.id&&r.validated===true&&(dep.frequency==='once'||(r.scheduledDate||r.date)===date));});
         result.push({id:taskInstanceId(node.id,date),nodeId:node.id,projectId:project.id,pavilionId:project.pavilion,title:node.title,date,nodeType:node.nodeType,
@@ -28309,7 +28329,7 @@ function editDomainList(id,key){const node=getDomainNode(id);const list=node.car
   const rows=modal.querySelector('#domain-list-rows');const add=item=>{const row=document.createElement('div');row.className='domain-list-row';row.dataset.id=item.id||domainId('item');row.dataset.key=item.key||domainId('field');row.innerHTML='<input class="domain-item-label" placeholder="'+(key==='metrics'?'指标名称':key==='customFieldsSchema'?'填报项目名称':'具体行动')+'">'+(key==='metrics'?'<input class="domain-item-target" placeholder="例如 ≥98% 或文字验收标准">':'')+(key==='customFieldsSchema'?'<select class="domain-item-type"><option value="text">文字</option><option value="number">数字</option><option value="boolean">是/否</option><option value="date">日期</option></select><label><input class="domain-item-required" type="checkbox" checked>必填</label>':'')+'<button class="ui-btn">移除</button>';row.querySelector('.domain-item-label').value=item.name||item.title||item.actionItem||item.label||'';if(key==='metrics')row.querySelector('.domain-item-target').value=item.targetValue||'';if(key==='customFieldsSchema'){row.querySelector('select').value=item.type||'text';row.querySelector('input[type=checkbox]').checked=item.required!==false;}row.querySelector('button').onclick=()=>row.remove();rows.appendChild(row);};(list.length?list:[{}]).forEach(add);modal.querySelector('#domain-list-add').onclick=()=>add({});modal.querySelector('#domain-list-save').onclick=()=>{const parsed=Array.from(rows.children).map(row=>{const label=row.querySelector('.domain-item-label').value.trim(),id=row.dataset.id;if(!label)return null;if(key==='metrics')return {id,name:label,targetValue:row.querySelector('.domain-item-target').value.trim()};if(key==='customFieldsSchema')return {key:row.dataset.key,label,type:row.querySelector('select').value,required:row.querySelector('input[type=checkbox]').checked};const existing=list.find(x=>x.id===id);return key==='checklist'?{id,title:label,required:true}:{...existing,id,actionItem:label,isChecked:true};}).filter(Boolean);if(!parsed.length){modal.querySelector('#domain-list-error').textContent='请至少填写一项';return;}recordDomainHistory();node.cardPayload[key]=parsed;renderDomainCanvas(node.projectId);saveCurrentProjectCanvasSnapshot();refreshDomainProjections();modal.remove();notifyIslandStateChanged();};
 }
 function openDomainEditor(title,text,onSave){document.getElementById('domain-editor')?.remove();const modal=document.createElement('div');modal.id='domain-editor';modal.className='domain-modal';modal.innerHTML='<div class="note-card-box"><h3>'+escapeIslandText(title)+'</h3><textarea id="domain-editor-text" style="width:100%;min-height:240px;"></textarea><div id="domain-editor-error" role="alert"></div><button class="ui-btn primary" id="domain-editor-save">保存</button><button class="ui-btn" onclick="document.getElementById(\'domain-editor\').remove()">取消</button></div>';document.querySelector('.youth-island-plugin-root')?.appendChild(modal)||document.body.appendChild(modal);modal.querySelector('textarea').value=text;modal.querySelector('#domain-editor-save').onclick=()=>{try{onSave(modal.querySelector('textarea').value);modal.remove();notifyIslandStateChanged();}catch(error){modal.querySelector('#domain-editor-error').textContent=error.message;}};}
-createTertiaryCustomPlanningCard=function(config){const state=getDomainState(),project=state.projects.find(p=>p.id===window.currentTertiaryProjId);if(!project){showIslandToast('请先选择项目再新增节点');return null;}recordDomainHistory();const nodes=state.nodesByProject[project.id]||(state.nodesByProject[project.id]=[]);const node=domainNode(config,project);node.canvasPosition=config.canvasPosition||{x:80+(nodes.length%3)*400,y:90+Math.floor(nodes.length/3)*440};nodes.push(node);renderDomainCanvas(project.id);saveCurrentProjectCanvasSnapshot();refreshDomainProjections();domainEvent('node.created',node.id,'新增规划节点《'+node.title+'》',{projectId:project.id});return document.getElementById(node.id);};
+createTertiaryCustomPlanningCard=function(config){const state=getDomainState(),project=state.projects.find(p=>p.id===window.currentTertiaryProjId);if(!project){showIslandToast('请先选择项目再新增节点');return null;}recordDomainHistory();const nodes=state.nodesByProject[project.id]||(state.nodesByProject[project.id]=[]);const node=domainNode({...config,plannedDate:config.plannedDate||domainDefaultNodeDate(project)},project);node.canvasPosition=config.canvasPosition||{x:80+(nodes.length%3)*400,y:90+Math.floor(nodes.length/3)*440};nodes.push(node);renderDomainCanvas(project.id);saveCurrentProjectCanvasSnapshot();refreshDomainProjections();domainEvent('node.created',node.id,'新增规划节点《'+node.title+'》',{projectId:project.id});return document.getElementById(node.id);};
 buildStarterCanvasForProject=function(project){const a=domainNode({id:'projnode-'+project.id+'-1',archetype:'goal',title:project.title+' · 阶段验收',isCheckinNode:false,evidenceType:'text'},project),b=domainNode({id:'projnode-'+project.id+'-2',archetype:'drill',title:project.title+' · 实训',duration:20,evidenceType:'photo'},project),c=domainNode({id:'projnode-'+project.id+'-3',archetype:'review',title:project.title+' · 复盘',dependencies:[b.id],evidenceType:'text'},project);a.canvasPosition={x:80,y:90};b.canvasPosition={x:480,y:90};c.canvasPosition={x:880,y:90};return {nodes:[a,b,c],edges:[{id:domainId('edge'),sourceId:b.id,targetId:c.id,label:'前置完成',type:'前置'}],cardsHtml:''};};
 handleTertiaryDeleteNode=function(){const world=document.getElementById('tertiary-canvas-world'),target=world?.querySelector('.tertiary-card.is-selected');if(!target){showIslandToast('请先选择节点');return;}const state=getDomainState(),node=getDomainNode(target.id);if(!node)return;if(node.groupId&&node.groupRoot!==node.id){showIslandToast('请选择主节点操作整组');return;}recordDomainHistory();const nodes=state.nodesByProject[node.projectId],ids=new Set(nodes.filter(n=>n.id===node.id||(node.groupId&&n.groupId===node.groupId)).map(n=>n.id));state.nodesByProject[node.projectId]=nodes.filter(n=>!ids.has(n.id));for(const n of state.nodesByProject[node.projectId])n.dependencies=n.dependencies.filter(id=>!ids.has(id));window.PROJECT_CANVAS_STORE[node.projectId].edges=(window.TERTIARY_EDGES||[]).filter(e=>!ids.has(e.sourceId)&&!ids.has(e.targetId));renderDomainCanvas(node.projectId);saveCurrentProjectCanvasSnapshot();refreshDomainProjections();notifyIslandStateChanged();};
 
@@ -28323,7 +28343,7 @@ toggleProjectArchive=function(id){const project=getDomainState().projects.find(p
 function domainTasks(){const state=getDomainState();state.instances=scheduleDomain(state);return state.instances;}
 function domainTodayTasks(tasks=domainTasks(),today=domainDate()){return tasks.filter(t=>t.date===today||(t.bountyId&&t.status!=='completed'));}
 function resolveDomainTask(key){const state=getDomainState();return domainTasks().find(t=>t.id===key||t.id===state.taskAliases[key]||t.nodeId===key||('bounty-'+t.bountyId)===key)||null;}
-syncNewNodeToHomeExecution=function(cfg){if(!cfg?.id)return;const state=getDomainState();let node=getDomainNode(cfg.sourceNodeId||cfg.id),project=state.projects.find(p=>p.id===(cfg.projectId||window.currentTertiaryProjId));if(!node&&project&&!cfg.id.startsWith('bounty-')){node=domainNode({id:cfg.id,title:cfg.title,description:cfg.desc,archetype:cfg.nodeType||'drill',duration:cfg.duration||0,evidenceType:cfg.evidenceType||'text',dependencies:cfg.dependencies||[]},project);state.nodesByProject[project.id].push(node);}if(node)state.taskAliases[cfg.id]=taskInstanceId(node.id,domainDate());refreshDomainProjections();notifyIslandStateChanged();};
+syncNewNodeToHomeExecution=function(cfg){if(!cfg?.id)return;const state=getDomainState();let node=getDomainNode(cfg.sourceNodeId||cfg.id),project=state.projects.find(p=>p.id===(cfg.projectId||window.currentTertiaryProjId));if(!node&&project&&!cfg.id.startsWith('bounty-')){node=domainNode({id:cfg.id,title:cfg.title,description:cfg.desc,archetype:cfg.nodeType||'drill',plannedDate:cfg.plannedDate||domainDefaultNodeDate(project),duration:cfg.duration||0,evidenceType:cfg.evidenceType||'text',dependencies:cfg.dependencies||[]},project);state.nodesByProject[project.id].push(node);}if(node)state.taskAliases[cfg.id]=taskInstanceId(node.id,domainDate());refreshDomainProjections();notifyIslandStateChanged();};
 function taskForCalendar(task){
   const state=getDomainState(),record=state.records.find(r=>r.id===task.recordId),node=getDomainNode(task.nodeId),meta=PAVILION_META[task.pavilionId]||{name:task.pavilionId,icon:'🎯'};
   const status={blocked:'前置未完成',ready:'就绪',scheduled:'未到期',completed:'已完成',overdue:'逾期'}[task.status];
@@ -28334,22 +28354,8 @@ syncWeekBoardToRealDate=function(){const monday=calMondayOf(new Date());for(let 
 function refreshDomainProjections(){
   if(renderingDomain)return;renderingDomain=true;
   try{
-    const today=ensureBusinessDate(),tasks=domainTasks(),deck=document.getElementById('day-card-deck');
-    if(deck){
-      deck.querySelectorAll('.exec-task-card').forEach(card=>card.remove());
-      for(const task of domainTodayTasks(tasks,today).filter(t=>['ready','completed','overdue'].includes(t.status))){
-        const card=document.createElement('div');card.id='exec-sync-'+task.id;card.className='exec-task-card tertiary-drill-card';
-        Object.assign(card.dataset,{taskId:task.id,taskInstanceId:task.id,nodeId:task.nodeId||'',projectId:task.projectId||'',pavilion:task.pavilionId,label:task.title,checkinType:task.nodeType});
-        card.setAttribute('onclick','handleTaskCardClick(event,this.dataset.checkinType)');
-        card.innerHTML='<div class="work-node-card-header"><span class="work-node-badge">'+escapeIslandText(PAVILION_META[task.pavilionId]?.name||'悬赏')+'</span><span class="work-node-title">'+escapeIslandText(task.title)+'</span><span class="task-status-pill '+(task.status==='completed'?'completed':'pending')+'">'+({completed:'✓ 今日已完成',overdue:'逾期待执行',ready:'待执行'}[task.status])+'</span></div><div class="work-node-body"><p>'+escapeIslandText(getDomainNode(task.nodeId)?.cardPayload.description||'按契约执行并提交真实物证')+'</p><button class="card-graphic-pill" onclick="event.stopPropagation();openDomainTask(\''+task.id+'\')">打开任务</button></div>';
-        deck.appendChild(card);
-      }
-      const empty=document.getElementById('day-deck-empty-placeholder');if(empty)empty.style.display=deck.querySelector('.exec-task-card')?'none':'flex';
-      currentDayCardIndex=Math.min(currentDayCardIndex,Math.max(0,deck.querySelectorAll('.exec-task-card').length-1));
-      const dots=document.getElementById('exec-carousel-dots');
-      if(dots)dots.innerHTML=Array.from(deck.querySelectorAll('.exec-task-card'),(_,i)=>'<button class="pagination-dot-pill" aria-label="第'+(i+1)+'项任务" onclick="currentDayCardIndex='+i+';updateDayCarousel()"></button>').join('');
-      updateDayCarousel();
-    }
+    const today=ensureBusinessDate(),tasks=domainTasks();
+    renderHomeExecutionQueue(tasks,today);
     syncWeekBoardToRealDate();renderWeekBoard(window.currentWeekFilter||'all');renderMonthCalendar();renderHomeSemesterGoalsBanner();recalcAndRenderGlobalHUD();
   }finally{renderingDomain=false;}
 }
@@ -28669,6 +28675,58 @@ function renderPlanningNodeCard(node){
   body+=planningCardSettings(node);
   return '<article class="a-my-island-work-node-card tertiary-card tertiary-'+legacy+'-card domain-node-card" id="'+escapeIslandText(node.id)+'" data-domain-node="true" data-node-type="'+type+'" data-label="'+escapeIslandText(node.title)+'" data-group-id="'+escapeIslandText(node.groupId||'')+'" data-group-root="'+escapeIslandText(node.groupRoot||'')+'" style="position:absolute;left:'+Number(node.canvasPosition.x)+'px;top:'+Number(node.canvasPosition.y)+'px;width:340px;"><header class="work-node-card-header" ondblclick="'+planningCardAction('toggleTertiaryCardMinimize('+JSON.stringify(node.id)+',event)')+'" title="拖动标题栏移动；双击折叠或展开"><div class="node-card-kicker"><span class="work-node-badge">'+meta[0]+' '+meta[1]+'</span><span class="node-card-status" id="status-text-'+escapeIslandText(node.id)+'">'+status+'</span><button type="button" class="node-card-collapse-toggle" aria-label="折叠或展开节点" onclick="'+planningCardAction('toggleTertiaryCardMinimize('+JSON.stringify(node.id)+',event)')+'">⌃</button></div><div class="node-card-title-row"><span class="work-node-title">'+escapeIslandText(node.title)+'</span><button type="button" class="node-title-edit" aria-label="编辑节点名称" onclick="'+planningCardAction('editPlanningCardTitle('+JSON.stringify(node.id)+',event)')+'">✎</button></div><p class="node-card-subtitle">'+meta[2]+'</p></header><div class="work-node-body domain-planning-body">'+body+'</div><footer class="node-card-footer">'+footer+'</footer><button type="button" class="work-card-connect-handle" data-card-id="'+escapeIslandText(node.id)+'" aria-label="从此节点连接路线" title="拖向目标节点，或点击选择连线起点" onclick="startOrFinishConnecting(this.dataset.cardId,event)">🔗</button></article>';
 }
+
+// The execution queue includes unfinished past occurrences without changing today's metrics.
+let homeExecutionDate=null;
+function renderHomeExecutionQueue(tasks,today){
+  const deck=document.getElementById('day-card-deck');if(!deck)return;
+  const activeId=deck.querySelector('.card-active')?.dataset.taskInstanceId;
+  const queue=domainExecutionQueue(tasks,today),state=getDomainState();
+  deck.querySelectorAll('.exec-task-card').forEach(card=>card.remove());
+  for(const task of queue){
+    const node=getDomainNode(task.nodeId),project=state.projects.find(p=>p.id===task.projectId),blocked=task.status==='blocked';
+    const card=document.createElement('div');card.id='exec-sync-'+task.id;card.className='exec-task-card tertiary-drill-card home-execution-card';
+    Object.assign(card.dataset,{taskId:task.id,taskInstanceId:task.id,nodeId:task.nodeId||'',projectId:task.projectId||'',pavilion:task.pavilionId,label:task.title,checkinType:task.nodeType,taskStatus:task.status});
+    card.setAttribute('onclick','handleTaskCardClick(event,this.dataset.checkinType)');
+    const status={ready:'待执行',overdue:'逾期待执行',blocked:task.date<today?'待前置 · 已逾期':'待前置完成',completed:'✓ 今日已完成'}[task.status]||'未到期';
+    const dependencies=(node?.dependencies||[]).map(id=>getDomainNode(id)?.title||'缺失的前置节点').join('、');
+    const action=blocked?'event.stopPropagation();jumpToDomainSource('+JSON.stringify(task.projectId)+','+JSON.stringify(task.nodeId)+')':'event.stopPropagation();openDomainTask('+JSON.stringify(task.id)+')';
+    card.innerHTML='<div class="work-node-card-header"><span class="work-node-badge">'+escapeIslandText(PAVILION_META[task.pavilionId]?.name||'悬赏')+'</span><span class="work-node-title">'+escapeIslandText(task.title)+'</span><span class="task-status-pill '+(blocked?'blocked':task.status==='completed'?'completed':'pending')+'">'+status+'</span></div><div class="work-node-body"><p class="home-task-origin">'+escapeIslandText(project?.title||'亲子契约')+' · 计划 '+escapeIslandText(task.date)+'</p><p>'+escapeIslandText(node?.cardPayload.description||'按规划要求执行并提交真实内容')+'</p>'+(blocked?'<p class="home-task-blocked">请先完成：'+escapeIslandText(dependencies||'规划中的前置要求')+'</p>':'')+'<button type="button" class="card-graphic-pill" onclick="'+escapeIslandText(action)+'">'+(blocked?'查看前置规划':task.status==='completed'?'查看执行记录':'打开任务')+'</button></div>';
+    deck.appendChild(card);
+  }
+  let empty=document.getElementById('day-deck-empty-placeholder');
+  if(!empty){
+    empty=document.createElement('div');empty.id='day-deck-empty-placeholder';empty.className='exec-card-empty-placeholder';
+    empty.innerHTML='<span aria-hidden="true">🏝️</span><h3></h3><p></p><button type="button" class="card-graphic-pill" onclick="switchHomeGlobalView(\'plan\')">🧭 前往规划新课题</button>';deck.prepend(empty);
+  }
+  if(empty){
+    empty.style.display=queue.length?'none':'flex';
+    const future=tasks.filter(t=>t.date>today).sort((a,b)=>a.date.localeCompare(b.date))[0];
+    const title=empty.querySelector('h3'),text=empty.querySelector('p');
+    if(title)title.textContent=future?'任务尚未到计划日期':'今日暂无待执行任务';
+    if(text)text.textContent=future?'下一项计划：'+future.date+' · '+future.title+'。可在规划中调整计划日期。':'可在规划视图新增实训、习惯、复盘或自定义任务，并勾选“加入执行任务”。目标里程碑和文本便签默认不进入执行队列。';
+  }
+  let summary=document.getElementById('home-execution-summary');
+  if(!summary){summary=document.createElement('div');summary.id='home-execution-summary';summary.className='home-execution-summary';summary.setAttribute('aria-live','polite');document.getElementById('exec-subview-day')?.prepend(summary);}
+  const counts=key=>queue.filter(t=>t.status===key).length;
+  summary.textContent='待执行 '+counts('ready')+' · 逾期 '+counts('overdue')+' · 待前置 '+counts('blocked')+' · 今日已完成 '+counts('completed');
+  const activeIndex=queue.findIndex(t=>t.id===activeId);
+  currentDayCardIndex=activeIndex>=0?activeIndex:Math.max(0,Math.min(currentDayCardIndex,queue.length-1));
+  const dots=document.getElementById('exec-carousel-dots');
+  if(dots)dots.innerHTML=queue.map((t,i)=>'<button type="button" class="pagination-dot-pill" aria-label="'+escapeIslandText('第'+(i+1)+'项：'+t.title)+'" onclick="goToDayCard('+i+')">'+(i+1)+'</button>').join('');
+  updateDayCarousel();homeExecutionDate=today;
+}
+const homeQueueSwitch=switchHomeGlobalView,homeQueueSubview=switchExecSubView;
+switchHomeGlobalView=function(mode){homeQueueSwitch(mode);if(currentGlobalView==='exec')refreshDomainProjections();};
+switchExecSubView=function(view){homeQueueSubview(view);if(view==='day')refreshDomainProjections();};
+function refreshHomeExecutionDate(){
+  if(document.visibilityState==='hidden'||homeExecutionDate===domainDate())return;
+  refreshDomainProjections();notifyIslandStateChanged();
+}
+window.addEventListener('focus',refreshHomeExecutionDate);
+window.addEventListener('pageshow',refreshHomeExecutionDate);
+window.addEventListener('visibilitychange',refreshHomeExecutionDate,true);
+setInterval(refreshHomeExecutionDate,30000);
 
 // One gesture/viewport implementation for the planning sandbox and project canvas.
 function canvasLocalPoint(stage,clientX,clientY){const r=stage.getBoundingClientRect();return {x:(clientX-r.left)*stage.clientWidth/(r.width||1),y:(clientY-r.top)*stage.clientHeight/(r.height||1)};}

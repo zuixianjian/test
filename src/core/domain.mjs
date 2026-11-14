@@ -3,6 +3,14 @@ export function domainId(prefix='id') { return prefix+'-'+(globalThis.crypto?.ra
 export function domainDate(date=new Date()) { return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0'); }
 export function domainShift(key,days) { const [y,m,d]=key.split('-').map(Number);return domainDate(new Date(y,m-1,d+days,12)); }
 export function domainValidDate(key) { return /^\d{4}-\d{2}-\d{2}$/.test(key||'') && domainDate(new Date(key+'T12:00:00'))===key; }
+export function domainDefaultNodeDate(project,today=domainDate()) {
+  return today<project.startDate?project.startDate:today>project.endDate?project.endDate:today;
+}
+export function domainExecutionQueue(tasks,today=domainDate()) {
+  const rank={ready:0,overdue:1,blocked:2,completed:3};
+  return tasks.filter(t=>t.date===today||(t.date<today&&['overdue','blocked'].includes(t.status))||(t.bountyId&&t.status!=='completed'))
+    .sort((a,b)=>(rank[a.status]??4)-(rank[b.status]??4)||a.date.localeCompare(b.date)||a.id.localeCompare(b.id));
+}
 export function domainType(value) { return String(value||'drill').replace(/^card-/,'').replace('reflection','review'); }
 export function domainNode(config, project) {
   const type=domainType(config.nodeType||config.cardType||config.archetype);
@@ -39,10 +47,13 @@ export function occurrenceDates(node,project,from=project.startDate,to=project.e
   }return result;
 }
 export function taskInstanceId(nodeId,date) { return nodeId+'@'+date; }
+export function domainRecordMatchesOccurrence(record,nodeId,date) {
+  return record.nodeId===nodeId&&(record.taskInstanceId?record.taskInstanceId===taskInstanceId(nodeId,date):(record.scheduledDate||record.date)===date);
+}
 export function projectProgress(project,nodes,records) {
   const required=nodes.filter(n=>n.isCheckinNode&&n.status!=='archived');
   let weight=0,fulfilled=0,completedNodesCount=0,totalInstances=0,completedInstances=0;
-  for(const node of required){const dates=occurrenceDates(node,project);const done=dates.filter(date=>records.some(r=>r.projectId===project.id&&r.nodeId===node.id&&(r.taskInstanceId===taskInstanceId(node.id,date)||r.date===date)&&r.validated===true)).length;
+  for(const node of required){const dates=occurrenceDates(node,project);const done=dates.filter(date=>records.some(r=>r.projectId===project.id&&domainRecordMatchesOccurrence(r,node.id,date)&&r.validated===true)).length;
     const w=node.weight||1;weight+=w;fulfilled+=w*(dates.length?done/dates.length:0);totalInstances+=dates.length;completedInstances+=done;
     if(dates.length&&done===dates.length)completedNodesCount++;
   }
@@ -55,7 +66,7 @@ export function scheduleDomain(state,today=domainDate()) {
     const nodes=state.nodesByProject?.[project.id]||[];
     for(const node of nodes){if(!node.isCheckinNode||node.status==='archived')continue;
       for(const date of occurrenceDates(node,project)){
-        const record=records.find(r=>r.nodeId===node.id&&r.projectId===project.id&&(r.taskInstanceId===taskInstanceId(node.id,date)||r.date===date)&&r.validated===true);
+        const record=records.find(r=>r.projectId===project.id&&domainRecordMatchesOccurrence(r,node.id,date)&&r.validated===true);
         const blocked=node.dependencies.some(id=>{const dep=nodes.find(n=>n.id===id);if(!dep)return true;
           return !records.some(r=>r.nodeId===id&&r.projectId===project.id&&r.validated===true&&(dep.frequency==='once'||(r.scheduledDate||r.date)===date));});
         result.push({id:taskInstanceId(node.id,date),nodeId:node.id,projectId:project.id,pavilionId:project.pavilion,title:node.title,date,nodeType:node.nodeType,

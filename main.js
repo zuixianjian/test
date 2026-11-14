@@ -293,9 +293,6 @@ var VaultStorageAdapter = class {
         for (const key of STORES)
           if (Object.prototype.hasOwnProperty.call(snapshot, key))
             restore(key, snapshot[key]);
-        const deck = document.getElementById("day-card-deck");
-        if (deck && typeof snapshot.dayCardDeckHtml === "string")
-          deck.innerHTML = snapshot.dayCardDeckHtml;
         win.currentTertiaryProjId = snapshot.currentTertiaryProjId || null;
         win.__restoredCanvasProjectId = win.currentTertiaryProjId;
       } else {
@@ -666,7 +663,7 @@ ${(n.cardPayload?.metrics || []).map((m) => `${m.name}: ${m.targetValue}`).join(
 var import_obsidian2 = require("obsidian");
 
 // src/ui/template.ts
-var ISLAND_UI_HTML = `<div class="global-header product-contract-banner" data-product-contract="3">1.1.6 \u95ED\u73AF\u4EA4\u4E92\u9884\u89C8 \xB7 \u6309\u9879\u76EE/\u8282\u70B9/\u6BCF\u65E5\u4EFB\u52A1\u5B9E\u4F8B\u5173\u8054 \xB7 \u672C\u9884\u89C8\u6570\u636E\u4FDD\u5B58\u5728\u5F53\u524D\u6D4F\u89C8\u5668\uFF0C\u7EC4\u4EF6\u753B\u677F\u6837\u4F8B\u4E0D\u8BA1\u4E3A\u5B9E\u9645\u6267\u884C</div>
+var ISLAND_UI_HTML = `<div class="global-header product-contract-banner" data-product-contract="3">1.1.7 \u95ED\u73AF\u4EA4\u4E92\u9884\u89C8 \xB7 \u6309\u9879\u76EE/\u8282\u70B9/\u6BCF\u65E5\u4EFB\u52A1\u5B9E\u4F8B\u5173\u8054 \xB7 \u672C\u9884\u89C8\u6570\u636E\u4FDD\u5B58\u5728\u5F53\u524D\u6D4F\u89C8\u5668\uFF0C\u7EC4\u4EF6\u753B\u677F\u6837\u4F8B\u4E0D\u8BA1\u4E3A\u5B9E\u9645\u6267\u884C</div>
   <!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5907\u63A7\u5236\u4E0E\u4E3B\u6A21\u6001\u5207\u6362) -->
   <header class="global-header">
     <div class="system-title-group">
@@ -14906,6 +14903,13 @@ function bootPrototypeRuntime() {
   function domainValidDate(key) {
     return /^\d{4}-\d{2}-\d{2}$/.test(key || "") && domainDate(/* @__PURE__ */ new Date(key + "T12:00:00")) === key;
   }
+  function domainDefaultNodeDate(project, today = domainDate()) {
+    return today < project.startDate ? project.startDate : today > project.endDate ? project.endDate : today;
+  }
+  function domainExecutionQueue(tasks, today = domainDate()) {
+    const rank = { ready: 0, overdue: 1, blocked: 2, completed: 3 };
+    return tasks.filter((t) => t.date === today || t.date < today && ["overdue", "blocked"].includes(t.status) || t.bountyId && t.status !== "completed").sort((a, b) => (rank[a.status] ?? 4) - (rank[b.status] ?? 4) || a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
+  }
   function domainType(value) {
     return String(value || "drill").replace(/^card-/, "").replace("reflection", "review");
   }
@@ -14972,12 +14976,15 @@ function bootPrototypeRuntime() {
   function taskInstanceId(nodeId, date) {
     return nodeId + "@" + date;
   }
+  function domainRecordMatchesOccurrence(record, nodeId, date) {
+    return record.nodeId === nodeId && (record.taskInstanceId ? record.taskInstanceId === taskInstanceId(nodeId, date) : (record.scheduledDate || record.date) === date);
+  }
   function projectProgress(project, nodes, records) {
     const required = nodes.filter((n) => n.isCheckinNode && n.status !== "archived");
     let weight = 0, fulfilled = 0, completedNodesCount = 0, totalInstances = 0, completedInstances = 0;
     for (const node of required) {
       const dates = occurrenceDates(node, project);
-      const done = dates.filter((date) => records.some((r) => r.projectId === project.id && r.nodeId === node.id && (r.taskInstanceId === taskInstanceId(node.id, date) || r.date === date) && r.validated === true)).length;
+      const done = dates.filter((date) => records.some((r) => r.projectId === project.id && domainRecordMatchesOccurrence(r, node.id, date) && r.validated === true)).length;
       const w = node.weight || 1;
       weight += w;
       fulfilled += w * (dates.length ? done / dates.length : 0);
@@ -15000,7 +15007,7 @@ function bootPrototypeRuntime() {
         if (!node.isCheckinNode || node.status === "archived")
           continue;
         for (const date of occurrenceDates(node, project)) {
-          const record = records.find((r) => r.nodeId === node.id && r.projectId === project.id && (r.taskInstanceId === taskInstanceId(node.id, date) || r.date === date) && r.validated === true);
+          const record = records.find((r) => r.projectId === project.id && domainRecordMatchesOccurrence(r, node.id, date) && r.validated === true);
           const blocked = node.dependencies.some((id) => {
             const dep = nodes.find((n) => n.id === id);
             if (!dep)
@@ -16452,7 +16459,7 @@ function bootPrototypeRuntime() {
     }
     recordDomainHistory();
     const nodes = state.nodesByProject[project.id] || (state.nodesByProject[project.id] = []);
-    const node = domainNode(config, project);
+    const node = domainNode({ ...config, plannedDate: config.plannedDate || domainDefaultNodeDate(project) }, project);
     node.canvasPosition = config.canvasPosition || { x: 80 + nodes.length % 3 * 400, y: 90 + Math.floor(nodes.length / 3) * 440 };
     nodes.push(node);
     renderDomainCanvas(project.id);
@@ -16566,7 +16573,7 @@ function bootPrototypeRuntime() {
     const state = getDomainState();
     let node = getDomainNode(cfg.sourceNodeId || cfg.id), project = state.projects.find((p) => p.id === (cfg.projectId || window2.currentTertiaryProjId));
     if (!node && project && !cfg.id.startsWith("bounty-")) {
-      node = domainNode({ id: cfg.id, title: cfg.title, description: cfg.desc, archetype: cfg.nodeType || "drill", duration: cfg.duration || 0, evidenceType: cfg.evidenceType || "text", dependencies: cfg.dependencies || [] }, project);
+      node = domainNode({ id: cfg.id, title: cfg.title, description: cfg.desc, archetype: cfg.nodeType || "drill", plannedDate: cfg.plannedDate || domainDefaultNodeDate(project), duration: cfg.duration || 0, evidenceType: cfg.evidenceType || "text", dependencies: cfg.dependencies || [] }, project);
       state.nodesByProject[project.id].push(node);
     }
     if (node)
@@ -16595,27 +16602,8 @@ function bootPrototypeRuntime() {
       return;
     renderingDomain = true;
     try {
-      const today = ensureBusinessDate(), tasks = domainTasks(), deck = document.getElementById("day-card-deck");
-      if (deck) {
-        deck.querySelectorAll(".exec-task-card").forEach((card) => card.remove());
-        for (const task of domainTodayTasks(tasks, today).filter((t) => ["ready", "completed", "overdue"].includes(t.status))) {
-          const card = document.createElement("div");
-          card.id = "exec-sync-" + task.id;
-          card.className = "exec-task-card tertiary-drill-card";
-          Object.assign(card.dataset, { taskId: task.id, taskInstanceId: task.id, nodeId: task.nodeId || "", projectId: task.projectId || "", pavilion: task.pavilionId, label: task.title, checkinType: task.nodeType });
-          card.setAttribute("onclick", "handleTaskCardClick(event,this.dataset.checkinType)");
-          card.innerHTML = '<div class="work-node-card-header"><span class="work-node-badge">' + escapeIslandText(PAVILION_META[task.pavilionId]?.name || "\u60AC\u8D4F") + '</span><span class="work-node-title">' + escapeIslandText(task.title) + '</span><span class="task-status-pill ' + (task.status === "completed" ? "completed" : "pending") + '">' + { completed: "\u2713 \u4ECA\u65E5\u5DF2\u5B8C\u6210", overdue: "\u903E\u671F\u5F85\u6267\u884C", ready: "\u5F85\u6267\u884C" }[task.status] + '</span></div><div class="work-node-body"><p>' + escapeIslandText(getDomainNode(task.nodeId)?.cardPayload.description || "\u6309\u5951\u7EA6\u6267\u884C\u5E76\u63D0\u4EA4\u771F\u5B9E\u7269\u8BC1") + `</p><button class="card-graphic-pill" onclick="event.stopPropagation();openDomainTask('` + task.id + `')">\u6253\u5F00\u4EFB\u52A1</button></div>`;
-          deck.appendChild(card);
-        }
-        const empty = document.getElementById("day-deck-empty-placeholder");
-        if (empty)
-          empty.style.display = deck.querySelector(".exec-task-card") ? "none" : "flex";
-        currentDayCardIndex = Math.min(currentDayCardIndex, Math.max(0, deck.querySelectorAll(".exec-task-card").length - 1));
-        const dots = document.getElementById("exec-carousel-dots");
-        if (dots)
-          dots.innerHTML = Array.from(deck.querySelectorAll(".exec-task-card"), (_, i) => '<button class="pagination-dot-pill" aria-label="\u7B2C' + (i + 1) + '\u9879\u4EFB\u52A1" onclick="currentDayCardIndex=' + i + ';updateDayCarousel()"></button>').join("");
-        updateDayCarousel();
-      }
+      const today = ensureBusinessDate(), tasks = domainTasks();
+      renderHomeExecutionQueue(tasks, today);
       syncWeekBoardToRealDate();
       renderWeekBoard(window2.currentWeekFilter || "all");
       renderMonthCalendar();
@@ -17823,6 +17811,83 @@ function bootPrototypeRuntime() {
     body += planningCardSettings(node);
     return '<article class="a-my-island-work-node-card tertiary-card tertiary-' + legacy + '-card domain-node-card" id="' + escapeIslandText(node.id) + '" data-domain-node="true" data-node-type="' + type + '" data-label="' + escapeIslandText(node.title) + '" data-group-id="' + escapeIslandText(node.groupId || "") + '" data-group-root="' + escapeIslandText(node.groupRoot || "") + '" style="position:absolute;left:' + Number(node.canvasPosition.x) + "px;top:" + Number(node.canvasPosition.y) + 'px;width:340px;"><header class="work-node-card-header" ondblclick="' + planningCardAction("toggleTertiaryCardMinimize(" + JSON.stringify(node.id) + ",event)") + '" title="\u62D6\u52A8\u6807\u9898\u680F\u79FB\u52A8\uFF1B\u53CC\u51FB\u6298\u53E0\u6216\u5C55\u5F00"><div class="node-card-kicker"><span class="work-node-badge">' + meta[0] + " " + meta[1] + '</span><span class="node-card-status" id="status-text-' + escapeIslandText(node.id) + '">' + status + '</span><button type="button" class="node-card-collapse-toggle" aria-label="\u6298\u53E0\u6216\u5C55\u5F00\u8282\u70B9" onclick="' + planningCardAction("toggleTertiaryCardMinimize(" + JSON.stringify(node.id) + ",event)") + '">\u2303</button></div><div class="node-card-title-row"><span class="work-node-title">' + escapeIslandText(node.title) + '</span><button type="button" class="node-title-edit" aria-label="\u7F16\u8F91\u8282\u70B9\u540D\u79F0" onclick="' + planningCardAction("editPlanningCardTitle(" + JSON.stringify(node.id) + ",event)") + '">\u270E</button></div><p class="node-card-subtitle">' + meta[2] + '</p></header><div class="work-node-body domain-planning-body">' + body + '</div><footer class="node-card-footer">' + footer + '</footer><button type="button" class="work-card-connect-handle" data-card-id="' + escapeIslandText(node.id) + '" aria-label="\u4ECE\u6B64\u8282\u70B9\u8FDE\u63A5\u8DEF\u7EBF" title="\u62D6\u5411\u76EE\u6807\u8282\u70B9\uFF0C\u6216\u70B9\u51FB\u9009\u62E9\u8FDE\u7EBF\u8D77\u70B9" onclick="startOrFinishConnecting(this.dataset.cardId,event)">\u{1F517}</button></article>';
   }
+  let homeExecutionDate = null;
+  function renderHomeExecutionQueue(tasks, today) {
+    const deck = document.getElementById("day-card-deck");
+    if (!deck)
+      return;
+    const activeId = deck.querySelector(".card-active")?.dataset.taskInstanceId;
+    const queue = domainExecutionQueue(tasks, today), state = getDomainState();
+    deck.querySelectorAll(".exec-task-card").forEach((card) => card.remove());
+    for (const task of queue) {
+      const node = getDomainNode(task.nodeId), project = state.projects.find((p) => p.id === task.projectId), blocked = task.status === "blocked";
+      const card = document.createElement("div");
+      card.id = "exec-sync-" + task.id;
+      card.className = "exec-task-card tertiary-drill-card home-execution-card";
+      Object.assign(card.dataset, { taskId: task.id, taskInstanceId: task.id, nodeId: task.nodeId || "", projectId: task.projectId || "", pavilion: task.pavilionId, label: task.title, checkinType: task.nodeType, taskStatus: task.status });
+      card.setAttribute("onclick", "handleTaskCardClick(event,this.dataset.checkinType)");
+      const status = { ready: "\u5F85\u6267\u884C", overdue: "\u903E\u671F\u5F85\u6267\u884C", blocked: task.date < today ? "\u5F85\u524D\u7F6E \xB7 \u5DF2\u903E\u671F" : "\u5F85\u524D\u7F6E\u5B8C\u6210", completed: "\u2713 \u4ECA\u65E5\u5DF2\u5B8C\u6210" }[task.status] || "\u672A\u5230\u671F";
+      const dependencies = (node?.dependencies || []).map((id) => getDomainNode(id)?.title || "\u7F3A\u5931\u7684\u524D\u7F6E\u8282\u70B9").join("\u3001");
+      const action = blocked ? "event.stopPropagation();jumpToDomainSource(" + JSON.stringify(task.projectId) + "," + JSON.stringify(task.nodeId) + ")" : "event.stopPropagation();openDomainTask(" + JSON.stringify(task.id) + ")";
+      card.innerHTML = '<div class="work-node-card-header"><span class="work-node-badge">' + escapeIslandText(PAVILION_META[task.pavilionId]?.name || "\u60AC\u8D4F") + '</span><span class="work-node-title">' + escapeIslandText(task.title) + '</span><span class="task-status-pill ' + (blocked ? "blocked" : task.status === "completed" ? "completed" : "pending") + '">' + status + '</span></div><div class="work-node-body"><p class="home-task-origin">' + escapeIslandText(project?.title || "\u4EB2\u5B50\u5951\u7EA6") + " \xB7 \u8BA1\u5212 " + escapeIslandText(task.date) + "</p><p>" + escapeIslandText(node?.cardPayload.description || "\u6309\u89C4\u5212\u8981\u6C42\u6267\u884C\u5E76\u63D0\u4EA4\u771F\u5B9E\u5185\u5BB9") + "</p>" + (blocked ? '<p class="home-task-blocked">\u8BF7\u5148\u5B8C\u6210\uFF1A' + escapeIslandText(dependencies || "\u89C4\u5212\u4E2D\u7684\u524D\u7F6E\u8981\u6C42") + "</p>" : "") + '<button type="button" class="card-graphic-pill" onclick="' + escapeIslandText(action) + '">' + (blocked ? "\u67E5\u770B\u524D\u7F6E\u89C4\u5212" : task.status === "completed" ? "\u67E5\u770B\u6267\u884C\u8BB0\u5F55" : "\u6253\u5F00\u4EFB\u52A1") + "</button></div>";
+      deck.appendChild(card);
+    }
+    let empty = document.getElementById("day-deck-empty-placeholder");
+    if (!empty) {
+      empty = document.createElement("div");
+      empty.id = "day-deck-empty-placeholder";
+      empty.className = "exec-card-empty-placeholder";
+      empty.innerHTML = `<span aria-hidden="true">\u{1F3DD}\uFE0F</span><h3></h3><p></p><button type="button" class="card-graphic-pill" onclick="switchHomeGlobalView('plan')">\u{1F9ED} \u524D\u5F80\u89C4\u5212\u65B0\u8BFE\u9898</button>`;
+      deck.prepend(empty);
+    }
+    if (empty) {
+      empty.style.display = queue.length ? "none" : "flex";
+      const future = tasks.filter((t) => t.date > today).sort((a, b) => a.date.localeCompare(b.date))[0];
+      const title = empty.querySelector("h3"), text = empty.querySelector("p");
+      if (title)
+        title.textContent = future ? "\u4EFB\u52A1\u5C1A\u672A\u5230\u8BA1\u5212\u65E5\u671F" : "\u4ECA\u65E5\u6682\u65E0\u5F85\u6267\u884C\u4EFB\u52A1";
+      if (text)
+        text.textContent = future ? "\u4E0B\u4E00\u9879\u8BA1\u5212\uFF1A" + future.date + " \xB7 " + future.title + "\u3002\u53EF\u5728\u89C4\u5212\u4E2D\u8C03\u6574\u8BA1\u5212\u65E5\u671F\u3002" : "\u53EF\u5728\u89C4\u5212\u89C6\u56FE\u65B0\u589E\u5B9E\u8BAD\u3001\u4E60\u60EF\u3001\u590D\u76D8\u6216\u81EA\u5B9A\u4E49\u4EFB\u52A1\uFF0C\u5E76\u52FE\u9009\u201C\u52A0\u5165\u6267\u884C\u4EFB\u52A1\u201D\u3002\u76EE\u6807\u91CC\u7A0B\u7891\u548C\u6587\u672C\u4FBF\u7B7E\u9ED8\u8BA4\u4E0D\u8FDB\u5165\u6267\u884C\u961F\u5217\u3002";
+    }
+    let summary = document.getElementById("home-execution-summary");
+    if (!summary) {
+      summary = document.createElement("div");
+      summary.id = "home-execution-summary";
+      summary.className = "home-execution-summary";
+      summary.setAttribute("aria-live", "polite");
+      document.getElementById("exec-subview-day")?.prepend(summary);
+    }
+    const counts = (key) => queue.filter((t) => t.status === key).length;
+    summary.textContent = "\u5F85\u6267\u884C " + counts("ready") + " \xB7 \u903E\u671F " + counts("overdue") + " \xB7 \u5F85\u524D\u7F6E " + counts("blocked") + " \xB7 \u4ECA\u65E5\u5DF2\u5B8C\u6210 " + counts("completed");
+    const activeIndex = queue.findIndex((t) => t.id === activeId);
+    currentDayCardIndex = activeIndex >= 0 ? activeIndex : Math.max(0, Math.min(currentDayCardIndex, queue.length - 1));
+    const dots = document.getElementById("exec-carousel-dots");
+    if (dots)
+      dots.innerHTML = queue.map((t, i) => '<button type="button" class="pagination-dot-pill" aria-label="' + escapeIslandText("\u7B2C" + (i + 1) + "\u9879\uFF1A" + t.title) + '" onclick="goToDayCard(' + i + ')">' + (i + 1) + "</button>").join("");
+    updateDayCarousel();
+    homeExecutionDate = today;
+  }
+  const homeQueueSwitch = switchHomeGlobalView, homeQueueSubview = switchExecSubView;
+  switchHomeGlobalView = function(mode) {
+    homeQueueSwitch(mode);
+    if (currentGlobalView === "exec")
+      refreshDomainProjections();
+  };
+  switchExecSubView = function(view) {
+    homeQueueSubview(view);
+    if (view === "day")
+      refreshDomainProjections();
+  };
+  function refreshHomeExecutionDate() {
+    if (document.visibilityState === "hidden" || homeExecutionDate === domainDate())
+      return;
+    refreshDomainProjections();
+    notifyIslandStateChanged();
+  }
+  window2.addEventListener("focus", refreshHomeExecutionDate);
+  window2.addEventListener("pageshow", refreshHomeExecutionDate);
+  window2.addEventListener("visibilitychange", refreshHomeExecutionDate, true);
+  setInterval(refreshHomeExecutionDate, 3e4);
   function canvasLocalPoint(stage, clientX, clientY) {
     const r = stage.getBoundingClientRect();
     return { x: (clientX - r.left) * stage.clientWidth / (r.width || 1), y: (clientY - r.top) * stage.clientHeight / (r.height || 1) };
@@ -19794,6 +19859,10 @@ function bootPrototypeRuntime() {
     window2.domainShift = domainShift;
   if (typeof domainValidDate === "function")
     window2.domainValidDate = domainValidDate;
+  if (typeof domainDefaultNodeDate === "function")
+    window2.domainDefaultNodeDate = domainDefaultNodeDate;
+  if (typeof domainExecutionQueue === "function")
+    window2.domainExecutionQueue = domainExecutionQueue;
   if (typeof domainType === "function")
     window2.domainType = domainType;
   if (typeof domainNode === "function")
@@ -19802,6 +19871,8 @@ function bootPrototypeRuntime() {
     window2.occurrenceDates = occurrenceDates;
   if (typeof taskInstanceId === "function")
     window2.taskInstanceId = taskInstanceId;
+  if (typeof domainRecordMatchesOccurrence === "function")
+    window2.domainRecordMatchesOccurrence = domainRecordMatchesOccurrence;
   if (typeof projectProgress === "function")
     window2.projectProgress = projectProgress;
   if (typeof scheduleDomain === "function")
@@ -19982,6 +20053,10 @@ function bootPrototypeRuntime() {
     window2.refreshPlanningCardSummary = refreshPlanningCardSummary;
   if (typeof renderPlanningNodeCard === "function")
     window2.renderPlanningNodeCard = renderPlanningNodeCard;
+  if (typeof renderHomeExecutionQueue === "function")
+    window2.renderHomeExecutionQueue = renderHomeExecutionQueue;
+  if (typeof refreshHomeExecutionDate === "function")
+    window2.refreshHomeExecutionDate = refreshHomeExecutionDate;
   if (typeof canvasLocalPoint === "function")
     window2.canvasLocalPoint = canvasLocalPoint;
   if (typeof readPlanViewport === "function")
