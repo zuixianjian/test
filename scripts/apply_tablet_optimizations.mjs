@@ -204,61 +204,8 @@ if (html.includes(oldWeekMonthCss)) {
 }
 
 // =========================================================================
-// 4. Problem 4: 复用 Obsidian 原生 Canvas 核心插件 + 脑图拖拽流畅度加速
+// 4. Mindmap drag performance
 // =========================================================================
-
-// Add handleOpenObsidianCanvas helper
-const tertiaryInitMarker = "function initTertiaryWorkspace() {";
-const obsidianCanvasHelper = `function handleOpenObsidianCanvas(projId) {
-  const targetId = projId || window.currentTertiaryProjId || 'p1';
-  if (typeof window.__openProjectInObsidianCanvas === 'function') {
-    window.__openProjectInObsidianCanvas(targetId);
-  } else {
-    showIslandToast('🎨 正在 Obsidian Canvas 核心插件中全屏打开项目画布...');
-  }
-}
-
-function openCurrentProjectInObsidianCanvas() {
-  handleOpenObsidianCanvas(window.currentTertiaryProjId);
-}
-
-${tertiaryInitMarker}`;
-
-if (!html.includes("function handleOpenObsidianCanvas")) {
-  html = html.replace(tertiaryInitMarker, obsidianCanvasHelper);
-  console.log("Added handleOpenObsidianCanvas helper.");
-}
-
-// Add Canvas button to Tertiary top tools dock
-const tertiaryToolsMarker = `<div class="exec-subview-switcher tertiary-tools-dock" style="display:flex; align-items:center; gap:3px;">`;
-const canvasTertiaryBtn = `<div class="exec-subview-switcher tertiary-tools-dock" style="display:flex; align-items:center; gap:3px;">
-          <button class="exec-subview-tab a-my-island-graph-tool is-highlight" onclick="openCurrentProjectInObsidianCanvas()" title="在 Obsidian 原生 Canvas 核心插件中打开（丝滑顺畅，无卡顿）" style="background:linear-gradient(135deg, #eff6ff, #dbeafe); border:1.5px solid #3b82f6; color:#1e40af; min-width:62px; width:62px;">
-            <span class="a-my-island-graph-tool-icon">🎨</span>
-            <span class="a-my-island-graph-tool-label">原生Canvas</span>
-          </button>`;
-
-if (html.includes(tertiaryToolsMarker) && !html.includes("openCurrentProjectInObsidianCanvas")) {
-  html = html.replace(tertiaryToolsMarker, canvasTertiaryBtn);
-  console.log("Added Canvas button to tertiary tools dock.");
-}
-
-// Add Canvas button to Gantt op column
-const oldGanttOps = `'<button class="gantt-op-btn gantt-plan-btn" data-id="' + p.id + '" onclick="openEditProjectModal(this.dataset.id)" title="编辑项目名称、起止周期与攻坚策略">✏️ 编辑</button>' +
-          '<button class="gantt-op-btn gantt-plan-btn" data-id="' + p.id + '" onclick="handleGanttEditPlan(this)" title="进入该项目三级思维导图拆解画布">🔮 脑图</button>' +`;
-
-const newGanttOps = `'<button class="gantt-op-btn gantt-plan-btn" data-id="' + p.id + '" onclick="handleOpenObsidianCanvas(this.dataset.id)" title="在 Obsidian 原生 Canvas 核心画布插件中全屏打开（原生加速，丝滑顺畅）" style="background:#eff6ff; color:#2563eb; border-color:#93c5fd;">🎨 Canvas</button>' +
-          '<button class="gantt-op-btn gantt-plan-btn" data-id="' + p.id + '" onclick="openEditProjectModal(this.dataset.id)" title="编辑项目名称、起止周期与攻坚策略">✏️ 编辑</button>' +
-          '<button class="gantt-op-btn gantt-plan-btn" data-id="' + p.id + '" onclick="handleGanttEditPlan(this)" title="进入该项目三级思维导图拆解画布">🔮 脑图</button>' +`;
-
-if (html.includes(oldGanttOps)) {
-  html = html.replace(oldGanttOps, newGanttOps);
-  console.log("Added Canvas button to Gantt table rows.");
-}
-
-// Adjust Gantt table col width to fit 4 buttons: 680px, ops col 220px
-html = html.replace(/width:\s*630px;\s*min-width:\s*630px;/g, 'width: 680px; min-width: 680px;');
-html = html.replace(/\.col-head-ops\s*\{\s*width:\s*165px;/g, '.col-head-ops { width: 220px;');
-html = html.replace(/\.col-cell-ops\s*\{\s*width:\s*165px;/g, '.col-cell-ops { width: 220px;');
 
 // Optimize tertiary drag performance using requestAnimationFrame and touch-action: none
 const oldDragFn = `  const onPointerMove = (e) => {

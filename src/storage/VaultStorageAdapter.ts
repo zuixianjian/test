@@ -1,4 +1,4 @@
-import { App, normalizePath, Notice, TFile } from "obsidian";
+import { App, normalizePath, Notice } from "obsidian";
 import { YouthIslandPluginSettings } from "../types/models";
 import { globalIslandEventBus } from "../core/EventBus";
 import { localDateKey, safeFileStem, validateVaultRoot } from "../core/GrowthMetrics";
@@ -252,9 +252,6 @@ export class VaultStorageAdapter {
         const data = state.PROJECT_CANVAS_STORE?.[project.id] || { cardsHtml: "", edges: [] };
         await this.writeJson(`${dir}/02_Projects/nodes_${safeFileStem(project.id)}.json`, { ...data, storageRevision: state.DOMAIN_STATE?.storageRevision || 0 });
         const stem = `${safeFileStem(project.title)}--${safeFileStem(project.id)}`;
-        const canvas = `${dir}/02_Projects/${stem}.canvas`;
-        // Native Canvas is user-editable; never overwrite it during background sync.
-        if (!(await adapter.exists(this.resolvePath(canvas)))) await this.writeJson(canvas, this.buildObsidianCanvasJson(project, key, data));
         if (this.getSettings().autoSyncVaultMarkdown) await this.writeText(`${dir}/02_Projects/${stem}.md`, this.projectMarkdown(project, key, data, state.DOMAIN_STATE));
       }
     }
@@ -299,28 +296,6 @@ export class VaultStorageAdapter {
     await this.writeText(path, content);
     new Notice(`已导出真实档案：${path}`);
   }
-  public async importProjectCanvas(id: string): Promise<boolean> {
-    const win = window as any;
-    const project = win.GANTT_PROJECTS.find((p: any) => p.id === id);
-    if (!project) return false;
-    const relative = `${this.pavilionDir(project.pavilion)}/02_Projects/${safeFileStem(project.title)}--${safeFileStem(id)}.canvas`;
-    const canvas = await this.readJson(relative);
-    if (!canvas || !Array.isArray(canvas.nodes)) { new Notice("请先导出项目Canvas"); return false; }
-    const nodes = win.DOMAIN_STATE.nodesByProject[id] || [];
-    for (const item of canvas.nodes) {
-      const node = nodes.find((n: any) => n.id === item.id);
-      if (node && Number.isFinite(item.x) && Number.isFinite(item.y)) {
-        node.canvasPosition = { x: item.x, y: item.y };
-        const element = typeof document === "undefined" ? null : document.getElementById(node.id);
-        if (element && win.currentTertiaryProjId === id) { element.style.left = `${item.x}px`; element.style.top = `${item.y}px`; }
-        if (node.nodeType === "text" && typeof item.text === "string") node.cardPayload.textContent = item.text;
-      }
-    }
-    win.PROJECT_CANVAS_STORE[id].nodes = nodes;
-    await this.syncRuntimeToVault();
-    return true;
-  }
-
   private dailyMarkdown(entry: any, domain?: any): string {
     const logs = (entry.autoLogs || []).map((log: any) => {
       if (typeof log === "string") return log;
@@ -333,7 +308,7 @@ export class VaultStorageAdapter {
     return `---\ntype: daily-journal\ndate: ${entry.date}\nmood: ${JSON.stringify(entry.mood || "focused")}\nenergy_level: ${entry.energy ?? 4}\nauto_logs: ${JSON.stringify(logs)}\nmedia_attachments: ${JSON.stringify(media.map((m: any) => ({ type: m.type, path: m.path || "", desc: m.caption || m.name || "" })))}\ncontent_reflection: ${JSON.stringify(text)}\n---\n\n# ${entry.date} 每日随记\n\n## 客观事实流水\n${logs.map((l: string) => `- ${l}`).join("\n")}\n\n## 心流随笔\n${text}\n\n## 影像物证\n${media.filter((m: any) => m.path).map((m: any) => `![[${m.path}]]`).join("\n")}\n\n[[${this.resolvePath("07_Baseline_个人行为规范/personal_code.md")}|个人行为规范]]\n`;
   }
   private projectMarkdown(project: any, key: string, data: any, domain?: any): string {
-    const canvas = this.buildObsidianCanvasJson(project, key, data);
+    const planning = this.projectPlanningMarkdown(data);
     const records = (domain?.records || []).filter((r: any) => r.projectId === project.id);
     const executions = records.map((record: any) => {
       const actual = [
@@ -343,44 +318,26 @@ export class VaultStorageAdapter {
       ].join("\n");
       return `### ${record.title || "执行记录"}\n记录ID: ${record.id}\n源节点ID: ${record.nodeId}\n计划日: ${record.scheduledDate || record.date}\n实际提交日: ${record.date}\n验收: ${record.validated ? "通过" : "历史未核验"}\n实际专注: ${record.focusSeconds || 0}秒\n\n${record.reflection || ""}\n\n${actual}\n\n${(record.media || []).filter((m: any) => m.path).map((m: any) => `![[${m.path}]]`).join("\n")}\n\n[[${this.resolvePath(`08_Daily_每日随记/${record.date.slice(0, 4)}/${record.date}.md`)}|当日随记]]`;
     }).join("\n\n");
-    return `---\ntype: growth-project\nproject_id: ${JSON.stringify(project.id)}\npavilion: ${JSON.stringify(key)}\ncategory: ${JSON.stringify(project.category || "")}\nstart_date: ${JSON.stringify(project.startDate || "")}\nend_date: ${JSON.stringify(project.endDate || "")}\n---\n\n# ${project.title}\n\n${project.desc || ""}\n\n## 当前规划\n\n${canvas.nodes.map(n => n.text).join("\n\n")}\n\n## 原始执行记录\n\n${executions || "尚无执行记录"}\n\n[[${this.resolvePath("07_Baseline_个人行为规范/personal_code.md")}|个人行为规范]]\n`;
+    return `---\ntype: growth-project\nproject_id: ${JSON.stringify(project.id)}\npavilion: ${JSON.stringify(key)}\ncategory: ${JSON.stringify(project.category || "")}\nstart_date: ${JSON.stringify(project.startDate || "")}\nend_date: ${JSON.stringify(project.endDate || "")}\n---\n\n# ${project.title}\n\n${project.desc || ""}\n\n## 当前规划\n\n${planning}\n\n## 原始执行记录\n\n${executions || "尚无执行记录"}\n\n[[${this.resolvePath("07_Baseline_个人行为规范/personal_code.md")}|个人行为规范]]\n`;
   }
 
-  public buildObsidianCanvasJson(project: any, key: string, data?: any): { nodes: any[]; edges: any[] } {
-    let nodes: any[] = [];
+  private projectPlanningMarkdown(data: any): string {
     if (Array.isArray(data?.nodes)) {
-      nodes = data.nodes.map((n: any, i: number) => ({ id: n.id || n.nodeId || `node-${i}`, x: n.x ?? n.canvasPosition?.x ?? 80, y: n.y ?? n.canvasPosition?.y ?? 90, width: n.width || 340, height: n.height || 220, type: "text", text: n.nodeType === "text" ? n.cardPayload?.textContent || "" : `### ${n.title || "节点"}\n${n.desc || n.cardPayload?.description || ""}\n${(n.cardPayload?.metrics || []).map((m: any) => `${m.name}: ${m.targetValue}`).join("\n")}`, color: "2" }));
+      return data.nodes.map((n: any) => n.nodeType === "text" ? n.cardPayload?.textContent || "" : `### ${n.title || "节点"}\n${n.desc || n.cardPayload?.description || ""}\n${(n.cardPayload?.metrics || []).map((m: any) => `${m.name}: ${m.targetValue}`).join("\n")}`).join("\n\n");
     } else if (data?.cardsHtml && typeof document !== "undefined") {
       const holder = document.createElement("div");
       holder.innerHTML = data.cardsHtml;
-      nodes = Array.from(holder.querySelectorAll<HTMLElement>(".tertiary-card")).map((card, i) => {
+      return Array.from(holder.querySelectorAll<HTMLElement>(".tertiary-card")).map(card => {
         const clone = card.cloneNode(true) as HTMLElement;
         clone.querySelectorAll("button, .work-card-connect-handle").forEach(el => el.remove());
         clone.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("input, textarea").forEach(el => {
           const text = document.createTextNode(el.type === "checkbox" ? ((el as HTMLInputElement).checked ? "[x] " : "[ ] ") : `${el.value}\n`);
           el.replaceWith(text);
         });
-        return { id: card.id || `node-${i}`, x: parseFloat(card.style.left) || 0, y: parseFloat(card.style.top) || 0, width: parseFloat(card.style.width) || 340, height: 240, type: "text", text: clone.textContent?.trim() || "", color: card.className.includes("goal") ? "5" : card.className.includes("reflection") ? "6" : "2" };
-      });
+        return clone.textContent?.trim() || "";
+      }).join("\n\n");
     }
-    const ids = new Set(nodes.map(n => n.id));
-    const edges = (data?.edges || []).map((e: any, i: number) => ({ id: e.id || `edge-${i}`, fromNode: e.sourceId || e.fromNode, fromSide: "right", toNode: e.targetId || e.toNode, toSide: "left", label: e.label || "关联" })).filter((e: any) => ids.has(e.fromNode) && ids.has(e.toNode));
-    return { nodes, edges };
-  }
-
-  public async openProjectInCanvas(id: string): Promise<boolean> {
-    const win = window as any;
-    const project = (win.GANTT_PROJECTS || []).find((p: any) => p.id === id);
-    if (!project) { new Notice("请先选择一个已有规划项目"); return false; }
-    if (win.currentTertiaryProjId === id) win.saveCurrentProjectCanvasSnapshot?.();
-    const key = project.pavilion || "study";
-    const rel = `${this.pavilionDir(key)}/02_Projects/${safeFileStem(project.title)}--${safeFileStem(id)}.canvas`;
-    const path = this.resolvePath(rel);
-    if (!(await this.app.vault.adapter.exists(path))) await this.writeJson(rel, this.buildObsidianCanvasJson(project, key, win.PROJECT_CANVAS_STORE?.[id]));
-    const file = this.app.vault.getAbstractFileByPath(path);
-    if (file instanceof TFile) { await this.app.workspace.getLeaf(true).openFile(file); return true; }
-    new Notice("画布已保存，请在仓库文件列表中打开；请确认已启用 Canvas 核心插件。");
-    return false;
+    return "";
   }
   public async dispose(): Promise<void> {
     this.disposed = true;

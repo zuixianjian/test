@@ -1,0 +1,18 @@
+{
+  "version": "1.1.1",
+  "coreFilesMatch": true,
+  "sha256": {
+    "manifest.json": "86b7e18c607884e7aee354a41e30aac157029f1791212dfbcd223713078595ed",
+    "main.js": "b8d8d3f731728fd1796a12a95cd9d10acc8f5616cc0b03b616bf874633867da2",
+    "styles.css": "d35a5ff8d770a83cdce7046357c787b8f5b3a2959525f99c97e84d118abd45ff",
+    "versions.json": "457cee3ff59d72c467831e93e81be1a06352bb2bccbdb3e0b40d56081554b0af"
+  },
+  "zipSha256": "b7c288a96d457f65dbcbb0d58160f47c3c05ffbcb5b115482cef839dc8b70fda",
+  "checks": {
+    "canvas-": 28,
+    "canvas-design-": 27,
+    "business-": 84,
+    "design-": 9
+  },
+  "screenshots": 16
+}

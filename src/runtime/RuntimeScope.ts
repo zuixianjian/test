@@ -20,6 +20,10 @@ export class RuntimeScope {
           this.cleanups.push(() => target.removeEventListener(type, listener, options));
         };
         const value = Reflect.get(target, key, target);
+        if ((key === "ResizeObserver" || key === "MutationObserver") && typeof value === "function") {
+          const scope = this;
+          return class extends value { constructor(callback: any) { super(callback); scope.observe(this as any); } };
+        }
         // WebIDL methods need the actual Window as their receiver.
         return typeof value === "function" && /^(dispatchEvent|removeEventListener|matchMedia|print|open|alert|confirm|prompt)$/.test(String(key)) ? value.bind(target) : value;
       },

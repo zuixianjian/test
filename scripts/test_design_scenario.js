@@ -10,5 +10,6 @@
   window.openDomainTask(window.domainTasks().find(t=>t.projectId===project.id&&t.status==='ready').id);
   check(document.getElementById('island-real-reflection').getBoundingClientRect().width>0,'standalone task opened from planning is visible');
   window.notifyIslandStateChanged();await new Promise(resolve=>setTimeout(resolve,450));check((await window.designData('state')).projects.some(p=>p.id===project.id),'standalone design persists real structured state');
-  return {version:'1.1.0',checks,screenshot:true,portrait:true};
+  check(!document.querySelector('#tertiary-unified-topbar [onclick*="ObsidianCanvas"],#gantt-table-rows [onclick*="Canvas"]')&&typeof window.handleOpenObsidianCanvas==='undefined'&&typeof window.importDomainCanvas==='undefined','standalone design has no native Canvas controls or handlers');
+  return {version:'1.1.4',checks,screenshot:true,portrait:true};
 })()

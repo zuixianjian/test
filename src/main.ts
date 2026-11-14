@@ -21,20 +21,12 @@ export default class YouthGrowthIslandPlugin extends Plugin {
     (window as any).__saveIslandAttachment = (file: File) => this.vaultStorage.saveAttachment(file);
     (window as any).__islandAttachmentUrl = (path: string) => this.vaultStorage.attachmentUrl(path);
     (window as any).__exportIslandDocument = (path: string, content: string) => this.vaultStorage.exportDocument(path, content);
-    (window as any).__importIslandCanvas = (id: string) => this.vaultStorage.importProjectCanvas(id);
     this.register(() => {
       delete (window as any).__saveIslandAttachment;
       delete (window as any).__islandAttachmentUrl;
       delete (window as any).__exportIslandDocument;
-      delete (window as any).__importIslandCanvas;
-      delete (window as any).__openProjectInObsidianCanvas;
       delete (window as any).__toggleObsidianSidebar;
     });
-
-    // Bind Obsidian Native Canvas Bridge to window
-    (window as any).__openProjectInObsidianCanvas = async (projId: string) => {
-      await this.vaultStorage.openProjectInCanvas(projId);
-    };
 
     // Bind Obsidian Native Sidebar Split Toggle Bridge to window
     (window as any).__toggleObsidianSidebar = (side: "left" | "right") => {
@@ -123,19 +115,6 @@ export default class YouthGrowthIslandPlugin extends Plugin {
         if (typeof win.switchMainSection === "function") {
           win.switchMainSection("tertiary");
         }
-      },
-    });
-
-    this.addCommand({
-      id: "open-youth-island-canvas",
-      name: "在 Obsidian 原生 Canvas 核心画布中全屏打开当前课题 (Hardware Accelerated Canvas)",
-      callback: async () => {
-        const win = window as any;
-        const currentId =
-          win.currentTertiaryProjId ||
-          (win.GANTT_PROJECTS && win.GANTT_PROJECTS[0]?.id) ||
-          "p1";
-        await this.vaultStorage.openProjectInCanvas(currentId);
       },
     });
 

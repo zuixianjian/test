@@ -41,7 +41,7 @@ export class YouthIslandSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("自动同步生成 Obsidian 双链 Markdown 笔记")
       .setDesc(
-        "开启后，将实际随记和项目导出为双链笔记。公约在插件内共同签署后单独导出；已有的个人行为规范与原生Canvas编辑不会被后台覆盖。"
+        "开启后，将实际随记和项目导出为双链笔记。公约在插件内共同签署后单独导出；已有的个人行为规范不会被后台覆盖。"
       )
       .addToggle((toggle) =>
         toggle.setValue(this.plugin.settings.autoSyncVaultMarkdown).onChange(async (value) => {

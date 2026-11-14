@@ -1,0 +1,40 @@
+{
+  "version": "1.1.1",
+  "suite": "canvas",
+  "checks": [
+    "planning zoom button uses the shared viewport scale ",
+    "planning zoom out works through the actual toolbar",
+    "planning fit computes all pavilion bounds rather than resetting to 100 percent",
+    "wheel zoom preserves the cursor anchor inside a scaled host",
+    "native two-finger pinch changes the planning canvas zoom",
+    "one-finger panning still works after pinch release",
+    "legacy edges without style fields render with a visible default color",
+    "a connecting line routes around the intermediate node",
+    "SVG path hit area is reachable by the browser pointer",
+    "clicking a real line opens route settings",
+    "route settings are outside the transformed node world",
+    "route settings remain fully inside the visible canvas",
+    "route settings keep their size while the node world zooms",
+    "native touch tapping a route label opens its settings ",
+    "typing a route name updates its own edge",
+    "arrow, dash and color controls work through real clicks",
+    "line width slider updates the edge",
+    "changing relation type updates the actual prerequisite",
+    "reversing the hierarchy also reverses its prerequisite",
+    "reconnecting the same directed pair reuses its existing route",
+    "the connect handles create a new directed relationship",
+    "relation editor rejects a circular prerequisite without changing the graph",
+    "delete route control removes only the selected relationship",
+    "route deletion can be undone",
+    "route deletion can be redone",
+    "dragging an obstacle updates the connecting route",
+    "double-clicking a node header still collapses the card"
+  ],
+  "screenshot": true,
+  "capturePages": [
+    {
+      "name": "planning-design",
+      "code": "window.switchMainSection('island');window.switchHomeGlobalView('plan');window.fitHomeCanvasView();"
+    }
+  ]
+}

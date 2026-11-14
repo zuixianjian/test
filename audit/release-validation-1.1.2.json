@@ -1,0 +1,26 @@
+{
+  "version": "1.1.2",
+  "coreFilesMatch": true,
+  "assetsMatch": true,
+  "sha256": {
+    "manifest.json": "926c63f4e394194521e4a695d4a2d78b41bb8677ef9093bc6e60dff78c60fbe9",
+    "main.js": "990011debe3f4713f6745901d88166ac4ed6ab66a3ab233e84138ad3b4934864",
+    "styles.css": "192e6d82529c6710fa358cbd5e91add2d7b0dd9fd15c2a6277545eb1130661a5",
+    "versions.json": "22c45595fbb1683b72a9376e95991b06f2555f9263976b61c2c2d9fc916f46d9"
+  },
+  "zipSha256": "c300c41db7d3833c29c42c9f7dfd1149172548dd12ea312dd14fe4e1edbd77b0",
+  "checks": {
+    "canvas": 44,
+    "canvas-design": 43,
+    "business": 84,
+    "design": 9
+  },
+  "screenshots": 16,
+  "reference": {
+    "version": "1.6.0",
+    "mainSha256": "a3402820c3fc3c7c82c0f2260d911e2f13630f1e2afef3adc2f67d8d9a5d0207"
+  },
+  "limitations": [
+    "Browser and memory Vault validation; Obsidian and Android device validation not performed."
+  ]
+}

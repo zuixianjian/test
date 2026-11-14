@@ -138,6 +138,8 @@ export class YouthIslandView extends ItemView {
    * Android 平板触控桥接：将三级脑图画布与节点卡片上的单指拖拽映射为标准鼠标拖拽事件
    */
   private installTabletTouchBridge(rootEl: HTMLElement): void {
+    // The shared canvas engine owns native Pointer Events, including touch/pinch.
+    if (typeof window.PointerEvent !== "undefined") return;
     let activeTouchTarget: EventTarget | null = null;
     rootEl.addEventListener(
       "touchstart",
@@ -148,7 +150,7 @@ export class YouthIslandView extends ItemView {
         // Skip interactive form/button controls and areas that already handle touch natively
         if (
           target.closest(
-            "button, input, textarea, select, label, a, #exec-carousel-stage, #island-canvas-stage"
+            "button, input, textarea, select, label, a, [data-edge-id], #tertiary-edge-popover, .work-card-connect-handle, #exec-carousel-stage, #island-canvas-stage"
           )
         ) {
           return;

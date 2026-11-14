@@ -1,6 +1,10 @@
 /** schemaVersion 3. The runtime and standalone design implement these contracts. */
 export type NodeType = "goal" | "drill" | "habit" | "review" | "custom" | "text";
 export type TaskStatus = "scheduled" | "blocked" | "ready" | "overdue" | "completed";
+/** Presentation state stored with the aggregate, independent of execution facts and undo history. */
+export interface CanvasViewport { x: number; y: number; zoom: number; }
+export interface CanvasViewports { planning: CanvasViewport | null; projects: Record<string, CanvasViewport>; }
+export interface CanvasNavigation { planning: { collapsed: boolean }; projects: Record<string, { collapsed: boolean }>; }
 export interface Attachment {
   id: string; path: string; name: string; type: "image" | "video" | "audio";
   mime: string; size: number; uploadedAt: string; duration?: number | null;

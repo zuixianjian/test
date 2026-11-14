@@ -1,0 +1,128 @@
+{
+  "version": "1.1.2",
+  "checks": [
+    "sync before hydration reports no commit and preserves saved files",
+    "domain schema bootstraps after a fresh Vault hydration",
+    "D01 default project dates are valid",
+    "project creation validates and commits",
+    "D02 default actionable node is dispatched",
+    "dependency blocks review before drill completion",
+    "D03 switching to an empty project clears previous cards",
+    "D04 undo history cannot cross projects",
+    "D05 configured time and evidence cannot be bypassed with short text",
+    "drill evidence and planned time produce a validated record",
+    "D06 one of two executable nodes is 50 percent",
+    "successful drill unlocks dependent review",
+    "D07 HUD denominator is independent of DOM",
+    "D20 task close never rewrites the shared page template",
+    "D08 week detail opens the exact task instance",
+    "review saves reflection and improvement list",
+    "project completes only after all executable nodes",
+    "project graduation is based on actual completed node records",
+    "automatic project milestone remains idempotent",
+    "duplicate task submission remains idempotent",
+    "D09 overdue is based on occurrence date",
+    "D10 unfinished project cannot be archived",
+    "late execution completes the original instance without inventing a past activity date",
+    "month inspector shows actual submissions separately from planned tasks",
+    "D11 unverified goals open acceptance instead of minting a badge",
+    "goal acceptance opened from planning is actually visible",
+    "goal rejects measured result below target",
+    "goal accepts actual measured result above target",
+    "verified goal can be archived",
+    "D11 achievement stores real measurement and source project",
+    "D12 achievement locates its exact source node",
+    "D21 timeline includes future project dates",
+    "D22 all planning pavilion achievements are visible",
+    "D23 custom execution generates typed input",
+    "required custom field rejects empty submission",
+    "custom execution accepts measured values",
+    "D23 measured custom values persist",
+    "D24 review nodes are scheduled consistently",
+    "review derivation is idempotent per improvement item",
+    "derived child cannot be deleted separately",
+    "main node removes entire group",
+    "project history restores full group",
+    "accidental achievement validates title, description, date and photo",
+    "D13 accidental photo binary and path are retained",
+    "D14 parent comment is required",
+    "parent verification confirmation is required",
+    "parent verification redeems the correct contract",
+    "D15 contract completion never affects another contract",
+    "D16 inquiry conversion uses a persistent idempotent project link",
+    "family starts without invented signatures",
+    "family can jointly establish versioned clauses",
+    "violation references actual clause version and remedy project",
+    "remedy creates seven inclusive daily task instances",
+    "pact export writes a real Markdown document",
+    "D17 rollover preserves the newest unsaved text",
+    "journal focus is rebuilt from validated actual-date records after rollover",
+    "D19 editable project JSON is imported despite old session cache",
+    "records survive canonical save and hydrate",
+    "D18 table insertion creates an actual text node",
+    "dependency edge updates the scheduler source",
+    "dependency edge blocks the correct execution task",
+    "edge editor rejects a dependency cycle",
+    "deleting a dependency edge releases its task",
+    "all page headers display real streak values",
+    "boolean custom input is restored from its own draft",
+    "goal acceptance preserves attachment and elapsed draft",
+    "historical redeemed contracts stay out of today metrics",
+    "family version history is flat and complete",
+    "treasury event references the actual transaction",
+    "ledger displays user content as plain text",
+    "invalid currency precision creates no transaction",
+    "date gallery exposes actual saved attachments",
+    "actual attachment viewer opens above nested dialogs",
+    "native Canvas layout can be explicitly imported",
+    "imported Canvas positions survive snapshot capture",
+    "project Markdown exports record IDs, actual effort and attachment links",
+    "bounty projection exports every independent contract",
+    "interrupted old empty project export cannot erase the complete commit",
+    "complete commit restores modules before stale cache and exports",
+    "active bounty is rebound to the canonical entity after hydration",
+    "corrupt session cache is preserved while valid domain recovers",
+    "corrupt primary blocks destructive automatic overwrites",
+    "runtime disposal still removes globals",
+    "reopened saved execution is visible after a full runtime restart"
+  ],
+  "screenshot": true,
+  "capturePages": [
+    {
+      "name": "week",
+      "code": "window.closeExecCardPopupView();window.switchExecSubView('week');"
+    },
+    {
+      "name": "month",
+      "code": "window.switchExecSubView('month');"
+    },
+    {
+      "name": "gantt",
+      "code": "window.enterSecondaryWorkspace('study','gantt');"
+    },
+    {
+      "name": "canvas",
+      "code": "window.enterTertiaryWorkspace(\"proj_1794576935510\");"
+    },
+    {
+      "name": "treasury",
+      "code": "window.enterSecondaryWorkspace('treasury','specialized');"
+    },
+    {
+      "name": "tree",
+      "code": "window.enterSecondaryWorkspace('tree','specialized');"
+    },
+    {
+      "name": "note",
+      "code": "window.enterSecondaryWorkspace('note','specialized');"
+    },
+    {
+      "name": "achieve",
+      "code": "window.enterSecondaryWorkspace('achieve','specialized');"
+    },
+    {
+      "name": "family",
+      "code": "window.openFamilyPactModal();"
+    }
+  ]
+}

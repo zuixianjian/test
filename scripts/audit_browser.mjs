@@ -2,6 +2,7 @@ import {build} from 'esbuild';
 import fs from 'node:fs';
 import path from 'node:path';
 import {spawn} from 'node:child_process';
+import {pathToFileURL} from 'node:url';
 
 const dir=path.resolve('scratch/closed-loop-audit');fs.mkdirSync(dir,{recursive:true});fs.mkdirSync('audit',{recursive:true});
 const shim=`export class Notice {constructor(message){console.log(message)}} export class TFile {} export class App {} export const normalizePath=p=>p.split(String.fromCharCode(92)).join('/');`;
@@ -22,21 +23,23 @@ try{
   const evaluate=async expression=>{const r=await send('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true});if(r.exceptionDetails)throw new Error(r.exceptionDetails.exception?.description||r.exceptionDetails.text);return r.result.value;};
   for(let i=0;i<50;i++){if(await evaluate(designMode?'window.__YOUTH_ISLAND_DESIGN_READY__ === true':'typeof Harness !== "undefined"'))break;await new Promise(r=>setTimeout(r,100));}
   const scenario=process.argv[2]||'scripts/audit_scenarios.js';
-  const result=await evaluate(fs.readFileSync(scenario,'utf8'));
+  const result=scenario.endsWith('.mjs')?await (await import(pathToFileURL(path.resolve(scenario)).href)).default({evaluate,send,designMode}):await evaluate(fs.readFileSync(scenario,'utf8'));
+  const version=result.version||'1.1.0',group=['canvas','navigation'].includes(result.suite)?result.suite:null,suite=group?group+(designMode?'-design-':'-'):designMode?'design-':'';
   if(result.checks){
-    fs.writeFileSync(designMode?'audit/design-validation-1.1.0.json':'audit/validation-1.1.0.json',JSON.stringify(result,null,2));for(const c of result.checks)console.log('PASS: '+c);console.log('Passed '+result.checks.length+' domain and integration checks');
+    fs.writeFileSync('audit/'+suite+'validation-'+version+'.json',JSON.stringify(result,null,2));for(const c of result.checks)console.log('PASS: '+c);console.log('Passed '+result.checks.length+' domain and integration checks');
     if(result.screenshot){
       await new Promise(r=>setTimeout(r,1800));
-      await send('Page.captureScreenshot',{format:'png'}).then(r=>fs.writeFileSync(path.join(dir,designMode?'design-1.1.0.png':'release-1.1.0.png'),Buffer.from(r.data,'base64')));
+      const shotName=group?group+(designMode?'-design':''):designMode?'design':'release';
+      await send('Page.captureScreenshot',{format:'png'}).then(r=>fs.writeFileSync(path.join(dir,shotName+'-'+version+'.png'),Buffer.from(r.data,'base64')));
       if(result.portrait){
         await send('Emulation.setDeviceMetricsOverride',{width:768,height:1024,deviceScaleFactor:1,mobile:false});
         await new Promise(r=>setTimeout(r,300));
-        await send('Page.captureScreenshot',{format:'png'}).then(r=>fs.writeFileSync(path.join(dir,'design-portrait-1.1.0.png'),Buffer.from(r.data,'base64')));
+        await send('Page.captureScreenshot',{format:'png'}).then(r=>fs.writeFileSync(path.join(dir,(group?shotName:'design')+'-portrait-'+version+'.png'),Buffer.from(r.data,'base64')));
       }
       for(const view of result.capturePages||[]){
         await evaluate(view.code);await new Promise(r=>setTimeout(r,120));
         const name=view.name.replace(/[^a-z0-9-]/gi,'');
-        await send('Page.captureScreenshot',{format:'png'}).then(r=>fs.writeFileSync(path.join(dir,'page-'+name+'-1.1.0.png'),Buffer.from(r.data,'base64')));
+        await send('Page.captureScreenshot',{format:'png'}).then(r=>fs.writeFileSync(path.join(dir,'page-'+name+'-'+version+'.png'),Buffer.from(r.data,'base64')));
       }
     }
   }
@@ -48,4 +51,7 @@ try{
   for(const probe of result.probes)console.log((probe.problemObserved?'CONFIRMED':'NOT REPRODUCED')+': '+probe.id+' '+probe.title+' '+JSON.stringify(probe.actual));
   console.log(JSON.stringify({pages:result.pageSnapshots.length,designControlInstances:result.designControls.length,liveControlInstances:result.pageSnapshots.reduce((n,p)=>n+p.controls.length,0),probes:result.probes.length,confirmed:result.probes.filter(p=>p.problemObserved).length}));
   }
+}catch(error){
+  if(ws?.readyState===1){const id=900000;await new Promise(resolve=>{const timer=setTimeout(resolve,1500),listener=event=>{const data=JSON.parse(event.data);if(data.id===id){ws.removeEventListener('message',listener);clearTimeout(timer);if(data.result?.data)fs.writeFileSync(path.join(dir,'last-failure.png'),Buffer.from(data.result.data,'base64'));resolve();}};ws.addEventListener('message',listener);ws.send(JSON.stringify({id,method:'Page.captureScreenshot',params:{format:'png'}}));});}
+  throw error;
 }finally{ws?.close();chrome.kill();}

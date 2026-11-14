@@ -4839,20 +4839,6 @@ function cycleGridMode() {
   alignGridLayout();
 }
 
-function handleOpenObsidianCanvas(projId) {
-  const targetId = projId || window.currentTertiaryProjId || 'p1';
-  if (typeof window.__openProjectInObsidianCanvas === 'function') {
-    window.__openProjectInObsidianCanvas(targetId);
-  } else {
-    showIslandToast('🎨 正在 Obsidian Canvas 核心插件中全屏打开项目画布...');
-  }
-}
-
-function openCurrentProjectInObsidianCanvas() {
-  handleOpenObsidianCanvas(window.currentTertiaryProjId);
-}
-
-
 // ==========================================================================
 // 终身岛民 1:1 工作图谱多点触控与自由缩放手势引擎 (对标 a-my-island Cytoscape 级体验)
 // ==========================================================================
@@ -10110,7 +10096,7 @@ setTimeout(() => {
   if (typeof renderHomeSemesterGoalsBanner === 'function') renderHomeSemesterGoalsBanner();
   if (typeof recalcAndRenderGlobalHUD === 'function') recalcAndRenderGlobalHUD();
   if (typeof renderBountyModalAndBillboard === 'function') renderBountyModalAndBillboard();
-  switchHomeGlobalView('exec');
+  switchHomeGlobalView(currentGlobalView || 'exec');
 }, 200);
 
 
@@ -10350,7 +10336,6 @@ function renderGanttChart() {
           '<span class="gantt-status-pill ' + sm.cls + '">' + sm.label + '</span>' +
         '</div>' +
         '<div class="col-cell-ops">' +
-          '<button class="gantt-op-btn gantt-plan-btn" data-id="' + p.id + '" onclick="handleOpenObsidianCanvas(this.dataset.id)" title="在 Obsidian 原生 Canvas 核心画布插件中全屏打开（原生加速，丝滑顺畅）" style="background:#eff6ff; color:#2563eb; border-color:#93c5fd;">🎨 Canvas</button>' +
           '<button class="gantt-op-btn gantt-plan-btn" data-id="' + p.id + '" onclick="openEditProjectModal(this.dataset.id)" title="编辑项目名称、起止周期与攻坚策略">✏️ 编辑</button>' +
           '<button class="gantt-op-btn gantt-plan-btn" data-id="' + p.id + '" onclick="handleGanttEditPlan(this)" title="进入该项目三级思维导图拆解画布">🔮 脑图</button>' +
           '<button class="gantt-op-btn gantt-archive-btn ' + (p.isArchived ? 'is-archived' : '') + '" data-id="' + p.id + '" onclick="handleGanttArchive(this)" title="' + (p.isArchived ? '解除归档' : '归档该项目') + '">' +
@@ -12113,6 +12098,101 @@ function validateDomainExecution(node,input) {
   return {valid:errors.length===0,errors,metrics};
 }
 
+// Shared viewport math and orthogonal routing for the design and plugin.
+const CANVAS_ZOOM_MIN=0.12;
+const CANVAS_ZOOM_MAX=3;
+function canvasWheelUnits(delta,mode=0,pageHeight=800){
+  const pixels=delta*(mode===1?16:mode===2?pageHeight:1);
+  return Number.isFinite(pixels)?Math.max(-1,Math.min(1,pixels/100)):0;
+}
+function canvasWheelFactor(units){return Math.exp(-Math.max(-2,Math.min(2,units))*Math.log(1.12));}
+function canvasValidViewport(value){return !!value&&[value.x,value.y,value.zoom].every(Number.isFinite)&&value.zoom>=CANVAS_ZOOM_MIN&&value.zoom<=CANVAS_ZOOM_MAX;}
+function canvasWorldViewport(camera,width,height){return {x:-camera.x/camera.zoom,y:-camera.y/camera.zoom,width:width/camera.zoom,height:height/camera.zoom};}
+function canvasMinimapProjection(rects,camera,width,height,mapWidth=220,mapHeight=130){
+  const viewport=canvasWorldViewport(camera,width,height),boxes=[viewport,...rects];
+  let minX=Math.min(...boxes.map(r=>r.x)),minY=Math.min(...boxes.map(r=>r.y)),maxX=Math.max(...boxes.map(r=>r.x+r.width)),maxY=Math.max(...boxes.map(r=>r.y+r.height));
+  const padding=Math.max(80,.06*Math.max(maxX-minX,maxY-minY));minX-=padding;minY-=padding;maxX+=padding;maxY+=padding;
+  const spanX=Math.max(1,maxX-minX),spanY=Math.max(1,maxY-minY),scale=Math.min((mapWidth-12)/spanX,(mapHeight-12)/spanY);
+  return {minX,minY,maxX,maxY,scale,offsetX:(mapWidth-spanX*scale)/2,offsetY:(mapHeight-spanY*scale)/2,width:mapWidth,height:mapHeight};
+}
+function canvasMinimapPoint(projection,point){return {x:projection.offsetX+(point.x-projection.minX)*projection.scale,y:projection.offsetY+(point.y-projection.minY)*projection.scale};}
+function canvasMinimapWorldPoint(projection,point){return {x:projection.minX+(point.x-projection.offsetX)/projection.scale,y:projection.minY+(point.y-projection.offsetY)/projection.scale};}
+function canvasMinimapDrag(camera,dx,dy,projection){return {...camera,x:camera.x-dx/projection.scale*camera.zoom,y:camera.y-dy/projection.scale*camera.zoom};}
+function canvasConnectionPreview(source,cursor){
+  const dx=cursor.x-(source.x+source.width/2),dy=cursor.y-(source.y+source.height/2),horizontal=Math.abs(dx)>=Math.abs(dy);
+  const start=horizontal?{x:source.x+(dx>=0?source.width:0),y:source.y+source.height/2}:{x:source.x+source.width/2,y:source.y+(dy>=0?source.height:0)};
+  return 'M '+start.x+' '+start.y+' L '+(horizontal?cursor.x:start.x)+' '+(horizontal?start.y:cursor.y)+' L '+cursor.x+' '+cursor.y;
+}
+function canvasZoomAt(state,factor,pivot){
+  if(!Number.isFinite(factor)||factor<=0)return {...state};
+  const zoom=Math.max(CANVAS_ZOOM_MIN,Math.min(CANVAS_ZOOM_MAX,state.zoom*factor));
+  return {zoom,x:pivot.x-(pivot.x-state.x)*zoom/state.zoom,y:pivot.y-(pivot.y-state.y)*zoom/state.zoom};
+}
+function canvasFit(rects,width,height,padding=60){
+  if(!rects.length)return {x:0,y:0,zoom:1};
+  const left=Math.min(...rects.map(r=>r.x)),top=Math.min(...rects.map(r=>r.y));
+  const w=Math.max(...rects.map(r=>r.x+r.width))-left,h=Math.max(...rects.map(r=>r.y+r.height))-top;
+  const zoom=Math.max(CANVAS_ZOOM_MIN,Math.min(1.2,(width-padding*2)/Math.max(w,1),(height-padding*2)/Math.max(h,1)));
+  return {zoom,x:(width-w*zoom)/2-left*zoom,y:(height-h*zoom)/2-top*zoom};
+}
+function canvasEdgeStyle(edge){
+  return {...edge,color:/^#[\da-f]{3,8}$/i.test(edge.color||'')?edge.color:'#6fa99b',lineWidth:Math.max(1,Math.min(6,Number(edge.lineWidth)||3)),lineStyle:edge.lineStyle==='dashed'?'dashed':'solid',arrowMode:['none','single','double'].includes(edge.arrowMode)?edge.arrowMode:'single'};
+}
+function canvasFreePosition(rects,width=340,height=640){
+  const candidates=[80,480,880].map(x=>{let y=90;for(let i=0;i<=rects.length;i++){const collisions=rects.filter(r=>x<r.x+r.width+60&&x+width+60>r.x&&y<r.y+r.height+60&&y+height+60>r.y);if(!collisions.length)break;y=Math.max(...collisions.map(r=>r.y+r.height+60));}return {x,y};});
+  return candidates.sort((a,b)=>a.y-b.y||a.x-b.x)[0];
+}
+function canvasSegmentClear(a,b,rects){
+  return !rects.some(r=>a.x===b.x?a.x>r.x&&a.x<r.x+r.width&&Math.max(a.y,b.y)>r.y&&Math.min(a.y,b.y)<r.y+r.height:a.y>r.y&&a.y<r.y+r.height&&Math.max(a.x,b.x)>r.x&&Math.min(a.x,b.x)<r.x+r.width);
+}
+function canvasSimplify(points){
+  const out=[];
+  for(const p of points){if(out.length&&p.x===out.at(-1).x&&p.y===out.at(-1).y)continue;
+    while(out.length>1&&((out.at(-2).x===out.at(-1).x&&out.at(-1).x===p.x)||(out.at(-2).y===out.at(-1).y&&out.at(-1).y===p.y)))out.pop();out.push(p);
+  }return out;
+}
+function canvasHeapPush(heap,item){heap.push(item);let i=heap.length-1;while(i){const p=(i-1)>>1;if(heap[p].cost<=item.cost)break;heap[i]=heap[p];i=p;}heap[i]=item;}
+function canvasHeapPop(heap){const first=heap[0],last=heap.pop();if(heap.length){let i=0;while(i*2+1<heap.length){let child=i*2+1;if(child+1<heap.length&&heap[child+1].cost<heap[child].cost)child++;if(heap[child].cost>=last.cost)break;heap[i]=heap[child];i=child;}heap[i]=last;}return first;}
+function canvasOrthogonalPath(start,end,obstacles){
+  const direct=[start,{x:end.x,y:start.y},end],other=[start,{x:start.x,y:end.y},end];
+  for(const candidate of [direct,other])if(candidate.slice(1).every((p,i)=>canvasSegmentClear(candidate[i],p,obstacles)))return canvasSimplify(candidate);
+  const xs=[...new Set([start.x,end.x,...obstacles.flatMap(r=>[r.x-1,r.x+r.width+1])])].sort((a,b)=>a-b);
+  const ys=[...new Set([start.y,end.y,...obstacles.flatMap(r=>[r.y-1,r.y+r.height+1])])].sort((a,b)=>a-b);
+  const heap=[],best=new Map(),parents=new Map(),points=new Map();
+  const key=(x,y,axis)=>x+','+y+','+axis,initial=key(xs.indexOf(start.x),ys.indexOf(start.y),0);
+  canvasHeapPush(heap,{key:initial,xi:xs.indexOf(start.x),yi:ys.indexOf(start.y),axis:0,distance:0,cost:0});best.set(initial,0);
+  let final=null;
+  for(let limit=0;heap.length&&limit<20000;limit++){
+    const current=canvasHeapPop(heap);if(current.distance!==best.get(current.key))continue;
+    const a={x:xs[current.xi],y:ys[current.yi]};points.set(current.key,a);
+    if(a.x===end.x&&a.y===end.y){final=current.key;break;}
+    for(const [dx,dy,axis] of [[-1,0,1],[1,0,1],[0,-1,2],[0,1,2]]){
+      const xi=current.xi+dx,yi=current.yi+dy;if(xi<0||xi>=xs.length||yi<0||yi>=ys.length)continue;
+      const b={x:xs[xi],y:ys[yi]};if(!canvasSegmentClear(a,b,obstacles))continue;
+      const distance=current.distance+Math.abs(a.x-b.x)+Math.abs(a.y-b.y)+(current.axis&&current.axis!==axis?24:0),id=key(xi,yi,axis);
+      if(distance>=(best.get(id)??Infinity))continue;best.set(id,distance);parents.set(id,current.key);
+      canvasHeapPush(heap,{key:id,xi,yi,axis,distance,cost:distance+Math.abs(b.x-end.x)+Math.abs(b.y-end.y)});
+    }
+  }
+  if(!final)return direct; // Overlapping nodes can leave no free route; dragging them apart resolves it.
+  const result=[];for(let cursor=final;cursor;cursor=parents.get(cursor))result.unshift(points.get(cursor));return canvasSimplify(result);
+}
+function canvasRouteEdge(source,target,rects,index=0,total=1){
+  const horizontal=source.x+source.width<=target.x||target.x+target.width<=source.x;
+  const forward=horizontal?target.x>=source.x:target.y>=source.y;
+  const slot=(size)=>(index-(total-1)/2)*Math.min(16,Math.max(0,(size-24)/Math.max(total,1)));
+  const a=horizontal?{x:source.x+(forward?source.width:0),y:source.y+source.height/2+slot(source.height)}:{x:source.x+source.width/2+slot(source.width),y:source.y+(forward?source.height:0)};
+  const b=horizontal?{x:target.x+(forward?0:target.width),y:target.y+target.height/2+slot(target.height)}:{x:target.x+target.width/2+slot(target.width),y:target.y+(forward?0:target.height)};
+  const direction=forward?1:-1,stub=24;
+  const start=horizontal?{x:a.x+direction*stub,y:a.y}:{x:a.x,y:a.y+direction*stub};
+  const end=horizontal?{x:b.x-direction*stub,y:b.y}:{x:b.x,y:b.y-direction*stub};
+  const obstacles=rects.map(r=>({x:r.x-12,y:r.y-12,width:r.width+24,height:r.height+24}));
+  const points=canvasSimplify([a,...canvasOrthogonalPath(start,end,obstacles),b]);
+  let label={x:(a.x+b.x)/2,y:(a.y+b.y)/2},longest=-1;
+  for(let i=1;i<points.length;i++){const p=points[i-1],q=points[i],length=Math.abs(q.x-p.x)+Math.abs(q.y-p.y);if(length>longest){longest=length;label={x:(p.x+q.x)/2,y:(p.y+q.y)/2};}}
+  return {points,label,d:points.map((p,i)=>(i?'L ':'M ')+p.x+' '+p.y).join(' ')};
+}
+
 // Product rules applied inside the extracted runtime closure. Keep the reference
 // HTML untouched; this file is part of every dev/production extraction.
 const escapeIslandText = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -12593,7 +12673,7 @@ function migrateCanvasNodes(snapshot,project) {
 function bootstrapDomainState(force=false) {
   if(!force&&activeDomainState===window.DOMAIN_STATE&&activeDomainState)return activeDomainState;
   const previous=window.DOMAIN_STATE||{};
-  const state={schemaVersion:3,revision:previous.revision||0,storageRevision:previous.storageRevision||0,projects:window.GANTT_PROJECTS||[],nodesByProject:{},records:previous.records?.length?previous.records:(window.USER_PROFILE_STATE.checkinRecords||[]),events:previous.events||[],bounties:previous.bounties||[],family:previous.family||{childName:'',guardianNames:'',signedAt:null,clauses:[]},historyByProject:previous.historyByProject||{},drafts:previous.drafts||{},taskAliases:previous.taskAliases||{},inquiries:window.INQUIRY_POOL_STATE||[]};
+  const state={schemaVersion:3,revision:previous.revision||0,storageRevision:previous.storageRevision||0,projects:window.GANTT_PROJECTS||[],nodesByProject:{},records:previous.records?.length?previous.records:(window.USER_PROFILE_STATE.checkinRecords||[]),events:previous.events||[],bounties:previous.bounties||[],family:previous.family||{childName:'',guardianNames:'',signedAt:null,clauses:[]},historyByProject:previous.historyByProject||{},viewports:previous.viewports||{planning:null,projects:{}},navigation:previous.navigation||{planning:{collapsed:true},projects:{}},drafts:previous.drafts||{},taskAliases:previous.taskAliases||{},inquiries:window.INQUIRY_POOL_STATE||[]};
   for(const project of state.projects){const snapshot=window.PROJECT_CANVAS_STORE[project.id]||{};state.nodesByProject[project.id]=migrateCanvasNodes(snapshot,project);snapshot.nodes=state.nodesByProject[project.id];window.PROJECT_CANVAS_STORE[project.id]=snapshot;}
   if(window.BOUNTY_STATE&&!state.bounties.some(b=>b.id===window.BOUNTY_STATE.id))state.bounties.push(window.BOUNTY_STATE);
   if(window.BOUNTY_STATE)window.BOUNTY_STATE=state.bounties.find(b=>b.id===window.BOUNTY_STATE.id)||null;
@@ -12866,12 +12946,6 @@ recalcAndRenderGlobalHUD=function(){
   document.querySelectorAll('.hud-stat-item.rate > span:last-child').forEach(el=>el.textContent='履约 '+profile.fulfillmentRate+'%');
   document.querySelectorAll('.hud-stat-item.rate').forEach(el=>el.title='当前领域任务的综合履约率 · 点击查看亲子公约');
 };
-handleOpenObsidianCanvas=function(id){
-  const target=id||window.currentTertiaryProjId;
-  if(!getDomainState().projects.some(p=>p.id===target)){showIslandToast('请先选择实际项目');return false;}
-  if(window.__openProjectInObsidianCanvas)return window.__openProjectInObsidianCanvas(target);
-  showIslandToast('独立设计预览不连接Obsidian；插件会打开已有Canvas，首次使用时生成');return false;
-};
 recordLiveTreasuryTransaction=function(){
   const amountEl=document.getElementById('treasury-tx-amount-input');if(!amountEl)return false;
   const amount=Number(amountEl.value),cents=Math.round(amount*100),treasury=window.TREASURY_STATE,type=treasury.currentRecordType||'income';
@@ -12913,7 +12987,7 @@ submitPactViolationAdjudication=function(){const s=getDomainState(),f=s.family,r
 renderGanttChart=function(){const state=getDomainState(),all=state.projects,labels={'待规划':'planned','待执行':'pending','进行中':'exec','已完成':'done','已归档':'archived'},counts={all:all.length,planned:0,pending:0,exec:0,done:0,archived:0};for(const p of all)counts[labels[computeProjectProgressAndStatus(p).status]]++;for(const [key,value]of Object.entries(counts)){const el=document.getElementById('count-'+key);if(el)el.textContent=value;}
   const projects=all.filter(p=>(currentGanttCategory==='all'||p.category===currentGanttCategory)&&(currentGanttStatus==='all'||labels[computeProjectProgressAndStatus(p).status]===currentGanttStatus));
   const table=document.getElementById('gantt-table-rows'),header=document.getElementById('gantt-timeline-header'),rows=document.getElementById('gantt-timeline-rows');if(!table||!header||!rows)return;
-  table.innerHTML=projects.map(p=>{const r=computeProjectProgressAndStatus(p);return '<div class="gantt-project-row"><div>'+escapeIslandText(p.category||PAVILION_META[p.pavilion]?.name||'规划')+'</div><div><strong>'+escapeIslandText(p.title)+'</strong><p>'+escapeIslandText(p.desc||p.description||'')+'</p></div><div>'+p.startDate+' ～ '+p.endDate+'<p>节点验收 '+r.progress+'%（'+r.completedNodesCount+'/'+r.totalNodesCount+'）</p></div><div>'+r.status+'</div><div><button class="gantt-op-btn" onclick="openEditProjectModal(\''+p.id+'\')">编辑</button><button class="gantt-op-btn" onclick="enterTertiaryWorkspace(\''+p.id+'\')">脑图</button><button class="gantt-op-btn" onclick="handleOpenObsidianCanvas(\''+p.id+'\')">导出/打开Canvas</button><button class="gantt-op-btn" onclick="importDomainCanvas(\''+p.id+'\')">导入Canvas布局</button><button class="gantt-op-btn" onclick="toggleProjectArchive(\''+p.id+'\')">'+(p.isArchived?'恢复':'归档')+'</button></div></div>';}).join('')||'<p>暂无项目</p>';
+  table.innerHTML=projects.map(p=>{const r=computeProjectProgressAndStatus(p);return '<div class="gantt-project-row"><div>'+escapeIslandText(p.category||PAVILION_META[p.pavilion]?.name||'规划')+'</div><div><strong>'+escapeIslandText(p.title)+'</strong><p>'+escapeIslandText(p.desc||p.description||'')+'</p></div><div>'+p.startDate+' ～ '+p.endDate+'<p>节点验收 '+r.progress+'%（'+r.completedNodesCount+'/'+r.totalNodesCount+'）</p></div><div>'+r.status+'</div><div><button class="gantt-op-btn" onclick="openEditProjectModal(\''+p.id+'\')">编辑</button><button class="gantt-op-btn" onclick="enterTertiaryWorkspace(\''+p.id+'\')">脑图</button><button class="gantt-op-btn" onclick="toggleProjectArchive(\''+p.id+'\')">'+(p.isArchived?'恢复':'归档')+'</button></div></div>';}).join('')||'<p>暂无项目</p>';
   const start=projects.reduce((date,p)=>p.startDate<date?p.startDate:date,domainDate()),end=projects.reduce((date,p)=>p.endDate>date?p.endDate:date,domainDate());const count=Math.min(3660,diffGanttDays(start,end)+1),width=count*38;
   window.domainGanttRangeStart=start;header.innerHTML='<div class="gantt-timeline-inner" style="width:'+width+'px"><div class="gantt-month-row">'+start+' ～ '+end+'</div><div class="gantt-day-row">'+Array.from({length:count},(_,i)=>'<div class="gantt-day-cell" style="width:38px">'+domainShift(start,i).slice(5)+'</div>').join('')+'</div></div>';
   rows.innerHTML='<div class="gantt-timeline-inner" style="width:'+width+'px">'+projects.map(p=>'<div class="gantt-timeline-row">'+Array.from({length:count},(_,i)=>{const date=domainShift(start,i);if(date<p.startDate||date>p.endDate)return '';const records=state.records.filter(r=>r.projectId===p.id&&r.date===date&&r.validated===true),done=records.length>0;return '<div class="gantt-day-square '+(done?'sq-done':'sq-pending')+'" data-id="'+p.id+'" data-date="'+date+'" style="position:absolute;left:'+(i*38+4)+'px" title="'+date+'：真实执行记录 '+records.length+' 项" onclick="openDomainProjectDay(\''+p.id+'\',\''+date+'\')">'+(done?'✓':date.slice(-2))+'</div>';}).join('')+'</div>').join('')+'</div>';
@@ -12926,11 +13000,9 @@ renderGanttChart=function(){
     if(action.includes('scrollGanttToToday'))button.textContent='📍 回到今日 ('+domainDate().slice(5).replace('-','/')+')';
     if(action.includes('openInquiryModal'))button.textContent='❓ 问道池 · '+(window.INQUIRY_POOL_STATE||[]).filter(i=>!i.linkedProjectId).length+'个待规划';
   });
-  document.querySelectorAll('#gantt-table-rows button').forEach(button=>{if((button.getAttribute('onclick')||'').includes('handleOpenObsidianCanvas')){button.textContent='打开Canvas';button.title='首次生成，之后打开已有文件；原生编辑不会被后台覆盖';}});
 };
 scrollGanttToToday=function(){const col=document.getElementById('gantt-timeline-col');if(col)col.scrollTo({left:Math.max(0,diffGanttDays(window.domainGanttRangeStart||domainDate(),domainDate())*38-col.clientWidth/2),behavior:'smooth'});};
 function openDomainProjectDay(projectId,date){const records=getDomainState().records.filter(r=>r.projectId===projectId&&r.date===date);document.getElementById('domain-day-records')?.remove();const modal=document.createElement('div');modal.id='domain-day-records';modal.className='domain-modal';modal.innerHTML='<div class="note-card-box"><h3>'+escapeIslandText(date)+' 原始执行记录</h3>'+records.map(r=>'<article><h4>'+escapeIslandText(r.title)+'</h4><p>实际专注 '+Math.floor(r.focusSeconds/60)+' 分钟 · '+escapeIslandText(r.completedAt||'历史记录')+'</p><p>'+escapeIslandText(r.reflection||'')+'</p>'+(r.media||[]).map(m=>'<button class="ui-btn" onclick="openDomainMedia(\''+m.id+'\')">'+escapeIslandText(m.name)+'</button>').join('')+'</article>').join('')+'<button class="ui-btn" onclick="document.getElementById(\'domain-day-records\').remove()">关闭</button></div>';if(!records.length)modal.querySelector('h3').insertAdjacentHTML('afterend','<p>当日尚无真实执行记录</p>');(document.querySelector('.youth-island-plugin-root')||document.body).appendChild(modal);}
-function importDomainCanvas(id){if(window.__importIslandCanvas)return window.__importIslandCanvas(id).then(result=>{if(result){bootstrapDomainState(true);renderDomainCanvas(id);refreshDomainProjections();}});showIslandToast('设计预览不连接Obsidian Canvas；插件中可导入布局和文本便签');}
 async function exportDomainDocument(path,title,content){if(window.__exportIslandDocument)return window.__exportIslandDocument(path,content);const url=URL.createObjectURL(new Blob([content],{type:'text/markdown;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download=title+'.md';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return true;}
 printFamilyPact=async function(){const f=getDomainState().family;if(!f.signedAt){showIslandToast('请先共同签署公约');return false;}return exportDomainDocument('exports/family-pact-v'+f.version+'.md','亲子公约','# 亲子共同公约\n\n孩子：'+f.childName+'\n监护人：'+f.guardianNames+'\n版本：'+f.version+'\n签署时间：'+f.signedAt+'\n\n'+f.clauses.map(c=>'- '+c.text).join('\n'));};
 async function exportDomainAchievement(id){const a=[...window.ACHIEVEMENT_STATE.cultivationItems,...window.ACHIEVEMENT_STATE.accidentalItems].find(a=>a.id===id);if(!a)return false;return exportDomainDocument('exports/achievement-'+a.id+'.md',a.title,'# '+a.title+'\n\n日期：'+a.date+'\n来源项目：'+(a.sourceProjectId||'生活高光')+'\n\n'+(a.metrics||[]).map(m=>'- '+m.name+'：目标 '+m.target+'；实测 '+m.actual).join('\n')+'\n\n'+(a.desc||'')+'\n\n'+(a.media||[]).map(m=>'![['+m.path+']]').join('\n'));}
@@ -13003,6 +13075,341 @@ if(!window.__YOUTH_ISLAND_RUNTIME_BOOTED__){
   const originalOpenDomainMedia=openDomainMedia;openDomainMedia=async function(id){const media=allDomainMedia().find(m=>m.id===id);if(media&&!designUrls.has(media.path)){const blob=await designData(media.path);if(blob)designUrls.set(media.path,URL.createObjectURL(blob));}originalOpenDomainMedia(id);};
   setTimeout(async()=>{document.body.classList.add('youth-island-plugin-root');let canSave=true;try{const saved=await designData('state');if(saved){if(!Array.isArray(saved.projects)||saved.domain?.schemaVersion!==3||!saved.profile||!saved.canvas||!saved.note||!saved.achievements)throw new Error('Invalid preview data; auto-save paused');window.GANTT_PROJECTS.splice(0,window.GANTT_PROJECTS.length,...saved.projects);window.PROJECT_CANVAS_STORE=saved.canvas;window.USER_PROFILE_STATE=saved.profile;window.DOMAIN_STATE=saved.domain;window.NOTE_STATE=saved.note;window.ACHIEVEMENT_STATE=saved.achievements;window.INQUIRY_POOL_STATE=saved.inquiries;window.BOUNTY_STATE=saved.bounty;Object.assign(PAVILION_META,saved.topology||{});}else{window.INQUIRY_POOL_STATE=[];window.PROJECT_CANVAS_STORE={};window.currentTertiaryProjId=null;}}catch(error){canSave=false;showIslandToast('预览数据读取失败，自动保存已暂停：'+error.message);}restoreBusinessViews();document.body.inert=false;window.__YOUTH_ISLAND_DESIGN_READY__=true;window.addEventListener('youth-island:state-changed',()=>{if(!canSave)return;clearTimeout(window.__designSaveTimer);window.__designSaveTimer=setTimeout(()=>{captureDomainLayout();saveCurrentProjectCanvasSnapshot();designData('state',{topology:PAVILION_META,projects:window.GANTT_PROJECTS,canvas:window.PROJECT_CANVAS_STORE,profile:window.USER_PROFILE_STATE,domain:window.DOMAIN_STATE,note:window.NOTE_STATE,achievements:window.ACHIEVEMENT_STATE,inquiries:window.INQUIRY_POOL_STATE,bounty:window.BOUNTY_STATE}).catch(error=>showIslandToast('预览保存失败：'+error.message));},300);});},0);
 }
+
+// One gesture/viewport implementation for the planning sandbox and project canvas.
+function canvasLocalPoint(stage,clientX,clientY){const r=stage.getBoundingClientRect();return {x:(clientX-r.left)*stage.clientWidth/(r.width||1),y:(clientY-r.top)*stage.clientHeight/(r.height||1)};}
+function readPlanViewport(){return {x:islandPanX,y:islandPanY,zoom:islandZoom};}
+function writePlanViewport(v){islandPanX=v.x;islandPanY=v.y;islandZoom=v.zoom;applyIslandTransform();}
+function readMindmapViewport(){return {x:window.tertiaryPanX||0,y:window.tertiaryPanY||0,zoom:window.tertiaryZoom||1};}
+let restoringCanvasViewport=false,canvasViewportSaveTimer=null;
+function canvasViewportStore(){const state=getDomainState();state.viewports=state.viewports||{};state.viewports.projects=state.viewports.projects||{};return state.viewports;}
+function rememberCanvasViewport(kind,viewport){
+  if(restoringCanvasViewport||!canvasValidViewport(viewport))return;
+  const store=canvasViewportStore(),id=window.currentTertiaryProjId;
+  if(kind==='project'&&!id)return;
+  const before=kind==='planning'?store.planning:store.projects[id];
+  if(before&&['x','y','zoom'].every(key=>before[key]===viewport[key]))return;
+  if(kind==='planning')store.planning={...viewport};else store.projects[id]={...viewport};
+  clearTimeout(canvasViewportSaveTimer);canvasViewportSaveTimer=setTimeout(notifyIslandStateChanged,180);
+}
+const canvasApplyIsland=applyIslandTransform,canvasApplyMindmap=applyTertiaryTransform;
+applyIslandTransform=function(){canvasApplyIsland();if(currentGlobalView==='plan')rememberCanvasViewport('planning',readPlanViewport());};
+applyTertiaryTransform=function(){canvasApplyMindmap();rememberCanvasViewport('project',readMindmapViewport());positionCanvasEdgeLabels();positionCanvasEdgePopover();};
+const canvasSwitchHome=switchHomeGlobalView;
+switchHomeGlobalView=function(view){
+  const saved=canvasViewportStore().planning,stage=document.getElementById('island-canvas-stage');stage?._cancelCanvasWheel?.();
+  restoringCanvasViewport=true;try{canvasSwitchHome(view);if(currentGlobalView==='plan'&&canvasValidViewport(saved))writePlanViewport(saved);}finally{restoringCanvasViewport=false;}
+  if(stage)stage.dataset.canvasMode=currentGlobalView;
+};
+const canvasRenderBounty=renderBountyModalAndBillboard;
+renderBountyModalAndBillboard=function(){canvasRenderBounty();const billboard=document.getElementById('home-bounty-billboard');if(billboard)billboard.hidden=!window.BOUNTY_STATE;};
+function writeMindmapViewport(v){window.tertiaryPanX=v.x;window.tertiaryPanY=v.y;window.tertiaryZoom=v.zoom;applyTertiaryTransform();positionCanvasEdgePopover();}
+function zoomCanvasViewport(stage,read,write,factor){if(stage){stage._cancelCanvasWheel?.();write(canvasZoomAt(read(),factor,{x:stage.clientWidth/2,y:stage.clientHeight/2}));}}
+zoomIslandCanvas=function(factor){zoomCanvasViewport(document.getElementById('island-canvas-stage'),readPlanViewport,writePlanViewport,factor);};
+zoomTertiaryCanvas=function(factor){zoomCanvasViewport(document.getElementById('tertiary-canvas-stage'),readMindmapViewport,writeMindmapViewport,factor);};
+function canvasNodeRect(node){return {id:node.id,x:node.style.left.endsWith('px')?parseFloat(node.style.left):node.offsetLeft,y:node.style.top.endsWith('px')?parseFloat(node.style.top):node.offsetTop,width:node.offsetWidth||340,height:node.offsetHeight||640};}
+fitHomeCanvasView=function(){const stage=document.getElementById('island-canvas-stage');if(stage)writePlanViewport(canvasFit(Array.from(document.querySelectorAll('#island-pavilion-grid .pavilion-node'),canvasNodeRect),stage.clientWidth,stage.clientHeight));};
+fitCanvasView=function(){const stage=document.getElementById('tertiary-canvas-stage');if(stage)writeMindmapViewport(canvasFit(Array.from(document.querySelectorAll('#tertiary-canvas-world .tertiary-card'),canvasNodeRect),stage.clientWidth,stage.clientHeight));};
+
+function bindCanvasViewport(config){
+  const stage=config.stage;if(!stage||stage.dataset.sharedCanvasBound)return;stage.dataset.sharedCanvasBound='true';
+  const pointers=new Map();let gesture=null,drag=null,suppressClick=false;
+  let wheelUnits=0,wheelFrame=null,wheelPivot=null;
+  stage._cancelCanvasWheel=()=>{if(wheelFrame!==null)cancelAnimationFrame(wheelFrame);wheelFrame=null;wheelUnits=0;};
+  const interactive=target=>target.closest('button,input,textarea,select,a,[contenteditable=true],.work-card-connect-handle,[data-edge-id],#tertiary-edge-popover,.a-my-island-work-navigation-dock,.a-my-island-work-minimap,.hud-profile-container,.a-my-island-plugin-launcher,.a-my-island-graph-toolbar,.parent-bounty-billboard,.a-my-island-island-settings-panel');
+  const finishDrag=()=>{if(!drag)return;drag.node.classList.remove(config.dragClass);if(drag.moved){config.finish?.();suppressClick=true;setTimeout(()=>{suppressClick=false;window._islandNodeDragMoved=false;},220);}drag=null;};
+  stage.addEventListener('click',event=>{if(suppressClick){event.preventDefault();event.stopImmediatePropagation();}},true);
+  stage.addEventListener('wheel',event=>{
+    if(!config.active())return;
+    if(event.target.closest('#tertiary-edge-popover,.a-my-island-work-navigation-dock'))return;
+    if(!event.ctrlKey&&event.target.closest('input,textarea,select,.domain-planning-body'))return;
+    event.preventDefault();event.stopPropagation();
+    if(event.ctrlKey||(!event.shiftKey&&Math.abs(event.deltaX)<2)){
+      wheelUnits=Math.max(-2,Math.min(2,wheelUnits+canvasWheelUnits(event.deltaY,event.deltaMode,stage.clientHeight)));
+      wheelPivot=canvasLocalPoint(stage,event.clientX,event.clientY);
+      if(wheelFrame===null)wheelFrame=requestAnimationFrame(()=>{const units=wheelUnits;wheelFrame=null;wheelUnits=0;if(config.active())config.write(canvasZoomAt(config.read(),canvasWheelFactor(units),wheelPivot));});
+    }else{stage._cancelCanvasWheel();const before=config.read(),unit=event.deltaMode===1?16:event.deltaMode===2?stage.clientHeight:1;config.write({...before,x:before.x-(event.shiftKey&&!event.deltaX?event.deltaY:event.deltaX)*unit,y:before.y-(event.shiftKey?0:event.deltaY)*unit});}
+  },{passive:false});
+  stage.addEventListener('pointerdown',event=>{
+    if(!config.active()||event.button>0||interactive(event.target))return;
+    stage._cancelCanvasWheel();
+    const point=canvasLocalPoint(stage,event.clientX,event.clientY);pointers.set(event.pointerId,point);
+    if(pointers.size===2){finishDrag();const [a,b]=[...pointers.values()];gesture={kind:'pinch',start:config.read(),middle:{x:(a.x+b.x)/2,y:(a.y+b.y)/2},distance:Math.hypot(a.x-b.x,a.y-b.y)};return;}
+    if(pointers.size!==1)return;
+    const node=event.target.closest(config.nodes);config.select?.(node);
+    if(node&&config.canDrag()){
+      drag={node,start:point,x:node.offsetLeft,y:node.offsetTop,moved:false,followers:config.followers?.(node)||[]};node.classList.add(config.dragClass);gesture={kind:'node'};
+    }else if(node){gesture={kind:'tap'};return;}
+    else{gesture={kind:'pan',start:config.read(),point};stage.classList.add('is-dragging-canvas');}
+    if(gesture?.kind==='pan')try{stage.setPointerCapture(event.pointerId);}catch{}
+  });
+  const move=event=>{
+    if(!pointers.has(event.pointerId))return;const point=canvasLocalPoint(stage,event.clientX,event.clientY);pointers.set(event.pointerId,point);
+    if(gesture?.kind==='pinch'&&pointers.size>=2){
+      const [a,b]=[...pointers.values()],middle={x:(a.x+b.x)/2,y:(a.y+b.y)/2},distance=Math.hypot(a.x-b.x,a.y-b.y);
+      const next=canvasZoomAt(gesture.start,distance/(gesture.distance||1),gesture.middle);next.x+=middle.x-gesture.middle.x;next.y+=middle.y-gesture.middle.y;config.write(next);return;
+    }
+    if(drag){const zoom=config.read().zoom,dx=(point.x-drag.start.x)/zoom,dy=(point.y-drag.start.y)/zoom;
+      if(!drag.moved&&Math.hypot(dx,dy)>3){config.start?.();drag.moved=true;window._islandNodeDragMoved=true;try{stage.setPointerCapture(event.pointerId);}catch{}}
+      if(!drag.moved)return;drag.node.style.left=drag.x+dx+'px';drag.node.style.top=drag.y+dy+'px';
+      for(const follower of drag.followers){follower.node.style.left=follower.x+dx+'px';follower.node.style.top=follower.y+dy+'px';}config.move?.();return;
+    }
+    if(gesture?.kind==='pan'){const before=gesture.start;config.write({...before,x:before.x+point.x-gesture.point.x,y:before.y+point.y-gesture.point.y});}
+  };
+  const up=event=>{
+    if(!pointers.has(event.pointerId))return;pointers.delete(event.pointerId);finishDrag();
+    if(pointers.size===1){const point=[...pointers.values()][0];gesture={kind:'pan',start:config.read(),point};}
+    else if(!pointers.size){gesture=null;stage.classList.remove('is-dragging-canvas');}
+    try{stage.releasePointerCapture(event.pointerId);}catch{}
+  };
+  window.addEventListener('pointermove',move);window.addEventListener('pointerup',up);window.addEventListener('pointercancel',up);
+  window.addEventListener('blur',()=>{stage._cancelCanvasWheel();pointers.clear();gesture=null;finishDrag();stage.classList.remove('is-dragging-canvas');});
+}
+initCanvasPanZoomAndDrag=function(){
+  const stage=document.getElementById('island-canvas-stage');
+  bindCanvasViewport({stage,read:readPlanViewport,write:writePlanViewport,active:()=>currentGlobalView==='plan'&&stage.getBoundingClientRect().width>0,nodes:'.pavilion-node',canDrag:()=>!window.isBrowseMode,dragClass:'is-node-dragging',move:()=>updateIslandMinimap(),finish:()=>{captureDomainLayout();updateIslandMinimap();notifyIslandStateChanged();}});
+  bindPavilionNodesClickGuards();
+};
+getDownstreamChildCardIds=function(rootId){const seen=new Set([rootId]),queue=[rootId],result=[];while(queue.length){const source=queue.shift();for(const edge of window.TERTIARY_EDGES||[])if(edge.sourceId===source&&!['关联','none'].includes(edge.type)&&!seen.has(edge.targetId)){seen.add(edge.targetId);queue.push(edge.targetId);result.push(edge.targetId);}}return result;};
+initTertiaryCanvasPanZoom=function(){
+  const stage=document.getElementById('tertiary-canvas-stage');applyTertiaryTransform();
+  bindCanvasViewport({stage,read:readMindmapViewport,write:writeMindmapViewport,active:()=>stage.getBoundingClientRect().width>0,nodes:'.tertiary-card',canDrag:()=>true,dragClass:'is-card-dragging',start:recordDomainHistory,
+    select:node=>{document.querySelectorAll('#tertiary-canvas-world .tertiary-card.is-selected').forEach(c=>c.classList.remove('is-selected'));node?.classList.add('is-selected');},
+    followers:node=>childrenFollowEnabled?getDownstreamChildCardIds(node.id).map(id=>document.getElementById(id)).filter(Boolean).map(child=>({node:child,x:child.offsetLeft,y:child.offsetTop})):[],
+    move:scheduleTertiaryEdgeRefresh,finish:()=>{saveCurrentProjectCanvasSnapshot();updateTertiaryEdgesFast();notifyIslandStateChanged();}});
+};
+
+let canvasEdgeLayouts=new Map();
+function positionCanvasEdgeLabels(){
+  const stage=document.getElementById('tertiary-canvas-stage'),layer=document.getElementById('tertiary-edge-labels-layer');if(!stage||!layer)return;
+  if(layer.parentElement!==stage)stage.appendChild(layer);
+  const v=readMindmapViewport();for(const label of layer.children){const point=canvasEdgeLayouts.get(label.dataset.edgeId)?.label;if(!point)continue;
+    const x=v.x+point.x*v.zoom,y=v.y+point.y*v.zoom;label.style.left=x+'px';label.style.top=y+'px';label.style.fontSize=Math.max(10,Math.min(15,12*v.zoom))+'px';label.hidden=x< -120||y< -120||x>stage.clientWidth+120||y>stage.clientHeight+120;
+  }
+}
+function bindCanvasEdgeActivation(element,id){
+  let press=null,lastTouch=0;
+  element.addEventListener('pointerdown',event=>{if(event.pointerType==='touch'){press={id:event.pointerId,x:event.clientX,y:event.clientY};event.stopPropagation();}});
+  element.addEventListener('pointercancel',()=>{press=null;});
+  element.addEventListener('pointerup',event=>{if(event.pointerType!=='touch'||press?.id!==event.pointerId)return;const tap=Math.hypot(event.clientX-press.x,event.clientY-press.y)<8;press=null;if(tap){lastTouch=Date.now();event.preventDefault();event.stopPropagation();openEdgePopover(id,event);}});
+  element.onclick=event=>{event.stopPropagation();if(Date.now()-lastTouch<500)return;openEdgePopover(id,event);};
+}
+function layoutCanvasEdges(){
+  const cards=Array.from(document.querySelectorAll('#tertiary-canvas-world .tertiary-card'),canvasNodeRect),byId=new Map(cards.map(r=>[r.id,r]));
+  const edges=window.TERTIARY_EDGES||[],layouts=new Map();
+  for(const edge of edges){const source=byId.get(edge.sourceId),target=byId.get(edge.targetId);if(!source||!target||edge.sourceId===edge.targetId)continue;
+    Object.assign(edge,canvasEdgeStyle(edge));edge.sourceLabel=getDomainNode(edge.sourceId)?.title||edge.sourceLabel||edge.sourceId;edge.targetLabel=getDomainNode(edge.targetId)?.title||edge.targetLabel||edge.targetId;
+    const siblings=edges.filter(e=>[e.sourceId,e.targetId].some(id=>id===edge.sourceId||id===edge.targetId));
+    layouts.set(edge.id,canvasRouteEdge(source,target,cards,Math.max(0,siblings.indexOf(edge)),siblings.length));
+  }canvasEdgeLayouts=layouts;return layouts;
+}
+renderTertiaryEdges=function(){
+  const lines=document.getElementById('tertiary-lines-group'),labels=document.getElementById('tertiary-edge-labels-layer'),defs=document.getElementById('tertiary-svg-defs');if(!lines||!labels||!defs)return;
+  const layouts=layoutCanvasEdges();lines.replaceChildren();labels.replaceChildren();defs.replaceChildren();
+  const svg=(tag,attributes)=>{const el=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const [name,value]of Object.entries(attributes))el.setAttribute(name,String(value));return el;};
+  for(const [i,edge]of (window.TERTIARY_EDGES||[]).entries()){
+    const layout=layouts.get(edge.id);if(!layout)continue;const markerId='canvas-arrow-'+i;
+    const marker=svg('marker',{id:markerId,viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:7,markerHeight:7,orient:'auto-start-reverse'});marker.appendChild(svg('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:edge.color}));defs.appendChild(marker);
+    const hit=svg('path',{id:'svg-hit-'+edge.id,d:layout.d,stroke:'transparent','stroke-width':20,fill:'none','pointer-events':'stroke','vector-effect':'non-scaling-stroke','data-edge-id':edge.id});
+    const line=svg('path',{id:'svg-line-'+edge.id,d:layout.d,stroke:edge.color,'stroke-width':edge.lineWidth,fill:'none','stroke-linejoin':'round','stroke-dasharray':edge.lineStyle==='dashed'?'7 5':'none','pointer-events':'stroke','vector-effect':'non-scaling-stroke','data-edge-id':edge.id});
+    if(edge.arrowMode!=='none')line.setAttribute('marker-end','url(#'+markerId+')');if(edge.arrowMode==='double')line.setAttribute('marker-start','url(#'+markerId+')');
+    for(const path of [hit,line]){bindCanvasEdgeActivation(path,edge.id);lines.appendChild(path);}
+    const label=document.createElement('button');label.type='button';label.id='edge-label-'+edge.id;label.className='a-my-island-work-edge-label';label.dataset.edgeId=edge.id;label.textContent=edge.label||(['none',undefined].includes(edge.type)?'路线设置':edge.type);
+    label.style.left=layout.label.x+'px';label.style.top=layout.label.y+'px';label.title=label.textContent+' · '+edge.sourceLabel+' → '+edge.targetLabel+'；点击设置路线';bindCanvasEdgeActivation(label,edge.id);labels.appendChild(label);
+  }
+  positionCanvasEdgeLabels();observeTertiaryCards();updateTertiaryMinimap();positionCanvasEdgePopover();
+};
+updateTertiaryEdgesFast=function(){
+  const layouts=layoutCanvasEdges();for(const [id,layout]of layouts){const line=document.getElementById('svg-line-'+id),hit=document.getElementById('svg-hit-'+id),label=document.getElementById('edge-label-'+id);if(!line){renderTertiaryEdges();return;}line.setAttribute('d',layout.d);hit?.setAttribute('d',layout.d);if(label){label.style.left=layout.label.x+'px';label.style.top=layout.label.y+'px';}}
+  positionCanvasEdgeLabels();updateTertiaryMinimap();positionCanvasEdgePopover();
+};
+function positionCanvasEdgePopover(point){
+  const popover=document.getElementById('tertiary-edge-popover'),stage=document.getElementById('tertiary-canvas-stage');if(!popover||!stage||popover.classList.contains('is-hidden'))return;
+  if(popover.parentElement!==stage)stage.appendChild(popover);
+  const label=document.getElementById('edge-label-'+currentActiveEdgeId),r=label?.getBoundingClientRect(),pivot=point||(r?canvasLocalPoint(stage,r.left+r.width/2,r.bottom):{x:stage.clientWidth/2,y:stage.clientHeight/2});
+  popover.style.left=Math.max(8,Math.min(stage.clientWidth-popover.offsetWidth-8,pivot.x+12))+'px';popover.style.top=Math.max(8,Math.min(stage.clientHeight-popover.offsetHeight-8,pivot.y+14))+'px';
+}
+const canvasLegacyOpenEdge=openEdgePopover;
+openEdgePopover=function(id,event){event?.stopPropagation();const edge=window.TERTIARY_EDGES?.find(e=>e.id===id);if(!edge)return false;Object.assign(edge,canvasEdgeStyle(edge));edge.sourceLabel=getDomainNode(edge.sourceId)?.title||'起点';edge.targetLabel=getDomainNode(edge.targetId)?.title||'终点';canvasLegacyOpenEdge(id,event);positionCanvasEdgePopover(event?canvasLocalPoint(document.getElementById('tertiary-canvas-stage'),event.clientX,event.clientY):null);return true;};
+function changeCanvasEdge(patch,remove=false){
+  const edges=window.TERTIARY_EDGES||[],edge=edges.find(e=>e.id===currentActiveEdgeId);if(!edge)return false;
+  if(!remove&&!['type','sourceId','targetId'].some(key=>Object.prototype.hasOwnProperty.call(patch,key))){recordDomainHistory();Object.assign(edge,patch);saveCurrentProjectCanvasSnapshot();renderTertiaryEdges();notifyIslandStateChanged();return true;}
+  const next=remove?edges.filter(e=>e.id!==edge.id):edges.map(e=>e.id===edge.id?{...e,...patch}:e),nodes=getDomainState().nodesByProject[window.currentTertiaryProjId]||[],dependency=e=>['前置','依赖','阻塞'].includes(e.type);
+  const deps=new Map(nodes.map(node=>[node.id,node.dependencies.filter(id=>!edges.some(e=>dependency(e)&&e.targetId===node.id&&e.sourceId===id))]));
+  for(const item of next.filter(dependency)){if(!remove&&item.id===edge.id&&(!deps.has(item.targetId)||!nodes.some(n=>n.id===item.sourceId&&n.isCheckinNode))){showIslandToast('前置须为同项目可执行节点');return false;}deps.get(item.targetId)?.push(item.sourceId);}
+  const visiting=new Set(),done=new Set(),cycle=id=>{if(visiting.has(id))return true;if(done.has(id))return false;visiting.add(id);if((deps.get(id)||[]).some(cycle))return true;visiting.delete(id);done.add(id);return false;};
+  if(!remove&&nodes.some(n=>cycle(n.id))){showIslandToast('前置依赖不能形成循环');return false;}
+  recordDomainHistory();if(remove)window.TERTIARY_EDGES=next;else Object.assign(edge,patch);
+  for(const node of nodes)node.dependencies=[...new Set(deps.get(node.id))];saveCurrentProjectCanvasSnapshot();renderTertiaryEdges();refreshDomainProjections();notifyIslandStateChanged();return true;
+}
+handleEdgeTypeSelect=function(type){const edge=window.TERTIARY_EDGES?.find(e=>e.id===currentActiveEdgeId);if(!edge)return false;const label=!edge.label||edge.label===edge.type||edge.label==='前置完成'?(type==='none'?'':type):edge.label;const result=changeCanvasEdge({type,label});openEdgePopover(edge.id);return result;};
+reverseEdgeDirection=function(){const edge=window.TERTIARY_EDGES?.find(e=>e.id===currentActiveEdgeId);if(!edge)return false;const result=changeCanvasEdge({sourceId:edge.targetId,targetId:edge.sourceId});openEdgePopover(edge.id);return result;};
+handleEdgeHierarchy=function(reverse){const edge=window.TERTIARY_EDGES?.find(e=>e.id===currentActiveEdgeId);if(!edge)return false;const type=['关联','none',undefined].includes(edge.type)?'包含':edge.type,label=edge.label===edge.type?type:edge.label;const result=changeCanvasEdge({type,label,...(reverse?{sourceId:edge.targetId,targetId:edge.sourceId}:{})});openEdgePopover(edge.id);return result;};
+setEdgeArrowMode=function(mode){if(!['none','single','double'].includes(mode))return false;const result=changeCanvasEdge({arrowMode:mode});if(result)openEdgePopover(currentActiveEdgeId);return result;};
+setEdgeLineStyle=function(style){if(!['solid','dashed'].includes(style))return false;const result=changeCanvasEdge({lineStyle:style});if(result)openEdgePopover(currentActiveEdgeId);return result;};
+handleEdgeColorSelect=function(color){if(!/^#[\da-f]{3,8}$/i.test(color))return false;const result=changeCanvasEdge({color});if(result)openEdgePopover(currentActiveEdgeId);return result;};
+handleEdgeLabelChange=function(label){return changeCanvasEdge({label:String(label).slice(0,60)});};
+handleEdgeWidthInput=function(value){const width=Math.max(1,Math.min(6,Number(value)||3)),result=changeCanvasEdge({lineWidth:width});document.getElementById('edge-width-display').textContent=width+'档';return result;};
+handleDeleteActiveEdge=function(){if(!changeCanvasEdge({},true))return false;document.getElementById('tertiary-edge-popover').classList.add('is-hidden');currentActiveEdgeId=null;return true;};
+let canvasConnectionGesture=null;
+function cancelCanvasConnection(){canvasConnectionGesture=null;document.getElementById('canvas-connection-preview')?.remove();document.querySelectorAll('.tertiary-card.is-connecting-source,.tertiary-card.is-connecting-target').forEach(c=>c.classList.remove('is-connecting-source','is-connecting-target'));connectingSourceCardId=null;}
+function bindCanvasConnectionDrag(){
+  const stage=document.getElementById('tertiary-canvas-stage');if(!stage||stage.dataset.connectionDragBound)return;stage.dataset.connectionDragBound='true';let suppressUntil=0;
+  stage.addEventListener('click',event=>{if(Date.now()<suppressUntil){event.preventDefault();event.stopImmediatePropagation();}},true);
+  stage.addEventListener('pointerdown',event=>{
+    const handle=event.target.closest('.work-card-connect-handle'),card=handle?.closest('.tertiary-card');if(!card||event.button>0)return;
+    event.stopPropagation();canvasConnectionGesture={sourceId:card.id,pointerId:event.pointerId,x:event.clientX,y:event.clientY,dragging:false};
+  });
+  window.addEventListener('pointermove',event=>{
+    const gesture=canvasConnectionGesture;if(!gesture||gesture.pointerId!==event.pointerId)return;
+    if(!gesture.dragging&&Math.hypot(event.clientX-gesture.x,event.clientY-gesture.y)<6)return;
+    if(!gesture.dragging){gesture.dragging=true;connectingSourceCardId=gesture.sourceId;document.getElementById(gesture.sourceId)?.classList.add('is-connecting-source');try{stage.setPointerCapture(event.pointerId);}catch{}}
+    const target=document.elementFromPoint(event.clientX,event.clientY)?.closest('.tertiary-card');gesture.targetId=target&&stage.contains(target)&&target.id!==gesture.sourceId?target.id:null;
+    stage.querySelectorAll('.is-connecting-target').forEach(card=>card.classList.remove('is-connecting-target'));if(gesture.targetId)target.classList.add('is-connecting-target');
+    const source=document.getElementById(gesture.sourceId),v=readMindmapViewport(),point=canvasLocalPoint(stage,event.clientX,event.clientY);if(!source)return;
+    let preview=document.getElementById('canvas-connection-preview');if(!preview){preview=document.createElementNS('http://www.w3.org/2000/svg','path');preview.id='canvas-connection-preview';preview.setAttribute('fill','none');preview.setAttribute('stroke','#f05f35');preview.setAttribute('stroke-width','3');preview.setAttribute('stroke-dasharray','7 5');preview.setAttribute('vector-effect','non-scaling-stroke');preview.setAttribute('pointer-events','none');document.getElementById('tertiary-lines-group')?.appendChild(preview);}
+    preview.setAttribute('d',canvasConnectionPreview(canvasNodeRect(source),{x:(point.x-v.x)/v.zoom,y:(point.y-v.y)/v.zoom}));
+  });
+  const finish=event=>{const gesture=canvasConnectionGesture;if(!gesture||gesture.pointerId!==event.pointerId)return;canvasConnectionGesture=null;
+    if(gesture.dragging){suppressUntil=Date.now()+450;try{stage.releasePointerCapture(event.pointerId);}catch{}if(event.type==='pointerup'&&gesture.targetId)startOrFinishConnecting(gesture.targetId,event);else cancelCanvasConnection();}
+  };
+  window.addEventListener('pointerup',finish);window.addEventListener('pointercancel',finish);window.addEventListener('blur',cancelCanvasConnection);
+}
+startOrFinishConnecting=function(id,event){
+  event?.stopPropagation();const node=getDomainNode(id);if(!node||node.projectId!==window.currentTertiaryProjId)return false;
+  if(!connectingSourceCardId){connectingSourceCardId=id;document.getElementById(id)?.classList.add('is-connecting-source');showIslandToast('拖线到目标节点，或点击目标连线按钮；Esc取消');return true;}
+  const sourceId=connectingSourceCardId;cancelCanvasConnection();if(sourceId===id)return false;
+  const existing=(window.TERTIARY_EDGES||[]).find(e=>e.sourceId===sourceId&&e.targetId===id);if(existing)return openEdgePopover(existing.id);
+  recordDomainHistory();const edge=canvasEdgeStyle({id:domainId('edge'),sourceId,targetId:id,type:'关联',label:'关联'});window.TERTIARY_EDGES.push(edge);saveCurrentProjectCanvasSnapshot();renderTertiaryEdges();notifyIslandStateChanged();return openEdgePopover(edge.id);
+};
+handleTertiaryStageClick=function(event){if(event.target.closest('#tertiary-edge-popover,[data-edge-id],.work-card-connect-handle'))return;document.getElementById('tertiary-edge-popover')?.classList.add('is-hidden');};
+window.addEventListener('keydown',event=>{if(event.key==='Escape'){cancelCanvasConnection();document.getElementById('tertiary-edge-popover')?.classList.add('is-hidden');}});
+const canvasOriginalRender=renderDomainCanvas;
+renderDomainCanvas=function(id){
+  cancelCanvasConnection();document.getElementById('tertiary-canvas-stage')?._cancelCanvasWheel?.();currentActiveEdgeId=null;document.getElementById('tertiary-edge-popover')?.classList.add('is-hidden');
+  const saved=canvasViewportStore().projects[id];restoringCanvasViewport=true;try{canvasOriginalRender(id);writeMindmapViewport(canvasValidViewport(saved)?saved:{x:60,y:40,zoom:1});}finally{restoringCanvasViewport=false;}
+  bindCanvasConnectionDrag();
+};
+function placeCanvasNodeInFreeSpace(card){
+  const others=Array.from(document.querySelectorAll('#tertiary-canvas-world .tertiary-card')).filter(c=>c!==card).map(canvasNodeRect),size=canvasNodeRect(card),position=canvasFreePosition(others,size.width,size.height);
+  card.style.left=position.x+'px';card.style.top=position.y+'px';getDomainNode(card.id).canvasPosition=position;
+}
+const canvasCreateNode=createTertiaryCustomPlanningCard;
+createTertiaryCustomPlanningCard=function(config){const card=canvasCreateNode(config);if(card&&!config.canvasPosition){placeCanvasNodeInFreeSpace(card);saveCurrentProjectCanvasSnapshot();renderTertiaryEdges();notifyIslandStateChanged();}return card;};
+const canvasDeriveReview=deriveNodesFromReflectionCard;
+deriveNodesFromReflectionCard=function(id,event){const before=new Set((getDomainState().nodesByProject[getDomainNode(id)?.projectId]||[]).map(n=>n.id)),count=canvasDeriveReview(id,event);if(count){for(const node of getDomainState().nodesByProject[getDomainNode(id).projectId])if(!before.has(node.id)){const card=document.getElementById(node.id);if(card)placeCanvasNodeInFreeSpace(card);}saveCurrentProjectCanvasSnapshot();renderTertiaryEdges();notifyIslandStateChanged();}return count;};
+alignGridLayout=function(){
+  const cards=Array.from(document.querySelectorAll('#tertiary-canvas-world .tertiary-card'));if(!cards.length)return false;recordDomainHistory();let y=90;
+  for(let row=0;row<cards.length;row+=3){const items=cards.slice(row,row+3),height=Math.max(...items.map(c=>canvasNodeRect(c).height));for(const [column,card]of items.entries()){card.style.left=80+column*420+'px';card.style.top=y+'px';}y+=height+80;}
+  saveCurrentProjectCanvasSnapshot();renderTertiaryEdges();fitCanvasView();notifyIslandStateChanged();return true;
+};
+cycleGridMode=alignGridLayout;
+
+// A shared, stable SVG navigator for both canvases. Geometry and camera updates are separate.
+const canvasNavigators=new Map();
+function canvasNavigationPreferences(){const state=getDomainState();state.navigation=state.navigation||{};state.navigation.planning=state.navigation.planning||{collapsed:true};state.navigation.projects=state.navigation.projects||{};return state.navigation;}
+function canvasNavigationPreference(kind){const state=canvasNavigationPreferences();return kind==='planning'?state.planning:state.projects[window.currentTertiaryProjId]||{collapsed:false};}
+function canvasNavigationPoint(svg,clientX,clientY){
+  const matrix=svg.getScreenCTM();if(matrix){const point=svg.createSVGPoint();point.x=clientX;point.y=clientY;return point.matrixTransform(matrix.inverse());}
+  const r=svg.getBoundingClientRect(),v=svg.viewBox.baseVal,scale=Math.min(r.width/v.width,r.height/v.height)||1;
+  return {x:v.x+(clientX-r.left-(r.width-v.width*scale)/2)/scale,y:v.y+(clientY-r.top-(r.height-v.height*scale)/2)/scale};
+}
+function canvasNavigationNodes(kind){
+  const selector=kind==='planning'?'#island-pavilion-grid .pavilion-node':'#tertiary-canvas-world .tertiary-card';
+  return Array.from(document.querySelectorAll(selector)).filter(node=>!node.hidden&&getComputedStyle(node).display!=='none').map(node=>{
+    const entity=kind==='project'?getDomainNode(node.id):null,pavilion=node.id.replace(/^node-/,'');
+    const type=entity?({goal:'root',drill:'task',habit:'stage',review:'project',custom:'domain',text:'text'}[entity.nodeType]||'stage'):({study:'stage',dojo:'project',cultivation:'task',cognition:'root'}[pavilion]||'domain');
+    return {...canvasNodeRect(node),type,title:entity?.title||PAVILION_META[pavilion]?.name||node.dataset.label||node.id};
+  });
+}
+function getCanvasNavigator(kind){
+  const prefix=kind==='planning'?'island':'tertiary',stage=document.getElementById(prefix+'-canvas-stage'),svg=document.getElementById(prefix+'-minimap-svg');if(!stage||!svg)return null;
+  let nav=canvasNavigators.get(kind);if(nav?.svg===svg)return nav;
+  nav={kind,prefix,stage,svg,dock:document.getElementById(prefix+'-navigation-dock'),panel:document.getElementById(prefix+'-minimap-dock'),toggle:document.getElementById(prefix+'-minimap-toggle-btn'),nodes:document.getElementById(prefix+'-minimap-nodes'),viewport:document.getElementById(prefix+'-minimap-viewport'),projection:null,key:null,signature:'',size:'',frame:null,reframeTimer:null,force:false,drag:null,suppressUntil:0};
+  nav.read=kind==='planning'?readPlanViewport:readMindmapViewport;nav.write=kind==='planning'?writePlanViewport:writeMindmapViewport;
+  svg.setAttribute('viewBox','0 0 220 130');svg.setAttribute('tabindex','0');svg.setAttribute('aria-label','导航地图：点击定位，拖动视口框漫游，方向键移动，Home适应画布');
+  svg.querySelector('.a-my-island-work-minimap-hit-area')?.setAttribute('width','220');svg.querySelector('.a-my-island-work-minimap-hit-area')?.setAttribute('height','130');
+  nav.toggle?.setAttribute('aria-controls',prefix+'-minimap-dock');canvasNavigators.set(kind,nav);bindCanvasNavigation(nav);
+  if(window.ResizeObserver){const observer=new window.ResizeObserver(()=>queueCanvasNavigation(kind));observer.observe(stage);}
+  return nav;
+}
+function cancelCanvasNavigationDrag(nav){const drag=nav?.drag;if(!drag)return;nav.drag=null;nav.suppressUntil=Date.now()+500;nav.svg.classList.remove('is-navigating');try{nav.svg.releasePointerCapture(drag.pointerId);}catch{}queueCanvasNavigation(nav.kind);}
+function canvasNavigationOutside(nav){if(!nav.projection)return true;const r=canvasWorldViewport(nav.read(),nav.stage.clientWidth,nav.stage.clientHeight),p=nav.projection;return r.x<p.minX||r.y<p.minY||r.x+r.width>p.maxX||r.y+r.height>p.maxY;}
+function queueCanvasNavigation(kind,reframe=false){
+  const nav=getCanvasNavigator(kind);if(!nav)return;nav.force=nav.force||reframe;if(nav.frame!==null)return;
+  nav.frame=requestAnimationFrame(()=>{nav.frame=null;renderCanvasNavigation(nav);});
+}
+function renderCanvasNavigation(nav){
+  const key=nav.kind==='planning'?'planning':window.currentTertiaryProjId||'',collapsed=canvasNavigationPreference(nav.kind).collapsed===true;
+  nav.panel.classList.toggle('is-collapsed',collapsed);nav.dock.dataset.minimapCollapsed=String(collapsed);nav.toggle?.classList.toggle('is-active',!collapsed);nav.toggle?.setAttribute('aria-expanded',String(!collapsed));nav.toggle?.setAttribute('aria-label',collapsed?'展开导航地图':'收起导航地图');
+  if(nav.key!==key){cancelCanvasNavigationDrag(nav);nav.key=key;nav.projection=null;nav.signature='';}
+  if(collapsed){cancelCanvasNavigationDrag(nav);clearTimeout(nav.reframeTimer);nav.reframeTimer=null;return;}
+  const width=nav.stage.clientWidth,height=nav.stage.clientHeight;if(!width||!height||(nav.kind==='planning'&&currentGlobalView!=='plan')){clearTimeout(nav.reframeTimer);nav.reframeTimer=null;return;}
+  const boxes=canvasNavigationNodes(nav.kind),signature=JSON.stringify(boxes),size=width+','+height,geometryChanged=nav.signature!==signature||nav.size!==size;
+  let rebuild=geometryChanged;
+  if(nav.drag&&geometryChanged)nav.force=true;
+  if(!nav.drag&&(!nav.projection||geometryChanged||nav.force)){nav.projection=canvasMinimapProjection(boxes,nav.read(),width,height);nav.force=false;rebuild=true;}
+  if(!nav.projection)return;
+  const projection=nav.projection;
+  if(rebuild){
+    const existing=new Map(Array.from(nav.nodes.children).map(node=>[node.dataset.nodeId,node])),fragment=document.createDocumentFragment();
+    for(const box of boxes){const marker=existing.get(box.id)||document.createElementNS('http://www.w3.org/2000/svg','rect'),w=Math.max(4,box.width*projection.scale),h=Math.max(4,box.height*projection.scale),center=canvasMinimapPoint(projection,{x:box.x+box.width/2,y:box.y+box.height/2});
+      marker.dataset.nodeId=box.id;marker.setAttribute('class','a-my-island-work-minimap-node is-'+box.type);for(const [name,value]of Object.entries({x:center.x-w/2,y:center.y-h/2,width:w,height:h,rx:Math.min(3,w/3,h/3)}))marker.setAttribute(name,String(value));
+      let title=marker.querySelector('title');if(!title){title=document.createElementNS('http://www.w3.org/2000/svg','title');marker.appendChild(title);}title.textContent=box.title;fragment.appendChild(marker);
+    }
+    nav.nodes.replaceChildren(fragment);nav.signature=signature;nav.size=size;
+  }
+  const viewport=canvasWorldViewport(nav.read(),width,height),point=canvasMinimapPoint(projection,viewport);for(const [name,value]of Object.entries({x:point.x,y:point.y,width:Math.max(4,viewport.width*projection.scale),height:Math.max(4,viewport.height*projection.scale)}))nav.viewport.setAttribute(name,String(value));
+  if(!nav.drag&&canvasNavigationOutside(nav)){
+    const camera=JSON.stringify(nav.read());if(nav.reframeTimer===null||camera!==nav.reframeCamera){clearTimeout(nav.reframeTimer);nav.reframeCamera=camera;nav.reframeTimer=setTimeout(()=>{nav.reframeTimer=null;queueCanvasNavigation(nav.kind,true);},180);}
+  }else{clearTimeout(nav.reframeTimer);nav.reframeTimer=null;}
+}
+function bindCanvasNavigation(nav){
+  const svg=nav.svg;
+  const move=event=>{const drag=nav.drag;if(!drag||drag.pointerId!==event.pointerId)return;
+    const point=canvasNavigationPoint(svg,event.clientX,event.clientY);if(Math.hypot(event.clientX-drag.clientX,event.clientY-drag.clientY)>3)drag.moved=true;
+    if(drag.moved&&drag.viewport)nav.write(canvasMinimapDrag(drag.camera,point.x-drag.point.x,point.y-drag.point.y,drag.projection));
+  };
+  svg.addEventListener('pointerdown',event=>{
+    if(event.button>0||!nav.projection)return;event.preventDefault();event.stopPropagation();
+    if(nav.drag){cancelCanvasNavigationDrag(nav);return;}
+    nav.stage._cancelCanvasWheel?.();clearTimeout(nav.reframeTimer);nav.reframeTimer=null;
+    nav.drag={pointerId:event.pointerId,clientX:event.clientX,clientY:event.clientY,point:canvasNavigationPoint(svg,event.clientX,event.clientY),camera:nav.read(),projection:{...nav.projection},viewport:event.target===nav.viewport,moved:false};svg.classList.add('is-navigating');try{svg.setPointerCapture(event.pointerId);}catch{}
+  });
+  svg.addEventListener('pointermove',move);
+  const finish=event=>{const drag=nav.drag;if(!drag||drag.pointerId!==event.pointerId)return;move(event);
+    if(event.type==='pointerup'&&!drag.moved){const point=canvasNavigationPoint(svg,event.clientX,event.clientY),world=canvasMinimapWorldPoint(drag.projection,point),camera=nav.read();nav.write({...camera,x:nav.stage.clientWidth/2-world.x*camera.zoom,y:nav.stage.clientHeight/2-world.y*camera.zoom});}
+    cancelCanvasNavigationDrag(nav);
+  };
+  svg.addEventListener('pointerup',finish);for(const type of ['pointercancel','lostpointercapture'])svg.addEventListener(type,event=>{if(nav.drag?.pointerId===event.pointerId)cancelCanvasNavigationDrag(nav);});
+  svg.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();});svg.addEventListener('dblclick',event=>event.stopPropagation());
+  nav.dock.addEventListener('wheel',event=>{event.preventDefault();event.stopPropagation();},{passive:false});
+  svg.addEventListener('keydown',event=>{if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home'].includes(event.key)){event.preventDefault();event.stopPropagation();if(event.key==='Home'){(nav.kind==='planning'?fitHomeCanvasView:fitCanvasView)();queueCanvasNavigation(nav.kind,true);return;}const camera=nav.read();nav.write({...camera,x:camera.x+({'ArrowLeft':80,'ArrowRight':-80}[event.key]||0),y:camera.y+({'ArrowUp':80,'ArrowDown':-80}[event.key]||0)});}});
+  window.addEventListener('blur',()=>cancelCanvasNavigationDrag(nav));window.addEventListener('keydown',event=>{if(event.key==='Escape')cancelCanvasNavigationDrag(nav);});
+}
+function toggleCanvasNavigation(kind,forceState){
+  const nav=getCanvasNavigator(kind);if(!nav)return;const prefs=canvasNavigationPreferences(),collapsed=typeof forceState==='boolean'?!forceState:!canvasNavigationPreference(kind).collapsed;
+  if(kind==='planning')prefs.planning={collapsed};else if(window.currentTertiaryProjId)prefs.projects[window.currentTertiaryProjId]={collapsed};
+  cancelCanvasNavigationDrag(nav);queueCanvasNavigation(kind,true);notifyIslandStateChanged();
+}
+updateIslandMinimap=function(){queueCanvasNavigation('planning');};
+updateTertiaryMinimap=function(){queueCanvasNavigation('project');};
+initIslandMinimapEvents=function(){getCanvasNavigator('planning');};
+initTertiaryMinimapEvents=function(){getCanvasNavigator('project');};
+toggleIslandMinimapDock=function(forceState){toggleCanvasNavigation('planning',forceState);};
+toggleTertiaryMinimapDock=function(forceState){toggleCanvasNavigation('project',forceState);};
+const navigationFitHome=fitHomeCanvasView,navigationFitProject=fitCanvasView,navigationResetHome=resetIslandCanvasZoom,navigationResetProject=resetTertiaryCanvasZoom;
+fitHomeCanvasView=function(){navigationFitHome();queueCanvasNavigation('planning',true);};
+fitCanvasView=function(){navigationFitProject();queueCanvasNavigation('project',true);};
+resetIslandCanvasZoom=function(){navigationResetHome();queueCanvasNavigation('planning',true);};
+resetTertiaryCanvasZoom=function(){navigationResetProject();queueCanvasNavigation('project',true);};
+const navigationRestoreBusinessViews=restoreBusinessViews;
+restoreBusinessViews=function(){navigationRestoreBusinessViews();queueCanvasNavigation('planning',true);queueCanvasNavigation('project',true);};
+const navigationRenderDomainCanvas=renderDomainCanvas,navigationSwitchMain=switchMainSection,navigationSwitchHome=switchHomeGlobalView;
+renderDomainCanvas=function(id){const nav=canvasNavigators.get('project');if(nav&&nav.key!==id){cancelCanvasNavigationDrag(nav);nav.projection=null;}navigationRenderDomainCanvas(id);queueCanvasNavigation('project');};
+switchMainSection=function(section){for(const nav of canvasNavigators.values())cancelCanvasNavigationDrag(nav);navigationSwitchMain(section);queueCanvasNavigation('planning');queueCanvasNavigation('project');};
+switchHomeGlobalView=function(view){cancelCanvasNavigationDrag(canvasNavigators.get('planning'));navigationSwitchHome(view);queueCanvasNavigation('planning');};
+window.addEventListener('youth-island:state-changed',()=>{queueCanvasNavigation('planning');queueCanvasNavigation('project');});
 
 // PRODUCT_RULES_END
 
@@ -13152,8 +13559,6 @@ if(!window.__YOUTH_ISLAND_RUNTIME_BOOTED__){
   if (typeof toggleTertiaryMinimapDock === "function") (window as any).toggleTertiaryMinimapDock = toggleTertiaryMinimapDock;
   if (typeof toggleTertiaryMinimap === "function") (window as any).toggleTertiaryMinimap = toggleTertiaryMinimap;
   if (typeof cycleGridMode === "function") (window as any).cycleGridMode = cycleGridMode;
-  if (typeof handleOpenObsidianCanvas === "function") (window as any).handleOpenObsidianCanvas = handleOpenObsidianCanvas;
-  if (typeof openCurrentProjectInObsidianCanvas === "function") (window as any).openCurrentProjectInObsidianCanvas = openCurrentProjectInObsidianCanvas;
   if (typeof applyTertiaryTransform === "function") (window as any).applyTertiaryTransform = applyTertiaryTransform;
   if (typeof zoomTertiaryCanvas === "function") (window as any).zoomTertiaryCanvas = zoomTertiaryCanvas;
   if (typeof resetTertiaryCanvasZoom === "function") (window as any).resetTertiaryCanvasZoom = resetTertiaryCanvasZoom;
@@ -13413,6 +13818,25 @@ if(!window.__YOUTH_ISLAND_RUNTIME_BOOTED__){
   if (typeof scheduleDomain === "function") (window as any).scheduleDomain = scheduleDomain;
   if (typeof evaluateMetric === "function") (window as any).evaluateMetric = evaluateMetric;
   if (typeof validateDomainExecution === "function") (window as any).validateDomainExecution = validateDomainExecution;
+  if (typeof canvasWheelUnits === "function") (window as any).canvasWheelUnits = canvasWheelUnits;
+  if (typeof canvasWheelFactor === "function") (window as any).canvasWheelFactor = canvasWheelFactor;
+  if (typeof canvasValidViewport === "function") (window as any).canvasValidViewport = canvasValidViewport;
+  if (typeof canvasWorldViewport === "function") (window as any).canvasWorldViewport = canvasWorldViewport;
+  if (typeof canvasMinimapProjection === "function") (window as any).canvasMinimapProjection = canvasMinimapProjection;
+  if (typeof canvasMinimapPoint === "function") (window as any).canvasMinimapPoint = canvasMinimapPoint;
+  if (typeof canvasMinimapWorldPoint === "function") (window as any).canvasMinimapWorldPoint = canvasMinimapWorldPoint;
+  if (typeof canvasMinimapDrag === "function") (window as any).canvasMinimapDrag = canvasMinimapDrag;
+  if (typeof canvasConnectionPreview === "function") (window as any).canvasConnectionPreview = canvasConnectionPreview;
+  if (typeof canvasZoomAt === "function") (window as any).canvasZoomAt = canvasZoomAt;
+  if (typeof canvasFit === "function") (window as any).canvasFit = canvasFit;
+  if (typeof canvasEdgeStyle === "function") (window as any).canvasEdgeStyle = canvasEdgeStyle;
+  if (typeof canvasFreePosition === "function") (window as any).canvasFreePosition = canvasFreePosition;
+  if (typeof canvasSegmentClear === "function") (window as any).canvasSegmentClear = canvasSegmentClear;
+  if (typeof canvasSimplify === "function") (window as any).canvasSimplify = canvasSimplify;
+  if (typeof canvasHeapPush === "function") (window as any).canvasHeapPush = canvasHeapPush;
+  if (typeof canvasHeapPop === "function") (window as any).canvasHeapPop = canvasHeapPop;
+  if (typeof canvasOrthogonalPath === "function") (window as any).canvasOrthogonalPath = canvasOrthogonalPath;
+  if (typeof canvasRouteEdge === "function") (window as any).canvasRouteEdge = canvasRouteEdge;
   if (typeof ensureBusinessDate === "function") (window as any).ensureBusinessDate = ensureBusinessDate;
   if (typeof refreshBusinessMetrics === "function") (window as any).refreshBusinessMetrics = refreshBusinessMetrics;
   if (typeof getEvidenceElapsed === "function") (window as any).getEvidenceElapsed = getEvidenceElapsed;
@@ -13464,13 +13888,41 @@ if(!window.__YOUTH_ISLAND_RUNTIME_BOOTED__){
   if (typeof openFamilyProfile === "function") (window as any).openFamilyProfile = openFamilyProfile;
   if (typeof saveFamilyProfile === "function") (window as any).saveFamilyProfile = saveFamilyProfile;
   if (typeof openDomainProjectDay === "function") (window as any).openDomainProjectDay = openDomainProjectDay;
-  if (typeof importDomainCanvas === "function") (window as any).importDomainCanvas = importDomainCanvas;
   if (typeof exportDomainDocument === "function") (window as any).exportDomainDocument = exportDomainDocument;
   if (typeof exportDomainAchievement === "function") (window as any).exportDomainAchievement = exportDomainAchievement;
   if (typeof acknowledgeDomainText === "function") (window as any).acknowledgeDomainText = acknowledgeDomainText;
   if (typeof captureDomainLayout === "function") (window as any).captureDomainLayout = captureDomainLayout;
   if (typeof openDesignDatabase === "function") (window as any).openDesignDatabase = openDesignDatabase;
   if (typeof designData === "function") (window as any).designData = designData;
+  if (typeof canvasLocalPoint === "function") (window as any).canvasLocalPoint = canvasLocalPoint;
+  if (typeof readPlanViewport === "function") (window as any).readPlanViewport = readPlanViewport;
+  if (typeof writePlanViewport === "function") (window as any).writePlanViewport = writePlanViewport;
+  if (typeof readMindmapViewport === "function") (window as any).readMindmapViewport = readMindmapViewport;
+  if (typeof canvasViewportStore === "function") (window as any).canvasViewportStore = canvasViewportStore;
+  if (typeof rememberCanvasViewport === "function") (window as any).rememberCanvasViewport = rememberCanvasViewport;
+  if (typeof writeMindmapViewport === "function") (window as any).writeMindmapViewport = writeMindmapViewport;
+  if (typeof zoomCanvasViewport === "function") (window as any).zoomCanvasViewport = zoomCanvasViewport;
+  if (typeof canvasNodeRect === "function") (window as any).canvasNodeRect = canvasNodeRect;
+  if (typeof bindCanvasViewport === "function") (window as any).bindCanvasViewport = bindCanvasViewport;
+  if (typeof positionCanvasEdgeLabels === "function") (window as any).positionCanvasEdgeLabels = positionCanvasEdgeLabels;
+  if (typeof bindCanvasEdgeActivation === "function") (window as any).bindCanvasEdgeActivation = bindCanvasEdgeActivation;
+  if (typeof layoutCanvasEdges === "function") (window as any).layoutCanvasEdges = layoutCanvasEdges;
+  if (typeof positionCanvasEdgePopover === "function") (window as any).positionCanvasEdgePopover = positionCanvasEdgePopover;
+  if (typeof changeCanvasEdge === "function") (window as any).changeCanvasEdge = changeCanvasEdge;
+  if (typeof cancelCanvasConnection === "function") (window as any).cancelCanvasConnection = cancelCanvasConnection;
+  if (typeof bindCanvasConnectionDrag === "function") (window as any).bindCanvasConnectionDrag = bindCanvasConnectionDrag;
+  if (typeof placeCanvasNodeInFreeSpace === "function") (window as any).placeCanvasNodeInFreeSpace = placeCanvasNodeInFreeSpace;
+  if (typeof canvasNavigationPreferences === "function") (window as any).canvasNavigationPreferences = canvasNavigationPreferences;
+  if (typeof canvasNavigationPreference === "function") (window as any).canvasNavigationPreference = canvasNavigationPreference;
+  if (typeof canvasNavigationPoint === "function") (window as any).canvasNavigationPoint = canvasNavigationPoint;
+  if (typeof canvasNavigationNodes === "function") (window as any).canvasNavigationNodes = canvasNavigationNodes;
+  if (typeof getCanvasNavigator === "function") (window as any).getCanvasNavigator = getCanvasNavigator;
+  if (typeof cancelCanvasNavigationDrag === "function") (window as any).cancelCanvasNavigationDrag = cancelCanvasNavigationDrag;
+  if (typeof canvasNavigationOutside === "function") (window as any).canvasNavigationOutside = canvasNavigationOutside;
+  if (typeof queueCanvasNavigation === "function") (window as any).queueCanvasNavigation = queueCanvasNavigation;
+  if (typeof renderCanvasNavigation === "function") (window as any).renderCanvasNavigation = renderCanvasNavigation;
+  if (typeof bindCanvasNavigation === "function") (window as any).bindCanvasNavigation = bindCanvasNavigation;
+  if (typeof toggleCanvasNavigation === "function") (window as any).toggleCanvasNavigation = toggleCanvasNavigation;
 
   // Expose core state stores on window for VaultStorageAdapter bidirectional sync
   if (typeof USER_PROFILE_STATE !== "undefined") (window as any).USER_PROFILE_STATE = USER_PROFILE_STATE;

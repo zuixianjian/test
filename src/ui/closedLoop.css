@@ -1,4 +1,29 @@
 /* Shared visual rules for the standalone design and the Obsidian projection. */
+#home-bounty-billboard[hidden], #island-canvas-stage[data-canvas-mode="plan"] #home-bounty-billboard { display:none!important; }
+.tertiary-center-zone { min-width:0; justify-content:flex-start!important; overflow-x:auto!important; overflow-y:hidden!important; touch-action:pan-x!important; }
+.tertiary-tools-dock { width:max-content!important; flex:0 0 auto!important; }
+#tertiary-edge-popover { transform:none!important; margin:0!important; width:280px; max-width:calc(100% - 16px); max-height:calc(100% - 16px); overflow:auto; pointer-events:auto; z-index:10005; }
+#tertiary-edge-labels-layer { position:absolute; inset:0; z-index:25; pointer-events:none; transform:none!important; }
+#tertiary-edge-labels-layer .a-my-island-work-edge-label { width:auto!important; height:auto!important; min-height:22px!important; padding:3px 8px!important; border:1px solid #9db6a6!important; border-radius:8px!important; background:#fff9e6!important; color:#405f5c!important; white-space:nowrap; pointer-events:auto; }
+#tertiary-edge-labels-layer .a-my-island-work-edge-label[hidden] { display:none!important; }
+#tertiary-lines-group path[data-edge-id] { pointer-events:stroke; cursor:pointer; }
+#tertiary-edge-labels-layer .a-my-island-work-edge-label { max-width:180px; overflow:hidden; text-overflow:ellipsis; touch-action:manipulation!important; transition:none!important; }
+.tertiary-card.is-connecting-source { outline:3px solid #f05f35; outline-offset:4px; }
+.tertiary-card.is-connecting-target { outline:3px solid #4b9b78; outline-offset:4px; }
+.work-card-connect-handle { min-width:28px; min-height:28px; touch-action:none!important; cursor:crosshair; }
+/* Viewport navigator: the map and launcher sit side by side, outside the scaled world. */
+#island-canvas-stage:not([data-canvas-mode="plan"]) #island-navigation-dock { display:none!important; }
+#island-navigation-dock, #tertiary-navigation-dock { flex-direction:row!important; width:316px!important; max-width:calc(100% - 36px)!important; gap:10px!important; right:18px!important; bottom:max(32px,calc(20px + env(safe-area-inset-bottom,0px)))!important; z-index:95!important; transition:none!important; }
+#island-navigation-dock { bottom:max(128px,calc(112px + env(safe-area-inset-bottom,0px)))!important; }
+#island-navigation-dock[data-minimap-collapsed="true"], #tertiary-navigation-dock[data-minimap-collapsed="true"] { width:68px!important; }
+#island-minimap-dock, #tertiary-minimap-dock { position:relative!important; inset:auto!important; order:1!important; flex:1 1 238px!important; min-width:0!important; width:238px!important; max-width:calc(100% - 78px)!important; padding:7px!important; border-radius:17px!important; }
+#island-minimap-body, #tertiary-minimap-body { width:100%!important; height:auto!important; aspect-ratio:22/13; box-sizing:border-box!important; border-radius:11px!important; }
+#island-minimap-svg, #tertiary-minimap-svg { touch-action:none!important; user-select:none; }
+#island-minimap-svg:focus-visible, #tertiary-minimap-svg:focus-visible { outline:2px solid #e55f39; outline-offset:-3px; }
+.a-my-island-work-minimap-header { min-height:25px!important; font-size:12px!important; }
+#island-minimap-toggle-btn, #tertiary-minimap-toggle-btn { order:2!important; flex:0 0 68px!important; width:68px!important; min-width:68px!important; height:66px!important; min-height:66px!important; grid-template-rows:36px 16px!important; padding:6px 6px 5px!important; gap:3px!important; border-radius:16px!important; font-size:12px!important; }
+.a-my-island-work-minimap-node { pointer-events:none!important; }
+.is-navigating, .is-navigating .a-my-island-work-minimap-viewport { cursor:grabbing!important; }
 .domain-planning-body { display:flex; flex-direction:column; gap:9px; max-height:440px; overflow:auto; }
 .domain-planning-body label, .island-real-execution-entry label { display:flex; flex-direction:column; gap:5px; font-size:12px; }
 .domain-planning-body input, .domain-planning-body select, .domain-planning-body textarea,

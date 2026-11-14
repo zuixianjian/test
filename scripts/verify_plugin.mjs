@@ -77,7 +77,7 @@ assert(
   "main.js includes full Vault snapshot persistence, tertiary node check-in, and fullscreen toggle"
 );
 
-// 7. Verify Tablet Optimizations & Obsidian Native Canvas Integration
+// 7. Verify Tablet Optimizations and the built-in mindmap
 assert(
   css.includes(".island-goal-item-card") &&
     css.includes(".goal-card-top-row") &&
@@ -90,12 +90,13 @@ assert(
   "template.ts hides home bounty billboard when no active contract"
 );
 assert(
-  mainJs.includes("__openProjectInObsidianCanvas") &&
-    mainJs.includes("buildObsidianCanvasJson") &&
-    mainJs.includes("openProjectInCanvas") &&
-    mainJs.includes("initTertiaryCanvasPanZoom") &&
+  mainJs.includes("initTertiaryCanvasPanZoom") &&
     mainJs.includes("zoomTertiaryCanvas"),
-  "main.js includes Obsidian native Canvas core plugin integration, file generation, and mindmap free pan/zoom engine"
+  "main.js retains the built-in mindmap free pan/zoom engine"
+);
+assert(
+  ["__openProjectInObsidianCanvas", "__importIslandCanvas", "buildObsidianCanvasJson", "openProjectInCanvas", "importProjectCanvas", "open-youth-island-canvas", "handleOpenObsidianCanvas", "openCurrentProjectInObsidianCanvas", "importDomainCanvas"].every(name => !mainJs.includes(name) && !templateTs.includes(name)),
+  "plugin has no native Canvas command, bridge, controls or import/export implementation"
 );
 assert(
   css.includes("#exec-subview-week") &&
