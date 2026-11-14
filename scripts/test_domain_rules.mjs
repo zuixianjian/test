@@ -9,8 +9,9 @@ assert.equal(domainDefaultNodeDate(project,'2026-11-14'),'2026-11-14');
 assert.equal(domainDefaultNodeDate(project,'2026-11-12'),'2026-11-13');
 assert.equal(domainDefaultNodeDate(project,'2026-11-20'),'2026-11-19');
 const queueTasks=[['done-old','2026-11-13','completed'],['future','2026-11-15','scheduled'],['blocked-future','2026-11-15','blocked'],['blocked-old','2026-11-13','blocked'],['overdue','2026-11-13','overdue'],['done','2026-11-14','completed'],['ready','2026-11-14','ready']].map(([id,date,status])=>({id,date,status}));
-assert.deepEqual(domainExecutionQueue(queueTasks,'2026-11-14').map(t=>t.id),['ready','overdue','blocked-old','done']);
-assert.equal(domainExecutionQueue([...queueTasks,{id:'bounty',date:'2026-11-20',status:'ready',bountyId:'bounty'}],'2026-11-14').some(t=>t.id==='bounty'),true);
+assert.deepEqual(domainExecutionQueue(queueTasks,'2026-11-14').map(t=>t.id),['ready','done']);
+assert.equal(domainExecutionQueue([...queueTasks,{id:'bounty',date:'2026-11-20',status:'ready',bountyId:'bounty'}],'2026-11-14').some(t=>t.id==='bounty'),false);
+assert.equal(domainExecutionQueue([...queueTasks,{id:'bounty-today',date:'2026-11-14',status:'ready',bountyId:'bounty-today'}],'2026-11-14').some(t=>t.id==='bounty-today'),true);
 assert.equal(queueTasks[0].id,'done-old'); // Selection does not reorder the scheduler output.
 assert.deepEqual(occurrenceDates(node({frequency:'daily'}),project),['2026-11-13','2026-11-14','2026-11-15','2026-11-16','2026-11-17','2026-11-18','2026-11-19']);
 assert.deepEqual(occurrenceDates(node({frequency:'weekdays'}),project),['2026-11-13','2026-11-16','2026-11-17','2026-11-18','2026-11-19']);

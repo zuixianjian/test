@@ -663,7 +663,7 @@ ${(n.cardPayload?.metrics || []).map((m) => `${m.name}: ${m.targetValue}`).join(
 var import_obsidian2 = require("obsidian");
 
 // src/ui/template.ts
-var ISLAND_UI_HTML = `<div class="global-header product-contract-banner" data-product-contract="3">1.1.7 \u95ED\u73AF\u4EA4\u4E92\u9884\u89C8 \xB7 \u6309\u9879\u76EE/\u8282\u70B9/\u6BCF\u65E5\u4EFB\u52A1\u5B9E\u4F8B\u5173\u8054 \xB7 \u672C\u9884\u89C8\u6570\u636E\u4FDD\u5B58\u5728\u5F53\u524D\u6D4F\u89C8\u5668\uFF0C\u7EC4\u4EF6\u753B\u677F\u6837\u4F8B\u4E0D\u8BA1\u4E3A\u5B9E\u9645\u6267\u884C</div>
+var ISLAND_UI_HTML = `<div class="global-header product-contract-banner" data-product-contract="3">1.1.8 \u95ED\u73AF\u4EA4\u4E92\u9884\u89C8 \xB7 \u6309\u9879\u76EE/\u8282\u70B9/\u6BCF\u65E5\u4EFB\u52A1\u5B9E\u4F8B\u5173\u8054 \xB7 \u672C\u9884\u89C8\u6570\u636E\u4FDD\u5B58\u5728\u5F53\u524D\u6D4F\u89C8\u5668\uFF0C\u7EC4\u4EF6\u753B\u677F\u6837\u4F8B\u4E0D\u8BA1\u4E3A\u5B9E\u9645\u6267\u884C</div>
   <!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5907\u63A7\u5236\u4E0E\u4E3B\u6A21\u6001\u5207\u6362) -->
   <header class="global-header">
     <div class="system-title-group">
@@ -14907,8 +14907,8 @@ function bootPrototypeRuntime() {
     return today < project.startDate ? project.startDate : today > project.endDate ? project.endDate : today;
   }
   function domainExecutionQueue(tasks, today = domainDate()) {
-    const rank = { ready: 0, overdue: 1, blocked: 2, completed: 3 };
-    return tasks.filter((t) => t.date === today || t.date < today && ["overdue", "blocked"].includes(t.status) || t.bountyId && t.status !== "completed").sort((a, b) => (rank[a.status] ?? 4) - (rank[b.status] ?? 4) || a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
+    const rank = { ready: 0, blocked: 1, completed: 2 };
+    return tasks.filter((t) => t.date === today).sort((a, b) => (rank[a.status] ?? 4) - (rank[b.status] ?? 4) || a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
   }
   function domainType(value) {
     return String(value || "drill").replace(/^card-/, "").replace("reflection", "review");
@@ -16561,7 +16561,7 @@ function bootPrototypeRuntime() {
     return state.instances;
   }
   function domainTodayTasks(tasks = domainTasks(), today = domainDate()) {
-    return tasks.filter((t) => t.date === today || t.bountyId && t.status !== "completed");
+    return tasks.filter((t) => t.date === today);
   }
   function resolveDomainTask(key) {
     const state = getDomainState();
@@ -17812,6 +17812,42 @@ function bootPrototypeRuntime() {
     return '<article class="a-my-island-work-node-card tertiary-card tertiary-' + legacy + '-card domain-node-card" id="' + escapeIslandText(node.id) + '" data-domain-node="true" data-node-type="' + type + '" data-label="' + escapeIslandText(node.title) + '" data-group-id="' + escapeIslandText(node.groupId || "") + '" data-group-root="' + escapeIslandText(node.groupRoot || "") + '" style="position:absolute;left:' + Number(node.canvasPosition.x) + "px;top:" + Number(node.canvasPosition.y) + 'px;width:340px;"><header class="work-node-card-header" ondblclick="' + planningCardAction("toggleTertiaryCardMinimize(" + JSON.stringify(node.id) + ",event)") + '" title="\u62D6\u52A8\u6807\u9898\u680F\u79FB\u52A8\uFF1B\u53CC\u51FB\u6298\u53E0\u6216\u5C55\u5F00"><div class="node-card-kicker"><span class="work-node-badge">' + meta[0] + " " + meta[1] + '</span><span class="node-card-status" id="status-text-' + escapeIslandText(node.id) + '">' + status + '</span><button type="button" class="node-card-collapse-toggle" aria-label="\u6298\u53E0\u6216\u5C55\u5F00\u8282\u70B9" onclick="' + planningCardAction("toggleTertiaryCardMinimize(" + JSON.stringify(node.id) + ",event)") + '">\u2303</button></div><div class="node-card-title-row"><span class="work-node-title">' + escapeIslandText(node.title) + '</span><button type="button" class="node-title-edit" aria-label="\u7F16\u8F91\u8282\u70B9\u540D\u79F0" onclick="' + planningCardAction("editPlanningCardTitle(" + JSON.stringify(node.id) + ",event)") + '">\u270E</button></div><p class="node-card-subtitle">' + meta[2] + '</p></header><div class="work-node-body domain-planning-body">' + body + '</div><footer class="node-card-footer">' + footer + '</footer><button type="button" class="work-card-connect-handle" data-card-id="' + escapeIslandText(node.id) + '" aria-label="\u4ECE\u6B64\u8282\u70B9\u8FDE\u63A5\u8DEF\u7EBF" title="\u62D6\u5411\u76EE\u6807\u8282\u70B9\uFF0C\u6216\u70B9\u51FB\u9009\u62E9\u8FDE\u7EBF\u8D77\u70B9" onclick="startOrFinishConnecting(this.dataset.cardId,event)">\u{1F517}</button></article>';
   }
   let homeExecutionDate = null;
+  function homeExecutionType(type) {
+    return { goal: ["\u{1F3AF}", "\u76EE\u6807\u5206\u89E3", "\u{1F31F} \u5F00\u59CB\u9A8C\u6536"], drill: ["\u26A1", "\u653B\u575A\u5B9E\u8BAD", "\u{1F31F} \u7ACB\u5373\u6253\u5361"], habit: ["\u{1F33F}", "\u4E60\u60EF\u8DF5\u884C", "\u{1F33F} \u77E5\u884C\u6253\u5361"], review: ["\u{1F4DD}", "\u8BC4\u4F30\u590D\u76D8", "\u270D\uFE0F \u7B03\u884C\u590D\u76D8"], custom: ["\u2699\uFE0F", "\u81EA\u5B9A\u4E49\u914D\u7F6E", "\u{1F31F} \u5B8C\u6210\u6253\u5361"], bounty: ["\u2694\uFE0F", "\u60AC\u8D4F\u6311\u6218", "\u2694\uFE0F \u63D0\u4EA4\u6311\u6218\u7269\u8BC1"] }[type] || ["\u26A1", "\u6267\u884C\u4EFB\u52A1", "\u5F00\u59CB\u6267\u884C"];
+  }
+  function homeExecutionPanel(title, content, kind = "") {
+    return '<section class="home-execution-panel ' + kind + '"><h4>' + title + "</h4>" + content + "</section>";
+  }
+  function homeExecutionCardHtml(task, node, project) {
+    const p = node?.cardPayload || {}, meta = homeExecutionType(task.nodeType), state = getDomainState(), record = state.records.find((r) => r.id === task.recordId), blocked = task.status === "blocked", completed = task.status === "completed";
+    const action = "event.stopPropagation();" + (blocked ? "jumpToDomainSource(" + JSON.stringify(task.projectId) + "," + JSON.stringify(task.nodeId) + ")" : "openDomainTask(" + JSON.stringify(task.id) + ")");
+    const button = (text, cls = "") => '<button type="button" class="card-graphic-pill ' + cls + '" onclick="' + escapeIslandText(action) + '">' + text + "</button>";
+    const description = p.description || state.bounties.find((b) => b.id === task.bountyId)?.criteria || "";
+    let body = description ? '<p class="home-execution-description">' + escapeIslandText(description) + "</p>" : "";
+    if (task.nodeType === "goal") {
+      body += homeExecutionPanel("\u{1F3AF} \u91CF\u5316\u901A\u5173\u6307\u6807", '<div class="home-execution-columns"><span>\u6307\u6807\u540D</span><span>\u76EE\u6807\u6807\u51C6</span></div>' + (p.metrics || []).map((m) => '<div class="home-execution-metric"><span>' + escapeIslandText(m.name) + "</span><strong>" + escapeIslandText(m.targetValue) + "</strong></div>").join("") + (!(p.metrics || []).length ? '<p class="home-execution-muted">\u8BF7\u5728\u76EE\u6807\u89C4\u5212\u4E2D\u8BBE\u7F6E\u9A8C\u6536\u6307\u6807</p>' : ""));
+      if (p.acceptanceCriteria)
+        body += homeExecutionPanel("\u{1F4CB} \u9A8C\u6536\u6807\u51C6", "<p>" + escapeIslandText(p.acceptanceCriteria) + "</p>", "is-dashed");
+      if (p.targetDeadline)
+        body += '<div class="home-execution-deadline">\u{1F4C5} \u671F\u671B\u5B8C\u6210 <strong>' + escapeIslandText(p.targetDeadline.replace("T", " ").slice(0, 16)) + "</strong></div>";
+    } else if (task.nodeType === "drill") {
+      body += '<div class="home-execution-focus"><span>\u23F1\uFE0F \u8BA1\u5212\u4E13\u6CE8\u65F6\u957F</span><strong>' + Number(p.plannedMinutes || 0) + " <small>\u5206\u949F</small></strong></div>";
+    } else if (task.nodeType === "habit") {
+      body += homeExecutionPanel("\u{1F6E1}\uFE0F \u8DF5\u884C\u9632\u5B88\u6E05\u5355", '<ul class="home-execution-checklist">' + (p.checklist || []).map((c) => '<li><span class="home-execution-check ' + (record?.checklistResults?.[c.id] ? "is-checked" : "") + '" aria-hidden="true">' + (record?.checklistResults?.[c.id] ? "\u2713" : "\u25A1") + "</span><span>" + escapeIslandText(c.title) + "</span>" + (c.required !== false ? "<small>\u5FC5\u9700</small>" : "") + "</li>").join("") + "</ul>" + (!(p.checklist || []).length ? '<p class="home-execution-muted">\u8BF7\u5728\u4E60\u60EF\u89C4\u5212\u4E2D\u8BBE\u7F6E\u5177\u4F53\u884C\u52A8</p>' : ""), "is-dashed");
+    } else if (task.nodeType === "review") {
+      body = homeExecutionPanel("\u{1F4DD} \u590D\u76D8\u8BF4\u660E", "<p>" + escapeIslandText(record?.reflection || description || "\u56DE\u987E\u8FC7\u7A0B\uFF0C\u8BB0\u5F55\u53D1\u73B0\u4E0E\u4E0B\u4E00\u6B65\u6539\u5584\u3002") + "</p>");
+      body += homeExecutionPanel("\u{1F680} \u63D0\u5347\u6E05\u5355", '<ol class="home-execution-improvements">' + (record?.improvementList || p.improvementList || []).map((i) => "<li>" + escapeIslandText(i.actionItem) + "</li>").join("") + "</ol>" + (!(record?.improvementList || p.improvementList || []).length ? '<p class="home-execution-muted">\u6267\u884C\u65F6\u586B\u5199\u4E0B\u4E00\u6B65\u5177\u4F53\u884C\u52A8</p>' : ""), "is-dashed");
+    } else if (task.nodeType === "custom") {
+      const types = { text: "\u6587\u5B57", number: "\u6570\u5B57", boolean: "\u662F / \u5426", date: "\u65E5\u671F" };
+      body += homeExecutionPanel("\u{1F4CB} \u81EA\u5B9A\u4E49\u4E1A\u52A1\u5B57\u6BB5", (p.customFieldsSchema || []).map((f) => '<div class="home-execution-field"><span>' + escapeIslandText(f.label) + "</span><small>" + escapeIslandText(types[f.type] || f.type) + " \xB7 " + (f.required ? "\u5FC5\u586B" : "\u9009\u586B") + "</small></div>").join("") || '<p class="home-execution-muted">\u8BF7\u5728\u89C4\u5212\u4E2D\u7EF4\u62A4\u9700\u8981\u586B\u62A5\u7684\u9879\u76EE</p>', "is-dashed");
+    }
+    const evidence = task.nodeType === "bounty" ? "\u7167\u7247\u6216\u89C6\u9891\u539F\u4EF6" : domainEvidenceLabel(p.evidenceType || "none");
+    body += homeExecutionPanel("\u{1F4E6} \u4EA4\u4ED8\u7269\u8BC1\u8981\u6C42", "<p>" + escapeIslandText(evidence) + "</p>" + button(blocked ? "\u67E5\u770B\u524D\u7F6E\u8981\u6C42" : completed ? "\u{1F4C2} \u67E5\u770B\u5DF2\u4EA4\u4ED8\u5185\u5BB9" : "\u{1F4CE} \u8FDB\u5165\u6253\u5361\u9875\u586B\u5199\u4E0E\u63D0\u4EA4", "home-execution-delivery-button"), "home-execution-delivery");
+    if (blocked)
+      body += '<p class="home-task-blocked">\u8BF7\u5148\u5B8C\u6210\uFF1A' + escapeIslandText((node?.dependencies || []).map((id) => getDomainNode(id)?.title || "\u7F3A\u5931\u7684\u524D\u7F6E\u8282\u70B9").join("\u3001")) + "</p>";
+    const status = blocked ? "\u5F85\u524D\u7F6E\u5B8C\u6210" : completed ? "\u2713 \u4ECA\u65E5\u5DF2\u5B8C\u6210" : "\u{1F7E1} \u4ECA\u65E5\u5F85\u6253\u5361";
+    return '<header class="work-node-card-header"><span class="work-node-badge">' + meta[0] + " " + meta[1] + '</span><span class="work-node-title">' + escapeIslandText(task.title) + '</span><span class="task-status-pill ' + (blocked ? "blocked" : completed ? "completed" : "pending") + '">' + status + '</span></header><div class="home-task-origin">' + escapeIslandText(project?.title || "\u4EB2\u5B50\u5951\u7EA6") + " \xB7 \u8BA1\u5212 " + escapeIslandText(task.date) + '</div><div class="work-node-body home-execution-content">' + body + '</div><footer class="home-execution-footer"><span>' + (task.nodeType === "drill" ? "\u9884\u8BA1\u4E13\u6CE8\uFF1A\u23F1\uFE0F " + Number(p.plannedMinutes || 0) + " \u5206\u949F" : completed ? "\u2713 \u6267\u884C\u8BB0\u5F55\u5DF2\u4FDD\u5B58" : "\u{1F449} \u70B9\u51FB\u5361\u7247\u8FDB\u5165\u6253\u5361\u9875\u9762") + "</span>" + button(blocked ? "\u67E5\u770B\u524D\u7F6E\u89C4\u5212" : completed ? "\u67E5\u770B\u6267\u884C\u8BB0\u5F55" : meta[2], "home-execution-primary") + "</footer>";
+  }
   function renderHomeExecutionQueue(tasks, today) {
     const deck = document.getElementById("day-card-deck");
     if (!deck)
@@ -17820,16 +17856,13 @@ function bootPrototypeRuntime() {
     const queue = domainExecutionQueue(tasks, today), state = getDomainState();
     deck.querySelectorAll(".exec-task-card").forEach((card) => card.remove());
     for (const task of queue) {
-      const node = getDomainNode(task.nodeId), project = state.projects.find((p) => p.id === task.projectId), blocked = task.status === "blocked";
+      const node = getDomainNode(task.nodeId), project = state.projects.find((p) => p.id === task.projectId);
       const card = document.createElement("div");
       card.id = "exec-sync-" + task.id;
-      card.className = "exec-task-card tertiary-drill-card home-execution-card";
-      Object.assign(card.dataset, { taskId: task.id, taskInstanceId: task.id, nodeId: task.nodeId || "", projectId: task.projectId || "", pavilion: task.pavilionId, label: task.title, checkinType: task.nodeType, taskStatus: task.status });
+      card.className = "exec-task-card tertiary-" + (task.nodeType === "review" ? "reflection" : task.nodeType === "bounty" ? "drill" : task.nodeType) + "-card home-execution-card";
+      Object.assign(card.dataset, { taskId: task.id, taskInstanceId: task.id, nodeId: task.nodeId || "", projectId: task.projectId || "", pavilion: task.pavilionId, label: task.title, checkinType: task.nodeType, taskStatus: task.status, nodeType: task.nodeType });
       card.setAttribute("onclick", "handleTaskCardClick(event,this.dataset.checkinType)");
-      const status = { ready: "\u5F85\u6267\u884C", overdue: "\u903E\u671F\u5F85\u6267\u884C", blocked: task.date < today ? "\u5F85\u524D\u7F6E \xB7 \u5DF2\u903E\u671F" : "\u5F85\u524D\u7F6E\u5B8C\u6210", completed: "\u2713 \u4ECA\u65E5\u5DF2\u5B8C\u6210" }[task.status] || "\u672A\u5230\u671F";
-      const dependencies = (node?.dependencies || []).map((id) => getDomainNode(id)?.title || "\u7F3A\u5931\u7684\u524D\u7F6E\u8282\u70B9").join("\u3001");
-      const action = blocked ? "event.stopPropagation();jumpToDomainSource(" + JSON.stringify(task.projectId) + "," + JSON.stringify(task.nodeId) + ")" : "event.stopPropagation();openDomainTask(" + JSON.stringify(task.id) + ")";
-      card.innerHTML = '<div class="work-node-card-header"><span class="work-node-badge">' + escapeIslandText(PAVILION_META[task.pavilionId]?.name || "\u60AC\u8D4F") + '</span><span class="work-node-title">' + escapeIslandText(task.title) + '</span><span class="task-status-pill ' + (blocked ? "blocked" : task.status === "completed" ? "completed" : "pending") + '">' + status + '</span></div><div class="work-node-body"><p class="home-task-origin">' + escapeIslandText(project?.title || "\u4EB2\u5B50\u5951\u7EA6") + " \xB7 \u8BA1\u5212 " + escapeIslandText(task.date) + "</p><p>" + escapeIslandText(node?.cardPayload.description || "\u6309\u89C4\u5212\u8981\u6C42\u6267\u884C\u5E76\u63D0\u4EA4\u771F\u5B9E\u5185\u5BB9") + "</p>" + (blocked ? '<p class="home-task-blocked">\u8BF7\u5148\u5B8C\u6210\uFF1A' + escapeIslandText(dependencies || "\u89C4\u5212\u4E2D\u7684\u524D\u7F6E\u8981\u6C42") + "</p>" : "") + '<button type="button" class="card-graphic-pill" onclick="' + escapeIslandText(action) + '">' + (blocked ? "\u67E5\u770B\u524D\u7F6E\u89C4\u5212" : task.status === "completed" ? "\u67E5\u770B\u6267\u884C\u8BB0\u5F55" : "\u6253\u5F00\u4EFB\u52A1") + "</button></div>";
+      card.innerHTML = homeExecutionCardHtml(task, node, project);
       deck.appendChild(card);
     }
     let empty = document.getElementById("day-deck-empty-placeholder");
@@ -17858,12 +17891,12 @@ function bootPrototypeRuntime() {
       document.getElementById("exec-subview-day")?.prepend(summary);
     }
     const counts = (key) => queue.filter((t) => t.status === key).length;
-    summary.textContent = "\u5F85\u6267\u884C " + counts("ready") + " \xB7 \u903E\u671F " + counts("overdue") + " \xB7 \u5F85\u524D\u7F6E " + counts("blocked") + " \xB7 \u4ECA\u65E5\u5DF2\u5B8C\u6210 " + counts("completed");
+    summary.textContent = "\u4ECA\u65E5\u5F85\u6267\u884C " + counts("ready") + " \xB7 \u5F85\u524D\u7F6E " + counts("blocked") + " \xB7 \u4ECA\u65E5\u5DF2\u5B8C\u6210 " + counts("completed");
     const activeIndex = queue.findIndex((t) => t.id === activeId);
     currentDayCardIndex = activeIndex >= 0 ? activeIndex : Math.max(0, Math.min(currentDayCardIndex, queue.length - 1));
     const dots = document.getElementById("exec-carousel-dots");
     if (dots)
-      dots.innerHTML = queue.map((t, i) => '<button type="button" class="pagination-dot-pill" aria-label="' + escapeIslandText("\u7B2C" + (i + 1) + "\u9879\uFF1A" + t.title) + '" onclick="goToDayCard(' + i + ')">' + (i + 1) + "</button>").join("");
+      dots.innerHTML = queue.map((t, i) => '<button type="button" class="pagination-dot-pill" aria-label="' + escapeIslandText("\u7B2C" + (i + 1) + "\u9879\uFF1A" + t.title) + '" onclick="goToDayCard(' + i + ')"><span class="dot-circle"></span><span class="dot-text">' + homeExecutionType(t.nodeType)[0] + " " + escapeIslandText(t.title.slice(0, 6)) + "</span></button>").join("");
     updateDayCarousel();
     homeExecutionDate = today;
   }
@@ -20053,6 +20086,12 @@ function bootPrototypeRuntime() {
     window2.refreshPlanningCardSummary = refreshPlanningCardSummary;
   if (typeof renderPlanningNodeCard === "function")
     window2.renderPlanningNodeCard = renderPlanningNodeCard;
+  if (typeof homeExecutionType === "function")
+    window2.homeExecutionType = homeExecutionType;
+  if (typeof homeExecutionPanel === "function")
+    window2.homeExecutionPanel = homeExecutionPanel;
+  if (typeof homeExecutionCardHtml === "function")
+    window2.homeExecutionCardHtml = homeExecutionCardHtml;
   if (typeof renderHomeExecutionQueue === "function")
     window2.renderHomeExecutionQueue = renderHomeExecutionQueue;
   if (typeof refreshHomeExecutionDate === "function")

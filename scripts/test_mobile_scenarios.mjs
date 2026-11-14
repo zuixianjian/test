@@ -10,7 +10,7 @@ export default async function({evaluate,send}){
     const files=new Map();window.__mobileFiles=files;window.__mobileFault={primary:0,export:0,renames:0};
     const adapter={exists:async p=>files.has(p),read:async p=>{if(!files.has(p))throw new Error('File not found: '+p);return files.get(p);},write:async(p,text)=>{if(p.endsWith('/domain_state.json')&&window.__mobileFault.primary>0){window.__mobileFault.primary--;files.set(p,'{interrupted');throw new Error('simulated interrupted primary write');}if(p.endsWith('/journal.json')&&window.__mobileFault.export>0){window.__mobileFault.export--;throw new Error('simulated export failure');}files.set(p,text);},writeBinary:async(p,b)=>files.set(p,b),remove:async p=>files.delete(p),rename:async(a,b)=>{window.__mobileFault.renames++;if(files.has(b))throw new Error('Destination file already exists!');files.set(b,files.get(a));files.delete(a);},getResourcePath:p=>p};
     const handlers=new Map(),app={vault:{adapter,configDir:'.obsidian',createFolder:async p=>files.set(p,'folder')},workspace:{activeLeaf:null,getLeavesOfType:()=>[leaf],on:(type,handler)=>{handlers.set(type,handler);return ()=>handlers.delete(type);}}};
-    const settings={vaultRootFolder:'mobile',autoSyncVaultMarkdown:true,defaultStartupView:'plan'},plugin={app,manifest:{id:'youth-holistic-growth-island',version:'1.1.7'},settings};
+    const settings={vaultRootFolder:'mobile',autoSyncVaultMarkdown:true,defaultStartupView:'plan'},plugin={app,manifest:{id:'youth-holistic-growth-island',version:'1.1.8'},settings};
     plugin.vaultStorage=new Harness.VaultStorageAdapter(app,()=>settings);const leaf={app};const view=new Harness.YouthIslandView(leaf,plugin);leaf.view=view;app.workspace.activeLeaf=leaf;
     // Model the host's swipe exclusion contract at an ancestor capture phase,
     // plus the older bubble listener. Install before opening the actual ItemView.
@@ -63,5 +63,5 @@ export default async function({evaluate,send}){
   check(await evaluate(`(async()=>{let detached=0,disposed=0;const plugin=new Harness.YouthGrowthIslandPlugin();plugin.app={workspace:{detachLeavesOfType:()=>detached++}};plugin.vaultStorage={syncRuntimeToVault:async()=>{throw new Error('save failure during plugin unload');},dispose:async()=>disposed++};await plugin.onunload();return detached===1&&disposed===1;})()`),'actual plugin unload always detaches old views and disposes storage even when its save rejects');
   await send('Emulation.setDeviceMetricsOverride',{width:768,height:1024,deviceScaleFactor:1,mobile:false});await pause(250);
   check(await evaluate("(()=>{const r=document.getElementById('tertiary-edge-popover').getBoundingClientRect(),s=document.getElementById('tertiary-canvas-stage').getBoundingClientRect();return r.left>=s.left&&r.right<=s.right&&r.top>=s.top&&r.bottom<=s.bottom;})()"),'rotation to a portrait viewport reclamps the route editor and label overlay automatically');await send('Emulation.clearDeviceMetricsOverride');await pause();
-  return {version:'1.1.7',suite:'mobile',checks,screenshot:true,portrait:true};
+  return {version:'1.1.8',suite:'mobile',checks,screenshot:true,portrait:true};
 }

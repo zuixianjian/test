@@ -7,8 +7,8 @@ export function domainDefaultNodeDate(project,today=domainDate()) {
   return today<project.startDate?project.startDate:today>project.endDate?project.endDate:today;
 }
 export function domainExecutionQueue(tasks,today=domainDate()) {
-  const rank={ready:0,overdue:1,blocked:2,completed:3};
-  return tasks.filter(t=>t.date===today||(t.date<today&&['overdue','blocked'].includes(t.status))||(t.bountyId&&t.status!=='completed'))
+  const rank={ready:0,blocked:1,completed:2};
+  return tasks.filter(t=>t.date===today)
     .sort((a,b)=>(rank[a.status]??4)-(rank[b.status]??4)||a.date.localeCompare(b.date)||a.id.localeCompare(b.id));
 }
 export function domainType(value) { return String(value||'drill').replace(/^card-/,'').replace('reflection','review'); }
