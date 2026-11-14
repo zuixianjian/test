@@ -666,7 +666,7 @@ ${(n.cardPayload?.metrics || []).map((m) => `${m.name}: ${m.targetValue}`).join(
 var import_obsidian2 = require("obsidian");
 
 // src/ui/template.ts
-var ISLAND_UI_HTML = `<div class="global-header product-contract-banner" data-product-contract="3">1.1.5 \u95ED\u73AF\u4EA4\u4E92\u9884\u89C8 \xB7 \u6309\u9879\u76EE/\u8282\u70B9/\u6BCF\u65E5\u4EFB\u52A1\u5B9E\u4F8B\u5173\u8054 \xB7 \u672C\u9884\u89C8\u6570\u636E\u4FDD\u5B58\u5728\u5F53\u524D\u6D4F\u89C8\u5668\uFF0C\u7EC4\u4EF6\u753B\u677F\u6837\u4F8B\u4E0D\u8BA1\u4E3A\u5B9E\u9645\u6267\u884C</div>
+var ISLAND_UI_HTML = `<div class="global-header product-contract-banner" data-product-contract="3">1.1.6 \u95ED\u73AF\u4EA4\u4E92\u9884\u89C8 \xB7 \u6309\u9879\u76EE/\u8282\u70B9/\u6BCF\u65E5\u4EFB\u52A1\u5B9E\u4F8B\u5173\u8054 \xB7 \u672C\u9884\u89C8\u6570\u636E\u4FDD\u5B58\u5728\u5F53\u524D\u6D4F\u89C8\u5668\uFF0C\u7EC4\u4EF6\u753B\u677F\u6837\u4F8B\u4E0D\u8BA1\u4E3A\u5B9E\u9645\u6267\u884C</div>
   <!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5907\u63A7\u5236\u4E0E\u4E3B\u6A21\u6001\u5207\u6362) -->
   <header class="global-header">
     <div class="system-title-group">
@@ -16183,30 +16183,7 @@ function bootPrototypeRuntime() {
     return event;
   };
   function domainNodeHtml(node) {
-    const p = node.cardPayload, project = getDomainState().projects.find((x) => x.id === node.projectId);
-    const type = node.nodeType === "review" ? "reflection" : node.nodeType;
-    const input = (field, value, kind = "text") => '<input class="add-module-text-input" type="' + kind + '" value="' + escapeIslandText(value ?? "") + `" onchange="updateDomainNode('` + node.id + "','" + field + `',this.value)">`;
-    let body = "<label>\u4E3B\u9898" + input("title", node.title) + `</label><label>\u89C4\u5212\u8BF4\u660E<textarea class="add-module-text-input" onchange="updateDomainNode('` + node.id + `','description',this.value)">` + escapeIslandText(p.description) + "</textarea></label>";
-    if (node.nodeType === "text")
-      body = `<textarea class="add-module-text-input" onchange="updateDomainNode('` + node.id + `','textContent',this.value)">` + escapeIslandText(p.textContent) + `</textarea><button class="card-graphic-pill" onclick="acknowledgeDomainText('` + node.id + `')">\u{1F441} \u9605\u8BFB\u7559\u75D5\uFF08` + node.readCount + "\u6B21\uFF09</button>";
-    else {
-      body += '<div class="domain-planning-row"><label>\u8BA1\u5212\u65E5\u671F' + input("plannedDate", node.plannedDate, "date") + `</label><label>\u9891\u6B21<select onchange="updateDomainNode('` + node.id + `','frequency',this.value)">` + [["once", "\u4E00\u6B21\u6027"], ["daily", "\u6BCF\u65E5"], ["weekdays", "\u5468\u4E00\u81F3\u5468\u4E94"], ["weekly", "\u6BCF\u5468\u540C\u65E5"]].map(([key, label]) => '<option value="' + key + '"' + (node.frequency === key ? " selected" : "") + ">" + label + "</option>").join("") + "</select></label></div>";
-      if (node.nodeType === "goal")
-        body += "<div>" + p.metrics.map((m) => '<div class="domain-planning-row">' + escapeIslandText(m.name) + "\uFF1A" + escapeIslandText(m.targetValue) + "</div>").join("") + `</div><button class="card-graphic-pill" onclick="editDomainList('` + node.id + `','metrics')">\u270F \u7F16\u8F91\u6307\u6807</button><label>\u9A8C\u6536\u8BF4\u660E<textarea onchange="updateDomainNode('` + node.id + `','acceptanceCriteria',this.value)">` + escapeIslandText(p.acceptanceCriteria) + "</textarea></label><label>\u671F\u671B\u622A\u6B62\u65F6\u95F4" + input("targetDeadline", p.targetDeadline, "datetime-local") + `</label><button class="card-graphic-pill" onclick="depositGoalToAchievement('` + node.id + `',event)">\u{1F3C6} \u8BB0\u5F55\u5DF2\u9A8C\u6536\u6210\u679C</button>`;
-      if (node.nodeType === "drill")
-        body += "<label>\u4E13\u6CE8\u5206\u949F" + input("plannedMinutes", p.plannedMinutes, "number") + "</label>";
-      if (node.nodeType === "habit")
-        body += "<div>" + p.checklist.map((c) => "<div>\u25A1 " + escapeIslandText(c.title) + "</div>").join("") + `</div><button class="card-graphic-pill" onclick="editDomainList('` + node.id + `','checklist')">\u270F \u7F16\u8F91\u9632\u5B88\u6E05\u5355</button>`;
-      if (node.nodeType === "review")
-        body += "<div>" + p.improvementList.map((c) => "<div>\u{1F331} " + escapeIslandText(c.actionItem) + (c.derivedNodeId ? " \u2713 \u5DF2\u6D3E\u751F" : "") + "</div>").join("") + `</div><button class="card-graphic-pill" onclick="editDomainList('` + node.id + `','improvementList')">\u270F \u7F16\u8F91\u63D0\u5347\u6E05\u5355</button><button class="card-graphic-pill" onclick="deriveNodesFromReflectionCard('` + node.id + `',event)">\u{1F331} \u6D3E\u751F\u5B9E\u8BAD\u8282\u70B9</button>`;
-      if (node.nodeType === "custom")
-        body += "<div>" + p.customFieldsSchema.map((f) => "<div>" + escapeIslandText(f.label) + " \xB7 " + escapeIslandText(f.type) + (f.required ? "\uFF08\u5FC5\u586B\uFF09" : "") + "</div>").join("") + `</div><button class="card-graphic-pill" onclick="editDomainList('` + node.id + `','customFieldsSchema')">\u270F \u7F16\u8F91\u5B57\u6BB5\u5B9A\u4E49</button>`;
-      body += '<div class="domain-planning-row"><label><input type="checkbox"' + (node.isCheckinNode ? " checked" : "") + ` onchange="updateDomainNode('` + node.id + `','isCheckinNode',this.checked)">\u9700\u8981\u6267\u884C</label><label>\u7269\u8BC1<select onchange="updateDomainNode('` + node.id + `','evidenceType',this.value)">` + [["none", "\u65E0\u9700\u9644\u4EF6"], ["text", "\u6587\u5B57 \u226515\u5B57"], ["photo", "\u7167\u7247"], ["video", "\u89C6\u9891"], ["audio", "\u97F3\u9891"]].map(([key, label]) => '<option value="' + key + '"' + (p.evidenceType === key ? " selected" : "") + ">" + label + "</option>").join("") + "</select></label></div>";
-      body += `<label>\u524D\u7F6E\u8282\u70B9<select multiple onchange="updateDomainDependencies('` + node.id + `',this)">` + (getDomainState().nodesByProject[node.projectId] || []).filter((n) => n.id !== node.id && n.isCheckinNode).map((n) => '<option value="' + n.id + '"' + (node.dependencies.includes(n.id) ? " selected" : "") + ">" + escapeIslandText(n.title) + "</option>").join("") + "</select></label>";
-    }
-    const records = getDomainState().records.filter((r) => r.nodeId === node.id);
-    const status = records.length ? "\u5DF2\u7559\u75D5 " + records.length + " \u6B21" : "\u5C1A\u672A\u6267\u884C";
-    return '<div class="a-my-island-work-node-card tertiary-card tertiary-' + type + '-card" id="' + node.id + '" data-domain-node="true" data-label="' + escapeIslandText(node.title) + '" data-group-id="' + (node.groupId || "") + '" data-group-root="' + (node.groupRoot || "") + '" style="position:absolute;left:' + node.canvasPosition.x + "px;top:" + node.canvasPosition.y + `px;width:340px;"><div class="work-node-card-header" ondblclick="toggleTertiaryCardMinimize('` + node.id + `',event)"><span class="work-node-badge">` + domainTypeNames[node.nodeType] + '</span><span class="work-node-title">' + escapeIslandText(node.title) + '</span><span id="status-text-' + node.id + '">' + status + '</span></div><div class="work-node-body domain-planning-body">' + body + '</div><div class="work-card-connect-handle" data-card-id="' + node.id + '" onclick="startOrFinishConnecting(this.dataset.cardId,event)">\u{1F517}</div></div>';
+    return renderPlanningNodeCard(node);
   }
   function renderDomainCanvas(projectId) {
     const world = document.getElementById("tertiary-canvas-world");
@@ -16304,6 +16281,7 @@ function bootPrototypeRuntime() {
     else
       node.cardPayload[key] = key === "plannedMinutes" ? Number(value) : value;
     node.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
+    refreshPlanningCardSummary(id);
     saveCurrentProjectCanvasSnapshot();
     refreshDomainProjections();
     notifyIslandStateChanged();
@@ -17756,6 +17734,94 @@ function bootPrototypeRuntime() {
         }, 300);
       });
     }, 0);
+  }
+  function planningCardAction(code) {
+    return escapeIslandText(code);
+  }
+  function planningCardInput(node, key, value, type = "text", extra = "") {
+    return '<input data-node-field="' + key + '" type="' + type + '" value="' + escapeIslandText(value ?? "") + '" ' + extra + ' onchange="' + planningCardAction("updateDomainNode(" + JSON.stringify(node.id) + "," + JSON.stringify(key) + ",this.value)") + '">';
+  }
+  function planningCardArea(node, key, value, placeholder) {
+    return '<textarea data-node-field="' + key + '" rows="2" placeholder="' + escapeIslandText(placeholder || "") + '" onchange="' + planningCardAction("updateDomainNode(" + JSON.stringify(node.id) + "," + JSON.stringify(key) + ",this.value)") + '">' + escapeIslandText(value || "") + "</textarea>";
+  }
+  function planningCardListButton(node, key, label) {
+    return '<button type="button" class="node-section-edit" onclick="' + planningCardAction("editDomainList(" + JSON.stringify(node.id) + "," + JSON.stringify(key) + ")") + '">' + label + "</button>";
+  }
+  function planningCardSection(title, content, action = "", className = "") {
+    return '<section class="node-card-section ' + className + '"><div class="node-section-heading"><span>' + title + "</span>" + action + "</div>" + content + "</section>";
+  }
+  function planningCardSettings(node) {
+    const p = node.cardPayload, frequencyNames = { once: "\u4E00\u6B21\u6027", daily: "\u6BCF\u65E5", weekdays: "\u5DE5\u4F5C\u65E5", weekly: "\u6BCF\u5468" }, evidenceNames = { none: "\u65E0\u9700\u9644\u4EF6", text: "\u6587\u5B57\u8BF4\u660E", photo: "\u7167\u7247", video: "\u89C6\u9891", audio: "\u97F3\u9891" };
+    let fields = "<label>\u8282\u70B9\u540D\u79F0" + planningCardInput(node, "title", node.title, "text", 'maxlength="30"') + "</label>";
+    if (node.nodeType !== "text") {
+      fields += '<div class="node-setting-grid"><label>\u8BA1\u5212\u65E5\u671F' + planningCardInput(node, "plannedDate", node.plannedDate, "date") + '</label><label>\u6267\u884C\u9891\u6B21<select data-node-field="frequency" onchange="' + planningCardAction("updateDomainNode(" + JSON.stringify(node.id) + ',"frequency",this.value)') + '">' + Object.entries(frequencyNames).map(([key, name]) => '<option value="' + key + '"' + (key === node.frequency ? " selected" : "") + ">" + name + "</option>").join("") + "</select></label></div>";
+      fields += '<div class="node-setting-grid"><label class="node-execution-switch"><input data-node-field="isCheckinNode" type="checkbox"' + (node.isCheckinNode ? " checked" : "") + ' onchange="' + planningCardAction("updateDomainNode(" + JSON.stringify(node.id) + ',"isCheckinNode",this.checked)') + '"><span>\u52A0\u5165\u6267\u884C\u4EFB\u52A1</span></label><label>\u7269\u8BC1\u8981\u6C42<select data-node-field="evidenceType" onchange="' + planningCardAction("updateDomainNode(" + JSON.stringify(node.id) + ',"evidenceType",this.value)') + '">' + Object.entries(evidenceNames).map(([key, name]) => '<option value="' + key + '"' + (key === p.evidenceType ? " selected" : "") + ">" + name + "</option>").join("") + "</select></label></div>";
+      const options = (getDomainState().nodesByProject[node.projectId] || []).filter((n) => n.id !== node.id && n.isCheckinNode);
+      fields += '<label>\u524D\u7F6E\u8282\u70B9<select data-node-field="dependencies" multiple size="' + Math.min(3, Math.max(2, options.length)) + '" onchange="' + planningCardAction("updateDomainDependencies(" + JSON.stringify(node.id) + ",this)") + '">' + options.map((n) => '<option value="' + escapeIslandText(n.id) + '"' + (node.dependencies.includes(n.id) ? " selected" : "") + ">" + escapeIslandText(n.title) + "</option>").join("") + "</select><small>" + (options.length ? "\u53EF\u591A\u9009\uFF1B\u524D\u7F6E\u5B8C\u6210\u540E\u624D\u89E3\u9501\u6267\u884C\u3002" : "\u5F53\u524D\u6CA1\u6709\u5176\u4ED6\u53EF\u6267\u884C\u8282\u70B9\u3002") + "</small></label>";
+    }
+    const summary = node.nodeType === "text" ? "\u4FBF\u7B7E\u8BBE\u7F6E" : "\u8BA1\u5212\u4E0E\u4EA4\u4ED8\u8981\u6C42", meta = node.nodeType === "text" ? "\u7F16\u8F91\u540D\u79F0" : (node.plannedDate ? node.plannedDate.slice(5).replace("-", "/") : "\u672A\u6392\u671F") + " \xB7 " + (frequencyNames[node.frequency] || "\u4E00\u6B21\u6027");
+    return '<details class="node-plan-settings"><summary><span>' + summary + '</span><span class="node-setting-summary">' + escapeIslandText(meta) + '</span></summary><div class="node-settings-content">' + fields + "</div></details>";
+  }
+  function editPlanningCardTitle(id, event) {
+    event?.stopPropagation();
+    const card = document.getElementById(id), settings = card?.querySelector(".node-plan-settings");
+    if (!settings)
+      return;
+    settings.open = true;
+    const input = settings.querySelector('[data-node-field="title"]');
+    input?.focus({ preventScroll: true });
+    input?.scrollIntoView({ block: "nearest" });
+    input?.select();
+  }
+  function refreshPlanningCardSummary(id) {
+    const node = getDomainNode(id), card = document.getElementById(id);
+    if (!node || !card?.classList.contains("domain-node-card"))
+      return;
+    const fresh = document.createElement("template");
+    fresh.innerHTML = renderPlanningNodeCard(node);
+    for (const selector of [".work-node-title", ".node-card-status", ".node-setting-summary", ".node-proof-note strong", ".node-footer-chip"]) {
+      const target = card.querySelector(selector), source = fresh.content.querySelector(selector);
+      if (target && source)
+        target.textContent = source.textContent;
+    }
+    card.dataset.label = node.title;
+  }
+  function renderPlanningNodeCard(node) {
+    const p = node.cardPayload, type = node.nodeType, legacy = type === "review" ? "reflection" : type;
+    const captions = { goal: ["\u{1F3AF}", "\u76EE\u6807\u5206\u89E3", "\u91CF\u5316\u76EE\u6807 \xB7 \u660E\u786E\u9A8C\u6536"], drill: ["\u26A1", "\u653B\u575A\u5B9E\u8BAD", "\u805A\u7126\u96BE\u70B9 \xB7 \u4E13\u9879\u7EC3\u4E60"], habit: ["\u{1F33F}", "\u4E60\u60EF\u8DF5\u884C", "\u5B88\u4F4F\u65E5\u5E38 \xB7 \u9010\u9879\u843D\u5B9E"], review: ["\u{1F4DD}", "\u8BC4\u4F30\u590D\u76D8", "\u56DE\u770B\u8FC7\u7A0B \xB7 \u5F62\u6210\u884C\u52A8"], custom: ["\u2699\uFE0F", "\u81EA\u5B9A\u4E49\u914D\u7F6E", "\u81EA\u4E3B\u5B9A\u4E49 \xB7 \u6309\u9700\u4EA4\u4ED8"], text: ["\u{1F4C4}", "\u7B80\u5355\u6587\u672C", "\u8BB0\u5F55\u60F3\u6CD5 \xB7 \u6C89\u6DC0\u8D44\u6599"] }, meta = captions[type] || captions.text;
+    const records = getDomainState().records.filter((r) => r.nodeId === node.id), status = type === "text" ? "\u5DF2\u8BFB " + (node.readCount || 0) + " \u6B21" : records.length ? "\u5DF2\u7559\u75D5 " + records.length + " \u6B21" : type === "goal" && !node.isCheckinNode ? "\u9636\u6BB5\u91CC\u7A0B\u7891" : !node.isCheckinNode ? "\u4FE1\u606F\u6C89\u6DC0" : "\u5C1A\u672A\u6267\u884C";
+    const descriptionLabels = { goal: "\u76EE\u6807\u8BF4\u660E", drill: "\u6838\u5FC3\u653B\u575A\u8981\u9886", habit: "\u8DF5\u884C\u521D\u8877", review: "\u590D\u76D8\u6807\u7684\u4E0E\u8BF4\u660E", custom: "\u4EFB\u52A1\u8BF4\u660E" }, descriptionHints = { goal: "\u60F3\u8FBE\u6210\u4EC0\u4E48\uFF1F\u600E\u6837\u624D\u7B97\u771F\u6B63\u638C\u63E1\uFF1F", drill: "\u5199\u4E0B\u7EC3\u4E60\u8981\u70B9\u3001\u5173\u952E\u6B65\u9AA4\u6216\u6613\u9519\u63D0\u9192\u2026", habit: "\u4E3A\u4EC0\u4E48\u575A\u6301\uFF1F\u5728\u54EA\u4E2A\u573A\u666F\u843D\u5B9E\uFF1F", review: "\u660E\u786E\u672C\u6B21\u8981\u56DE\u770B\u7684\u8FC7\u7A0B\u4E0E\u95EE\u9898\u2026", custom: "\u8BF4\u660E\u4EFB\u52A1\u80CC\u666F\u548C\u4EA4\u4ED8\u8981\u6C42\u2026" };
+    let body = "", footer = "";
+    if (type !== "text")
+      body += planningCardSection(descriptionLabels[type] || "\u89C4\u5212\u8BF4\u660E", planningCardArea(node, "description", p.description, descriptionHints[type]), "", "node-card-description");
+    if (type === "goal") {
+      const metrics = p.metrics.map((m) => '<div class="node-metric-row"><span>' + escapeIslandText(m.name) + "</span><strong>" + escapeIslandText(m.targetValue || "\u5F85\u8BBE\u6807\u51C6") + "</strong></div>").join("") || '<p class="node-card-empty">\u6DFB\u52A0\u4E00\u4E2A\u53EF\u4EE5\u6838\u9A8C\u7684\u901A\u5173\u6307\u6807\u3002</p>';
+      body += planningCardSection("\u{1F3AF} \u91CF\u5316\u901A\u5173\u6307\u6807", metrics, planningCardListButton(node, "metrics", "\u7F16\u8F91\u6307\u6807"), "node-card-metrics");
+      body += planningCardSection("\u{1F4CB} \u9A8C\u6536\u6807\u51C6", planningCardArea(node, "acceptanceCriteria", p.acceptanceCriteria, "\u5199\u660E\u6210\u679C\u4E0E\u9A8C\u6536\u65B9\u5F0F\u2026"), "", "node-card-acceptance");
+      body += '<label class="node-deadline-row"><span>\u{1F4C5} \u671F\u671B\u5B8C\u6210</span>' + planningCardInput(node, "targetDeadline", p.targetDeadline, "datetime-local") + "</label>";
+      footer = '<span>\u9A8C\u6536\u901A\u8FC7\u540E\u6C89\u6DC0\u6210\u679C</span><button type="button" class="node-primary-action" onclick="' + planningCardAction("depositGoalToAchievement(" + JSON.stringify(node.id) + ",event)") + '">\u{1F3C6} \u8BB0\u5F55\u5DF2\u9A8C\u6536\u6210\u679C</button>';
+    } else if (type === "drill") {
+      body += '<section class="node-focus-panel"><div><span class="node-focus-caption">\u23F1 \u8BA1\u5212\u4E13\u6CE8</span><div class="node-focus-value">' + planningCardInput(node, "plannedMinutes", p.plannedMinutes, "number", 'min="0" max="120" step="1" aria-label="\u8BA1\u5212\u4E13\u6CE8\u5206\u949F"') + '<span>\u5206\u949F</span></div></div><span class="node-focus-mark" aria-hidden="true">\u25F7</span></section>';
+      body += '<div class="node-proof-note"><span>\u{1F4E6} \u4EA4\u4ED8\u8981\u6C42</span><strong>' + escapeIslandText({ none: "\u5B8C\u6210\u89C4\u5B9A\u7EC3\u4E60", text: "\u6267\u884C\u65F6\u63D0\u4EA4\u6587\u5B57\u5FC3\u5F97", photo: "\u6267\u884C\u65F6\u63D0\u4EA4\u7167\u7247\u7269\u8BC1", video: "\u6267\u884C\u65F6\u63D0\u4EA4\u89C6\u9891\u7269\u8BC1", audio: "\u6267\u884C\u65F6\u63D0\u4EA4\u97F3\u9891\u7269\u8BC1" }[p.evidenceType] || "\u6309\u8981\u6C42\u63D0\u4EA4\u7269\u8BC1") + "</strong></div>";
+      footer = '<span>\u5728\u6267\u884C\u4E2D\u5FC3\u8BA1\u65F6\u4E0E\u4EA4\u4ED8</span><span class="node-footer-chip">\u4E13\u6CE8 ' + Number(p.plannedMinutes || 0) + " \u5206\u949F</span>";
+    } else if (type === "habit") {
+      const list = p.checklist.map((item, i) => '<li><span class="node-list-marker" aria-hidden="true">\u25A1</span><span>' + escapeIslandText(item.title) + "</span>" + (item.required ? "<small>\u5FC5\u9700</small>" : "") + "</li>").join("");
+      body += planningCardSection("\u{1F6E1} \u9632\u5B88\u6E05\u5355", '<ul class="node-checklist">' + list + "</ul>" + (!list ? '<p class="node-card-empty">\u5B9A\u4E49\u6BCF\u5929\u8981\u843D\u5B9E\u7684\u5177\u4F53\u52A8\u4F5C\u3002</p>' : ""), planningCardListButton(node, "checklist", "\u7F16\u8F91\u6E05\u5355"));
+      footer = '<span>\u6267\u884C\u65F6\u9010\u9879\u6838\u9A8C</span><span class="node-footer-chip">' + p.checklist.length + " \u9879\u884C\u52A8</span>";
+    } else if (type === "review") {
+      const list = p.improvementList.map((item, i) => '<li><span class="node-list-marker">' + (i + 1) + "</span><span>" + escapeIslandText(item.actionItem) + '</span><small class="' + (item.derivedNodeId ? "is-derived" : "") + '">' + (item.derivedNodeId ? "\u5DF2\u6D3E\u751F" : item.isChecked === false ? "\u672A\u9009\u62E9" : "\u5F85\u6D3E\u751F") + "</small></li>").join("");
+      body += planningCardSection("\u{1F680} \u63D0\u5347\u884C\u52A8", '<ol class="node-improvements">' + list + "</ol>" + (!list ? '<p class="node-card-empty">\u628A\u590D\u76D8\u7ED3\u8BBA\u53D8\u6210\u4E0B\u4E00\u6B21\u7684\u5177\u4F53\u884C\u52A8\u3002</p>' : ""), planningCardListButton(node, "improvementList", "\u7F16\u8F91\u884C\u52A8"));
+      footer = '<span>\u590D\u76D8\u6C89\u6DC0 \xB7 \u9776\u5411\u63D0\u5347</span><button type="button" class="node-primary-action" onclick="' + planningCardAction("deriveNodesFromReflectionCard(" + JSON.stringify(node.id) + ",event)") + '">\u{1F331} \u6D3E\u751F\u5B9E\u8BAD\u8282\u70B9</button>';
+    } else if (type === "custom") {
+      const names = { text: "\u6587\u5B57", number: "\u6570\u5B57", boolean: "\u662F / \u5426", date: "\u65E5\u671F" }, list = p.customFieldsSchema.map((field) => '<div class="node-custom-field"><span>' + escapeIslandText(field.label) + '</span><span class="node-field-kind">' + escapeIslandText(names[field.type] || field.type) + (field.required ? " \xB7 \u5FC5\u586B" : " \xB7 \u9009\u586B") + "</span></div>").join("");
+      body += planningCardSection("\u{1F4CB} \u81EA\u5B9A\u4E49\u5B57\u6BB5", list || '<p class="node-card-empty">\u6DFB\u52A0\u9700\u8981\u586B\u62A5\u7684\u9879\u76EE\u4E0E\u5B57\u6BB5\u7C7B\u578B\u3002</p>', planningCardListButton(node, "customFieldsSchema", "\u7EF4\u62A4\u5B57\u6BB5"));
+      footer = '<span>\u6267\u884C\u65F6\u586B\u5199\u5B9E\u9645\u7ED3\u679C</span><span class="node-footer-chip">' + p.customFieldsSchema.length + " \u4E2A\u5B57\u6BB5</span>";
+    } else {
+      body += '<div class="node-text-paper">' + planningCardArea(node, "textContent", p.textContent, "\u5199\u4E0B\u60F3\u6CD5\u3001\u8D44\u6599\u6216 Markdown \u6B63\u6587\u2026") + "</div>";
+      footer = '<span>\u7EAF\u8BB0\u5F55 \xB7 \u4E0D\u8BA1\u5165\u5C65\u7EA6</span><button type="button" class="node-secondary-action" onclick="' + planningCardAction("acknowledgeDomainText(" + JSON.stringify(node.id) + ")") + '">\u{1F441} \u9605\u8BFB\u7559\u75D5</button>';
+    }
+    body += planningCardSettings(node);
+    return '<article class="a-my-island-work-node-card tertiary-card tertiary-' + legacy + '-card domain-node-card" id="' + escapeIslandText(node.id) + '" data-domain-node="true" data-node-type="' + type + '" data-label="' + escapeIslandText(node.title) + '" data-group-id="' + escapeIslandText(node.groupId || "") + '" data-group-root="' + escapeIslandText(node.groupRoot || "") + '" style="position:absolute;left:' + Number(node.canvasPosition.x) + "px;top:" + Number(node.canvasPosition.y) + 'px;width:340px;"><header class="work-node-card-header" ondblclick="' + planningCardAction("toggleTertiaryCardMinimize(" + JSON.stringify(node.id) + ",event)") + '" title="\u62D6\u52A8\u6807\u9898\u680F\u79FB\u52A8\uFF1B\u53CC\u51FB\u6298\u53E0\u6216\u5C55\u5F00"><div class="node-card-kicker"><span class="work-node-badge">' + meta[0] + " " + meta[1] + '</span><span class="node-card-status" id="status-text-' + escapeIslandText(node.id) + '">' + status + '</span><button type="button" class="node-card-collapse-toggle" aria-label="\u6298\u53E0\u6216\u5C55\u5F00\u8282\u70B9" onclick="' + planningCardAction("toggleTertiaryCardMinimize(" + JSON.stringify(node.id) + ",event)") + '">\u2303</button></div><div class="node-card-title-row"><span class="work-node-title">' + escapeIslandText(node.title) + '</span><button type="button" class="node-title-edit" aria-label="\u7F16\u8F91\u8282\u70B9\u540D\u79F0" onclick="' + planningCardAction("editPlanningCardTitle(" + JSON.stringify(node.id) + ",event)") + '">\u270E</button></div><p class="node-card-subtitle">' + meta[2] + '</p></header><div class="work-node-body domain-planning-body">' + body + '</div><footer class="node-card-footer">' + footer + '</footer><button type="button" class="work-card-connect-handle" data-card-id="' + escapeIslandText(node.id) + '" aria-label="\u4ECE\u6B64\u8282\u70B9\u8FDE\u63A5\u8DEF\u7EBF" title="\u62D6\u5411\u76EE\u6807\u8282\u70B9\uFF0C\u6216\u70B9\u51FB\u9009\u62E9\u8FDE\u7EBF\u8D77\u70B9" onclick="startOrFinishConnecting(this.dataset.cardId,event)">\u{1F517}</button></article>';
   }
   function canvasLocalPoint(stage, clientX, clientY) {
     const r = stage.getBoundingClientRect();
@@ -19898,6 +19964,24 @@ function bootPrototypeRuntime() {
     window2.openDesignDatabase = openDesignDatabase;
   if (typeof designData === "function")
     window2.designData = designData;
+  if (typeof planningCardAction === "function")
+    window2.planningCardAction = planningCardAction;
+  if (typeof planningCardInput === "function")
+    window2.planningCardInput = planningCardInput;
+  if (typeof planningCardArea === "function")
+    window2.planningCardArea = planningCardArea;
+  if (typeof planningCardListButton === "function")
+    window2.planningCardListButton = planningCardListButton;
+  if (typeof planningCardSection === "function")
+    window2.planningCardSection = planningCardSection;
+  if (typeof planningCardSettings === "function")
+    window2.planningCardSettings = planningCardSettings;
+  if (typeof editPlanningCardTitle === "function")
+    window2.editPlanningCardTitle = editPlanningCardTitle;
+  if (typeof refreshPlanningCardSummary === "function")
+    window2.refreshPlanningCardSummary = refreshPlanningCardSummary;
+  if (typeof renderPlanningNodeCard === "function")
+    window2.renderPlanningNodeCard = renderPlanningNodeCard;
   if (typeof canvasLocalPoint === "function")
     window2.canvasLocalPoint = canvasLocalPoint;
   if (typeof readPlanViewport === "function")

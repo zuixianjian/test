@@ -57,24 +57,7 @@ ensureBusinessDate=function(){
 };
 appendDailyAutoLog=function(text,minutes){ensureBusinessDate();const event=domainEvent('activity',null,String(text));window.NOTE_STATE.todayFocusMinutes=(window.NOTE_STATE.todayFocusMinutes||0)+(Number(minutes)||0);return event;};
 
-function domainNodeHtml(node) {
-  const p=node.cardPayload,project=getDomainState().projects.find(x=>x.id===node.projectId);const type=node.nodeType==='review'?'reflection':node.nodeType;
-  const input=(field,value,kind='text')=>'<input class="add-module-text-input" type="'+kind+'" value="'+escapeIslandText(value??'')+'" onchange="updateDomainNode(\''+node.id+'\',\''+field+'\',this.value)">';
-  let body='<label>主题'+input('title',node.title)+'</label><label>规划说明<textarea class="add-module-text-input" onchange="updateDomainNode(\''+node.id+'\',\'description\',this.value)">'+escapeIslandText(p.description)+'</textarea></label>';
-  if(node.nodeType==='text')body='<textarea class="add-module-text-input" onchange="updateDomainNode(\''+node.id+'\',\'textContent\',this.value)">'+escapeIslandText(p.textContent)+'</textarea><button class="card-graphic-pill" onclick="acknowledgeDomainText(\''+node.id+'\')">👁 阅读留痕（'+node.readCount+'次）</button>';
-  else {
-    body+='<div class="domain-planning-row"><label>计划日期'+input('plannedDate',node.plannedDate,'date')+'</label><label>频次<select onchange="updateDomainNode(\''+node.id+'\',\'frequency\',this.value)">'+[['once','一次性'],['daily','每日'],['weekdays','周一至周五'],['weekly','每周同日']].map(([key,label])=>'<option value="'+key+'"'+(node.frequency===key?' selected':'')+'>'+label+'</option>').join('')+'</select></label></div>';
-    if(node.nodeType==='goal')body+='<div>'+p.metrics.map(m=>'<div class="domain-planning-row">'+escapeIslandText(m.name)+'：'+escapeIslandText(m.targetValue)+'</div>').join('')+'</div><button class="card-graphic-pill" onclick="editDomainList(\''+node.id+'\',\'metrics\')">✏ 编辑指标</button><label>验收说明<textarea onchange="updateDomainNode(\''+node.id+'\',\'acceptanceCriteria\',this.value)">'+escapeIslandText(p.acceptanceCriteria)+'</textarea></label><label>期望截止时间'+input('targetDeadline',p.targetDeadline,'datetime-local')+'</label><button class="card-graphic-pill" onclick="depositGoalToAchievement(\''+node.id+'\',event)">🏆 记录已验收成果</button>';
-    if(node.nodeType==='drill')body+='<label>专注分钟'+input('plannedMinutes',p.plannedMinutes,'number')+'</label>';
-    if(node.nodeType==='habit')body+='<div>'+p.checklist.map(c=>'<div>□ '+escapeIslandText(c.title)+'</div>').join('')+'</div><button class="card-graphic-pill" onclick="editDomainList(\''+node.id+'\',\'checklist\')">✏ 编辑防守清单</button>';
-    if(node.nodeType==='review')body+='<div>'+p.improvementList.map(c=>'<div>🌱 '+escapeIslandText(c.actionItem)+(c.derivedNodeId?' ✓ 已派生':'')+'</div>').join('')+'</div><button class="card-graphic-pill" onclick="editDomainList(\''+node.id+'\',\'improvementList\')">✏ 编辑提升清单</button><button class="card-graphic-pill" onclick="deriveNodesFromReflectionCard(\''+node.id+'\',event)">🌱 派生实训节点</button>';
-    if(node.nodeType==='custom')body+='<div>'+p.customFieldsSchema.map(f=>'<div>'+escapeIslandText(f.label)+' · '+escapeIslandText(f.type)+(f.required?'（必填）':'')+'</div>').join('')+'</div><button class="card-graphic-pill" onclick="editDomainList(\''+node.id+'\',\'customFieldsSchema\')">✏ 编辑字段定义</button>';
-    body+='<div class="domain-planning-row"><label><input type="checkbox"'+(node.isCheckinNode?' checked':'')+' onchange="updateDomainNode(\''+node.id+'\',\'isCheckinNode\',this.checked)">需要执行</label><label>物证<select onchange="updateDomainNode(\''+node.id+'\',\'evidenceType\',this.value)">'+[['none','无需附件'],['text','文字 ≥15字'],['photo','照片'],['video','视频'],['audio','音频']].map(([key,label])=>'<option value="'+key+'"'+(p.evidenceType===key?' selected':'')+'>'+label+'</option>').join('')+'</select></label></div>';
-    body+='<label>前置节点<select multiple onchange="updateDomainDependencies(\''+node.id+'\',this)">'+(getDomainState().nodesByProject[node.projectId]||[]).filter(n=>n.id!==node.id&&n.isCheckinNode).map(n=>'<option value="'+n.id+'"'+(node.dependencies.includes(n.id)?' selected':'')+'>'+escapeIslandText(n.title)+'</option>').join('')+'</select></label>';
-  }
-  const records=getDomainState().records.filter(r=>r.nodeId===node.id);const status=records.length?'已留痕 '+records.length+' 次':'尚未执行';
-  return '<div class="a-my-island-work-node-card tertiary-card tertiary-'+type+'-card" id="'+node.id+'" data-domain-node="true" data-label="'+escapeIslandText(node.title)+'" data-group-id="'+(node.groupId||'')+'" data-group-root="'+(node.groupRoot||'')+'" style="position:absolute;left:'+node.canvasPosition.x+'px;top:'+node.canvasPosition.y+'px;width:340px;"><div class="work-node-card-header" ondblclick="toggleTertiaryCardMinimize(\''+node.id+'\',event)"><span class="work-node-badge">'+domainTypeNames[node.nodeType]+'</span><span class="work-node-title">'+escapeIslandText(node.title)+'</span><span id="status-text-'+node.id+'">'+status+'</span></div><div class="work-node-body domain-planning-body">'+body+'</div><div class="work-card-connect-handle" data-card-id="'+node.id+'" onclick="startOrFinishConnecting(this.dataset.cardId,event)">🔗</div></div>';
-}
+function domainNodeHtml(node) { return renderPlanningNodeCard(node); }
 function renderDomainCanvas(projectId) {
   const world=document.getElementById('tertiary-canvas-world');if(!world)return;
   world.querySelectorAll('.tertiary-card,.tertiary-node-card').forEach(c=>c.remove());
@@ -98,7 +81,7 @@ function updateDomainNode(id,key,value){const node=getDomainNode(id);if(!node)re
   if(key==='title'&&(value.trim().length<2||value.trim().length>30)){showIslandToast('节点标题须为2～30字');renderDomainCanvas(node.projectId);return;}
   if(key==='plannedDate'&&(!domainValidDate(value)||value<project.startDate||value>project.endDate)){showIslandToast('计划日期须在项目周期内');renderDomainCanvas(node.projectId);return;}
   if(key==='plannedMinutes'&&(!Number.isFinite(Number(value))||Number(value)<0||Number(value)>120)){showIslandToast('时长为0～120分钟');return;}
-  recordDomainHistory();if(['title','frequency','plannedDate','isCheckinNode'].includes(key))node[key]=value;else node.cardPayload[key]=key==='plannedMinutes'?Number(value):value;node.updatedAt=new Date().toISOString();saveCurrentProjectCanvasSnapshot();refreshDomainProjections();notifyIslandStateChanged();
+  recordDomainHistory();if(['title','frequency','plannedDate','isCheckinNode'].includes(key))node[key]=value;else node.cardPayload[key]=key==='plannedMinutes'?Number(value):value;node.updatedAt=new Date().toISOString();refreshPlanningCardSummary(id);saveCurrentProjectCanvasSnapshot();refreshDomainProjections();notifyIslandStateChanged();
 }
 function domainDependencyCycle(node,dependencies){
   const nodes=getDomainState().nodesByProject[node.projectId];

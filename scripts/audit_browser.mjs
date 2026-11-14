@@ -26,7 +26,7 @@ try{
   for(let i=0;i<50;i++){if(await evaluate(designMode?'window.__YOUTH_ISLAND_DESIGN_READY__ === true':'typeof Harness !== "undefined"'))break;await new Promise(r=>setTimeout(r,100));}
   const scenario=process.argv[2]||'scripts/audit_scenarios.js';
   const result=scenario.endsWith('.mjs')?await (await import(pathToFileURL(path.resolve(scenario)).href)).default({evaluate,send,designMode}):await evaluate(fs.readFileSync(scenario,'utf8'));
-  const version=result.version||'1.1.0',group=['canvas','navigation','mobile'].includes(result.suite)?result.suite:null,suite=group?group+(designMode?'-design-':'-'):designMode?'design-':'';
+  const version=result.version||'1.1.0',group=['canvas','navigation','mobile','cards'].includes(result.suite)?result.suite:null,suite=group?group+(designMode?'-design-':'-'):designMode?'design-':'';
   if(result.checks){
     fs.writeFileSync('audit/'+suite+'validation-'+version+'.json',JSON.stringify(result,null,2));for(const c of result.checks)console.log('PASS: '+c);console.log('Passed '+result.checks.length+' domain and integration checks');
     if(result.screenshot){

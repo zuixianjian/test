@@ -1,6 +1,6 @@
 # 终身岛民 · Obsidian 成长工作台
 
-当前版本 **1.1.5**。本版修复实际Obsidian文件适配器拒绝覆盖重命名导致的连续保存失败，加入待提交档案恢复、移动端宿主手势隔离和线路避障/方向修正。设置中可查看实际版本、保存状态及重试保存。
+当前版本 **1.1.6**。本版按设计图恢复六类节点的徽标、分区、类型色与按钮层级，收起通用设置，保留已有脑图操作和保存流程。名称、专注时长与交付要求修改后即时同步卡片摘要。设置中可查看实际版本、保存状态及重试保存。
 
 产品契约见 [PRD](PRD_Youth_Holistic_Growth_System.md)，交互设计见 [高保真设计预览](high_fidelity_ui_preview.html)，修复与验收范围见 [1.1.0 交付记录](PLUGIN_REVIEW_1.1.0.md)。原始问题证据保留在 [审查报告](audit/PRD_DESIGN_PLUGIN_CLOSED_LOOP_AUDIT.md)。
 
@@ -13,6 +13,8 @@
 1.1.4将导航地图调整为220×130的真实节点缩略图，与地图按钮并排显示。点击或轻触定位，拖动红色视口框漫游；拖动期间投影固定，松手不重复居中。支持外层缩放、触屏和SVG留白换算，展开状态按规划页和项目独立保存。说明见[导航实现对照](PLUGIN_REVIEW_1.1.4.md)。
 
 1.1.5按Obsidian实际宿主约束修复：写入使用校验后的待提交档案、有效备份和覆盖写，不再依赖覆盖重命名；可恢复旧版失败保存留下的较新pending。根节点使用宿主的`data-ignore-swipe`边界，保留内部滚动与显式侧栏按钮。线路扩展真实SVG命中范围，选择可通行的卡片边界端口；完全重叠时提示受阻，方向选择保持幂等，包含层级与任务前置分开。说明见[Android问题复查](PLUGIN_REVIEW_1.1.5.md)。
+
+1.1.6将通用长表单改为六类规划卡：目标指标、实训时长、习惯清单、复盘行动、自定义字段和文本便签各自突出重点；计划和交付设置默认收起。规划编辑、成果验收、复盘派生、阅读留痕仍使用原有领域事务，未引入虚构执行数据。说明与截图见[节点卡片修复记录](PLUGIN_REVIEW_1.1.6.md)。
 
 执行中心的日/周/月从同一调度结果读取任务。规划场馆使用项目甘特与结构化脑图；实训、习惯、复盘、目标及自定义表单按各自标准校验。验收记录连接源节点、真实附件、项目进度、随记和成果。悬赏需要家长寄语及核验，生活高光保存照片原件，亲子公约保存真实姓名、条款与签署版本。
 
@@ -32,6 +34,8 @@ npm.cmd run test:canvas:design
 npm.cmd run test:navigation
 npm.cmd run test:navigation:design
 npm.cmd run test:mobile
+npm.cmd run test:cards
+npm.cmd run test:cards:design
 npm.cmd run package-android
 ```
 
@@ -44,6 +48,7 @@ npm.cmd run package-android
 | `src/core/domain.mjs` | 无DOM依赖的节点、实例、依赖、进度与验收规则 |
 | `src/core/canvas.mjs` / `src/runtime/canvasInteractions.js` | 共用缩放/手势、避障线路、线路设置事务及节点排布 |
 | `src/runtime/canvasNavigation.js` | 缓存地图投影、视口导航、按帧更新、折叠状态及触控 |
+| `src/runtime/nodeCards.js` / `src/ui/nodeCards.css` | 六类规划节点的共享渲染、卡片分区、类型色和编辑摘要同步 |
 | `src/runtime/closedLoopRuntime.js` | 领域状态、规划编辑、同源任务与统计投影 |
 | `src/runtime/closedLoopWorkflows.js` | 执行草稿、原件、成果与复盘派生 |
 | `src/runtime/closedLoopModules.js` | 悬赏、公约、随记、真实导出、Canvas边界与设计适配器 |
@@ -58,9 +63,9 @@ npm.cmd run package-android
 
 ## 安装
 
-解压 `release/youth-holistic-growth-island-1.1.5.zip`，将其中整个 `youth-holistic-growth-island` 文件夹复制到知识库的 `.obsidian/plugins/`。安装文件包括 `manifest.json`、`versions.json`、`main.js`、`styles.css`和ASCII命名的场景/头像资源。已有仓库升级前保留一份备份，然后重启或重载插件。
+解压 `release/youth-holistic-growth-island-1.1.6.zip`，将其中整个 `youth-holistic-growth-island` 文件夹复制到知识库的 `.obsidian/plugins/`。安装文件包括 `manifest.json`、`versions.json`、`main.js`、`styles.css`和ASCII命名的场景/头像资源。已有仓库升级前保留一份备份，然后重启或重载插件。
 
-BRAT用户需选择正式Release版本1.1.5或Latest，执行更新后**完全关闭并重新打开Obsidian**。旧版本在保存失败时可能未清理旧运行时，仅切换页面不能保证加载新代码；到插件设置确认当前版本v1.1.5和保存状态。发布需推送与manifest一致的数字标签，单独推送master不会产生BRAT更新；工作流发布前执行构建、类型检查和纯规则测试。
+BRAT用户需选择正式Release版本1.1.6或Latest，执行更新后**完全关闭并重新打开Obsidian**。旧版本在保存失败时可能未清理旧运行时，仅切换页面不能保证加载新代码；到插件设置确认当前版本v1.1.6和保存状态。发布需推送与manifest一致的数字标签，单独推送master不会产生BRAT更新；工作流发布前执行构建、类型检查和纯规则测试。
 
 通过侧栏指南针或命令打开。设置中可指定数据子目录、默认执行/规划视图以及是否随Obsidian启动。
 

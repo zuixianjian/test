@@ -1,0 +1,41 @@
+{
+  "version": "1.1.6",
+  "suite": "cards",
+  "checks": [
+    "all six canonical node types render their dedicated planning cards",
+    "type accents distinguish goal, drill, habit, review, custom and text",
+    "cards share the design border radius and compact panel layout",
+    "common scheduling and delivery settings start collapsed",
+    "goal highlights real target metrics separately from acceptance criteria",
+    "drill highlights planned focus time and the actual delivery requirement",
+    "habit lists planning actions without treating them as executed checkboxes",
+    "review presents numbered improvement actions and its derive control",
+    "custom card exposes real schema types and required flags",
+    "text card presents Markdown as an independent note with read-only participation semantics",
+    "node buttons retain their own pastel hierarchy under plugin styles",
+    "title pencil expands settings and focuses the actual editable node title",
+    "title edit saves the domain name and updates the header without closing settings",
+    "focus and evidence edits immediately update both domain data and visual summaries",
+    "collapse keeps a compact title while hiding content and footer",
+    "collapsed header has no overlapping badge, title or expand control",
+    "expanding a card restores its existing controls and values",
+    "metric edit opens the existing structured form rather than a decorative button",
+    "saving a metric updates its domain standard and highlighted target value",
+    "derive action creates linked drill nodes and shows their persisted derived status",
+    "repeating derive does not create duplicate actions",
+    "reading a text card updates the count without inventing execution records",
+    "card fields and summaries survive Vault save and hydration",
+    "titles and section content fit within the card body without horizontal scrolling"
+  ],
+  "screenshot": true,
+  "capturePages": [
+    {
+      "name": "cards-second-plugin",
+      "code": "window.writeMindmapViewport({x:20,y:-620,zoom:1})"
+    },
+    {
+      "name": "cards-overview-plugin",
+      "code": "window.fitCanvasView()"
+    }
+  ]
+}

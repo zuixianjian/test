@@ -99,5 +99,5 @@ export default async function({evaluate,send,designMode}){
   check(await evaluate("window.readMindmapViewport().zoom===.7&&window.readMindmapViewport().x===135&&window.getDomainState().viewports.projects['camera-second'].zoom===1.4"),'project viewports survive a complete runtime restart');
   await evaluate("window.switchMainSection('island');window.switchHomeGlobalView('plan');");check(await evaluate("window.readPlanViewport().zoom===.8&&window.readPlanViewport().x===37&&window.readPlanViewport().y===65"),'planning viewport restores after a complete runtime restart');await evaluate("window.enterTertiaryWorkspace('canvas-interactions')");
   await evaluate("window.fitCanvasView();window.openEdgePopover('edge-default');");
-  return {version:'1.1.5',suite:'canvas',checks,screenshot:true,capturePages:[{name:designMode?'planning-design':'planning-plugin',code:"window.switchMainSection('island');window.switchHomeGlobalView('plan');window.fitHomeCanvasView();"}]};
+  return {version:'1.1.6',suite:'canvas',checks,screenshot:true,capturePages:[{name:designMode?'planning-design':'planning-plugin',code:"window.switchMainSection('island');window.switchHomeGlobalView('plan');window.fitHomeCanvasView();"}]};
 }

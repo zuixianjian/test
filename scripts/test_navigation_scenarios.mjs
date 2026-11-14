@@ -73,5 +73,5 @@ export default async function({evaluate,send,designMode}){
   const portraitPanel=await rect('#island-minimap-dock'),portraitButton=await rect('#island-minimap-toggle-btn'),launcher=await rect('#home-island-launcher');
   check(portraitPanel.x>=0&&portraitButton.x+portraitButton.width<=768&&Math.max(portraitPanel.y+portraitPanel.height,portraitButton.y+portraitButton.height)<=launcher.y,'portrait planning navigation stays onscreen and clears the bottom launcher');await send('Emulation.clearDeviceMetricsOverride');
   await evaluate("window.enterTertiaryWorkspace('navigation-a');window.toggleTertiaryMinimapDock(true);window.fitCanvasView()");await pause(300);
-  return {version:'1.1.5',suite:'navigation',checks,screenshot:true,portrait:true,capturePages:[{name:designMode?'navigation-planning-design':'navigation-planning-plugin',code:"window.switchMainSection('island');window.switchHomeGlobalView('plan');window.toggleIslandMinimapDock(true);window.fitHomeCanvasView();"}]};
+  return {version:'1.1.6',suite:'navigation',checks,screenshot:true,portrait:true,capturePages:[{name:designMode?'navigation-planning-design':'navigation-planning-plugin',code:"window.switchMainSection('island');window.switchHomeGlobalView('plan');window.toggleIslandMinimapDock(true);window.fitHomeCanvasView();"}]};
 }
