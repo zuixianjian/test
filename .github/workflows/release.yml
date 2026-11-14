@@ -27,13 +27,19 @@ jobs:
 
       - name: Install dependencies & build
         run: |
-          npm install
+          npm ci
           npm run build
+          npm run typecheck
+          npm test
 
       - name: Read version from manifest.json
         id: manifest
         run: |
           VERSION=$(node -p "require('./manifest.json').version")
+          if [[ "$GITHUB_REF_TYPE" == "tag" && "$GITHUB_REF_NAME" != "$VERSION" ]]; then
+            echo "Release tag must match manifest version: $VERSION"
+            exit 1
+          fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Prepare release packages
@@ -51,7 +57,8 @@ jobs:
       - name: Create or Update GitHub Release for Obsidian / BRAT
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ steps.manifest.outputs.version }}
+          target_commitish: ${{ github.sha }}
           name: "v${{ steps.manifest.outputs.version }} - 终身岛民·青少儿全人成长与自主进化系统"
           body: |
             ### 🏝️ 终身岛民 · 青少儿全人成长与自主进化系统 v${{ steps.manifest.outputs.version }}

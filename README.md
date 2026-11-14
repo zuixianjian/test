@@ -1,6 +1,6 @@
 # 终身岛民 · Obsidian 成长工作台
 
-当前版本 **1.1.4**。本版参考本地 a-my-island 1.6.0的导航地图实现，统一规划与脑图的小地图：准确点击定位、稳定拖动视口框、按帧更新和独立折叠状态。项目、节点、每日任务实例、执行记录及跨模块回写沿用统一数据契约。
+当前版本 **1.1.5**。本版修复实际Obsidian文件适配器拒绝覆盖重命名导致的连续保存失败，加入待提交档案恢复、移动端宿主手势隔离和线路避障/方向修正。设置中可查看实际版本、保存状态及重试保存。
 
 产品契约见 [PRD](PRD_Youth_Holistic_Growth_System.md)，交互设计见 [高保真设计预览](high_fidelity_ui_preview.html)，修复与验收范围见 [1.1.0 交付记录](PLUGIN_REVIEW_1.1.0.md)。原始问题证据保留在 [审查报告](audit/PRD_DESIGN_PLUGIN_CLOSED_LOOP_AUDIT.md)。
 
@@ -11,6 +11,8 @@
 1.1.3移除脑图工具栏“原生Canvas”、甘特项目行的Canvas打开/导入按钮及对应插件命令与接口。后台同步只导出节点JSON和项目Markdown，已有`.canvas`文件保留。说明见[1.1.3交付记录](PLUGIN_REVIEW_1.1.3.md)。
 
 1.1.4将导航地图调整为220×130的真实节点缩略图，与地图按钮并排显示。点击或轻触定位，拖动红色视口框漫游；拖动期间投影固定，松手不重复居中。支持外层缩放、触屏和SVG留白换算，展开状态按规划页和项目独立保存。说明见[导航实现对照](PLUGIN_REVIEW_1.1.4.md)。
+
+1.1.5按Obsidian实际宿主约束修复：写入使用校验后的待提交档案、有效备份和覆盖写，不再依赖覆盖重命名；可恢复旧版失败保存留下的较新pending。根节点使用宿主的`data-ignore-swipe`边界，保留内部滚动与显式侧栏按钮。线路扩展真实SVG命中范围，选择可通行的卡片边界端口；完全重叠时提示受阻，方向选择保持幂等，包含层级与任务前置分开。说明见[Android问题复查](PLUGIN_REVIEW_1.1.5.md)。
 
 执行中心的日/周/月从同一调度结果读取任务。规划场馆使用项目甘特与结构化脑图；实训、习惯、复盘、目标及自定义表单按各自标准校验。验收记录连接源节点、真实附件、项目进度、随记和成果。悬赏需要家长寄语及核验，生活高光保存照片原件，亲子公约保存真实姓名、条款与签署版本。
 
@@ -29,6 +31,7 @@ npm.cmd run test:canvas
 npm.cmd run test:canvas:design
 npm.cmd run test:navigation
 npm.cmd run test:navigation:design
+npm.cmd run test:mobile
 npm.cmd run package-android
 ```
 
@@ -55,7 +58,9 @@ npm.cmd run package-android
 
 ## 安装
 
-解压 `release/youth-holistic-growth-island-1.1.4.zip`，将其中整个 `youth-holistic-growth-island` 文件夹复制到知识库的 `.obsidian/plugins/`。安装文件包括 `manifest.json`、`versions.json`、`main.js`、`styles.css`和ASCII命名的场景/头像资源。已有仓库升级前保留一份备份，然后重启或重载插件。
+解压 `release/youth-holistic-growth-island-1.1.5.zip`，将其中整个 `youth-holistic-growth-island` 文件夹复制到知识库的 `.obsidian/plugins/`。安装文件包括 `manifest.json`、`versions.json`、`main.js`、`styles.css`和ASCII命名的场景/头像资源。已有仓库升级前保留一份备份，然后重启或重载插件。
+
+BRAT用户需选择正式Release版本1.1.5或Latest，执行更新后**完全关闭并重新打开Obsidian**。旧版本在保存失败时可能未清理旧运行时，仅切换页面不能保证加载新代码；到插件设置确认当前版本v1.1.5和保存状态。发布需推送与manifest一致的数字标签，单独推送master不会产生BRAT更新；工作流发布前执行构建、类型检查和纯规则测试。
 
 通过侧栏指南针或命令打开。设置中可指定数据子目录、默认执行/规划视图以及是否随Obsidian启动。
 

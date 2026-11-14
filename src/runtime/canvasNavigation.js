@@ -23,7 +23,7 @@ function getCanvasNavigator(kind){
   svg.setAttribute('viewBox','0 0 220 130');svg.setAttribute('tabindex','0');svg.setAttribute('aria-label','导航地图：点击定位，拖动视口框漫游，方向键移动，Home适应画布');
   svg.querySelector('.a-my-island-work-minimap-hit-area')?.setAttribute('width','220');svg.querySelector('.a-my-island-work-minimap-hit-area')?.setAttribute('height','130');
   nav.toggle?.setAttribute('aria-controls',prefix+'-minimap-dock');canvasNavigators.set(kind,nav);bindCanvasNavigation(nav);
-  if(window.ResizeObserver){const observer=new window.ResizeObserver(()=>queueCanvasNavigation(kind));observer.observe(stage);}
+  if(window.ResizeObserver){const observer=new window.ResizeObserver(()=>{queueCanvasNavigation(kind);if(kind==='project'){positionCanvasEdgeLabels();positionCanvasEdgePopover();}});observer.observe(stage);}
   return nav;
 }
 function cancelCanvasNavigationDrag(nav){const drag=nav?.drag;if(!drag)return;nav.drag=null;nav.suppressUntil=Date.now()+500;nav.svg.classList.remove('is-navigating');try{nav.svg.releasePointerCapture(drag.pointerId);}catch{}queueCanvasNavigation(nav.kind);}

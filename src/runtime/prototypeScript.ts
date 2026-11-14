@@ -12118,6 +12118,15 @@ function canvasMinimapProjection(rects,camera,width,height,mapWidth=220,mapHeigh
 function canvasMinimapPoint(projection,point){return {x:projection.offsetX+(point.x-projection.minX)*projection.scale,y:projection.offsetY+(point.y-projection.minY)*projection.scale};}
 function canvasMinimapWorldPoint(projection,point){return {x:projection.minX+(point.x-projection.offsetX)/projection.scale,y:projection.minY+(point.y-projection.offsetY)/projection.scale};}
 function canvasMinimapDrag(camera,dx,dy,projection){return {...camera,x:camera.x-dx/projection.scale*camera.zoom,y:camera.y-dy/projection.scale*camera.zoom};}
+function canvasLabelPositions(items,width,height){
+  const occupied=[];return items.map(item=>{const gap=item.height+10,offsets=[[0,0],[0,-gap],[0,gap],[-item.width-10,0],[item.width+10,0]];
+    for(let row=2;row<=items.length;row++)offsets.push([0,-gap*row],[0,gap*row]);
+    let chosen=null;for(const [dx,dy]of offsets){const x=Math.max(item.width/2+4,Math.min(width-item.width/2-4,item.x+dx)),y=Math.max(item.height/2+4,Math.min(height-item.height/2-4,item.y+dy)),rect={x:x-item.width/2,y:y-item.height/2,width:item.width,height:item.height};
+      if(occupied.some(r=>rect.x<r.x+r.width+5&&rect.x+rect.width+5>r.x&&rect.y<r.y+r.height+5&&rect.y+rect.height+5>r.y))continue;
+      chosen={...item,x,y};occupied.push(rect);break;
+    }return chosen||item;
+  });
+}
 function canvasConnectionPreview(source,cursor){
   const dx=cursor.x-(source.x+source.width/2),dy=cursor.y-(source.y+source.height/2),horizontal=Math.abs(dx)>=Math.abs(dy);
   const start=horizontal?{x:source.x+(dx>=0?source.width:0),y:source.y+source.height/2}:{x:source.x+source.width/2,y:source.y+(dy>=0?source.height:0)};
@@ -12143,6 +12152,7 @@ function canvasFreePosition(rects,width=340,height=640){
   return candidates.sort((a,b)=>a.y-b.y||a.x-b.x)[0];
 }
 function canvasSegmentClear(a,b,rects){
+  if(a.x!==b.x&&a.y!==b.y)return false;
   return !rects.some(r=>a.x===b.x?a.x>r.x&&a.x<r.x+r.width&&Math.max(a.y,b.y)>r.y&&Math.min(a.y,b.y)<r.y+r.height:a.y>r.y&&a.y<r.y+r.height&&Math.max(a.x,b.x)>r.x&&Math.min(a.x,b.x)<r.x+r.width);
 }
 function canvasSimplify(points){
@@ -12174,20 +12184,33 @@ function canvasOrthogonalPath(start,end,obstacles){
       canvasHeapPush(heap,{key:id,xi,yi,axis,distance,cost:distance+Math.abs(b.x-end.x)+Math.abs(b.y-end.y)});
     }
   }
-  if(!final)return direct; // Overlapping nodes can leave no free route; dragging them apart resolves it.
+  if(!final)return null; // Never silently replace an impossible route with a line through a card.
   const result=[];for(let cursor=final;cursor;cursor=parents.get(cursor))result.unshift(points.get(cursor));return canvasSimplify(result);
 }
-function canvasRouteEdge(source,target,rects,index=0,total=1){
-  const horizontal=source.x+source.width<=target.x||target.x+target.width<=source.x;
-  const forward=horizontal?target.x>=source.x:target.y>=source.y;
-  const slot=(size)=>(index-(total-1)/2)*Math.min(16,Math.max(0,(size-24)/Math.max(total,1)));
-  const a=horizontal?{x:source.x+(forward?source.width:0),y:source.y+source.height/2+slot(source.height)}:{x:source.x+source.width/2+slot(source.width),y:source.y+(forward?source.height:0)};
-  const b=horizontal?{x:target.x+(forward?0:target.width),y:target.y+target.height/2+slot(target.height)}:{x:target.x+target.width/2+slot(target.width),y:target.y+(forward?0:target.height)};
-  const direction=forward?1:-1,stub=24;
-  const start=horizontal?{x:a.x+direction*stub,y:a.y}:{x:a.x,y:a.y+direction*stub};
-  const end=horizontal?{x:b.x-direction*stub,y:b.y}:{x:b.x,y:b.y-direction*stub};
-  const obstacles=rects.map(r=>({x:r.x-12,y:r.y-12,width:r.width+24,height:r.height+24}));
-  const points=canvasSimplify([a,...canvasOrthogonalPath(start,end,obstacles),b]);
+function canvasRouteEdge(source,target,rects,index=0,total=1,targetIndex=index,targetTotal=total){
+  const blocked=()=>({points:[],label:{x:source.x+source.width/2,y:source.y-20},d:'',blocked:true});
+  if(source.x<target.x+target.width&&source.x+source.width>target.x&&source.y<target.y+target.height&&source.y+source.height>target.y)return blocked();
+  const directions={right:{x:1,y:0},left:{x:-1,y:0},bottom:{x:0,y:1},top:{x:0,y:-1}};
+  const port=(box,side,slot,count)=>{const horizontal=side==='left'||side==='right',size=horizontal?box.height:box.width,offset=(slot-(count-1)/2)*Math.min(16,Math.max(0,(size-24)/Math.max(count,1)));
+    return horizontal?{x:box.x+(side==='right'?box.width:0),y:box.y+box.height/2+offset}:{x:box.x+box.width/2+offset,y:box.y+(side==='bottom'?box.height:0)};
+  };
+  const options=[];for(const aSide of Object.keys(directions))for(const bSide of Object.keys(directions)){
+    const a=port(source,aSide,index,total),b=port(target,bSide,targetIndex,targetTotal),distance=Math.abs(a.x-b.x)+Math.abs(a.y-b.y);options.push({a,b,aDir:directions[aSide],bDir:directions[bSide],distance});
+  }options.sort((a,b)=>a.distance-b.distance);
+  let points=null;
+  for(const padding of [12,4,1]){
+    const obstacles=rects.map(r=>({x:r.x-padding,y:r.y-padding,width:r.width+padding*2,height:r.height+padding*2}));
+    for(const option of options){
+      const {a,b,aDir,bDir}=option,stub=padding+6,start={x:a.x+aDir.x*stub,y:a.y+aDir.y*stub},end={x:b.x+bDir.x*stub,y:b.y+bDir.y*stub};
+      if(!canvasSegmentClear(a,start,rects.filter(r=>r!==source))||!canvasSegmentClear(end,b,rects.filter(r=>r!==target)))continue;
+      if([start,end].some(p=>obstacles.some(r=>p.x>r.x&&p.x<r.x+r.width&&p.y>r.y&&p.y<r.y+r.height)))continue;
+      const path=canvasOrthogonalPath(start,end,obstacles);if(!path)continue;
+      const candidate=canvasSimplify([a,...path,b]);if(!candidate.slice(1).every((p,i)=>canvasSegmentClear(candidate[i],p,rects)))continue;
+      points=candidate;break;
+    }if(points)break;
+  }
+  if(!points)return blocked();
+  const a=points[0],b=points.at(-1);
   let label={x:(a.x+b.x)/2,y:(a.y+b.y)/2},longest=-1;
   for(let i=1;i<points.length;i++){const p=points[i-1],q=points[i],length=Math.abs(q.x-p.x)+Math.abs(q.y-p.y);if(length>longest){longest=length;label={x:(p.x+q.x)/2,y:(p.y+q.y)/2};}}
   return {points,label,d:points.map((p,i)=>(i?'L ':'M ')+p.x+' '+p.y).join(' ')};
@@ -13170,7 +13193,7 @@ initCanvasPanZoomAndDrag=function(){
   bindCanvasViewport({stage,read:readPlanViewport,write:writePlanViewport,active:()=>currentGlobalView==='plan'&&stage.getBoundingClientRect().width>0,nodes:'.pavilion-node',canDrag:()=>!window.isBrowseMode,dragClass:'is-node-dragging',move:()=>updateIslandMinimap(),finish:()=>{captureDomainLayout();updateIslandMinimap();notifyIslandStateChanged();}});
   bindPavilionNodesClickGuards();
 };
-getDownstreamChildCardIds=function(rootId){const seen=new Set([rootId]),queue=[rootId],result=[];while(queue.length){const source=queue.shift();for(const edge of window.TERTIARY_EDGES||[])if(edge.sourceId===source&&!['关联','none'].includes(edge.type)&&!seen.has(edge.targetId)){seen.add(edge.targetId);queue.push(edge.targetId);result.push(edge.targetId);}}return result;};
+getDownstreamChildCardIds=function(rootId){const seen=new Set([rootId]),queue=[rootId],result=[];while(queue.length){const source=queue.shift();for(const edge of window.TERTIARY_EDGES||[])if(edge.sourceId===source&&['包含','派生'].includes(edge.type)&&!seen.has(edge.targetId)){seen.add(edge.targetId);queue.push(edge.targetId);result.push(edge.targetId);}}return result;};
 initTertiaryCanvasPanZoom=function(){
   const stage=document.getElementById('tertiary-canvas-stage');applyTertiaryTransform();
   bindCanvasViewport({stage,read:readMindmapViewport,write:writeMindmapViewport,active:()=>stage.getBoundingClientRect().width>0,nodes:'.tertiary-card',canDrag:()=>true,dragClass:'is-card-dragging',start:recordDomainHistory,
@@ -13183,9 +13206,12 @@ let canvasEdgeLayouts=new Map();
 function positionCanvasEdgeLabels(){
   const stage=document.getElementById('tertiary-canvas-stage'),layer=document.getElementById('tertiary-edge-labels-layer');if(!stage||!layer)return;
   if(layer.parentElement!==stage)stage.appendChild(layer);
-  const v=readMindmapViewport();for(const label of layer.children){const point=canvasEdgeLayouts.get(label.dataset.edgeId)?.label;if(!point)continue;
+  const v=readMindmapViewport(),items=[];for(const label of layer.children){const point=canvasEdgeLayouts.get(label.dataset.edgeId)?.label;if(!point)continue;
     const x=v.x+point.x*v.zoom,y=v.y+point.y*v.zoom;label.style.left=x+'px';label.style.top=y+'px';label.style.fontSize=Math.max(10,Math.min(15,12*v.zoom))+'px';label.hidden=x< -120||y< -120||x>stage.clientWidth+120||y>stage.clientHeight+120;
+    if(!label.hidden)items.push({id:label.dataset.edgeId,label,x,y,anchorX:x,anchorY:y,width:label.offsetWidth,height:label.offsetHeight});
   }
+  let guides=document.getElementById('canvas-edge-label-guides');if(!guides){guides=document.createElementNS('http://www.w3.org/2000/svg','svg');guides.id='canvas-edge-label-guides';guides.setAttribute('aria-hidden','true');stage.appendChild(guides);}guides.setAttribute('width',stage.clientWidth);guides.setAttribute('height',stage.clientHeight);guides.replaceChildren();
+  for(const item of canvasLabelPositions(items,stage.clientWidth,stage.clientHeight)){item.label.style.left=item.x+'px';item.label.style.top=item.y+'px';if(Math.hypot(item.x-item.anchorX,item.y-item.anchorY)>3){const guide=document.createElementNS('http://www.w3.org/2000/svg','line');for(const [key,value]of Object.entries({x1:item.anchorX,y1:item.anchorY,x2:item.x,y2:item.y,stroke:'#7d9387','stroke-width':1,'stroke-dasharray':'3 3'}))guide.setAttribute(key,String(value));guides.appendChild(guide);}}
 }
 function bindCanvasEdgeActivation(element,id){
   let press=null,lastTouch=0;
@@ -13199,13 +13225,20 @@ function layoutCanvasEdges(){
   const edges=window.TERTIARY_EDGES||[],layouts=new Map();
   for(const edge of edges){const source=byId.get(edge.sourceId),target=byId.get(edge.targetId);if(!source||!target||edge.sourceId===edge.targetId)continue;
     Object.assign(edge,canvasEdgeStyle(edge));edge.sourceLabel=getDomainNode(edge.sourceId)?.title||edge.sourceLabel||edge.sourceId;edge.targetLabel=getDomainNode(edge.targetId)?.title||edge.targetLabel||edge.targetId;
-    const siblings=edges.filter(e=>[e.sourceId,e.targetId].some(id=>id===edge.sourceId||id===edge.targetId));
-    layouts.set(edge.id,canvasRouteEdge(source,target,cards,Math.max(0,siblings.indexOf(edge)),siblings.length));
+    const incident=id=>edges.filter(e=>e.sourceId===id||e.targetId===id).sort((a,b)=>String(a.id).localeCompare(String(b.id))),from=incident(edge.sourceId),to=incident(edge.targetId);
+    layouts.set(edge.id,canvasRouteEdge(source,target,cards,Math.max(0,from.indexOf(edge)),from.length,Math.max(0,to.indexOf(edge)),to.length));
   }canvasEdgeLayouts=layouts;return layouts;
+}
+function resizeCanvasEdgeSurface(layouts){
+  const svg=document.getElementById('tertiary-svg-lines');if(!svg)return;
+  const points=Array.from(layouts.values()).flatMap(layout=>layout.points),cards=Array.from(document.querySelectorAll('#tertiary-canvas-world .tertiary-card'),canvasNodeRect);
+  for(const card of cards)points.push({x:card.x,y:card.y},{x:card.x+card.width,y:card.y+card.height});
+  const left=Math.min(0,...points.map(p=>p.x))-64,top=Math.min(0,...points.map(p=>p.y))-64,width=Math.max(1,...points.map(p=>p.x))-left+64,height=Math.max(1,...points.map(p=>p.y))-top+64;
+  svg.setAttribute('viewBox',[left,top,width,height].join(' '));svg.setAttribute('width',width);svg.setAttribute('height',height);svg.style.left=left+'px';svg.style.top=top+'px';svg.style.setProperty('width',width+'px','important');svg.style.setProperty('height',height+'px','important');
 }
 renderTertiaryEdges=function(){
   const lines=document.getElementById('tertiary-lines-group'),labels=document.getElementById('tertiary-edge-labels-layer'),defs=document.getElementById('tertiary-svg-defs');if(!lines||!labels||!defs)return;
-  const layouts=layoutCanvasEdges();lines.replaceChildren();labels.replaceChildren();defs.replaceChildren();
+  const layouts=layoutCanvasEdges();resizeCanvasEdgeSurface(layouts);lines.replaceChildren();labels.replaceChildren();defs.replaceChildren();
   const svg=(tag,attributes)=>{const el=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const [name,value]of Object.entries(attributes))el.setAttribute(name,String(value));return el;};
   for(const [i,edge]of (window.TERTIARY_EDGES||[]).entries()){
     const layout=layouts.get(edge.id);if(!layout)continue;const markerId='canvas-arrow-'+i;
@@ -13214,13 +13247,13 @@ renderTertiaryEdges=function(){
     const line=svg('path',{id:'svg-line-'+edge.id,d:layout.d,stroke:edge.color,'stroke-width':edge.lineWidth,fill:'none','stroke-linejoin':'round','stroke-dasharray':edge.lineStyle==='dashed'?'7 5':'none','pointer-events':'stroke','vector-effect':'non-scaling-stroke','data-edge-id':edge.id});
     if(edge.arrowMode!=='none')line.setAttribute('marker-end','url(#'+markerId+')');if(edge.arrowMode==='double')line.setAttribute('marker-start','url(#'+markerId+')');
     for(const path of [hit,line]){bindCanvasEdgeActivation(path,edge.id);lines.appendChild(path);}
-    const label=document.createElement('button');label.type='button';label.id='edge-label-'+edge.id;label.className='a-my-island-work-edge-label';label.dataset.edgeId=edge.id;label.textContent=edge.label||(['none',undefined].includes(edge.type)?'路线设置':edge.type);
+    const label=document.createElement('button');label.type='button';label.id='edge-label-'+edge.id;label.className='a-my-island-work-edge-label';label.dataset.edgeId=edge.id;label.textContent=(layout.blocked?'⚠ 节点重叠 · ':'')+(edge.label||(['none',undefined].includes(edge.type)?'路线设置':edge.type));label.classList.toggle('is-route-blocked',!!layout.blocked);
     label.style.left=layout.label.x+'px';label.style.top=layout.label.y+'px';label.title=label.textContent+' · '+edge.sourceLabel+' → '+edge.targetLabel+'；点击设置路线';bindCanvasEdgeActivation(label,edge.id);labels.appendChild(label);
   }
   positionCanvasEdgeLabels();observeTertiaryCards();updateTertiaryMinimap();positionCanvasEdgePopover();
 };
 updateTertiaryEdgesFast=function(){
-  const layouts=layoutCanvasEdges();for(const [id,layout]of layouts){const line=document.getElementById('svg-line-'+id),hit=document.getElementById('svg-hit-'+id),label=document.getElementById('edge-label-'+id);if(!line){renderTertiaryEdges();return;}line.setAttribute('d',layout.d);hit?.setAttribute('d',layout.d);if(label){label.style.left=layout.label.x+'px';label.style.top=layout.label.y+'px';}}
+  const layouts=layoutCanvasEdges();resizeCanvasEdgeSurface(layouts);for(const [id,layout]of layouts){const line=document.getElementById('svg-line-'+id),hit=document.getElementById('svg-hit-'+id),label=document.getElementById('edge-label-'+id);if(!line||!!layout.blocked!==label?.classList.contains('is-route-blocked')){renderTertiaryEdges();return;}line.setAttribute('d',layout.d);hit?.setAttribute('d',layout.d);if(label){label.style.left=layout.label.x+'px';label.style.top=layout.label.y+'px';}}
   positionCanvasEdgeLabels();updateTertiaryMinimap();positionCanvasEdgePopover();
 };
 function positionCanvasEdgePopover(point){
@@ -13230,11 +13263,21 @@ function positionCanvasEdgePopover(point){
   popover.style.left=Math.max(8,Math.min(stage.clientWidth-popover.offsetWidth-8,pivot.x+12))+'px';popover.style.top=Math.max(8,Math.min(stage.clientHeight-popover.offsetHeight-8,pivot.y+14))+'px';
 }
 const canvasLegacyOpenEdge=openEdgePopover;
-openEdgePopover=function(id,event){event?.stopPropagation();const edge=window.TERTIARY_EDGES?.find(e=>e.id===id);if(!edge)return false;Object.assign(edge,canvasEdgeStyle(edge));edge.sourceLabel=getDomainNode(edge.sourceId)?.title||'起点';edge.targetLabel=getDomainNode(edge.targetId)?.title||'终点';canvasLegacyOpenEdge(id,event);positionCanvasEdgePopover(event?canvasLocalPoint(document.getElementById('tertiary-canvas-stage'),event.clientX,event.clientY):null);return true;};
+let canvasEdgeDirectionAnchor=null;
+openEdgePopover=function(id,event){event?.stopPropagation();const edge=window.TERTIARY_EDGES?.find(e=>e.id===id);if(!edge)return false;Object.assign(edge,canvasEdgeStyle(edge));edge.sourceLabel=getDomainNode(edge.sourceId)?.title||'起点';edge.targetLabel=getDomainNode(edge.targetId)?.title||'终点';
+  if(!canvasEdgeDirectionAnchor||canvasEdgeDirectionAnchor.id!==id||canvasEdgeDirectionAnchor.projectId!==window.currentTertiaryProjId||![edge.sourceId,edge.targetId].includes(canvasEdgeDirectionAnchor.a))canvasEdgeDirectionAnchor={id,projectId:window.currentTertiaryProjId,a:edge.sourceId,b:edge.targetId};
+  canvasLegacyOpenEdge(id,event);const anchor=canvasEdgeDirectionAnchor,a=getDomainNode(anchor.a)?.title||anchor.a,b=getDomainNode(anchor.b)?.title||anchor.b;
+  for(const [buttonId,sourceId,text]of [['btn-edge-hier-forward',anchor.a,a+' → '+b],['btn-edge-hier-backward',anchor.b,b+' → '+a]]){const button=document.getElementById(buttonId);if(button){button.textContent=text;button.classList.toggle('is-active',edge.sourceId===sourceId);button.setAttribute('aria-pressed',String(edge.sourceId===sourceId));}}
+  positionCanvasEdgePopover(event?canvasLocalPoint(document.getElementById('tertiary-canvas-stage'),event.clientX,event.clientY):null);return true;};
 function changeCanvasEdge(patch,remove=false){
   const edges=window.TERTIARY_EDGES||[],edge=edges.find(e=>e.id===currentActiveEdgeId);if(!edge)return false;
+  if(!remove&&Object.entries(patch).every(([key,value])=>edge[key]===value))return true;
+  const candidate={...edge,...patch};if(!remove&&['sourceId','targetId'].some(key=>key in patch)&&edges.some(e=>e.id!==edge.id&&e.sourceId===candidate.sourceId&&e.targetId===candidate.targetId)){showIslandToast('已存在相同方向的路线，请编辑已有路线');return false;}
   if(!remove&&!['type','sourceId','targetId'].some(key=>Object.prototype.hasOwnProperty.call(patch,key))){recordDomainHistory();Object.assign(edge,patch);saveCurrentProjectCanvasSnapshot();renderTertiaryEdges();notifyIslandStateChanged();return true;}
   const next=remove?edges.filter(e=>e.id!==edge.id):edges.map(e=>e.id===edge.id?{...e,...patch}:e),nodes=getDomainState().nodesByProject[window.currentTertiaryProjId]||[],dependency=e=>['前置','依赖','阻塞'].includes(e.type);
+  const hierarchy=new Map(nodes.map(n=>[n.id,next.filter(e=>e.sourceId===n.id&&['包含','派生'].includes(e.type)).map(e=>e.targetId)]));
+  const visits=new Set(),finished=new Set(),hierarchyCycle=id=>{if(visits.has(id))return true;if(finished.has(id))return false;visits.add(id);if((hierarchy.get(id)||[]).some(hierarchyCycle))return true;visits.delete(id);finished.add(id);return false;};
+  if(!remove&&nodes.some(n=>hierarchyCycle(n.id))){showIslandToast('上下级包含关系不能形成循环');return false;}
   const deps=new Map(nodes.map(node=>[node.id,node.dependencies.filter(id=>!edges.some(e=>dependency(e)&&e.targetId===node.id&&e.sourceId===id))]));
   for(const item of next.filter(dependency)){if(!remove&&item.id===edge.id&&(!deps.has(item.targetId)||!nodes.some(n=>n.id===item.sourceId&&n.isCheckinNode))){showIslandToast('前置须为同项目可执行节点');return false;}deps.get(item.targetId)?.push(item.sourceId);}
   const visiting=new Set(),done=new Set(),cycle=id=>{if(visiting.has(id))return true;if(done.has(id))return false;visiting.add(id);if((deps.get(id)||[]).some(cycle))return true;visiting.delete(id);done.add(id);return false;};
@@ -13244,7 +13287,7 @@ function changeCanvasEdge(patch,remove=false){
 }
 handleEdgeTypeSelect=function(type){const edge=window.TERTIARY_EDGES?.find(e=>e.id===currentActiveEdgeId);if(!edge)return false;const label=!edge.label||edge.label===edge.type||edge.label==='前置完成'?(type==='none'?'':type):edge.label;const result=changeCanvasEdge({type,label});openEdgePopover(edge.id);return result;};
 reverseEdgeDirection=function(){const edge=window.TERTIARY_EDGES?.find(e=>e.id===currentActiveEdgeId);if(!edge)return false;const result=changeCanvasEdge({sourceId:edge.targetId,targetId:edge.sourceId});openEdgePopover(edge.id);return result;};
-handleEdgeHierarchy=function(reverse){const edge=window.TERTIARY_EDGES?.find(e=>e.id===currentActiveEdgeId);if(!edge)return false;const type=['关联','none',undefined].includes(edge.type)?'包含':edge.type,label=edge.label===edge.type?type:edge.label;const result=changeCanvasEdge({type,label,...(reverse?{sourceId:edge.targetId,targetId:edge.sourceId}:{})});openEdgePopover(edge.id);return result;};
+handleEdgeHierarchy=function(reverse){const edge=window.TERTIARY_EDGES?.find(e=>e.id===currentActiveEdgeId);if(!edge)return false;if(!canvasEdgeDirectionAnchor||canvasEdgeDirectionAnchor.id!==edge.id)openEdgePopover(edge.id);const anchor=canvasEdgeDirectionAnchor,type=['关联','none',undefined].includes(edge.type)?'包含':edge.type,label=edge.label===edge.type?type:edge.label;const result=changeCanvasEdge({type,label,sourceId:reverse?anchor.b:anchor.a,targetId:reverse?anchor.a:anchor.b});openEdgePopover(edge.id);return result;};
 setEdgeArrowMode=function(mode){if(!['none','single','double'].includes(mode))return false;const result=changeCanvasEdge({arrowMode:mode});if(result)openEdgePopover(currentActiveEdgeId);return result;};
 setEdgeLineStyle=function(style){if(!['solid','dashed'].includes(style))return false;const result=changeCanvasEdge({lineStyle:style});if(result)openEdgePopover(currentActiveEdgeId);return result;};
 handleEdgeColorSelect=function(color){if(!/^#[\da-f]{3,8}$/i.test(color))return false;const result=changeCanvasEdge({color});if(result)openEdgePopover(currentActiveEdgeId);return result;};
@@ -13330,7 +13373,7 @@ function getCanvasNavigator(kind){
   svg.setAttribute('viewBox','0 0 220 130');svg.setAttribute('tabindex','0');svg.setAttribute('aria-label','导航地图：点击定位，拖动视口框漫游，方向键移动，Home适应画布');
   svg.querySelector('.a-my-island-work-minimap-hit-area')?.setAttribute('width','220');svg.querySelector('.a-my-island-work-minimap-hit-area')?.setAttribute('height','130');
   nav.toggle?.setAttribute('aria-controls',prefix+'-minimap-dock');canvasNavigators.set(kind,nav);bindCanvasNavigation(nav);
-  if(window.ResizeObserver){const observer=new window.ResizeObserver(()=>queueCanvasNavigation(kind));observer.observe(stage);}
+  if(window.ResizeObserver){const observer=new window.ResizeObserver(()=>{queueCanvasNavigation(kind);if(kind==='project'){positionCanvasEdgeLabels();positionCanvasEdgePopover();}});observer.observe(stage);}
   return nav;
 }
 function cancelCanvasNavigationDrag(nav){const drag=nav?.drag;if(!drag)return;nav.drag=null;nav.suppressUntil=Date.now()+500;nav.svg.classList.remove('is-navigating');try{nav.svg.releasePointerCapture(drag.pointerId);}catch{}queueCanvasNavigation(nav.kind);}
@@ -13826,6 +13869,7 @@ window.addEventListener('youth-island:state-changed',()=>{queueCanvasNavigation(
   if (typeof canvasMinimapPoint === "function") (window as any).canvasMinimapPoint = canvasMinimapPoint;
   if (typeof canvasMinimapWorldPoint === "function") (window as any).canvasMinimapWorldPoint = canvasMinimapWorldPoint;
   if (typeof canvasMinimapDrag === "function") (window as any).canvasMinimapDrag = canvasMinimapDrag;
+  if (typeof canvasLabelPositions === "function") (window as any).canvasLabelPositions = canvasLabelPositions;
   if (typeof canvasConnectionPreview === "function") (window as any).canvasConnectionPreview = canvasConnectionPreview;
   if (typeof canvasZoomAt === "function") (window as any).canvasZoomAt = canvasZoomAt;
   if (typeof canvasFit === "function") (window as any).canvasFit = canvasFit;
@@ -13907,6 +13951,7 @@ window.addEventListener('youth-island:state-changed',()=>{queueCanvasNavigation(
   if (typeof positionCanvasEdgeLabels === "function") (window as any).positionCanvasEdgeLabels = positionCanvasEdgeLabels;
   if (typeof bindCanvasEdgeActivation === "function") (window as any).bindCanvasEdgeActivation = bindCanvasEdgeActivation;
   if (typeof layoutCanvasEdges === "function") (window as any).layoutCanvasEdges = layoutCanvasEdges;
+  if (typeof resizeCanvasEdgeSurface === "function") (window as any).resizeCanvasEdgeSurface = resizeCanvasEdgeSurface;
   if (typeof positionCanvasEdgePopover === "function") (window as any).positionCanvasEdgePopover = positionCanvasEdgePopover;
   if (typeof changeCanvasEdge === "function") (window as any).changeCanvasEdge = changeCanvasEdge;
   if (typeof cancelCanvasConnection === "function") (window as any).cancelCanvasConnection = cancelCanvasConnection;

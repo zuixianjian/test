@@ -1,6 +1,6 @@
 {
   "name": "youth-holistic-growth-island",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "终身岛民 · 青少儿全人成长与自主进化系统 Obsidian Plugin",
   "main": "main.js",
   "scripts": {
@@ -8,14 +8,15 @@
     "build": "node scripts/sync_product_design.mjs && node scripts/extract_from_prototype.mjs && node esbuild.config.mjs production",
     "extract": "node scripts/sync_product_design.mjs && node scripts/extract_from_prototype.mjs",
     "package-android": "node scripts/package_android.mjs",
-    "test": "node scripts/verify_plugin.mjs && node scripts/test_business_rules.mjs && node scripts/test_domain_rules.mjs && node scripts/test_canvas_rules.mjs",
+    "test": "node scripts/verify_plugin.mjs && node scripts/test_business_rules.mjs && node scripts/test_domain_rules.mjs && node scripts/test_canvas_rules.mjs && node scripts/test_storage_rules.mjs",
     "typecheck": "tsc --noEmit",
     "test:browser": "node scripts/audit_browser.mjs scripts/test_closed_loop_scenarios.js",
     "test:design": "node scripts/audit_browser.mjs scripts/test_design_scenario.js --design",
     "test:canvas": "node scripts/audit_browser.mjs scripts/test_canvas_scenarios.mjs",
     "test:canvas:design": "node scripts/audit_browser.mjs scripts/test_canvas_scenarios.mjs --design",
     "test:navigation": "node scripts/audit_browser.mjs scripts/test_navigation_scenarios.mjs",
-    "test:navigation:design": "node scripts/audit_browser.mjs scripts/test_navigation_scenarios.mjs --design"
+    "test:navigation:design": "node scripts/audit_browser.mjs scripts/test_navigation_scenarios.mjs --design",
+    "test:mobile": "node scripts/audit_browser.mjs scripts/test_mobile_scenarios.mjs"
   },
   "keywords": [
     "obsidian-plugin",

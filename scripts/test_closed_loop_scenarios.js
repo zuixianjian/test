@@ -2,7 +2,7 @@
   const checks=[],check=(condition,label)=>{if(!condition)throw new Error(label);checks.push(label);};
   const root=document.querySelector('.youth-island-plugin-root');root.innerHTML=Harness.ISLAND_UI_HTML;
   const files=new Map();
-  const adapter={exists:async p=>files.has(p),read:async p=>files.get(p),write:async(p,t)=>files.set(p,t),writeBinary:async(p,b)=>files.set(p,b),getResourcePath:p=>'app://'+p,rename:async(a,b)=>{files.set(b,files.get(a));files.delete(a);}};
+  const adapter={exists:async p=>files.has(p),read:async p=>files.get(p),write:async(p,t)=>files.set(p,t),writeBinary:async(p,b)=>files.set(p,b),getResourcePath:p=>'app://'+p,remove:async p=>{files.delete(p);},rename:async(a,b)=>{if(files.has(b))throw new Error('Destination file already exists!');files.set(b,files.get(a));files.delete(a);}};
   const app={vault:{adapter,createFolder:async p=>files.set(p,'directory')}};
   const settings={vaultRootFolder:'growth',autoSyncVaultMarkdown:true};
   const storage=new Harness.VaultStorageAdapter(app,()=>settings);
@@ -111,5 +111,5 @@
     ...['treasury','tree','note','achieve'].map(name=>({name,code:"window.enterSecondaryWorkspace('"+name+"','specialized');"})),
     {name:'family',code:'window.openFamilyPactModal();'}
   ];
-  return {version:'1.1.4',checks,screenshot:true,capturePages};
+  return {version:'1.1.5',checks,screenshot:true,capturePages};
 })()

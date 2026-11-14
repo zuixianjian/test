@@ -1,9 +1,12 @@
 /* Shared visual rules for the standalone design and the Obsidian projection. */
+.youth-island-obsidian-view-root { overscroll-behavior:none; }
+.domain-planning-body, .gantt-timeline-col, .tertiary-center-zone { overscroll-behavior:contain; }
 #home-bounty-billboard[hidden], #island-canvas-stage[data-canvas-mode="plan"] #home-bounty-billboard { display:none!important; }
 .tertiary-center-zone { min-width:0; justify-content:flex-start!important; overflow-x:auto!important; overflow-y:hidden!important; touch-action:pan-x!important; }
 .tertiary-tools-dock { width:max-content!important; flex:0 0 auto!important; }
 #tertiary-edge-popover { transform:none!important; margin:0!important; width:280px; max-width:calc(100% - 16px); max-height:calc(100% - 16px); overflow:auto; pointer-events:auto; z-index:10005; }
 #tertiary-edge-labels-layer { position:absolute; inset:0; z-index:25; pointer-events:none; transform:none!important; }
+#canvas-edge-label-guides { position:absolute; inset:0; z-index:24; pointer-events:none!important; overflow:hidden; }
 #tertiary-edge-labels-layer .a-my-island-work-edge-label { width:auto!important; height:auto!important; min-height:22px!important; padding:3px 8px!important; border:1px solid #9db6a6!important; border-radius:8px!important; background:#fff9e6!important; color:#405f5c!important; white-space:nowrap; pointer-events:auto; }
 #tertiary-edge-labels-layer .a-my-island-work-edge-label[hidden] { display:none!important; }
 #tertiary-lines-group path[data-edge-id] { pointer-events:stroke; cursor:pointer; }
@@ -24,7 +27,7 @@
 #island-minimap-toggle-btn, #tertiary-minimap-toggle-btn { order:2!important; flex:0 0 68px!important; width:68px!important; min-width:68px!important; height:66px!important; min-height:66px!important; grid-template-rows:36px 16px!important; padding:6px 6px 5px!important; gap:3px!important; border-radius:16px!important; font-size:12px!important; }
 .a-my-island-work-minimap-node { pointer-events:none!important; }
 .is-navigating, .is-navigating .a-my-island-work-minimap-viewport { cursor:grabbing!important; }
-.domain-planning-body { display:flex; flex-direction:column; gap:9px; max-height:440px; overflow:auto; }
+.domain-planning-body { display:flex; flex-direction:column; gap:9px; max-height:440px; overflow:auto; touch-action:pan-y!important; }
 .domain-planning-body label, .island-real-execution-entry label { display:flex; flex-direction:column; gap:5px; font-size:12px; }
 .domain-planning-body input, .domain-planning-body select, .domain-planning-body textarea,
 .island-real-execution-entry input:not([type=checkbox]), .island-real-execution-entry textarea { width:100%; min-width:0; border:1px solid #b8c9d4; padding:7px; border-radius:7px; font:inherit; background:#fff; color:#334155; }

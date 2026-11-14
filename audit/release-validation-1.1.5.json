@@ -1,0 +1,32 @@
+{
+  "version": "1.1.5",
+  "coreFilesMatch": true,
+  "assetsMatch": true,
+  "sha256": {
+    "manifest.json": "c2421d7b301b46ceb2817672bd235f7934ec3804c53657cccede21da44902168",
+    "main.js": "83c757e02b8027d3304a90273a346be902e5a3c47e26ed2e396c8fd20097ff89",
+    "styles.css": "6ddf34c6467fac9c7346b0c52f76b296e89361d81452dcf5008ea04a460c56a6",
+    "versions.json": "3d7580c54fc254fc5e0a49904ba6b9fa53328d8c2be1bc3eac8396b4355a3434"
+  },
+  "zipSha256": "698a6ebb17d90320c90d964ee39a307fc9365355ca9577a6144501391a0a5b3c",
+  "checks": {
+    "mobile": 31,
+    "navigation": 41,
+    "navigation-design": 42,
+    "canvas": 44,
+    "canvas-design": 43,
+    "business": 85,
+    "design": 10
+  },
+  "screenshots": 24,
+  "hostContract": {
+    "installedSourceVersion": "1.14.5",
+    "appJsSha256": "95b9fd3944625c3b88116878b03d655147fed8cdfe6ddf931f2064ead78ccd5b",
+    "renameRejectsExistingDestination": true,
+    "swipeExclusionAttribute": "data-ignore-swipe",
+    "testAdapter": "strict; actual ItemView methods with simulated Obsidian API and Chrome native touch"
+  },
+  "limitations": [
+    "Not run on the user Android tablet; host contracts and browser touch simulation are not a device acceptance."
+  ]
+}

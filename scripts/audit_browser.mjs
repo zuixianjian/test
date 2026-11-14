@@ -5,8 +5,10 @@ import {spawn} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
 
 const dir=path.resolve('scratch/closed-loop-audit');fs.mkdirSync(dir,{recursive:true});fs.mkdirSync('audit',{recursive:true});
-const shim=`export class Notice {constructor(message){console.log(message)}} export class TFile {} export class App {} export const normalizePath=p=>p.split(String.fromCharCode(92)).join('/');`;
-await build({stdin:{contents:`export {bootPrototypeRuntime} from './src/runtime/prototypeScript';export {ISLAND_UI_HTML} from './src/ui/template';export {VaultStorageAdapter} from './src/storage/VaultStorageAdapter';`,resolveDir:process.cwd()},bundle:true,format:'iife',globalName:'Harness',outfile:path.join(dir,'harness.js'),plugins:[{name:'test-obsidian',setup(b){b.onResolve({filter:/^obsidian$/},()=>({path:'obsidian',namespace:'mock'}));b.onLoad({filter:/.*/,namespace:'mock'},()=>({contents:shim,loader:'js'}));}}]});
+const shim=`export class Notice {constructor(message){console.log(message)}} export class TFile {} export class App {} export class Plugin {} export class PluginSettingTab {} export class Setting {} export const normalizePath=p=>p.split(String.fromCharCode(92)).join('/');
+export class ItemView {constructor(leaf){this.leaf=leaf;this.app=leaf.app;this.cleanups=[];this.containerEl=document.createElement('div');this.containerEl.className='workspace-leaf-content';this.containerEl.dataset.type='youth-holistic-growth-island-view';this.contentEl=document.createElement('div');this.contentEl.className='view-content';this.containerEl.append(this.contentEl);document.body.append(this.containerEl);}registerEvent(off){if(typeof off==='function')this.cleanups.push(off);}registerDomEvent(target,type,listener,options){target.addEventListener(type,listener,options);this.cleanups.push(()=>target.removeEventListener(type,listener,options));}releaseTestComponent(){for(const cleanup of this.cleanups.splice(0))cleanup();this.containerEl.remove();}}
+`;
+await build({stdin:{contents:`export {bootPrototypeRuntime} from './src/runtime/prototypeScript';export {ISLAND_UI_HTML} from './src/ui/template';export {VaultStorageAdapter} from './src/storage/VaultStorageAdapter';export {YouthIslandView} from './src/views/YouthIslandView';export {installMobileGestureIsolation} from './src/core/MobileGestureIsolation';export {default as YouthGrowthIslandPlugin} from './src/main';`,resolveDir:process.cwd()},bundle:true,format:'iife',globalName:'Harness',outfile:path.join(dir,'harness.js'),plugins:[{name:'test-obsidian',setup(b){b.onResolve({filter:/^obsidian$/},()=>({path:'obsidian',namespace:'mock'}));b.onLoad({filter:/.*/,namespace:'mock'},()=>({contents:shim,loader:'js'}));}}]});
 fs.copyFileSync('styles.css',path.join(dir,'styles.css'));
 fs.writeFileSync(path.join(dir,'index.html'),'<meta charset="utf-8"><link rel="stylesheet" href="styles.css"><div class="youth-island-plugin-root" style="width:1280px;height:900px;"></div><script src="harness.js"></script>');
 const profile=path.join(dir,'chrome-profile-'+Date.now());
@@ -24,7 +26,7 @@ try{
   for(let i=0;i<50;i++){if(await evaluate(designMode?'window.__YOUTH_ISLAND_DESIGN_READY__ === true':'typeof Harness !== "undefined"'))break;await new Promise(r=>setTimeout(r,100));}
   const scenario=process.argv[2]||'scripts/audit_scenarios.js';
   const result=scenario.endsWith('.mjs')?await (await import(pathToFileURL(path.resolve(scenario)).href)).default({evaluate,send,designMode}):await evaluate(fs.readFileSync(scenario,'utf8'));
-  const version=result.version||'1.1.0',group=['canvas','navigation'].includes(result.suite)?result.suite:null,suite=group?group+(designMode?'-design-':'-'):designMode?'design-':'';
+  const version=result.version||'1.1.0',group=['canvas','navigation','mobile'].includes(result.suite)?result.suite:null,suite=group?group+(designMode?'-design-':'-'):designMode?'design-':'';
   if(result.checks){
     fs.writeFileSync('audit/'+suite+'validation-'+version+'.json',JSON.stringify(result,null,2));for(const c of result.checks)console.log('PASS: '+c);console.log('Passed '+result.checks.length+' domain and integration checks');
     if(result.screenshot){

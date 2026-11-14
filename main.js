@@ -111,6 +111,11 @@ var VaultStorageAdapter = class {
     this.disposed = false;
     this.blocked = false;
     this.capturing = false;
+    this.lastSaveError = "";
+    this.lastExportError = "";
+    this.lastSavedAt = null;
+    this.lastNotice = "";
+    this.lastNoticeAt = 0;
   }
   resolvePath(relative) {
     const root = validateVaultRoot(this.getSettings().vaultRootFolder || "");
@@ -136,12 +141,16 @@ var VaultStorageAdapter = class {
     }
   }
   async writeText(relative, text) {
-    const path = this.resolvePath(relative);
-    await this.ensureFolder(path.slice(0, path.lastIndexOf("/")));
-    const adapter = this.app.vault.adapter;
-    if (await adapter.exists(path) && await adapter.read(path) === text)
-      return;
-    await adapter.write(path, text);
+    try {
+      const path = this.resolvePath(relative);
+      await this.ensureFolder(path.slice(0, path.lastIndexOf("/")));
+      const adapter = this.app.vault.adapter;
+      if (await adapter.exists(path) && await adapter.read(path) === text)
+        return;
+      await adapter.write(path, text);
+    } catch (error) {
+      throw new Error(`${relative}\uFF1A${error instanceof Error ? error.message : error}`);
+    }
   }
   async writeJson(path, value) {
     await this.writeText(path, JSON.stringify(value, null, 2));
@@ -151,6 +160,81 @@ var VaultStorageAdapter = class {
     if (!await this.app.vault.adapter.exists(full))
       return void 0;
     return JSON.parse(await this.app.vault.adapter.read(full));
+  }
+  getSaveStatus() {
+    return { lastSavedAt: this.lastSavedAt, error: this.lastSaveError, exportError: this.lastExportError };
+  }
+  reportSaveProblem(message) {
+    if (message !== this.lastNotice || Date.now() - this.lastNoticeAt > 3e4) {
+      this.lastNotice = message;
+      this.lastNoticeAt = Date.now();
+      new import_obsidian.Notice(message);
+    }
+  }
+  /** A recoverable write-ahead journal. DataAdapter.rename rejects existing destinations. */
+  async commitJson(relative, value) {
+    const pending = relative.replace(/\.json$/, ".pending.json"), backup = relative.replace(/\.json$/, ".previous.json");
+    const adapter = this.app.vault.adapter, full = this.resolvePath(relative), text = JSON.stringify(value, null, 2);
+    let previous;
+    if (await adapter.exists(full))
+      previous = await adapter.read(full);
+    try {
+      await this.writeText(pending, text);
+      if (await adapter.read(this.resolvePath(pending)) !== text)
+        throw new Error("\u5F85\u63D0\u4EA4\u6587\u4EF6\u6821\u9A8C\u5931\u8D25");
+      if (previous !== void 0) {
+        let valid = false;
+        try {
+          JSON.parse(previous);
+          valid = true;
+        } catch {
+        }
+        if (valid)
+          await this.writeText(backup, previous);
+      }
+      await this.writeText(relative, text);
+      if (await adapter.read(full) !== text)
+        throw new Error("\u4E3B\u6587\u4EF6\u5199\u5165\u6821\u9A8C\u5931\u8D25");
+    } catch (error) {
+      if (previous !== void 0) {
+        try {
+          await adapter.write(full, previous);
+        } catch {
+        }
+      }
+      throw new Error(`${relative}\uFF1A${error instanceof Error ? error.message : error}`);
+    }
+    try {
+      if (typeof adapter.remove === "function")
+        await adapter.remove(this.resolvePath(pending));
+    } catch {
+    }
+  }
+  async readDomainCommit() {
+    let primary, primaryError;
+    try {
+      primary = await this.readJson("00_Island_Core/domain_state.json");
+    } catch (error) {
+      primaryError = error;
+    }
+    let pending;
+    try {
+      pending = await this.readJson("00_Island_Core/domain_state.pending.json");
+    } catch {
+    }
+    const valid = (value) => value?.schemaVersion === 3 && Array.isArray(value.projects) && Array.isArray(value.records) && value.nodesByProject && value.stores;
+    if (valid(pending) && (primaryError || !primary || (pending.storageRevision || 0) > (primary.storageRevision || 0))) {
+      if (primaryError) {
+        const raw = await this.app.vault.adapter.read(this.resolvePath("00_Island_Core/domain_state.json"));
+        await this.writeText(`00_Island_Core/domain_state.corrupt-${Date.now()}.json`, raw);
+      }
+      await this.commitJson("00_Island_Core/domain_state.json", pending);
+      this.lastSavedAt = (/* @__PURE__ */ new Date()).toISOString();
+      return pending;
+    }
+    if (primaryError)
+      throw primaryError;
+    return primary;
   }
   async ensureVaultStructure() {
     const dirs = [
@@ -174,7 +258,7 @@ var VaultStorageAdapter = class {
     this.blocked = false;
     const win = window;
     try {
-      const primary = await this.readJson("00_Island_Core/domain_state.json");
+      const primary = await this.readDomainCommit();
       if (primary && (primary.schemaVersion !== 3 || !Array.isArray(primary.projects) || !Array.isArray(primary.records)))
         throw new Error("\u9886\u57DF\u6863\u6848\u7ED3\u6784\u4E0D\u6B63\u786E\uFF0C\u5DF2\u6682\u505C\u4FDD\u5B58");
       let snapshot;
@@ -316,7 +400,8 @@ var VaultStorageAdapter = class {
       this.syncTimer = null;
       void this.syncRuntimeToVault().catch((error) => {
         console.error("[YouthIsland] \u4FDD\u5B58\u5931\u8D25", error);
-        new import_obsidian.Notice("\u6210\u957F\u6570\u636E\u4FDD\u5B58\u5931\u8D25\uFF0C\u8BF7\u68C0\u67E5\u4ED3\u5E93\u7A7A\u95F4\u4E0E\u6587\u4EF6\u6743\u9650\uFF1B\u5F53\u524D\u5185\u5BB9\u4ECD\u4FDD\u7559\u5728\u754C\u9762\u4E2D\u3002");
+        this.lastSaveError = error instanceof Error ? error.message : String(error);
+        this.reportSaveProblem("\u6210\u957F\u6570\u636E\u4FDD\u5B58\u5931\u8D25\uFF1A" + this.lastSaveError + "\u3002\u5F53\u524D\u754C\u9762\u5185\u5BB9\u672A\u6E05\u7A7A\uFF0C\u8BF7\u91CD\u8BD5\u4FDD\u5B58\u3002");
       });
     }, delay);
   }
@@ -352,7 +437,13 @@ var VaultStorageAdapter = class {
       await this.persist(copy);
     });
     this.queue = save;
-    await save;
+    try {
+      await save;
+      this.lastSaveError = "";
+    } catch (error) {
+      this.lastSaveError = error instanceof Error ? error.message : String(error);
+      throw error;
+    }
     return true;
   }
   async persist(state) {
@@ -360,77 +451,84 @@ var VaultStorageAdapter = class {
     const fullSnapshot = this.resolvePath(SNAPSHOT);
     const adapter = this.app.vault.adapter;
     if (state.DOMAIN_STATE) {
-      const previousDomain = await this.readJson("00_Island_Core/domain_state.json");
+      const previousDomain = await this.readDomainCommit();
       const revision = Math.max(Date.now(), (previousDomain?.storageRevision || 0) + 1);
       state.DOMAIN_STATE.storageRevision = revision;
       state.DOMAIN_STATE.projects = state.GANTT_PROJECTS;
       state.DOMAIN_STATE.nodesByProject = Object.fromEntries(Object.entries(state.PROJECT_CANVAS_STORE || {}).filter(([, data]) => Array.isArray(data.nodes)).map(([id, data]) => [id, data.nodes]));
       state.DOMAIN_STATE.edgesByProject = Object.fromEntries(Object.entries(state.PROJECT_CANVAS_STORE || {}).map(([id, data]) => [id, data.edges || []]));
       state.DOMAIN_STATE.stores = Object.fromEntries(STORES.filter((key) => !["DOMAIN_STATE", "GANTT_PROJECTS", "PROJECT_CANVAS_STORE", "WEEK_BOARD_DATA", "TASK_HISTORY_BY_DATE"].includes(key)).map((key) => [key, state[key]]));
-      await this.writeJson("00_Island_Core/domain_state.pending.json", state.DOMAIN_STATE);
-      if (previousDomain)
-        await this.writeJson("00_Island_Core/domain_state.previous.json", previousDomain);
-      await adapter.rename(this.resolvePath("00_Island_Core/domain_state.pending.json"), this.resolvePath("00_Island_Core/domain_state.json"));
+      await this.commitJson("00_Island_Core/domain_state.json", state.DOMAIN_STATE);
+      this.lastSavedAt = (/* @__PURE__ */ new Date()).toISOString();
     }
-    if (await adapter.exists(fullSnapshot)) {
-      const previous = await adapter.read(fullSnapshot);
-      try {
-        JSON.parse(previous);
-        await this.writeText("00_Island_Core/app_state_snapshot.previous.json", previous);
-      } catch (error) {
-        if (!state.DOMAIN_STATE)
-          throw error;
-        await this.writeText(`00_Island_Core/app_state_snapshot.corrupt-${Date.now()}.json`, previous);
+    try {
+      if (await adapter.exists(fullSnapshot)) {
+        const previous = await adapter.read(fullSnapshot);
+        try {
+          JSON.parse(previous);
+          await this.writeText("00_Island_Core/app_state_snapshot.previous.json", previous);
+        } catch (error) {
+          if (!state.DOMAIN_STATE)
+            throw error;
+          await this.writeText(`00_Island_Core/app_state_snapshot.corrupt-${Date.now()}.json`, previous);
+        }
       }
+      await this.commitJson(SNAPSHOT, state);
+      if (!this.lastSavedAt)
+        this.lastSavedAt = (/* @__PURE__ */ new Date()).toISOString();
+      await this.writeJson("00_Island_Core/user_profile.json", state.USER_PROFILE_STATE);
+      await this.writeJson("00_Island_Core/island_settings.json", state.USER_PROFILE_STATE.settings || {});
+      await this.writeJson("00_Island_Core/island_topology.json", state.PAVILION_META);
+      const projects = state.GANTT_PROJECTS || [];
+      const keys = /* @__PURE__ */ new Set([...Object.keys(PAVILIONS), ...projects.map((p) => p.pavilion || p.moduleKey || "study"), ...Object.keys(state.PAVILION_META || {}).filter((key) => key.startsWith("custom-"))]);
+      for (const key of keys) {
+        const dir = this.pavilionDir(key);
+        const list = projects.filter((p) => (p.pavilion || p.moduleKey || "study") === key);
+        await this.writeJson(`${dir}/projects.json`, list.map((p) => ({ ...p, storageRevision: state.DOMAIN_STATE?.storageRevision || 0 })));
+        await this.writeJson(`${dir}/projects.revision.json`, { storageRevision: state.DOMAIN_STATE?.storageRevision || 0 });
+        for (const project of list) {
+          const data = state.PROJECT_CANVAS_STORE?.[project.id] || { cardsHtml: "", edges: [] };
+          await this.writeJson(`${dir}/02_Projects/nodes_${safeFileStem(project.id)}.json`, { ...data, storageRevision: state.DOMAIN_STATE?.storageRevision || 0 });
+          const stem = `${safeFileStem(project.title)}--${safeFileStem(project.id)}`;
+          if (this.getSettings().autoSyncVaultMarkdown)
+            await this.writeText(`${dir}/02_Projects/${stem}.md`, this.projectMarkdown(project, key, data, state.DOMAIN_STATE));
+        }
+      }
+      await this.writeJson("05_Treasury_\u85CF\u91D1\u5C4B/ledger.json", state.TREASURY_STATE);
+      await this.writeJson("06_Achievements_\u6210\u5C31\u9986/achievements.json", state.ACHIEVEMENT_STATE);
+      await this.writeJson("09_Bounties_\u60AC\u8D4F\u516C\u544A/bounties.json", { schemaVersion: 3, activeId: state.BOUNTY_STATE?.id || null, items: state.DOMAIN_STATE?.bounties || [] });
+      await this.writeJson("04_Classics_\u4FEE\u8EAB\u9601/01_Inquiry_Pool/inquiries.json", state.INQUIRY_POOL_STATE);
+      await this.writeJson("08_Daily_\u6BCF\u65E5\u968F\u8BB0/journal.json", state.NOTE_STATE);
+      await this.writeJson("07_Baseline_\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303/family_pact.json", state.DOMAIN_STATE?.family || null);
+      if (this.getSettings().autoSyncVaultMarkdown) {
+        let entries = [...state.NOTE_STATE?.historyEntries || []];
+        const note = state.NOTE_STATE;
+        const date = note?.dateKey || localDateKey();
+        if (note && !entries.some((e) => e.date === date) && (note.journalText || note.todayAutoLogs?.length || note.mediaList?.length)) {
+          entries.push({ date, text: note.journalText, autoLogs: note.todayAutoLogs, media: note.mediaList, mood: note.currentMood, energy: note.currentEnergy });
+        } else if (note) {
+          entries = entries.map((entry) => entry.date === date ? { ...entry, text: note.journalText ?? entry.text, draft: entry.draft || note.journalText !== entry.text, autoLogs: note.todayAutoLogs, media: note.mediaList, mood: note.currentMood, energy: note.currentEnergy } : entry);
+        }
+        const written = /* @__PURE__ */ new Set();
+        for (const entry of entries) {
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(entry.date) || written.has(entry.date))
+            continue;
+          written.add(entry.date);
+          await this.writeText(`08_Daily_\u6BCF\u65E5\u968F\u8BB0/${entry.date.slice(0, 4)}/${entry.date}.md`, this.dailyMarkdown(entry, state.DOMAIN_STATE));
+        }
+        const code = "07_Baseline_\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303/personal_code.md";
+        if (!await adapter.exists(this.resolvePath(code)))
+          await this.writeText(code, "---\ntype: personal-constitution\n---\n\n# \u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303\n\n\u8BF7\u5728\u4EB2\u5B50\u5171\u540C\u8BA8\u8BBA\u540E\uFF0C\u8BB0\u5F55\u5DF2\u786E\u7ACB\u7684\u884C\u4E3A\u89C4\u8303\u3002\n");
+      }
+      globalIslandEventBus.emit("vault:synced", { timestamp: state.updatedAt });
+      this.lastExportError = "";
+    } catch (error) {
+      if (!state.DOMAIN_STATE)
+        throw error;
+      this.lastExportError = error instanceof Error ? error.message : String(error);
+      console.error("[YouthIsland] \u4E3B\u6863\u6848\u5DF2\u4FDD\u5B58\uFF0C\u5BFC\u51FA\u672A\u5B8C\u6210", error);
+      this.reportSaveProblem("\u6210\u957F\u6570\u636E\u5DF2\u4FDD\u5B58\uFF0C\u4F46\u7B14\u8BB0\u6216\u7F13\u5B58\u5BFC\u51FA\u672A\u5B8C\u6210\uFF1A" + this.lastExportError + "\u3002\u4E0B\u6B21\u4FDD\u5B58\u4F1A\u91CD\u8BD5\u5BFC\u51FA\u3002");
     }
-    const pending = "00_Island_Core/app_state_snapshot.pending.json";
-    await this.writeJson(pending, state);
-    await adapter.rename(this.resolvePath(pending), fullSnapshot);
-    await this.writeJson("00_Island_Core/user_profile.json", state.USER_PROFILE_STATE);
-    await this.writeJson("00_Island_Core/island_settings.json", state.USER_PROFILE_STATE.settings || {});
-    await this.writeJson("00_Island_Core/island_topology.json", state.PAVILION_META);
-    const projects = state.GANTT_PROJECTS || [];
-    const keys = /* @__PURE__ */ new Set([...Object.keys(PAVILIONS), ...projects.map((p) => p.pavilion || p.moduleKey || "study"), ...Object.keys(state.PAVILION_META || {}).filter((key) => key.startsWith("custom-"))]);
-    for (const key of keys) {
-      const dir = this.pavilionDir(key);
-      const list = projects.filter((p) => (p.pavilion || p.moduleKey || "study") === key);
-      await this.writeJson(`${dir}/projects.json`, list.map((p) => ({ ...p, storageRevision: state.DOMAIN_STATE?.storageRevision || 0 })));
-      await this.writeJson(`${dir}/projects.revision.json`, { storageRevision: state.DOMAIN_STATE?.storageRevision || 0 });
-      for (const project of list) {
-        const data = state.PROJECT_CANVAS_STORE?.[project.id] || { cardsHtml: "", edges: [] };
-        await this.writeJson(`${dir}/02_Projects/nodes_${safeFileStem(project.id)}.json`, { ...data, storageRevision: state.DOMAIN_STATE?.storageRevision || 0 });
-        const stem = `${safeFileStem(project.title)}--${safeFileStem(project.id)}`;
-        if (this.getSettings().autoSyncVaultMarkdown)
-          await this.writeText(`${dir}/02_Projects/${stem}.md`, this.projectMarkdown(project, key, data, state.DOMAIN_STATE));
-      }
-    }
-    await this.writeJson("05_Treasury_\u85CF\u91D1\u5C4B/ledger.json", state.TREASURY_STATE);
-    await this.writeJson("06_Achievements_\u6210\u5C31\u9986/achievements.json", state.ACHIEVEMENT_STATE);
-    await this.writeJson("09_Bounties_\u60AC\u8D4F\u516C\u544A/bounties.json", { schemaVersion: 3, activeId: state.BOUNTY_STATE?.id || null, items: state.DOMAIN_STATE?.bounties || [] });
-    await this.writeJson("04_Classics_\u4FEE\u8EAB\u9601/01_Inquiry_Pool/inquiries.json", state.INQUIRY_POOL_STATE);
-    await this.writeJson("08_Daily_\u6BCF\u65E5\u968F\u8BB0/journal.json", state.NOTE_STATE);
-    await this.writeJson("07_Baseline_\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303/family_pact.json", state.DOMAIN_STATE?.family || null);
-    if (this.getSettings().autoSyncVaultMarkdown) {
-      let entries = [...state.NOTE_STATE?.historyEntries || []];
-      const note = state.NOTE_STATE;
-      const date = note?.dateKey || localDateKey();
-      if (note && !entries.some((e) => e.date === date) && (note.journalText || note.todayAutoLogs?.length || note.mediaList?.length)) {
-        entries.push({ date, text: note.journalText, autoLogs: note.todayAutoLogs, media: note.mediaList, mood: note.currentMood, energy: note.currentEnergy });
-      } else if (note) {
-        entries = entries.map((entry) => entry.date === date ? { ...entry, text: note.journalText ?? entry.text, draft: entry.draft || note.journalText !== entry.text, autoLogs: note.todayAutoLogs, media: note.mediaList, mood: note.currentMood, energy: note.currentEnergy } : entry);
-      }
-      const written = /* @__PURE__ */ new Set();
-      for (const entry of entries) {
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(entry.date) || written.has(entry.date))
-          continue;
-        written.add(entry.date);
-        await this.writeText(`08_Daily_\u6BCF\u65E5\u968F\u8BB0/${entry.date.slice(0, 4)}/${entry.date}.md`, this.dailyMarkdown(entry, state.DOMAIN_STATE));
-      }
-      const code = "07_Baseline_\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303/personal_code.md";
-      if (!await adapter.exists(this.resolvePath(code)))
-        await this.writeText(code, "---\ntype: personal-constitution\n---\n\n# \u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303\n\n\u8BF7\u5728\u4EB2\u5B50\u5171\u540C\u8BA8\u8BBA\u540E\uFF0C\u8BB0\u5F55\u5DF2\u786E\u7ACB\u7684\u884C\u4E3A\u89C4\u8303\u3002\n");
-    }
-    globalIslandEventBus.emit("vault:synced", { timestamp: state.updatedAt });
   }
   async saveAttachment(file) {
     if (!/^(image|video|audio)\//.test(file.type))
@@ -559,7 +657,8 @@ ${(n.cardPayload?.metrics || []).map((m) => `${m.name}: ${m.targetValue}`).join(
       clearTimeout(this.syncTimer);
       this.syncTimer = null;
     }
-    await this.queue;
+    await this.queue.catch(() => {
+    });
   }
 };
 
@@ -567,7 +666,7 @@ ${(n.cardPayload?.metrics || []).map((m) => `${m.name}: ${m.targetValue}`).join(
 var import_obsidian2 = require("obsidian");
 
 // src/ui/template.ts
-var ISLAND_UI_HTML = `<div class="global-header product-contract-banner" data-product-contract="3">1.1.4 \u95ED\u73AF\u4EA4\u4E92\u9884\u89C8 \xB7 \u6309\u9879\u76EE/\u8282\u70B9/\u6BCF\u65E5\u4EFB\u52A1\u5B9E\u4F8B\u5173\u8054 \xB7 \u672C\u9884\u89C8\u6570\u636E\u4FDD\u5B58\u5728\u5F53\u524D\u6D4F\u89C8\u5668\uFF0C\u7EC4\u4EF6\u753B\u677F\u6837\u4F8B\u4E0D\u8BA1\u4E3A\u5B9E\u9645\u6267\u884C</div>
+var ISLAND_UI_HTML = `<div class="global-header product-contract-banner" data-product-contract="3">1.1.5 \u95ED\u73AF\u4EA4\u4E92\u9884\u89C8 \xB7 \u6309\u9879\u76EE/\u8282\u70B9/\u6BCF\u65E5\u4EFB\u52A1\u5B9E\u4F8B\u5173\u8054 \xB7 \u672C\u9884\u89C8\u6570\u636E\u4FDD\u5B58\u5728\u5F53\u524D\u6D4F\u89C8\u5668\uFF0C\u7EC4\u4EF6\u753B\u677F\u6837\u4F8B\u4E0D\u8BA1\u4E3A\u5B9E\u9645\u6267\u884C</div>
   <!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5907\u63A7\u5236\u4E0E\u4E3B\u6A21\u6001\u5207\u6362) -->
   <header class="global-header">
     <div class="system-title-group">
@@ -2247,6 +2346,7 @@ var ISLAND_UI_HTML = `<div class="global-header product-contract-banner" data-pr
           <option value="\u901A\u5F80">\u901A\u5F80</option>
           <option value="\u4F9D\u8D56">\u4F9D\u8D56</option>
           <option value="none">\u65E0</option>
+          <option value="\u6D3E\u751F">\u6D3E\u751F</option>
         </select>
 
         <!-- \u5220\u9664\u8DEF\u7EBF\u6309\u94AE -->
@@ -15024,6 +15124,24 @@ function bootPrototypeRuntime() {
   function canvasMinimapDrag(camera, dx, dy, projection) {
     return { ...camera, x: camera.x - dx / projection.scale * camera.zoom, y: camera.y - dy / projection.scale * camera.zoom };
   }
+  function canvasLabelPositions(items, width, height) {
+    const occupied = [];
+    return items.map((item) => {
+      const gap = item.height + 10, offsets = [[0, 0], [0, -gap], [0, gap], [-item.width - 10, 0], [item.width + 10, 0]];
+      for (let row = 2; row <= items.length; row++)
+        offsets.push([0, -gap * row], [0, gap * row]);
+      let chosen = null;
+      for (const [dx, dy] of offsets) {
+        const x = Math.max(item.width / 2 + 4, Math.min(width - item.width / 2 - 4, item.x + dx)), y = Math.max(item.height / 2 + 4, Math.min(height - item.height / 2 - 4, item.y + dy)), rect = { x: x - item.width / 2, y: y - item.height / 2, width: item.width, height: item.height };
+        if (occupied.some((r) => rect.x < r.x + r.width + 5 && rect.x + rect.width + 5 > r.x && rect.y < r.y + r.height + 5 && rect.y + rect.height + 5 > r.y))
+          continue;
+        chosen = { ...item, x, y };
+        occupied.push(rect);
+        break;
+      }
+      return chosen || item;
+    });
+  }
   function canvasConnectionPreview(source, cursor) {
     const dx = cursor.x - (source.x + source.width / 2), dy = cursor.y - (source.y + source.height / 2), horizontal = Math.abs(dx) >= Math.abs(dy);
     const start = horizontal ? { x: source.x + (dx >= 0 ? source.width : 0), y: source.y + source.height / 2 } : { x: source.x + source.width / 2, y: source.y + (dy >= 0 ? source.height : 0) };
@@ -15060,6 +15178,8 @@ function bootPrototypeRuntime() {
     return candidates.sort((a, b) => a.y - b.y || a.x - b.x)[0];
   }
   function canvasSegmentClear(a, b, rects) {
+    if (a.x !== b.x && a.y !== b.y)
+      return false;
     return !rects.some((r) => a.x === b.x ? a.x > r.x && a.x < r.x + r.width && Math.max(a.y, b.y) > r.y && Math.min(a.y, b.y) < r.y + r.height : a.y > r.y && a.y < r.y + r.height && Math.max(a.x, b.x) > r.x && Math.min(a.x, b.x) < r.x + r.width);
   }
   function canvasSimplify(points) {
@@ -15140,23 +15260,52 @@ function bootPrototypeRuntime() {
       }
     }
     if (!final)
-      return direct;
+      return null;
     const result = [];
     for (let cursor = final; cursor; cursor = parents.get(cursor))
       result.unshift(points.get(cursor));
     return canvasSimplify(result);
   }
-  function canvasRouteEdge(source, target, rects, index = 0, total = 1) {
-    const horizontal = source.x + source.width <= target.x || target.x + target.width <= source.x;
-    const forward = horizontal ? target.x >= source.x : target.y >= source.y;
-    const slot = (size) => (index - (total - 1) / 2) * Math.min(16, Math.max(0, (size - 24) / Math.max(total, 1)));
-    const a = horizontal ? { x: source.x + (forward ? source.width : 0), y: source.y + source.height / 2 + slot(source.height) } : { x: source.x + source.width / 2 + slot(source.width), y: source.y + (forward ? source.height : 0) };
-    const b = horizontal ? { x: target.x + (forward ? 0 : target.width), y: target.y + target.height / 2 + slot(target.height) } : { x: target.x + target.width / 2 + slot(target.width), y: target.y + (forward ? 0 : target.height) };
-    const direction = forward ? 1 : -1, stub = 24;
-    const start = horizontal ? { x: a.x + direction * stub, y: a.y } : { x: a.x, y: a.y + direction * stub };
-    const end = horizontal ? { x: b.x - direction * stub, y: b.y } : { x: b.x, y: b.y - direction * stub };
-    const obstacles = rects.map((r) => ({ x: r.x - 12, y: r.y - 12, width: r.width + 24, height: r.height + 24 }));
-    const points = canvasSimplify([a, ...canvasOrthogonalPath(start, end, obstacles), b]);
+  function canvasRouteEdge(source, target, rects, index = 0, total = 1, targetIndex = index, targetTotal = total) {
+    const blocked = () => ({ points: [], label: { x: source.x + source.width / 2, y: source.y - 20 }, d: "", blocked: true });
+    if (source.x < target.x + target.width && source.x + source.width > target.x && source.y < target.y + target.height && source.y + source.height > target.y)
+      return blocked();
+    const directions = { right: { x: 1, y: 0 }, left: { x: -1, y: 0 }, bottom: { x: 0, y: 1 }, top: { x: 0, y: -1 } };
+    const port = (box, side, slot, count) => {
+      const horizontal = side === "left" || side === "right", size = horizontal ? box.height : box.width, offset = (slot - (count - 1) / 2) * Math.min(16, Math.max(0, (size - 24) / Math.max(count, 1)));
+      return horizontal ? { x: box.x + (side === "right" ? box.width : 0), y: box.y + box.height / 2 + offset } : { x: box.x + box.width / 2 + offset, y: box.y + (side === "bottom" ? box.height : 0) };
+    };
+    const options = [];
+    for (const aSide of Object.keys(directions))
+      for (const bSide of Object.keys(directions)) {
+        const a2 = port(source, aSide, index, total), b2 = port(target, bSide, targetIndex, targetTotal), distance = Math.abs(a2.x - b2.x) + Math.abs(a2.y - b2.y);
+        options.push({ a: a2, b: b2, aDir: directions[aSide], bDir: directions[bSide], distance });
+      }
+    options.sort((a2, b2) => a2.distance - b2.distance);
+    let points = null;
+    for (const padding of [12, 4, 1]) {
+      const obstacles = rects.map((r) => ({ x: r.x - padding, y: r.y - padding, width: r.width + padding * 2, height: r.height + padding * 2 }));
+      for (const option of options) {
+        const { a: a2, b: b2, aDir, bDir } = option, stub = padding + 6, start = { x: a2.x + aDir.x * stub, y: a2.y + aDir.y * stub }, end = { x: b2.x + bDir.x * stub, y: b2.y + bDir.y * stub };
+        if (!canvasSegmentClear(a2, start, rects.filter((r) => r !== source)) || !canvasSegmentClear(end, b2, rects.filter((r) => r !== target)))
+          continue;
+        if ([start, end].some((p) => obstacles.some((r) => p.x > r.x && p.x < r.x + r.width && p.y > r.y && p.y < r.y + r.height)))
+          continue;
+        const path = canvasOrthogonalPath(start, end, obstacles);
+        if (!path)
+          continue;
+        const candidate = canvasSimplify([a2, ...path, b2]);
+        if (!candidate.slice(1).every((p, i) => canvasSegmentClear(candidate[i], p, rects)))
+          continue;
+        points = candidate;
+        break;
+      }
+      if (points)
+        break;
+    }
+    if (!points)
+      return blocked();
+    const a = points[0], b = points.at(-1);
     let label = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, longest = -1;
     for (let i = 1; i < points.length; i++) {
       const p = points[i - 1], q = points[i], length = Math.abs(q.x - p.x) + Math.abs(q.y - p.y);
@@ -17889,7 +18038,7 @@ function bootPrototypeRuntime() {
     while (queue.length) {
       const source = queue.shift();
       for (const edge of window2.TERTIARY_EDGES || [])
-        if (edge.sourceId === source && !["\u5173\u8054", "none"].includes(edge.type) && !seen.has(edge.targetId)) {
+        if (edge.sourceId === source && ["\u5305\u542B", "\u6D3E\u751F"].includes(edge.type) && !seen.has(edge.targetId)) {
           seen.add(edge.targetId);
           queue.push(edge.targetId);
           result.push(edge.targetId);
@@ -17929,7 +18078,7 @@ function bootPrototypeRuntime() {
       return;
     if (layer.parentElement !== stage)
       stage.appendChild(layer);
-    const v = readMindmapViewport();
+    const v = readMindmapViewport(), items = [];
     for (const label of layer.children) {
       const point = canvasEdgeLayouts.get(label.dataset.edgeId)?.label;
       if (!point)
@@ -17939,6 +18088,28 @@ function bootPrototypeRuntime() {
       label.style.top = y + "px";
       label.style.fontSize = Math.max(10, Math.min(15, 12 * v.zoom)) + "px";
       label.hidden = x < -120 || y < -120 || x > stage.clientWidth + 120 || y > stage.clientHeight + 120;
+      if (!label.hidden)
+        items.push({ id: label.dataset.edgeId, label, x, y, anchorX: x, anchorY: y, width: label.offsetWidth, height: label.offsetHeight });
+    }
+    let guides = document.getElementById("canvas-edge-label-guides");
+    if (!guides) {
+      guides = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      guides.id = "canvas-edge-label-guides";
+      guides.setAttribute("aria-hidden", "true");
+      stage.appendChild(guides);
+    }
+    guides.setAttribute("width", stage.clientWidth);
+    guides.setAttribute("height", stage.clientHeight);
+    guides.replaceChildren();
+    for (const item of canvasLabelPositions(items, stage.clientWidth, stage.clientHeight)) {
+      item.label.style.left = item.x + "px";
+      item.label.style.top = item.y + "px";
+      if (Math.hypot(item.x - item.anchorX, item.y - item.anchorY) > 3) {
+        const guide = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        for (const [key, value] of Object.entries({ x1: item.anchorX, y1: item.anchorY, x2: item.x, y2: item.y, stroke: "#7d9387", "stroke-width": 1, "stroke-dasharray": "3 3" }))
+          guide.setAttribute(key, String(value));
+        guides.appendChild(guide);
+      }
     }
   }
   function bindCanvasEdgeActivation(element, id) {
@@ -17981,17 +18152,34 @@ function bootPrototypeRuntime() {
       Object.assign(edge, canvasEdgeStyle(edge));
       edge.sourceLabel = getDomainNode(edge.sourceId)?.title || edge.sourceLabel || edge.sourceId;
       edge.targetLabel = getDomainNode(edge.targetId)?.title || edge.targetLabel || edge.targetId;
-      const siblings = edges.filter((e) => [e.sourceId, e.targetId].some((id) => id === edge.sourceId || id === edge.targetId));
-      layouts.set(edge.id, canvasRouteEdge(source, target, cards, Math.max(0, siblings.indexOf(edge)), siblings.length));
+      const incident = (id) => edges.filter((e) => e.sourceId === id || e.targetId === id).sort((a, b) => String(a.id).localeCompare(String(b.id))), from = incident(edge.sourceId), to = incident(edge.targetId);
+      layouts.set(edge.id, canvasRouteEdge(source, target, cards, Math.max(0, from.indexOf(edge)), from.length, Math.max(0, to.indexOf(edge)), to.length));
     }
     canvasEdgeLayouts = layouts;
     return layouts;
+  }
+  function resizeCanvasEdgeSurface(layouts) {
+    const svg = document.getElementById("tertiary-svg-lines");
+    if (!svg)
+      return;
+    const points = Array.from(layouts.values()).flatMap((layout) => layout.points), cards = Array.from(document.querySelectorAll("#tertiary-canvas-world .tertiary-card"), canvasNodeRect);
+    for (const card of cards)
+      points.push({ x: card.x, y: card.y }, { x: card.x + card.width, y: card.y + card.height });
+    const left = Math.min(0, ...points.map((p) => p.x)) - 64, top = Math.min(0, ...points.map((p) => p.y)) - 64, width = Math.max(1, ...points.map((p) => p.x)) - left + 64, height = Math.max(1, ...points.map((p) => p.y)) - top + 64;
+    svg.setAttribute("viewBox", [left, top, width, height].join(" "));
+    svg.setAttribute("width", width);
+    svg.setAttribute("height", height);
+    svg.style.left = left + "px";
+    svg.style.top = top + "px";
+    svg.style.setProperty("width", width + "px", "important");
+    svg.style.setProperty("height", height + "px", "important");
   }
   renderTertiaryEdges = function() {
     const lines = document.getElementById("tertiary-lines-group"), labels = document.getElementById("tertiary-edge-labels-layer"), defs = document.getElementById("tertiary-svg-defs");
     if (!lines || !labels || !defs)
       return;
     const layouts = layoutCanvasEdges();
+    resizeCanvasEdgeSurface(layouts);
     lines.replaceChildren();
     labels.replaceChildren();
     defs.replaceChildren();
@@ -18024,7 +18212,8 @@ function bootPrototypeRuntime() {
       label.id = "edge-label-" + edge.id;
       label.className = "a-my-island-work-edge-label";
       label.dataset.edgeId = edge.id;
-      label.textContent = edge.label || (["none", void 0].includes(edge.type) ? "\u8DEF\u7EBF\u8BBE\u7F6E" : edge.type);
+      label.textContent = (layout.blocked ? "\u26A0 \u8282\u70B9\u91CD\u53E0 \xB7 " : "") + (edge.label || (["none", void 0].includes(edge.type) ? "\u8DEF\u7EBF\u8BBE\u7F6E" : edge.type));
+      label.classList.toggle("is-route-blocked", !!layout.blocked);
       label.style.left = layout.label.x + "px";
       label.style.top = layout.label.y + "px";
       label.title = label.textContent + " \xB7 " + edge.sourceLabel + " \u2192 " + edge.targetLabel + "\uFF1B\u70B9\u51FB\u8BBE\u7F6E\u8DEF\u7EBF";
@@ -18038,9 +18227,10 @@ function bootPrototypeRuntime() {
   };
   updateTertiaryEdgesFast = function() {
     const layouts = layoutCanvasEdges();
+    resizeCanvasEdgeSurface(layouts);
     for (const [id, layout] of layouts) {
       const line = document.getElementById("svg-line-" + id), hit = document.getElementById("svg-hit-" + id), label = document.getElementById("edge-label-" + id);
-      if (!line) {
+      if (!line || !!layout.blocked !== label?.classList.contains("is-route-blocked")) {
         renderTertiaryEdges();
         return;
       }
@@ -18066,6 +18256,7 @@ function bootPrototypeRuntime() {
     popover.style.top = Math.max(8, Math.min(stage.clientHeight - popover.offsetHeight - 8, pivot.y + 14)) + "px";
   }
   const canvasLegacyOpenEdge = openEdgePopover;
+  let canvasEdgeDirectionAnchor = null;
   openEdgePopover = function(id, event) {
     event?.stopPropagation();
     const edge = window2.TERTIARY_EDGES?.find((e) => e.id === id);
@@ -18074,7 +18265,18 @@ function bootPrototypeRuntime() {
     Object.assign(edge, canvasEdgeStyle(edge));
     edge.sourceLabel = getDomainNode(edge.sourceId)?.title || "\u8D77\u70B9";
     edge.targetLabel = getDomainNode(edge.targetId)?.title || "\u7EC8\u70B9";
+    if (!canvasEdgeDirectionAnchor || canvasEdgeDirectionAnchor.id !== id || canvasEdgeDirectionAnchor.projectId !== window2.currentTertiaryProjId || ![edge.sourceId, edge.targetId].includes(canvasEdgeDirectionAnchor.a))
+      canvasEdgeDirectionAnchor = { id, projectId: window2.currentTertiaryProjId, a: edge.sourceId, b: edge.targetId };
     canvasLegacyOpenEdge(id, event);
+    const anchor = canvasEdgeDirectionAnchor, a = getDomainNode(anchor.a)?.title || anchor.a, b = getDomainNode(anchor.b)?.title || anchor.b;
+    for (const [buttonId, sourceId, text] of [["btn-edge-hier-forward", anchor.a, a + " \u2192 " + b], ["btn-edge-hier-backward", anchor.b, b + " \u2192 " + a]]) {
+      const button = document.getElementById(buttonId);
+      if (button) {
+        button.textContent = text;
+        button.classList.toggle("is-active", edge.sourceId === sourceId);
+        button.setAttribute("aria-pressed", String(edge.sourceId === sourceId));
+      }
+    }
     positionCanvasEdgePopover(event ? canvasLocalPoint(document.getElementById("tertiary-canvas-stage"), event.clientX, event.clientY) : null);
     return true;
   };
@@ -18082,6 +18284,13 @@ function bootPrototypeRuntime() {
     const edges = window2.TERTIARY_EDGES || [], edge = edges.find((e) => e.id === currentActiveEdgeId);
     if (!edge)
       return false;
+    if (!remove && Object.entries(patch).every(([key, value]) => edge[key] === value))
+      return true;
+    const candidate = { ...edge, ...patch };
+    if (!remove && ["sourceId", "targetId"].some((key) => key in patch) && edges.some((e) => e.id !== edge.id && e.sourceId === candidate.sourceId && e.targetId === candidate.targetId)) {
+      showIslandToast("\u5DF2\u5B58\u5728\u76F8\u540C\u65B9\u5411\u7684\u8DEF\u7EBF\uFF0C\u8BF7\u7F16\u8F91\u5DF2\u6709\u8DEF\u7EBF");
+      return false;
+    }
     if (!remove && !["type", "sourceId", "targetId"].some((key) => Object.prototype.hasOwnProperty.call(patch, key))) {
       recordDomainHistory();
       Object.assign(edge, patch);
@@ -18091,6 +18300,23 @@ function bootPrototypeRuntime() {
       return true;
     }
     const next = remove ? edges.filter((e) => e.id !== edge.id) : edges.map((e) => e.id === edge.id ? { ...e, ...patch } : e), nodes = getDomainState().nodesByProject[window2.currentTertiaryProjId] || [], dependency = (e) => ["\u524D\u7F6E", "\u4F9D\u8D56", "\u963B\u585E"].includes(e.type);
+    const hierarchy = new Map(nodes.map((n) => [n.id, next.filter((e) => e.sourceId === n.id && ["\u5305\u542B", "\u6D3E\u751F"].includes(e.type)).map((e) => e.targetId)]));
+    const visits = /* @__PURE__ */ new Set(), finished = /* @__PURE__ */ new Set(), hierarchyCycle = (id) => {
+      if (visits.has(id))
+        return true;
+      if (finished.has(id))
+        return false;
+      visits.add(id);
+      if ((hierarchy.get(id) || []).some(hierarchyCycle))
+        return true;
+      visits.delete(id);
+      finished.add(id);
+      return false;
+    };
+    if (!remove && nodes.some((n) => hierarchyCycle(n.id))) {
+      showIslandToast("\u4E0A\u4E0B\u7EA7\u5305\u542B\u5173\u7CFB\u4E0D\u80FD\u5F62\u6210\u5FAA\u73AF");
+      return false;
+    }
     const deps = new Map(nodes.map((node) => [node.id, node.dependencies.filter((id) => !edges.some((e) => dependency(e) && e.targetId === node.id && e.sourceId === id))]));
     for (const item of next.filter(dependency)) {
       if (!remove && item.id === edge.id && (!deps.has(item.targetId) || !nodes.some((n) => n.id === item.sourceId && n.isCheckinNode))) {
@@ -18149,8 +18375,10 @@ function bootPrototypeRuntime() {
     const edge = window2.TERTIARY_EDGES?.find((e) => e.id === currentActiveEdgeId);
     if (!edge)
       return false;
-    const type = ["\u5173\u8054", "none", void 0].includes(edge.type) ? "\u5305\u542B" : edge.type, label = edge.label === edge.type ? type : edge.label;
-    const result = changeCanvasEdge({ type, label, ...reverse ? { sourceId: edge.targetId, targetId: edge.sourceId } : {} });
+    if (!canvasEdgeDirectionAnchor || canvasEdgeDirectionAnchor.id !== edge.id)
+      openEdgePopover(edge.id);
+    const anchor = canvasEdgeDirectionAnchor, type = ["\u5173\u8054", "none", void 0].includes(edge.type) ? "\u5305\u542B" : edge.type, label = edge.label === edge.type ? type : edge.label;
+    const result = changeCanvasEdge({ type, label, sourceId: reverse ? anchor.b : anchor.a, targetId: reverse ? anchor.a : anchor.b });
     openEdgePopover(edge.id);
     return result;
   };
@@ -18434,7 +18662,13 @@ function bootPrototypeRuntime() {
     canvasNavigators.set(kind, nav);
     bindCanvasNavigation(nav);
     if (window2.ResizeObserver) {
-      const observer = new window2.ResizeObserver(() => queueCanvasNavigation(kind));
+      const observer = new window2.ResizeObserver(() => {
+        queueCanvasNavigation(kind);
+        if (kind === "project") {
+          positionCanvasEdgeLabels();
+          positionCanvasEdgePopover();
+        }
+      });
       observer.observe(stage);
     }
     return nav;
@@ -19526,6 +19760,8 @@ function bootPrototypeRuntime() {
     window2.canvasMinimapWorldPoint = canvasMinimapWorldPoint;
   if (typeof canvasMinimapDrag === "function")
     window2.canvasMinimapDrag = canvasMinimapDrag;
+  if (typeof canvasLabelPositions === "function")
+    window2.canvasLabelPositions = canvasLabelPositions;
   if (typeof canvasConnectionPreview === "function")
     window2.canvasConnectionPreview = canvasConnectionPreview;
   if (typeof canvasZoomAt === "function")
@@ -19688,6 +19924,8 @@ function bootPrototypeRuntime() {
     window2.bindCanvasEdgeActivation = bindCanvasEdgeActivation;
   if (typeof layoutCanvasEdges === "function")
     window2.layoutCanvasEdges = layoutCanvasEdges;
+  if (typeof resizeCanvasEdgeSurface === "function")
+    window2.resizeCanvasEdgeSurface = resizeCanvasEdgeSurface;
   if (typeof positionCanvasEdgePopover === "function")
     window2.positionCanvasEdgePopover = positionCanvasEdgePopover;
   if (typeof changeCanvasEdge === "function")
@@ -19779,6 +20017,28 @@ function bootPrototypeRuntime() {
   return () => runtimeScope.dispose();
 }
 
+// src/core/MobileGestureIsolation.ts
+function installMobileGestureIsolation(root, surfaces = []) {
+  const elements = [.../* @__PURE__ */ new Set([root, ...surfaces])];
+  const previous = elements.map((element) => element.getAttribute("data-ignore-swipe"));
+  for (const element of elements)
+    element.setAttribute("data-ignore-swipe", "true");
+  const stopHostSwipe = (event) => event.stopPropagation();
+  const types = ["touchstart", "touchmove", "touchend", "touchcancel"];
+  for (const type of types)
+    root.addEventListener(type, stopHostSwipe, { passive: true });
+  return () => {
+    for (const type of types)
+      root.removeEventListener(type, stopHostSwipe);
+    elements.forEach((element, index) => {
+      if (previous[index] === null)
+        element.removeAttribute("data-ignore-swipe");
+      else
+        element.setAttribute("data-ignore-swipe", previous[index]);
+    });
+  };
+}
+
 // src/views/YouthIslandView.ts
 var VIEW_TYPE_YOUTH_ISLAND = "youth-holistic-growth-island-view";
 var YouthIslandView = class extends import_obsidian2.ItemView {
@@ -19788,6 +20048,7 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
     this.stateChangeHandler = null;
     this.disposeRuntime = null;
     this.bodyClasses = /* @__PURE__ */ new Map();
+    this.disposeGestureIsolation = null;
     this.plugin = plugin;
   }
   getViewType() {
@@ -19858,6 +20119,7 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
     const rootWrapper = contentEl.createDiv({
       cls: "youth-island-plugin-root youth-island-obsidian-view-root"
     });
+    this.disposeGestureIsolation = installMobileGestureIsolation(rootWrapper, [contentEl, this.containerEl]);
     rootWrapper.innerHTML = ISLAND_UI_HTML;
     this.disposeRuntime = bootPrototypeRuntime();
     try {
@@ -19865,6 +20127,8 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
     } catch (error) {
       this.disposeRuntime?.();
       this.disposeRuntime = null;
+      this.disposeGestureIsolation?.();
+      this.disposeGestureIsolation = null;
       for (const [cls, present] of this.bodyClasses)
         document.body.classList.toggle(cls, present);
       rootWrapper.empty();
@@ -20043,9 +20307,14 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
     try {
       window.saveExecutionDraft?.();
       await this.plugin.vaultStorage.syncRuntimeToVault();
+    } catch (error) {
+      console.error("[YouthIsland] \u89C6\u56FE\u5173\u95ED\u524D\u4FDD\u5B58\u672A\u5B8C\u6210", error);
+      new import_obsidian2.Notice(`\u5173\u95ED\u524D\u4FDD\u5B58\u672A\u5B8C\u6210\uFF1A${error instanceof Error ? error.message : error}\u3002\u4E0B\u6B21\u6253\u5F00\u4F1A\u68C0\u67E5\u53EF\u6062\u590D\u7684\u5F85\u63D0\u4EA4\u6863\u6848\u3002`);
     } finally {
       this.disposeRuntime?.();
       this.disposeRuntime = null;
+      this.disposeGestureIsolation?.();
+      this.disposeGestureIsolation = null;
       this.hooksInstalled = false;
       for (const [cls, present] of this.bodyClasses)
         document.body.classList.toggle(cls, present);
@@ -20068,8 +20337,18 @@ var YouthIslandSettingTab = class extends import_obsidian3.PluginSettingTab {
       text: "\u{1F3DD}\uFE0F \u7EC8\u8EAB\u5C9B\u6C11 \xB7 \u9752\u5C11\u513F\u5168\u4EBA\u6210\u957F\u4E0E\u81EA\u4E3B\u8FDB\u5316\u7CFB\u7EDF"
     });
     containerEl.createEl("p", {
-      text: "\u914D\u7F6E\u672C\u5730\u4ED3\u5E93\u5B58\u50A8\u8DEF\u5F84\u3001\u53CC\u94FE\u7B14\u8BB0\u751F\u6210\u4E0E\u542F\u52A8\u884C\u4E3A\u3002"
+      text: `\u5F53\u524D\u7248\u672C v${this.plugin.manifest.version}\u3002\u914D\u7F6E\u672C\u5730\u4ED3\u5E93\u5B58\u50A8\u8DEF\u5F84\u3001\u53CC\u94FE\u7B14\u8BB0\u751F\u6210\u4E0E\u542F\u52A8\u884C\u4E3A\u3002`
     });
+    const status = this.plugin.vaultStorage.getSaveStatus();
+    new import_obsidian3.Setting(containerEl).setName("\u6210\u957F\u6570\u636E\u4FDD\u5B58\u72B6\u6001").setDesc(status.error ? `\u4FDD\u5B58\u672A\u5B8C\u6210\uFF1A${status.error}` : status.exportError ? `\u6210\u957F\u6863\u6848\u5DF2\u4FDD\u5B58\uFF0C\u5BFC\u51FA\u5F85\u91CD\u8BD5\uFF1A${status.exportError}` : status.lastSavedAt ? `\u6700\u8FD1\u4FDD\u5B58\uFF1A${new Date(status.lastSavedAt).toLocaleString()}` : "\u6253\u5F00\u6210\u957F\u5DE5\u4F5C\u53F0\u540E\u5F00\u59CB\u4FDD\u5B58\u3002").addButton((button) => button.setButtonText("\u7ACB\u5373\u4FDD\u5B58 / \u91CD\u8BD5").onClick(async () => {
+      try {
+        const saved = await this.plugin.vaultStorage.syncRuntimeToVault();
+        new import_obsidian3.Notice(saved ? "\u6210\u957F\u6570\u636E\u5DF2\u4FDD\u5B58\u3002" : "\u8BF7\u5148\u6253\u5F00\u6210\u957F\u5DE5\u4F5C\u53F0\u5E76\u6210\u529F\u8BFB\u53D6\u6863\u6848\u3002");
+      } catch (error) {
+        new import_obsidian3.Notice(`\u4FDD\u5B58\u672A\u5B8C\u6210\uFF1A${error instanceof Error ? error.message : error}`);
+      }
+      this.display();
+    }));
     new import_obsidian3.Setting(containerEl).setName("Vault \u6570\u636E\u5B58\u50A8\u6839\u76EE\u5F55").setDesc(
       "\u7559\u7A7A\u5219\u76F4\u63A5\u5728\u5F53\u524D Obsidian \u4ED3\u5E93\u6839\u76EE\u5F55\u4E0B\u521B\u5EFA 00_Island_Core ~ 09_Bounties_\u60AC\u8D4F\u516C\u544A \u5341\u5927\u6807\u51C6\u76EE\u5F55\uFF1B\u4E5F\u53EF\u6307\u5B9A\u5B50\u6587\u4EF6\u5939\uFF08\u4F8B\u5982\uFF1AYouth_Growth_Vault\uFF09\u3002"
     ).addText(
@@ -20283,8 +20562,13 @@ var YouthGrowthIslandPlugin = class extends import_obsidian4.Plugin {
     await this.saveData(this.settings);
   }
   async onunload() {
-    await this.vaultStorage.syncRuntimeToVault();
-    this.app.workspace.detachLeavesOfType(VIEW_TYPE_YOUTH_ISLAND);
-    await this.vaultStorage.dispose();
+    try {
+      await this.vaultStorage.syncRuntimeToVault();
+    } catch (error) {
+      console.error("[YouthIsland] \u5173\u95ED\u524D\u4FDD\u5B58\u672A\u5B8C\u6210", error);
+    } finally {
+      this.app.workspace.detachLeavesOfType(VIEW_TYPE_YOUTH_ISLAND);
+      await this.vaultStorage.dispose();
+    }
   }
 };

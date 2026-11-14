@@ -9,7 +9,7 @@ export default async function({evaluate,send,designMode}){
   const expectedClick=async(kind,x,y)=>evaluate(`(()=>{const n=window.getCanvasNavigator('${kind}'),p=n.projection,c=n.read(),wx=p.minX+(${x}-p.offsetX)/p.scale,wy=p.minY+(${y}-p.offsetY)/p.scale;return {x:n.stage.clientWidth/2-wx*c.zoom,y:n.stage.clientHeight/2-wy*c.zoom,zoom:c.zoom};})()`);
   if(!designMode)await evaluate(`(async()=>{
     const root=document.querySelector('.youth-island-plugin-root');root.innerHTML=Harness.ISLAND_UI_HTML;root.style.width='100%';document.body.classList.add('youth-island-tablet-fullscreen');
-    const files=new Map(),adapter={exists:async p=>files.has(p),read:async p=>files.get(p),write:async(p,t)=>files.set(p,t),writeBinary:async(p,b)=>files.set(p,b),getResourcePath:p=>p,rename:async(a,b)=>{files.set(b,files.get(a));files.delete(a);}};
+    const files=new Map(),adapter={exists:async p=>files.has(p),read:async p=>files.get(p),write:async(p,t)=>files.set(p,t),writeBinary:async(p,b)=>files.set(p,b),getResourcePath:p=>p,remove:async p=>{files.delete(p);},rename:async(a,b)=>{if(files.has(b))throw new Error('Destination file already exists!');files.set(b,files.get(a));files.delete(a);}};
     window.__navigationStorage=new Harness.VaultStorageAdapter({vault:{adapter,createFolder:async p=>files.set(p,'folder')}},()=>({vaultRootFolder:'navigation-test',autoSyncVaultMarkdown:true}));
     window.__navigationDispose=Harness.bootPrototypeRuntime();await window.__navigationStorage.hydrateRuntimeFromVault();window.restoreBusinessViews();
   })()`);
@@ -73,5 +73,5 @@ export default async function({evaluate,send,designMode}){
   const portraitPanel=await rect('#island-minimap-dock'),portraitButton=await rect('#island-minimap-toggle-btn'),launcher=await rect('#home-island-launcher');
   check(portraitPanel.x>=0&&portraitButton.x+portraitButton.width<=768&&Math.max(portraitPanel.y+portraitPanel.height,portraitButton.y+portraitButton.height)<=launcher.y,'portrait planning navigation stays onscreen and clears the bottom launcher');await send('Emulation.clearDeviceMetricsOverride');
   await evaluate("window.enterTertiaryWorkspace('navigation-a');window.toggleTertiaryMinimapDock(true);window.fitCanvasView()");await pause(300);
-  return {version:'1.1.4',suite:'navigation',checks,screenshot:true,portrait:true,capturePages:[{name:designMode?'navigation-planning-design':'navigation-planning-plugin',code:"window.switchMainSection('island');window.switchHomeGlobalView('plan');window.toggleIslandMinimapDock(true);window.fitHomeCanvasView();"}]};
+  return {version:'1.1.5',suite:'navigation',checks,screenshot:true,portrait:true,capturePages:[{name:designMode?'navigation-planning-design':'navigation-planning-plugin',code:"window.switchMainSection('island');window.switchHomeGlobalView('plan');window.toggleIslandMinimapDock(true);window.fitHomeCanvasView();"}]};
 }

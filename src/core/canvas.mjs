@@ -18,6 +18,15 @@ export function canvasMinimapProjection(rects,camera,width,height,mapWidth=220,m
 export function canvasMinimapPoint(projection,point){return {x:projection.offsetX+(point.x-projection.minX)*projection.scale,y:projection.offsetY+(point.y-projection.minY)*projection.scale};}
 export function canvasMinimapWorldPoint(projection,point){return {x:projection.minX+(point.x-projection.offsetX)/projection.scale,y:projection.minY+(point.y-projection.offsetY)/projection.scale};}
 export function canvasMinimapDrag(camera,dx,dy,projection){return {...camera,x:camera.x-dx/projection.scale*camera.zoom,y:camera.y-dy/projection.scale*camera.zoom};}
+export function canvasLabelPositions(items,width,height){
+  const occupied=[];return items.map(item=>{const gap=item.height+10,offsets=[[0,0],[0,-gap],[0,gap],[-item.width-10,0],[item.width+10,0]];
+    for(let row=2;row<=items.length;row++)offsets.push([0,-gap*row],[0,gap*row]);
+    let chosen=null;for(const [dx,dy]of offsets){const x=Math.max(item.width/2+4,Math.min(width-item.width/2-4,item.x+dx)),y=Math.max(item.height/2+4,Math.min(height-item.height/2-4,item.y+dy)),rect={x:x-item.width/2,y:y-item.height/2,width:item.width,height:item.height};
+      if(occupied.some(r=>rect.x<r.x+r.width+5&&rect.x+rect.width+5>r.x&&rect.y<r.y+r.height+5&&rect.y+rect.height+5>r.y))continue;
+      chosen={...item,x,y};occupied.push(rect);break;
+    }return chosen||item;
+  });
+}
 export function canvasConnectionPreview(source,cursor){
   const dx=cursor.x-(source.x+source.width/2),dy=cursor.y-(source.y+source.height/2),horizontal=Math.abs(dx)>=Math.abs(dy);
   const start=horizontal?{x:source.x+(dx>=0?source.width:0),y:source.y+source.height/2}:{x:source.x+source.width/2,y:source.y+(dy>=0?source.height:0)};
@@ -43,6 +52,7 @@ export function canvasFreePosition(rects,width=340,height=640){
   return candidates.sort((a,b)=>a.y-b.y||a.x-b.x)[0];
 }
 export function canvasSegmentClear(a,b,rects){
+  if(a.x!==b.x&&a.y!==b.y)return false;
   return !rects.some(r=>a.x===b.x?a.x>r.x&&a.x<r.x+r.width&&Math.max(a.y,b.y)>r.y&&Math.min(a.y,b.y)<r.y+r.height:a.y>r.y&&a.y<r.y+r.height&&Math.max(a.x,b.x)>r.x&&Math.min(a.x,b.x)<r.x+r.width);
 }
 export function canvasSimplify(points){
@@ -74,20 +84,33 @@ export function canvasOrthogonalPath(start,end,obstacles){
       canvasHeapPush(heap,{key:id,xi,yi,axis,distance,cost:distance+Math.abs(b.x-end.x)+Math.abs(b.y-end.y)});
     }
   }
-  if(!final)return direct; // Overlapping nodes can leave no free route; dragging them apart resolves it.
+  if(!final)return null; // Never silently replace an impossible route with a line through a card.
   const result=[];for(let cursor=final;cursor;cursor=parents.get(cursor))result.unshift(points.get(cursor));return canvasSimplify(result);
 }
-export function canvasRouteEdge(source,target,rects,index=0,total=1){
-  const horizontal=source.x+source.width<=target.x||target.x+target.width<=source.x;
-  const forward=horizontal?target.x>=source.x:target.y>=source.y;
-  const slot=(size)=>(index-(total-1)/2)*Math.min(16,Math.max(0,(size-24)/Math.max(total,1)));
-  const a=horizontal?{x:source.x+(forward?source.width:0),y:source.y+source.height/2+slot(source.height)}:{x:source.x+source.width/2+slot(source.width),y:source.y+(forward?source.height:0)};
-  const b=horizontal?{x:target.x+(forward?0:target.width),y:target.y+target.height/2+slot(target.height)}:{x:target.x+target.width/2+slot(target.width),y:target.y+(forward?0:target.height)};
-  const direction=forward?1:-1,stub=24;
-  const start=horizontal?{x:a.x+direction*stub,y:a.y}:{x:a.x,y:a.y+direction*stub};
-  const end=horizontal?{x:b.x-direction*stub,y:b.y}:{x:b.x,y:b.y-direction*stub};
-  const obstacles=rects.map(r=>({x:r.x-12,y:r.y-12,width:r.width+24,height:r.height+24}));
-  const points=canvasSimplify([a,...canvasOrthogonalPath(start,end,obstacles),b]);
+export function canvasRouteEdge(source,target,rects,index=0,total=1,targetIndex=index,targetTotal=total){
+  const blocked=()=>({points:[],label:{x:source.x+source.width/2,y:source.y-20},d:'',blocked:true});
+  if(source.x<target.x+target.width&&source.x+source.width>target.x&&source.y<target.y+target.height&&source.y+source.height>target.y)return blocked();
+  const directions={right:{x:1,y:0},left:{x:-1,y:0},bottom:{x:0,y:1},top:{x:0,y:-1}};
+  const port=(box,side,slot,count)=>{const horizontal=side==='left'||side==='right',size=horizontal?box.height:box.width,offset=(slot-(count-1)/2)*Math.min(16,Math.max(0,(size-24)/Math.max(count,1)));
+    return horizontal?{x:box.x+(side==='right'?box.width:0),y:box.y+box.height/2+offset}:{x:box.x+box.width/2+offset,y:box.y+(side==='bottom'?box.height:0)};
+  };
+  const options=[];for(const aSide of Object.keys(directions))for(const bSide of Object.keys(directions)){
+    const a=port(source,aSide,index,total),b=port(target,bSide,targetIndex,targetTotal),distance=Math.abs(a.x-b.x)+Math.abs(a.y-b.y);options.push({a,b,aDir:directions[aSide],bDir:directions[bSide],distance});
+  }options.sort((a,b)=>a.distance-b.distance);
+  let points=null;
+  for(const padding of [12,4,1]){
+    const obstacles=rects.map(r=>({x:r.x-padding,y:r.y-padding,width:r.width+padding*2,height:r.height+padding*2}));
+    for(const option of options){
+      const {a,b,aDir,bDir}=option,stub=padding+6,start={x:a.x+aDir.x*stub,y:a.y+aDir.y*stub},end={x:b.x+bDir.x*stub,y:b.y+bDir.y*stub};
+      if(!canvasSegmentClear(a,start,rects.filter(r=>r!==source))||!canvasSegmentClear(end,b,rects.filter(r=>r!==target)))continue;
+      if([start,end].some(p=>obstacles.some(r=>p.x>r.x&&p.x<r.x+r.width&&p.y>r.y&&p.y<r.y+r.height)))continue;
+      const path=canvasOrthogonalPath(start,end,obstacles);if(!path)continue;
+      const candidate=canvasSimplify([a,...path,b]);if(!candidate.slice(1).every((p,i)=>canvasSegmentClear(candidate[i],p,rects)))continue;
+      points=candidate;break;
+    }if(points)break;
+  }
+  if(!points)return blocked();
+  const a=points[0],b=points.at(-1);
   let label={x:(a.x+b.x)/2,y:(a.y+b.y)/2},longest=-1;
   for(let i=1;i<points.length;i++){const p=points[i-1],q=points[i],length=Math.abs(q.x-p.x)+Math.abs(q.y-p.y);if(length>longest){longest=length;label={x:(p.x+q.x)/2,y:(p.y+q.y)/2};}}
   return {points,label,d:points.map((p,i)=>(i?'L ':'M ')+p.x+' '+p.y).join(' ')};

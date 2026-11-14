@@ -3,6 +3,7 @@ import type YouthGrowthIslandPlugin from "../main";
 import { ISLAND_UI_HTML } from "../ui/template";
 import { bootPrototypeRuntime } from "../runtime/prototypeScript";
 import { globalIslandEventBus } from "../core/EventBus";
+import { installMobileGestureIsolation } from "../core/MobileGestureIsolation";
 
 export const VIEW_TYPE_YOUTH_ISLAND = "youth-holistic-growth-island-view";
 
@@ -12,6 +13,7 @@ export class YouthIslandView extends ItemView {
   private stateChangeHandler: (() => void) | null = null;
   private disposeRuntime: (() => void) | null = null;
   private bodyClasses = new Map<string, boolean>();
+  private disposeGestureIsolation: (() => void) | null = null;
 
   constructor(leaf: WorkspaceLeaf, plugin: YouthGrowthIslandPlugin) {
     super(leaf);
@@ -98,6 +100,7 @@ export class YouthIslandView extends ItemView {
     const rootWrapper = contentEl.createDiv({
       cls: "youth-island-plugin-root youth-island-obsidian-view-root",
     });
+    this.disposeGestureIsolation = installMobileGestureIsolation(rootWrapper, [contentEl, this.containerEl]);
     rootWrapper.innerHTML = ISLAND_UI_HTML;
 
     // Boot interactive runtime
@@ -108,6 +111,7 @@ export class YouthIslandView extends ItemView {
       await this.plugin.vaultStorage.hydrateRuntimeFromVault();
     } catch (error) {
       this.disposeRuntime?.(); this.disposeRuntime = null;
+      this.disposeGestureIsolation?.(); this.disposeGestureIsolation = null;
       for (const [cls, present] of this.bodyClasses) document.body.classList.toggle(cls, present);
       rootWrapper.empty();
       rootWrapper.createEl("p", { text: String(error instanceof Error ? error.message : error) });
@@ -316,8 +320,13 @@ export class YouthIslandView extends ItemView {
       (window as any).saveExecutionDraft?.();
       await this.plugin.vaultStorage.syncRuntimeToVault();
     }
+    catch (error) {
+      console.error("[YouthIsland] 视图关闭前保存未完成", error);
+      new Notice(`关闭前保存未完成：${error instanceof Error ? error.message : error}。下次打开会检查可恢复的待提交档案。`);
+    }
     finally {
       this.disposeRuntime?.(); this.disposeRuntime = null;
+      this.disposeGestureIsolation?.(); this.disposeGestureIsolation = null;
       this.hooksInstalled = false;
       for (const [cls, present] of this.bodyClasses) document.body.classList.toggle(cls, present);
       this.contentEl.empty();

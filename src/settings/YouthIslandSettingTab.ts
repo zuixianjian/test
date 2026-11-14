@@ -18,8 +18,19 @@ export class YouthIslandSettingTab extends PluginSettingTab {
       text: "🏝️ 终身岛民 · 青少儿全人成长与自主进化系统",
     });
     containerEl.createEl("p", {
-      text: "配置本地仓库存储路径、双链笔记生成与启动行为。",
+      text: `当前版本 v${this.plugin.manifest.version}。配置本地仓库存储路径、双链笔记生成与启动行为。`,
     });
+    const status = this.plugin.vaultStorage.getSaveStatus();
+    new Setting(containerEl)
+      .setName("成长数据保存状态")
+      .setDesc(status.error ? `保存未完成：${status.error}` : status.exportError ? `成长档案已保存，导出待重试：${status.exportError}` : status.lastSavedAt ? `最近保存：${new Date(status.lastSavedAt).toLocaleString()}` : "打开成长工作台后开始保存。")
+      .addButton(button => button.setButtonText("立即保存 / 重试").onClick(async () => {
+        try {
+          const saved = await this.plugin.vaultStorage.syncRuntimeToVault();
+          new Notice(saved ? "成长数据已保存。" : "请先打开成长工作台并成功读取档案。");
+        } catch (error) { new Notice(`保存未完成：${error instanceof Error ? error.message : error}`); }
+        this.display();
+      }));
 
     new Setting(containerEl)
       .setName("Vault 数据存储根目录")

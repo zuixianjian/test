@@ -10,7 +10,7 @@ export default async function({evaluate,send,designMode}){
   const drag=async(selector,dx,dy)=>{const r=await rect(selector),x=r.x+r.width/2,y=r.y+Math.min(15,r.height/2);await send('Input.dispatchMouseEvent',{type:'mousePressed',x,y,button:'left',clickCount:1});for(let i=1;i<=4;i++)await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:x+dx*i/4,y:y+dy*i/4,button:'left',buttons:1});await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:x+dx,y:y+dy,button:'left',clickCount:1});await pause();};
   if(!designMode)await evaluate(`(async()=>{
     document.querySelector('.youth-island-plugin-root').innerHTML=Harness.ISLAND_UI_HTML;document.body.classList.add('youth-island-tablet-fullscreen');
-    const files=new Map(),adapter={exists:async p=>files.has(p),read:async p=>files.get(p),write:async(p,t)=>files.set(p,t),writeBinary:async(p,b)=>files.set(p,b),getResourcePath:p=>p,rename:async(a,b)=>{files.set(b,files.get(a));files.delete(a);}};
+    const files=new Map(),adapter={exists:async p=>files.has(p),read:async p=>files.get(p),write:async(p,t)=>files.set(p,t),writeBinary:async(p,b)=>files.set(p,b),getResourcePath:p=>p,remove:async p=>{files.delete(p);},rename:async(a,b)=>{if(files.has(b))throw new Error('Destination file already exists!');files.set(b,files.get(a));files.delete(a);}};
     window.__canvasTestStorage=new Harness.VaultStorageAdapter({vault:{adapter,createFolder:async p=>files.set(p,'folder')}},()=>({vaultRootFolder:'canvas-test',autoSyncVaultMarkdown:true}));
     window.__canvasDispose=Harness.bootPrototypeRuntime();await window.__canvasTestStorage.hydrateRuntimeFromVault();window.restoreBusinessViews();
   })()`);
@@ -99,5 +99,5 @@ export default async function({evaluate,send,designMode}){
   check(await evaluate("window.readMindmapViewport().zoom===.7&&window.readMindmapViewport().x===135&&window.getDomainState().viewports.projects['camera-second'].zoom===1.4"),'project viewports survive a complete runtime restart');
   await evaluate("window.switchMainSection('island');window.switchHomeGlobalView('plan');");check(await evaluate("window.readPlanViewport().zoom===.8&&window.readPlanViewport().x===37&&window.readPlanViewport().y===65"),'planning viewport restores after a complete runtime restart');await evaluate("window.enterTertiaryWorkspace('canvas-interactions')");
   await evaluate("window.fitCanvasView();window.openEdgePopover('edge-default');");
-  return {version:'1.1.4',suite:'canvas',checks,screenshot:true,capturePages:[{name:designMode?'planning-design':'planning-plugin',code:"window.switchMainSection('island');window.switchHomeGlobalView('plan');window.fitHomeCanvasView();"}]};
+  return {version:'1.1.5',suite:'canvas',checks,screenshot:true,capturePages:[{name:designMode?'planning-design':'planning-plugin',code:"window.switchMainSection('island');window.switchHomeGlobalView('plan');window.fitHomeCanvasView();"}]};
 }

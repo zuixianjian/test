@@ -17,6 +17,11 @@ export class VaultStorageAdapter {
   private disposed = false;
   private blocked = false;
   private capturing = false;
+  private lastSaveError = "";
+  private lastExportError = "";
+  private lastSavedAt: string | null = null;
+  private lastNotice = "";
+  private lastNoticeAt = 0;
   constructor(private app: App, private getSettings: () => YouthIslandPluginSettings) {}
 
   private resolvePath(relative: string): string {
@@ -38,11 +43,13 @@ export class VaultStorageAdapter {
     }
   }
   private async writeText(relative: string, text: string): Promise<void> {
+    try {
     const path = this.resolvePath(relative);
     await this.ensureFolder(path.slice(0, path.lastIndexOf("/")));
     const adapter = this.app.vault.adapter;
     if (await adapter.exists(path) && await adapter.read(path) === text) return;
     await adapter.write(path, text);
+    } catch (error) { throw new Error(`${relative}：${error instanceof Error ? error.message : error}`); }
   }
   private async writeJson(path: string, value: unknown): Promise<void> {
     await this.writeText(path, JSON.stringify(value, null, 2));
@@ -52,6 +59,56 @@ export class VaultStorageAdapter {
     if (!(await this.app.vault.adapter.exists(full))) return undefined;
     // A parse/read failure is not an empty vault: never overwrite the damaged original.
     return JSON.parse(await this.app.vault.adapter.read(full));
+  }
+
+  public getSaveStatus(): { lastSavedAt: string | null; error: string; exportError: string } {
+    return { lastSavedAt: this.lastSavedAt, error: this.lastSaveError, exportError: this.lastExportError };
+  }
+  private reportSaveProblem(message: string): void {
+    if (message !== this.lastNotice || Date.now() - this.lastNoticeAt > 30000) {
+      this.lastNotice = message; this.lastNoticeAt = Date.now(); new Notice(message);
+    }
+  }
+  /** A recoverable write-ahead journal. DataAdapter.rename rejects existing destinations. */
+  private async commitJson(relative: string, value: unknown): Promise<void> {
+    const pending = relative.replace(/\.json$/, ".pending.json"), backup = relative.replace(/\.json$/, ".previous.json");
+    const adapter = this.app.vault.adapter, full = this.resolvePath(relative), text = JSON.stringify(value, null, 2);
+    let previous: string | undefined;
+    if (await adapter.exists(full)) previous = await adapter.read(full);
+    try {
+      await this.writeText(pending, text);
+      if (await adapter.read(this.resolvePath(pending)) !== text) throw new Error("待提交文件校验失败");
+      if (previous !== undefined) {
+        let valid = false; try { JSON.parse(previous); valid = true; } catch { /* Corrupt cache is archived by the caller. */ }
+        if (valid) await this.writeText(backup, previous);
+      }
+      await this.writeText(relative, text);
+      if (await adapter.read(full) !== text) throw new Error("主文件写入校验失败");
+    } catch (error) {
+      // Keep the newest pending payload for retry/restart recovery; restore the
+      // old primary after a partial write when the adapter is still writable.
+      if (previous !== undefined) { try { await adapter.write(full, previous); } catch { /* Both the journal and backup remain available. */ } }
+      throw new Error(`${relative}：${error instanceof Error ? error.message : error}`);
+    }
+    try { if (typeof adapter.remove === "function") await adapter.remove(this.resolvePath(pending)); } catch { /* Equal-revision journal is harmless. */ }
+  }
+  private async readDomainCommit(): Promise<any> {
+    let primary: any, primaryError: unknown;
+    try { primary = await this.readJson("00_Island_Core/domain_state.json"); } catch (error) { primaryError = error; }
+    let pending: any;
+    try { pending = await this.readJson("00_Island_Core/domain_state.pending.json"); } catch { /* Preserve an unreadable journal; do not use it as a fact source. */ }
+    const valid = (value: any) => value?.schemaVersion === 3 && Array.isArray(value.projects) && Array.isArray(value.records) && value.nodesByProject && value.stores;
+    if (valid(pending) && (primaryError || !primary || (pending.storageRevision || 0) > (primary.storageRevision || 0))) {
+      if (primaryError) {
+        const raw = await this.app.vault.adapter.read(this.resolvePath("00_Island_Core/domain_state.json"));
+        await this.writeText(`00_Island_Core/domain_state.corrupt-${Date.now()}.json`, raw);
+      }
+      await this.commitJson("00_Island_Core/domain_state.json", pending);
+      this.lastSavedAt = new Date().toISOString();
+      return pending;
+    }
+    if (primaryError) throw primaryError;
+    return primary;
   }
 
   public async ensureVaultStructure(): Promise<void> {
@@ -67,7 +124,7 @@ export class VaultStorageAdapter {
     this.blocked = false;
     const win = window as any;
     try {
-      const primary = await this.readJson("00_Island_Core/domain_state.json");
+      const primary = await this.readDomainCommit();
       if (primary && (primary.schemaVersion !== 3 || !Array.isArray(primary.projects) || !Array.isArray(primary.records))) throw new Error("领域档案结构不正确，已暂停保存");
       let snapshot: any;
       try { snapshot = await this.readJson(SNAPSHOT); }
@@ -178,7 +235,8 @@ export class VaultStorageAdapter {
       this.syncTimer = null;
       void this.syncRuntimeToVault().catch(error => {
         console.error("[YouthIsland] 保存失败", error);
-        new Notice("成长数据保存失败，请检查仓库空间与文件权限；当前内容仍保留在界面中。");
+        this.lastSaveError = error instanceof Error ? error.message : String(error);
+        this.reportSaveProblem("成长数据保存失败：" + this.lastSaveError + "。当前界面内容未清空，请重试保存。");
       });
     }, delay);
   }
@@ -204,7 +262,8 @@ export class VaultStorageAdapter {
       await this.persist(copy);
     });
     this.queue = save;
-    await save;
+    try { await save; this.lastSaveError = ""; }
+    catch (error) { this.lastSaveError = error instanceof Error ? error.message : String(error); throw error; }
     return true;
   }
 
@@ -213,17 +272,17 @@ export class VaultStorageAdapter {
     const fullSnapshot = this.resolvePath(SNAPSHOT);
     const adapter = this.app.vault.adapter;
     if (state.DOMAIN_STATE) {
-      const previousDomain = await this.readJson("00_Island_Core/domain_state.json");
+      const previousDomain = await this.readDomainCommit();
       const revision = Math.max(Date.now(), (previousDomain?.storageRevision || 0) + 1);
       state.DOMAIN_STATE.storageRevision = revision;
       state.DOMAIN_STATE.projects = state.GANTT_PROJECTS;
       state.DOMAIN_STATE.nodesByProject = Object.fromEntries(Object.entries(state.PROJECT_CANVAS_STORE || {}).filter(([, data]: any) => Array.isArray(data.nodes)).map(([id, data]: any) => [id, data.nodes]));
       state.DOMAIN_STATE.edgesByProject = Object.fromEntries(Object.entries(state.PROJECT_CANVAS_STORE || {}).map(([id, data]: any) => [id, data.edges || []]));
       state.DOMAIN_STATE.stores = Object.fromEntries(STORES.filter(key => !["DOMAIN_STATE", "GANTT_PROJECTS", "PROJECT_CANVAS_STORE", "WEEK_BOARD_DATA", "TASK_HISTORY_BY_DATE"].includes(key)).map(key => [key, state[key]]));
-      await this.writeJson("00_Island_Core/domain_state.pending.json", state.DOMAIN_STATE);
-      if (previousDomain) await this.writeJson("00_Island_Core/domain_state.previous.json", previousDomain);
-      await adapter.rename(this.resolvePath("00_Island_Core/domain_state.pending.json"), this.resolvePath("00_Island_Core/domain_state.json"));
+      await this.commitJson("00_Island_Core/domain_state.json", state.DOMAIN_STATE);
+      this.lastSavedAt = new Date().toISOString();
     }
+    try {
     // Commit the primary snapshot first; derived exports can always be regenerated.
     if (await adapter.exists(fullSnapshot)) {
       const previous = await adapter.read(fullSnapshot);
@@ -235,9 +294,8 @@ export class VaultStorageAdapter {
         await this.writeText(`00_Island_Core/app_state_snapshot.corrupt-${Date.now()}.json`, previous);
       }
     }
-    const pending = "00_Island_Core/app_state_snapshot.pending.json";
-    await this.writeJson(pending, state);
-    await adapter.rename(this.resolvePath(pending), fullSnapshot);
+    await this.commitJson(SNAPSHOT, state);
+    if (!this.lastSavedAt) this.lastSavedAt = new Date().toISOString();
     await this.writeJson("00_Island_Core/user_profile.json", state.USER_PROFILE_STATE);
     await this.writeJson("00_Island_Core/island_settings.json", state.USER_PROFILE_STATE.settings || {});
     await this.writeJson("00_Island_Core/island_topology.json", state.PAVILION_META);
@@ -281,6 +339,13 @@ export class VaultStorageAdapter {
       if (!(await adapter.exists(this.resolvePath(code)))) await this.writeText(code, "---\ntype: personal-constitution\n---\n\n# 个人行为规范\n\n请在亲子共同讨论后，记录已确立的行为规范。\n");
     }
     globalIslandEventBus.emit("vault:synced", { timestamp: state.updatedAt });
+    this.lastExportError = "";
+    } catch (error) {
+      if (!state.DOMAIN_STATE) throw error;
+      this.lastExportError = error instanceof Error ? error.message : String(error);
+      console.error("[YouthIsland] 主档案已保存，导出未完成", error);
+      this.reportSaveProblem("成长数据已保存，但笔记或缓存导出未完成：" + this.lastExportError + "。下次保存会重试导出。");
+    }
   }
 
   public async saveAttachment(file: File): Promise<{ path: string; url: string }> {
@@ -342,6 +407,6 @@ export class VaultStorageAdapter {
   public async dispose(): Promise<void> {
     this.disposed = true;
     if (this.syncTimer) { clearTimeout(this.syncTimer); this.syncTimer = null; }
-    await this.queue;
+    await this.queue.catch(() => {});
   }
 }
