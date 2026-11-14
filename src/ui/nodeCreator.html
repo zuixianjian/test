@@ -1,0 +1,21 @@
+<div class="workbench-modal-backdrop node-creator-modal" id="modal-tertiary-add-node" role="dialog" aria-modal="true" aria-labelledby="node-creator-title" onkeydown="handleNodeCreatorKeydown(event)" onclick="handleTertiaryAddNodeBackdropClick(event)">
+  <div class="workbench-window node-creator-window" onclick="event.stopPropagation()">
+    <header class="node-creator-header">
+      <div><h2 id="node-creator-title">新增节点</h2><p id="node-creator-project">先选择卡片类型，再填写节点内容</p></div>
+      <button type="button" class="node-creator-close" aria-label="关闭新增节点" onclick="closeTertiaryAddNodeModal()">✕</button>
+    </header>
+    <div class="node-creator-types" role="tablist" aria-label="选择卡片类型">
+      <button type="button" role="tab" id="node-creator-tab-goal" data-creator-type="goal" aria-controls="node-creator-card" aria-selected="false" tabindex="-1" onclick="selectNodeCreatorType('goal')">🎯 <span>目标分解</span></button>
+      <button type="button" role="tab" id="node-creator-tab-drill" data-creator-type="drill" aria-controls="node-creator-card" aria-selected="true" onclick="selectNodeCreatorType('drill')">⚡ <span>攻坚实训</span></button>
+      <button type="button" role="tab" id="node-creator-tab-habit" data-creator-type="habit" aria-controls="node-creator-card" aria-selected="false" tabindex="-1" onclick="selectNodeCreatorType('habit')">🌿 <span>习惯践行</span></button>
+      <button type="button" role="tab" id="node-creator-tab-review" data-creator-type="review" aria-controls="node-creator-card" aria-selected="false" tabindex="-1" onclick="selectNodeCreatorType('review')">📝 <span>评估复盘</span></button>
+      <button type="button" role="tab" id="node-creator-tab-custom" data-creator-type="custom" aria-controls="node-creator-card" aria-selected="false" tabindex="-1" onclick="selectNodeCreatorType('custom')">⚙️ <span>自定义</span></button>
+      <button type="button" role="tab" id="node-creator-tab-text" data-creator-type="text" aria-controls="node-creator-card" aria-selected="false" tabindex="-1" onclick="selectNodeCreatorType('text')">📄 <span>文本便签</span></button>
+    </div>
+    <div class="node-creator-body"><article id="node-creator-card" class="node-creator-card" role="tabpanel" aria-labelledby="node-creator-tab-drill" data-node-type="drill" oninput="captureNodeCreatorDraft()" onchange="captureNodeCreatorDraft()"></article></div>
+    <footer class="node-creator-footer">
+      <div><p id="node-creator-hint">填写规划标准，执行时再提交实际结果。</p><p id="node-creator-error" role="alert"></p></div>
+      <div class="node-creator-actions"><button type="button" class="node-creator-cancel" onclick="closeTertiaryAddNodeModal()">取消</button><button type="button" id="node-creator-submit" class="node-creator-submit" onclick="submitNodeCreator()">添加到画布</button></div>
+    </footer>
+  </div>
+</div>

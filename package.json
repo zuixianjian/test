@@ -1,6 +1,6 @@
 {
   "name": "youth-holistic-growth-island",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "description": "终身岛民 · 青少儿全人成长与自主进化系统 Obsidian Plugin",
   "main": "main.js",
   "scripts": {
@@ -20,7 +20,9 @@
     "test:cards": "node scripts/audit_browser.mjs scripts/test_node_cards_scenarios.mjs",
     "test:cards:design": "node scripts/audit_browser.mjs scripts/test_node_cards_scenarios.mjs --design",
     "test:execution": "node scripts/audit_browser.mjs scripts/test_execution_queue_scenarios.mjs",
-    "test:execution:design": "node scripts/audit_browser.mjs scripts/test_execution_queue_scenarios.mjs --design"
+    "test:execution:design": "node scripts/audit_browser.mjs scripts/test_execution_queue_scenarios.mjs --design",
+    "test:creator": "node scripts/audit_browser.mjs scripts/test_node_creator_scenarios.mjs",
+    "test:creator:design": "node scripts/audit_browser.mjs scripts/test_node_creator_scenarios.mjs --design"
   },
   "keywords": [
     "obsidian-plugin",

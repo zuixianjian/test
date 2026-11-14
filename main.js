@@ -663,7 +663,7 @@ ${(n.cardPayload?.metrics || []).map((m) => `${m.name}: ${m.targetValue}`).join(
 var import_obsidian2 = require("obsidian");
 
 // src/ui/template.ts
-var ISLAND_UI_HTML = `<div class="global-header product-contract-banner" data-product-contract="3">1.1.8 \u95ED\u73AF\u4EA4\u4E92\u9884\u89C8 \xB7 \u6309\u9879\u76EE/\u8282\u70B9/\u6BCF\u65E5\u4EFB\u52A1\u5B9E\u4F8B\u5173\u8054 \xB7 \u672C\u9884\u89C8\u6570\u636E\u4FDD\u5B58\u5728\u5F53\u524D\u6D4F\u89C8\u5668\uFF0C\u7EC4\u4EF6\u753B\u677F\u6837\u4F8B\u4E0D\u8BA1\u4E3A\u5B9E\u9645\u6267\u884C</div>
+var ISLAND_UI_HTML = `<div class="global-header product-contract-banner" data-product-contract="3">1.1.9 \u95ED\u73AF\u4EA4\u4E92\u9884\u89C8 \xB7 \u6309\u9879\u76EE/\u8282\u70B9/\u6BCF\u65E5\u4EFB\u52A1\u5B9E\u4F8B\u5173\u8054 \xB7 \u672C\u9884\u89C8\u6570\u636E\u4FDD\u5B58\u5728\u5F53\u524D\u6D4F\u89C8\u5668\uFF0C\u7EC4\u4EF6\u753B\u677F\u6837\u4F8B\u4E0D\u8BA1\u4E3A\u5B9E\u9645\u6267\u884C</div>
   <!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5907\u63A7\u5236\u4E0E\u4E3B\u6A21\u6001\u5207\u6362) -->
   <header class="global-header">
     <div class="system-title-group">
@@ -3237,391 +3237,25 @@ var ISLAND_UI_HTML = `<div class="global-header product-contract-banner" data-pr
 </div>
 
 <!-- 2. \u65B0\u589E\u653B\u575A\u8282\u70B9\u5F39\u7A97 (\u652F\u6301\u4E0D\u53EF\u64CD\u4F5C\u8282\u70B9\u4E0E\u53EF\u64CD\u4F5C\u6253\u5361\u8282\u70B9\uFF0C\u652F\u6301\u6279\u91CF\u6DFB\u52A0) -->
-<div class="workbench-modal-backdrop" id="modal-tertiary-add-node" onclick="handleTertiaryAddNodeBackdropClick(event)">
-  <div class="workbench-window" onclick="event.stopPropagation()" style="max-width: 860px; height: auto; max-height: 90vh;">
-    <div class="workbench-header" style="background: linear-gradient(135deg, #eff6ff, #f0fdf4); border-bottom: 2px solid #3b82f6;">
-      <div class="wb-title-group">
-        <div class="wb-icon" style="border-color:#3b82f6;">\u2795</div>
-        <div class="wb-title-texts">
-          <h2 style="color:#1e3a8a;">\u2795 \u65B0\u589E\u4E09\u7EA7\u4EFB\u52A1\u8282\u70B9\uFF08\u{1F4DA} \u901A\u7528\u5361\u7247\u539F\u578B\u5E93 \xB7 \u652F\u6301\u81EA\u5B9A\u4E49\u53C2\u6570\u3001\u5355\u52A0\u4E0E\u6279\u91CF\u6DFB\u52A0\uFF09</h2>
-          <p style="color:#047857;">\u5168\u7CFB\u7EDF\u7EDF\u4E00\u6536\u655B\u4E3A\u901A\u7528\u5361\u7247\u539F\u578B\u4F53\u7CFB\uFF0C\u652F\u6301\u81EA\u5B9A\u4E49\u5361\u7247\u5B57\u6BB5\u6570\u91CF\uFF08\u81EA\u4E3B\u589E\u5220\uFF09\u3001\u6253\u5361\u8981\u6C42\uFF0C\u4EE5\u53CA\u7EAF\u67E5\u9605\u514D\u64CD\u4F5C\u7684\u7B80\u5355\u6587\u672C\u8282\u70B9</p>
-        </div>
-      </div>
-      <button class="wb-close-btn" onclick="closeTertiaryAddNodeModal()">\u2715</button>
+<div class="workbench-modal-backdrop node-creator-modal" id="modal-tertiary-add-node" role="dialog" aria-modal="true" aria-labelledby="node-creator-title" onkeydown="handleNodeCreatorKeydown(event)" onclick="handleTertiaryAddNodeBackdropClick(event)">
+  <div class="workbench-window node-creator-window" onclick="event.stopPropagation()">
+    <header class="node-creator-header">
+      <div><h2 id="node-creator-title">\u65B0\u589E\u8282\u70B9</h2><p id="node-creator-project">\u5148\u9009\u62E9\u5361\u7247\u7C7B\u578B\uFF0C\u518D\u586B\u5199\u8282\u70B9\u5185\u5BB9</p></div>
+      <button type="button" class="node-creator-close" aria-label="\u5173\u95ED\u65B0\u589E\u8282\u70B9" onclick="closeTertiaryAddNodeModal()">\u2715</button>
+    </header>
+    <div class="node-creator-types" role="tablist" aria-label="\u9009\u62E9\u5361\u7247\u7C7B\u578B">
+      <button type="button" role="tab" id="node-creator-tab-goal" data-creator-type="goal" aria-controls="node-creator-card" aria-selected="false" tabindex="-1" onclick="selectNodeCreatorType('goal')">\u{1F3AF} <span>\u76EE\u6807\u5206\u89E3</span></button>
+      <button type="button" role="tab" id="node-creator-tab-drill" data-creator-type="drill" aria-controls="node-creator-card" aria-selected="true" onclick="selectNodeCreatorType('drill')">\u26A1 <span>\u653B\u575A\u5B9E\u8BAD</span></button>
+      <button type="button" role="tab" id="node-creator-tab-habit" data-creator-type="habit" aria-controls="node-creator-card" aria-selected="false" tabindex="-1" onclick="selectNodeCreatorType('habit')">\u{1F33F} <span>\u4E60\u60EF\u8DF5\u884C</span></button>
+      <button type="button" role="tab" id="node-creator-tab-review" data-creator-type="review" aria-controls="node-creator-card" aria-selected="false" tabindex="-1" onclick="selectNodeCreatorType('review')">\u{1F4DD} <span>\u8BC4\u4F30\u590D\u76D8</span></button>
+      <button type="button" role="tab" id="node-creator-tab-custom" data-creator-type="custom" aria-controls="node-creator-card" aria-selected="false" tabindex="-1" onclick="selectNodeCreatorType('custom')">\u2699\uFE0F <span>\u81EA\u5B9A\u4E49</span></button>
+      <button type="button" role="tab" id="node-creator-tab-text" data-creator-type="text" aria-controls="node-creator-card" aria-selected="false" tabindex="-1" onclick="selectNodeCreatorType('text')">\u{1F4C4} <span>\u6587\u672C\u4FBF\u7B7E</span></button>
     </div>
-
-    <div class="workbench-body" style="padding: 16px 22px; display: flex; flex-direction: column; gap: 14px; max-height: calc(90vh - 130px); overflow-y: auto;">
-      
-      <!-- \u901A\u7528\u5361\u7247\u539F\u578B\u5E93\u9762\u677F (#panel-node-template-library \xB7 \u5DF2\u53BB\u9664\u91CD\u53E0\u7684\u81EA\u5B9A\u4E49\u521B\u5EFA\u901A\u7528\u5361\u7247\u9875\u7B7E\uFF0C\u76F4\u63A5\u5C55\u793A\u539F\u578B\u5E93) -->
-      <div id="panel-node-template-library" style="display: flex; flex-direction: column; gap: 14px;">
-        <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:10px 14px; font-size:11.5px; color:#1e40af; display:flex; align-items:center; gap:8px;">
-          <span style="font-size:16px;">\u{1F4A1}</span>
-          <span><strong>\u901A\u7528\u5361\u7247\u539F\u578B\u5E93</strong>\uFF1A\u5168\u7CFB\u7EDF\u6240\u6709\u4EFB\u52A1\u4E0E\u77E5\u8BC6\u8282\u70B9\u7EDF\u4E00\u6536\u655B\u4E8E\u6807\u51C6\u901A\u7528\u5361\u7247\u3002\u5305\u542B <strong>\u2699\uFE0F \u81EA\u5B9A\u4E49\u914D\u7F6E\u5361</strong>\uFF08\u81EA\u5B9A\u4E49\u5B57\u6BB5\u6570\u91CF\u7531\u60A8\u81EA\u5B9A\uFF0C\u53EF\u81EA\u7531\u589E\u51CF\u3001\u914D\u7F6E\u6253\u5361\u4E0E\u7269\u8BC1\uFF09\u4E0E <strong>\u{1F4C4} \u7B80\u5355\u6587\u672C\u8282\u70B9</strong>\uFF08\u7EAF\u6587\u672C\u5C55\u793A\u3001\u4EC5\u4F9B\u67E5\u9605\u3001\u65E0\u9700\u4EFB\u4F55\u64CD\u4F5C\uFF09\u3002\u5728\u539F\u578B\u5E93\u4E2D\u53EF\u5373\u65F6\u7F16\u8F91\u53C2\u6570\u5E76\u5355\u52A0\u6216\u6279\u91CF\u6392\u5165\u753B\u5E03\uFF01</span>
-        </div>
-
-        <div class="node-picker-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;">
-          <!-- 1. \u{1F3AF} \u76EE\u6807\u5206\u89E3\u5361\u539F\u578B -->
-          <div class="node-picker-card archetype-picker-card" id="picker-card-goal" style="background:#f0f7ff; border:1.5px solid #bfdbfe; border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:8px;" onclick="toggleNodePickerSelection('card-goal', this, event)">
-            <div class="node-picker-card-top" style="display:flex; align-items:center; gap:8px; border-bottom:1px solid #dbeafe; padding-bottom:8px;">
-              <input type="checkbox" class="node-picker-checkbox" data-type="card-goal" onclick="event.stopPropagation(); updateNodePickerBatchCount();">
-              <span class="node-picker-icon" style="font-size:20px;">\u{1F3AF}</span>
-              <div class="node-picker-info" style="flex:1;">
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:4px;">
-                  <span class="node-picker-name" style="font-size:13px; font-weight:850; color:#1e3a8a;">\u{1F3AF} \u76EE\u6807\u5206\u89E3\u5361 (Goal)</span>
-                  <span class="node-picker-cat-badge non-actionable" style="font-size:9.5px; padding:2px 6px; background:#dbeafe; color:#1e40af; border-radius:4px; font-weight:800;">\u591A\u6307\u6807 \xB7 \u4EA4\u4ED8\u6C89\u6DC0</span>
-                </div>
-                <div class="node-picker-desc" style="font-size:10.5px; color:#3b82f6;">\u652F\u6301\u81EA\u5B9A\u4E49\u589E\u5220\u591A\u9879\u91CF\u5316\u901A\u5173\u6307\u6807\u3001\u9009\u62E9\u622A\u6B62\u65F6\u95F4\u3001\u63D0\u4EA4\u7167\u7247/\u6587\u5B57\u4EA4\u4ED8\u7269\u5E76\u6C89\u6DC0\u5230\u6210\u5C31\u9986</div>
-              </div>
-            </div>
-            
-            <!-- \u4E13\u5C5E\u4FE1\u606F\u5F55\u5165\u533A -->
-            <div class="node-picker-fields-container" style="display:flex; flex-direction:column; gap:6px;" onclick="event.stopPropagation()">
-              <div>
-                <label style="display:block; font-size:10.5px; font-weight:800; color:#1e3a8a; margin-bottom:2px;">\u{1F4CC} \u76EE\u6807\u5927\u5B57\u6807\u9898</label>
-                <input type="text" id="node-title-card-goal" class="add-module-text-input" value="\u8FDB\u9000\u4F4D\u53E3\u7B97\u6EE1\u5206\u8FBE\u6807\u76EE\u6807" style="width:100%; box-sizing:border-box; height:28px; font-size:11px; padding:2px 8px; font-weight:800;">
-              </div>
-              <div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
-                  <label style="font-size:10.5px; font-weight:800; color:#1e3a8a;">\u{1F3AF} \u91CF\u5316\u901A\u5173\u6307\u6807 (\u53EF\u589E\u5220\u591A\u9879)</label>
-                  <button type="button" onclick="addGoalMetricModalRow('picker-goal-metrics-list')" style="padding:1px 7px; font-size:10px; font-weight:800; background:#2563eb; color:#fff; border:none; border-radius:4px; cursor:pointer;">\u2795 \u65B0\u589E\u6307\u6807</button>
-                </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr 24px; gap:4px; font-size:9.5px; font-weight:800; color:#1e40af; padding:0 2px;">
-                  <span>\u6307\u6807\u540D</span>
-                  <span>\u6307\u6807\u6570\u636E</span>
-                  <span></span>
-                </div>
-                <div id="picker-goal-metrics-list" style="display:flex; flex-direction:column; gap:4px;">
-                  <div class="goal-metric-row" style="display:grid; grid-template-columns:1fr 1fr 24px; align-items:center; gap:4px;">
-                    <input type="text" class="add-module-text-input goal-metric-name" value="\u5355\u5143\u53E3\u7B97\u6B63\u786E\u7387" placeholder="\u6307\u6807\u540D" style="width:100%; box-sizing:border-box; height:25px; font-size:10.5px; padding:2px 6px;">
-                    <input type="text" class="add-module-text-input goal-metric-val" value="\u2265 98%" placeholder="\u6307\u6807\u6570\u636E" style="width:100%; box-sizing:border-box; height:25px; font-size:10.5px; padding:2px 6px; font-weight:800; color:#15803d;">
-                    <button type="button" onclick="removeGoalMetricModalRow(this)" style="height:25px; padding:0; font-size:10px; font-weight:800; background:#fef2f2; color:#dc2626; border:1px solid #fecaca; border-radius:4px; cursor:pointer;">\u2715</button>
-                  </div>
-                  <div class="goal-metric-row" style="display:grid; grid-template-columns:1fr 1fr 24px; align-items:center; gap:4px;">
-                    <input type="text" class="add-module-text-input goal-metric-name" value="\u8FDB\u9000\u4F4D\u5FC3\u7B97\u63D0\u5206" placeholder="\u6307\u6807\u540D" style="width:100%; box-sizing:border-box; height:25px; font-size:10.5px; padding:2px 6px;">
-                    <input type="text" class="add-module-text-input goal-metric-val" value="Delta +15 \u5206" placeholder="\u6307\u6807\u6570\u636E" style="width:100%; box-sizing:border-box; height:25px; font-size:10.5px; padding:2px 6px; font-weight:800; color:#15803d;">
-                    <button type="button" onclick="removeGoalMetricModalRow(this)" style="height:25px; padding:0; font-size:10px; font-weight:800; background:#fef2f2; color:#dc2626; border:1px solid #fecaca; border-radius:4px; cursor:pointer;">\u2715</button>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <label style="display:block; font-size:10.5px; font-weight:800; color:#1e3a8a; margin-bottom:2px;">\u{1F4C5} \u671F\u671B\u5B8C\u6210\u622A\u6B62\u65F6\u95F4 (\u70B9\u51FB\u9009\u62E9\u65E5\u671F\u4E0E\u65F6\u95F4)</label>
-                <input type="datetime-local" id="node-deadline-card-goal" class="add-module-text-input" value="2026-11-15T20:00" onclick="if(this.showPicker) this.showPicker();" style="width:100%; box-sizing:border-box; height:27px; font-size:10.5px; padding:2px 6px; cursor:pointer;">
-              </div>
-              <div>
-                <label style="display:block; font-size:10.5px; font-weight:800; color:#1e3a8a; margin-bottom:2px;">\u{1F4CB} \u901A\u5173\u9A8C\u6536\u4EA4\u4ED8\u6807\u51C6\u4E0E\u8981\u9886</label>
-                <textarea id="node-acceptance-card-goal" class="add-module-text-input" style="width:100%; box-sizing:border-box; height:36px; font-size:10.5px; padding:3px 6px; resize:vertical;">\u5B8C\u6210\u7834\u5341\u6CD5\u601D\u7EF4\u5B9E\u8BAD\u4E0E 3 \u6B21\u9650\u65F6\u6253\u5361\uFF0C\u9519\u9898\u7EA2\u7B14\u5F52\u56E0\u6E05\u96F6\u3002</textarea>
-              </div>
-              <div style="background:#fffbeb; border:1px solid #fcd34d; border-radius:6px; padding:5px 7px; display:flex; flex-direction:column; gap:4px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
-                  <label style="font-size:10px; font-weight:850; color:#92400e; white-space:nowrap;">\u{1F4E6} \u4EA4\u4ED8\u7269\u63D0\u4EA4:</label>
-                  <select id="node-deliverable-type-card-goal" class="add-module-text-input" onchange="switchModalGoalDeliverable('picker', this.value)" style="flex:1; height:24px; font-size:10px; font-weight:800; color:#92400e; padding:1px 4px; background:#fff; border:1px solid #f59e0b; cursor:pointer;">
-                    <option value="photo" selected>\u{1F4F7} \u62CD\u7167\u63D0\u4EA4</option>
-                    <option value="video">\u{1F3A5} \u89C6\u9891\u63D0\u4EA4</option>
-                    <option value="text">\u270D\uFE0F \u6587\u5B57\u8BB0\u5F55\u63D0\u4EA4</option>
-                  </select>
-                </div>
-                <div id="picker-goal-deliverable-media" onclick="createImageEvidencePrompt()" style="background:#fff; border:1px dashed #f59e0b; border-radius:4px; padding:4px 6px; font-size:9.5px; font-weight:800; color:#b45309; text-align:center; cursor:pointer;">
-                  \u{1F4F7} \u70B9\u51FB\u62CD\u7167\u6216\u4E0A\u4F20\u4EA4\u4ED8\u7269\u7167\u7247
-                </div>
-                <input type="text" id="node-deliverable-card-goal" class="add-module-text-input" value="\u5DF2\u5B8C\u6210\u9636\u6BB5\u76EE\u6807\u5168\u90E8\u6307\u6807\uFF0C\u9644\u6EE1\u5206\u901A\u5173\u6F14\u7B97\u624B\u7A3F\u3002" placeholder="\u270D\uFE0F \u8F93\u5165\u4EA4\u4ED8\u7269\u6587\u5B57\u8BB0\u5F55..." style="display:none; width:100%; box-sizing:border-box; height:24px; font-size:10px; padding:2px 6px; background:#fff;">
-              </div>
-            </div>
-
-            <div class="node-picker-card-actions" style="margin-top:auto; padding-top:6px; display:flex; justify-content:flex-end;" onclick="event.stopPropagation()">
-              <button type="button" class="node-quick-add-btn" onclick="quickAddSingleNode('card-goal')" style="padding:6px 14px; font-size:11px; font-weight:850; background:#2563eb; color:#fff; border:none; border-radius:6px; cursor:pointer;">\u26A1 \u7ACB\u5373\u5355\u52A0\u5230\u753B\u5E03</button>
-            </div>
-          </div>
-
-          <!-- 2. \u26A1 \u653B\u575A\u5B9E\u8BAD\u5361\u539F\u578B -->
-          <div class="node-picker-card archetype-picker-card" id="picker-card-drill" style="background:#fffdf5; border:1.5px solid #fde68a; border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:8px;" onclick="toggleNodePickerSelection('card-drill', this, event)">
-            <div class="node-picker-card-top" style="display:flex; align-items:center; gap:8px; border-bottom:1px solid #fef3c7; padding-bottom:8px;">
-              <input type="checkbox" class="node-picker-checkbox" data-type="card-drill" onclick="event.stopPropagation(); updateNodePickerBatchCount();">
-              <span class="node-picker-icon" style="font-size:20px;">\u26A1</span>
-              <div class="node-picker-info" style="flex:1;">
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:4px;">
-                  <span class="node-picker-name" style="font-size:13px; font-weight:850; color:#92400e;">\u26A1 \u653B\u575A\u5B9E\u8BAD\u5361 (Drill)</span>
-                  <span class="node-picker-cat-badge actionable" style="font-size:9.5px; padding:2px 6px; background:#fef3c7; color:#b45309; border-radius:4px; font-weight:800;">5\u5206\u949F\u8D77 \xB7 \u56FE\u6587\u5B9E\u8BAD</span>
-                </div>
-                <div class="node-picker-desc" style="font-size:10.5px; color:#d97706;">\u652F\u6301 5 \u5206\u949F\u8D77\u4E13\u6CE8\u8BA1\u65F6\u3001\u4E0A\u4F20\u5B9E\u8BAD\u56FE\u7247\u4E0E\u56FE\u7247\u8BF4\u660E\u3001\u62CD\u7167\u5B58\u8BC1\u4E0E\u6253\u5361\u5370\u7AE0</div>
-              </div>
-            </div>
-            
-            <!-- \u4E13\u5C5E\u4FE1\u606F\u5F55\u5165\u533A -->
-            <div class="node-picker-fields-container" style="display:flex; flex-direction:column; gap:6px;" onclick="event.stopPropagation()">
-              <div>
-                <label style="display:block; font-size:10.5px; font-weight:800; color:#78350f; margin-bottom:2px;">\u{1F4CC} \u5B9E\u8BAD\u5927\u5B57\u6807\u9898</label>
-                <input type="text" id="node-title-card-drill" class="add-module-text-input" value="\u7834\u5341\u6CD5\u5FC3\u7B97\u6781\u9650\u5B9E\u8BAD" style="width:100%; box-sizing:border-box; height:28px; font-size:11px; padding:2px 8px; font-weight:800;">
-              </div>
-              <div>
-                <label style="display:block; font-size:10.5px; font-weight:800; color:#78350f; margin-bottom:2px;">\u26A1 \u6838\u5FC3\u653B\u575A\u8981\u9886 / \u901A\u89E3\u6A21\u578B / \u52A8\u4F5C\u8981\u9886</label>
-                <textarea id="node-formula-card-drill" class="add-module-text-input" style="width:100%; box-sizing:border-box; height:38px; font-size:10.5px; padding:4px 8px; resize:vertical;">\u7834\u5341\u6CD5\u5FC3\u7B97\u901A\u89E3\u6A21\u578B\uFF1A23 - 8 = 13 + (10 - 8) = 15\uFF0C\u5341\u4F4D\u501F\u4E00\u5F53\u5341\uFF0C\u624B\u7A3F\u7EA2\u7B14\u6807\u51FA\u9000\u4F4D\u501F\u4F4D\u70B9\u3002</textarea>
-              </div>
-              <!-- \u56FE\u7247\u89C6\u9891\u8BF4\u660E\uFF08\u5355\u4E00\u4E0A\u4F20\u6846\u652F\u6301\u4E0A\u4F20\u56FE\u7247\u548C\u89C6\u9891 + \u8BF4\u660E\u8F93\u5165\uFF09 -->
-              <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:6px; padding:5px 7px; display:flex; flex-direction:column; gap:4px;">
-                <label style="font-size:10px; font-weight:850; color:#0369a1;">\u{1F3AC} \u56FE\u7247\u89C6\u9891\u8BF4\u660E</label>
-                <div onclick="createImageEvidencePrompt()" style="background:#fff; border:1.5px dashed #38bdf8; border-radius:5px; padding:5px 6px; font-size:10px; font-weight:800; color:#0284c7; text-align:center; cursor:pointer;">
-                  \u{1F4F7} / \u{1F3A5} \u70B9\u51FB\u4E0A\u4F20\u56FE\u7247\u6216\u89C6\u9891
-                </div>
-                <input type="text" id="node-imgdesc-card-drill" class="add-module-text-input" value="\u8FDB\u9000\u4F4D\u53E3\u7B97\u9898\u5361 30 \u9898\uFF0C\u7EA2\u7B14\u5708\u51FA\u501F\u4F4D\u9000\u4F4D\u70B9" placeholder="\u270D\uFE0F \u8F93\u5165\u56FE\u7247\u6216\u89C6\u9891\u8BF4\u660E..." style="width:100%; box-sizing:border-box; height:24px; font-size:10px; padding:2px 6px; background:#fff;">
-              </div>
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
-                <div>
-                  <label style="display:block; font-size:10px; font-weight:800; color:#78350f; margin-bottom:2px;">\u23F1\uFE0F \u8BA1\u5212\u4E13\u6CE8\u65F6\u957F (5\u5206\u949F\u8D77)</label>
-                  <select id="node-duration-card-drill" class="add-module-text-input" style="width:100%; box-sizing:border-box; height:26px; font-size:10.5px; padding:2px 6px;">
-                    <option value="5">\u23F1\uFE0F 5 \u5206\u949F (\u5FAE\u4E60\u60EF\u5FEB\u7EC3)</option>
-                    <option value="10">\u23F1\uFE0F 10 \u5206\u949F (\u8F7B\u91CF\u4E13\u653B)</option>
-                    <option value="15">\u23F1\uFE0F 15 \u5206\u949F (\u65E5\u5E38\u5FEB\u7EC3)</option>
-                    <option value="20" selected>\u23F1\uFE0F 20 \u5206\u949F (\u6807\u51C6\u63A8\u8350)</option>
-                    <option value="25">\u23F1\uFE0F 25 \u5206\u949F (\u6DF1\u5EA6\u756A\u8304)</option>
-                    <option value="30">\u23F1\uFE0F 30 \u5206\u949F (\u5F3A\u5316\u653B\u575A)</option>
-                    <option value="45">\u23F1\uFE0F 45 \u5206\u949F (\u5168\u5957\u6A21\u62DF)</option>
-                  </select>
-                </div>
-                <div>
-                  <label style="display:block; font-size:10px; font-weight:800; color:#78350f; margin-bottom:2px;">\u{1F4F7} \u7269\u8BC1\u4EA4\u4ED8\u8981\u6C42</label>
-                  <select id="node-evidence-card-drill" class="add-module-text-input" style="width:100%; box-sizing:border-box; height:26px; font-size:10.5px; padding:2px 6px;">
-                    <option value="image" selected>\u{1F4F7} \u62CD\u7167\u7269\u8BC1 (\u624B\u7A3F\u62CD\u7167)</option>
-                    <option value="video">\u{1F3A5} \u52A8\u4F5C\u89C6\u9891\u7269\u8BC1</option>
-                    <option value="timer">\u23F1\uFE0F \u7EAF\u5FC3\u6D41\u8BA1\u65F6\u6253\u5361</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div class="node-picker-card-actions" style="margin-top:auto; padding-top:6px; display:flex; justify-content:flex-end;" onclick="event.stopPropagation()">
-              <button type="button" class="node-quick-add-btn" onclick="quickAddSingleNode('card-drill')" style="padding:6px 14px; font-size:11px; font-weight:850; background:#d97706; color:#fff; border:none; border-radius:6px; cursor:pointer;">\u26A1 \u7ACB\u5373\u5355\u52A0\u5230\u753B\u5E03</button>
-            </div>
-          </div>
-
-          <!-- 3. \u{1F33F} \u4E60\u60EF\u8DF5\u884C\u5361\u539F\u578B -->
-          <div class="node-picker-card archetype-picker-card" id="picker-card-habit" style="background:#f0fdf4; border:1.5px solid #bbf7d0; border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:8px;" onclick="toggleNodePickerSelection('card-habit', this, event)">
-            <div class="node-picker-card-top" style="display:flex; align-items:center; gap:8px; border-bottom:1px solid #dcfce7; padding-bottom:8px;">
-              <input type="checkbox" class="node-picker-checkbox" data-type="card-habit" onclick="event.stopPropagation(); updateNodePickerBatchCount();">
-              <span class="node-picker-icon" style="font-size:20px;">\u{1F33F}</span>
-              <div class="node-picker-info" style="flex:1;">
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:4px;">
-                  <span class="node-picker-name" style="font-size:13px; font-weight:850; color:#14532d;">\u{1F33F} \u4E60\u60EF\u8DF5\u884C\u5361 (Habit)</span>
-                  <span class="node-picker-cat-badge actionable" style="font-size:9.5px; padding:2px 6px; background:#dcfce7; color:#047857; border-radius:4px; font-weight:800;">\u65E5\u5E38\u81EA\u5F8B \xB7 \u77E5\u884C\u5408\u4E00</span>
-                </div>
-                <div class="node-picker-desc" style="font-size:10.5px; color:#16a34a;">\u627F\u8F7D\u65E5\u5E38\u9AD8\u9891\u81EA\u5F8B\u9632\u5B88\u3001\u5723\u8D24\u539F\u5178\u6668\u8BFB\u4E0E\u8A00\u884C\u8EAC\u884C\uFF0C\u914D\u5907\u9632\u5B88\u6E05\u5355\u4E0E\u77E5\u884C\u5370\u7AE0</div>
-              </div>
-            </div>
-            
-            <!-- \u4E13\u5C5E\u4FE1\u606F\u5F55\u5165\u533A -->
-            <div class="node-picker-fields-container" style="display:flex; flex-direction:column; gap:6px;" onclick="event.stopPropagation()">
-              <div>
-                <label style="display:block; font-size:10.5px; font-weight:800; color:#14532d; margin-bottom:2px;">\u{1F4CC} \u4E60\u60EF\u65E5\u8BFE\u5927\u5B57\u6807\u9898</label>
-                <input type="text" id="node-title-card-habit" class="add-module-text-input" value="\u6BCF\u65E5\u53E3\u7B97\u81EA\u5F8B\u9632\u5B88\u65E5\u8BFE" style="width:100%; box-sizing:border-box; height:28px; font-size:11px; padding:2px 8px; font-weight:800;">
-              </div>
-              <div>
-                <label style="display:block; font-size:10.5px; font-weight:800; color:#14532d; margin-bottom:2px;">\u{1F33F} \u7ECF\u5178\u7ECF\u6587\u8BAD\u8BC2 / \u81EA\u5F8B\u9632\u5B88\u7EA2\u7EBF\u63D0\u793A</label>
-                <textarea id="node-quote-card-habit" class="add-module-text-input" style="width:100%; box-sizing:border-box; height:42px; font-size:10.5px; padding:4px 8px; resize:vertical;">\u81EA\u5F8B\u5B88\u5219\u4E0E\u5723\u8D24\u8BAD\u8BC2\uFF1A\u201C\u77E5\u4E4B\u8005\u4E0D\u5982\u597D\u4E4B\u8005\u201D\uFF1B\u606A\u5B88\u6BCF\u65E5\u6668\u95F4 15 \u5206\u949F\u65E0\u5E72\u6270\u53E3\u7B97\u76F2\u5237\u81EA\u5F8B\u9632\u5B88\u7EBF\u3002</textarea>
-              </div>
-              <div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
-                  <label style="font-size:10.5px; font-weight:800; color:#14532d;">\u{1F6E1}\uFE0F \u8DF5\u884C\u9632\u5B88\u6E05\u5355\u9879 (\u53EF\u589E\u5220\u591A\u9879)</label>
-                  <button type="button" onclick="addHabitChecklistModalRow('picker-habit-checklist-list')" style="padding:1px 7px; font-size:10px; font-weight:800; background:#059669; color:#fff; border:none; border-radius:4px; cursor:pointer;">\u2795 \u65B0\u589E\u6E05\u5355\u9879</button>
-                </div>
-                <div id="picker-habit-checklist-list" style="display:flex; flex-direction:column; gap:4px;">
-                  <div class="habit-checklist-row" style="display:grid; grid-template-columns:1fr 24px; align-items:center; gap:4px;">
-                    <input type="text" class="add-module-text-input habit-checklist-text" value="1. \u72EC\u7ACB\u5BA1\u9898\u4E0D\u4F9D\u8D56\u8349\u7A3F" placeholder="\u8F93\u5165\u8DF5\u884C\u9632\u5B88\u6E05\u5355\u9879..." style="width:100%; box-sizing:border-box; height:25px; font-size:10.5px; padding:2px 6px;">
-                    <button type="button" onclick="removeHabitChecklistModalRow(this)" style="height:25px; padding:0; font-size:10px; font-weight:800; background:#fef2f2; color:#dc2626; border:1px solid #fecaca; border-radius:4px; cursor:pointer;">\u2715</button>
-                  </div>
-                  <div class="habit-checklist-row" style="display:grid; grid-template-columns:1fr 24px; align-items:center; gap:4px;">
-                    <input type="text" class="add-module-text-input habit-checklist-text" value="2. \u9519\u9898\u7ACB\u5373\u7EA2\u7B14\u6807\u9000\u4F4D\u70B9" placeholder="\u8F93\u5165\u8DF5\u884C\u9632\u5B88\u6E05\u5355\u9879..." style="width:100%; box-sizing:border-box; height:25px; font-size:10.5px; padding:2px 6px;">
-                    <button type="button" onclick="removeHabitChecklistModalRow(this)" style="height:25px; padding:0; font-size:10px; font-weight:800; background:#fef2f2; color:#dc2626; border:1px solid #fecaca; border-radius:4px; cursor:pointer;">\u2715</button>
-                  </div>
-                  <div class="habit-checklist-row" style="display:grid; grid-template-columns:1fr 24px; align-items:center; gap:4px;">
-                    <input type="text" class="add-module-text-input habit-checklist-text" value="3. \u505A\u6BD5\u81EA\u4E3B\u6574\u7406\u4E66\u684C" placeholder="\u8F93\u5165\u8DF5\u884C\u9632\u5B88\u6E05\u5355\u9879..." style="width:100%; box-sizing:border-box; height:25px; font-size:10.5px; padding:2px 6px;">
-                    <button type="button" onclick="removeHabitChecklistModalRow(this)" style="height:25px; padding:0; font-size:10px; font-weight:800; background:#fef2f2; color:#dc2626; border:1px solid #fecaca; border-radius:4px; cursor:pointer;">\u2715</button>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <label style="display:block; font-size:10px; font-weight:800; color:#14532d; margin-bottom:2px;">\u{1F399}\uFE0F \u7269\u8BC1\u4EA4\u4ED8\u65B9\u5F0F</label>
-                <select id="node-evidence-card-habit" class="add-module-text-input" style="width:100%; box-sizing:border-box; height:26px; font-size:10.5px; padding:2px 6px;">
-                  <option value="audio" selected>\u{1F399}\uFE0F \u6668\u8BFB\u5F55\u97F3\u5C01\u5B58 (60\u79D2\u539F\u58F0)</option>
-                  <option value="image">\u{1F4F7} \u751F\u6D3B\u81EA\u5F8B\u62CD\u7167\u5B58\u8BC1</option>
-                  <option value="checklist">\u{1F6E1}\uFE0F \u7EAF\u81EA\u5F8B\u9632\u5B88\u6E05\u5355\u6253\u5361</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="node-picker-card-actions" style="margin-top:auto; padding-top:6px; display:flex; justify-content:flex-end;" onclick="event.stopPropagation()">
-              <button type="button" class="node-quick-add-btn" onclick="quickAddSingleNode('card-habit')" style="padding:6px 14px; font-size:11px; font-weight:850; background:#059669; color:#fff; border:none; border-radius:6px; cursor:pointer;">\u26A1 \u7ACB\u5373\u5355\u52A0\u5230\u753B\u5E03</button>
-            </div>
-          </div>
-
-          <!-- 4. \u{1F4DD} \u8BC4\u4F30\u590D\u76D8\u5361\u539F\u578B -->
-          <div class="node-picker-card archetype-picker-card" id="picker-card-reflection" style="background:#faf5ff; border:1.5px solid #e9d5ff; border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:8px;" onclick="toggleNodePickerSelection('card-reflection', this, event)">
-            <div class="node-picker-card-top" style="display:flex; align-items:center; gap:8px; border-bottom:1px solid #f3e8ff; padding-bottom:8px;">
-              <input type="checkbox" class="node-picker-checkbox" data-type="card-reflection" onclick="event.stopPropagation(); updateNodePickerBatchCount();">
-              <span class="node-picker-icon" style="font-size:20px;">\u{1F4DD}</span>
-              <div class="node-picker-info" style="flex:1;">
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:4px;">
-                  <span class="node-picker-name" style="font-size:13px; font-weight:850; color:#581c87;">\u{1F4DD} \u8BC4\u4F30\u590D\u76D8\u5361 (Reflection)</span>
-                  <span class="node-picker-cat-badge actionable" style="font-size:9.5px; padding:2px 6px; background:#f3e8ff; color:#7c3aed; border-radius:4px; font-weight:800;">\u590D\u76D8\u8BF4\u660E \xB7 \u63D0\u5347\u6E05\u5355</span>
-                </div>
-                <div class="node-picker-desc" style="font-size:10.5px; color:#9333ea;">\u627F\u8F7D\u590D\u76D8\u8BF4\u660E\u603B\u7ED3\u4E0E\u591A\u9879\u53EF\u6267\u884C\u63D0\u5347\u6E05\u5355\uFF0C\u652F\u6301\u81EA\u5B9A\u4E49\u589E\u5220\u63D0\u5347\u9879\u4E0E\u7B03\u884C\u6253\u5361</div>
-              </div>
-            </div>
-            
-            <!-- \u4E13\u5C5E\u4FE1\u606F\u5F55\u5165\u533A -->
-            <div class="node-picker-fields-container" style="display:flex; flex-direction:column; gap:6px;" onclick="event.stopPropagation()">
-              <div>
-                <label style="display:block; font-size:10.5px; font-weight:800; color:#581c87; margin-bottom:2px;">\u{1F4CC} \u590D\u76D8\u4E3B\u9898\u5927\u5B57\u6807\u9898</label>
-                <input type="text" id="node-title-card-reflection" class="add-module-text-input" value="\u53E3\u7B97\u9519\u56E0\u5F52\u56E0\u4E0E\u53CD\u601D\u4FBF\u7B7E" style="width:100%; box-sizing:border-box; height:28px; font-size:11px; padding:2px 8px; font-weight:800;">
-              </div>
-              <div>
-                <label style="display:block; font-size:10.5px; font-weight:800; color:#581c87; margin-bottom:2px;">\u{1F4DD} \u590D\u76D8\u8BF4\u660E</label>
-                <textarea id="node-cause-card-reflection" class="add-module-text-input" style="width:100%; box-sizing:border-box; height:42px; font-size:10.5px; padding:4px 8px; resize:vertical;">\u4E2A\u4F4D\u6570\u4E0D\u591F\u51CF\u5FD8\u8BB0\u4ECE\u5341\u4F4D\u501F 1 \u5F53 10\uFF0C\u6DF7\u6DC6\u51CF\u6CD5\u501F\u4F4D\u539F\u5219\uFF1B\u8FD0\u7B97\u6A21\u578B\u5316\u901F\u5EA6\u5927\u5E45\u63D0\u5347\uFF0C\u5BA1\u9898\u9700\u5148\u5708\u51FA\u8FD0\u7B97\u7B26\uFF01</textarea>
-              </div>
-              <div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
-                  <label style="font-size:10.5px; font-weight:800; color:#581c87;">\u{1F680} \u63D0\u5347\u6E05\u5355 (\u53EF\u589E\u5220\u63D0\u5347\u9879)</label>
-                  <button type="button" onclick="addReflectionImprovementModalRow('picker-reflection-improvements-list')" style="padding:1px 7px; font-size:10px; font-weight:800; background:#7c3aed; color:#fff; border:none; border-radius:4px; cursor:pointer;">\u2795 \u65B0\u589E\u63D0\u5347\u9879</button>
-                </div>
-                <div id="picker-reflection-improvements-list" style="display:flex; flex-direction:column; gap:4px;">
-                  <div class="reflection-improvement-row" style="display:grid; grid-template-columns:1fr 24px; align-items:center; gap:4px;">
-                    <input type="text" class="add-module-text-input reflection-improvement-text" value="1. \u5BA1\u9898\u65F6\u5148\u7528\u7EA2\u7B14\u5708\u51FA\u52A0\u51CF\u8FD0\u7B97\u7B26\u53F7" placeholder="\u8F93\u5165\u5177\u4F53\u63D0\u5347\u9879..." style="width:100%; box-sizing:border-box; height:25px; font-size:10.5px; padding:2px 6px;">
-                    <button type="button" onclick="removeReflectionImprovementModalRow(this)" style="height:25px; padding:0; font-size:10px; font-weight:800; background:#fef2f2; color:#dc2626; border:1px solid #fecaca; border-radius:4px; cursor:pointer;">\u2715</button>
-                  </div>
-                  <div class="reflection-improvement-row" style="display:grid; grid-template-columns:1fr 24px; align-items:center; gap:4px;">
-                    <input type="text" class="add-module-text-input reflection-improvement-text" value="2. \u9047\u5230\u4E2A\u4F4D\u4E0D\u591F\u51CF\u7ACB\u5373\u6807\u51FA\u5341\u4F4D\u9000\u4F4D\u70B9" placeholder="\u8F93\u5165\u5177\u4F53\u63D0\u5347\u9879..." style="width:100%; box-sizing:border-box; height:25px; font-size:10.5px; padding:2px 6px;">
-                    <button type="button" onclick="removeReflectionImprovementModalRow(this)" style="height:25px; padding:0; font-size:10px; font-weight:800; background:#fef2f2; color:#dc2626; border:1px solid #fecaca; border-radius:4px; cursor:pointer;">\u2715</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="node-picker-card-actions" style="margin-top:auto; padding-top:6px; display:flex; justify-content:flex-end;" onclick="event.stopPropagation()">
-              <button type="button" class="node-quick-add-btn" onclick="quickAddSingleNode('card-reflection')" style="padding:6px 14px; font-size:11px; font-weight:850; background:#7c3aed; color:#fff; border:none; border-radius:6px; cursor:pointer;">\u26A1 \u7ACB\u5373\u5355\u52A0\u5230\u753B\u5E03</button>
-            </div>
-          </div>
-          <!-- 5. \u2699\uFE0F \u81EA\u5B9A\u4E49\u914D\u7F6E\u5361\u539F\u578B -->
-          <div class="node-picker-card archetype-picker-card" id="picker-card-custom" style="background:#f0fdf4; border:1.5px solid #86efac; border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:8px;" onclick="toggleNodePickerSelection('card-custom', this, event)">
-            <div class="node-picker-card-top" style="display:flex; align-items:center; gap:8px; border-bottom:1px solid #bbf7d0; padding-bottom:8px;">
-              <input type="checkbox" class="node-picker-checkbox" data-type="card-custom" onclick="event.stopPropagation(); updateNodePickerBatchCount();">
-              <span class="node-picker-icon" style="font-size:20px;">\u2699\uFE0F</span>
-              <div class="node-picker-info" style="flex:1;">
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:4px;">
-                  <strong style="font-size:13px; color:#14532d;">\u2699\uFE0F \u81EA\u5B9A\u4E49\u914D\u7F6E\u5361 (Custom Archetype)</strong>
-                  <span class="card-graphic-pill" style="font-size:10px; background:#dcfce7; color:#15803d; border:1px solid #86efac;">\u81EA\u7531\u5B9A\u4E49\u539F\u578B</span>
-                </div>
-                <div class="node-picker-desc" style="font-size:11px; color:#166534; margin-top:2px;">
-                  \u81EA\u7531\u5B9A\u4E49\u5361\u7247\u4E13\u5C5E\u5B57\u6BB5\u3001\u662F\u5426\u9700\u8981\u6253\u5361\u3001\u6253\u5361\u7269\u8BC1\u4E0E\u5370\u7AE0\uFF0C\u652F\u6301\u4EFB\u610F\u975E\u6807\u63A2\u7D22\u8BFE\u9898\u3002
-                </div>
-              </div>
-            </div>
-
-            <!-- \u5361\u7247\u5927\u5B57\u6807\u9898 -->
-            <div onclick="event.stopPropagation()">
-              <label style="display:block; font-size:11px; font-weight:800; color:#14532d; margin-bottom:2px;">\u{1F4DD} \u89C4\u5212\u8BFE\u9898\u5927\u5B57\u6807\u9898</label>
-              <input type="text" id="node-title-card-custom" class="add-module-text-input" value="\u822A\u5929\u79D1\u666E\u9986\u81EA\u4E3B\u7814\u5B66\u4E0E\u706B\u7BAD\u6A21\u578B\u5236\u4F5C" style="width:100%; box-sizing:border-box; height:32px; font-size:11.5px; font-weight:800; border:1px solid #86efac; border-radius:6px; padding:0 8px;">
-            </div>
-
-            <!-- \u662F\u5426\u6253\u5361 & \u7269\u8BC1\u7C7B\u578B & \u5370\u7AE0 -->
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;" onclick="event.stopPropagation()">
-              <div>
-                <label style="display:block; font-size:10.5px; font-weight:800; color:#166534; margin-bottom:2px;">\u{1F31F} \u662F\u5426\u9700\u8981\u6253\u5361</label>
-                <select id="node-actionable-card-custom" class="add-module-text-input" style="width:100%; box-sizing:border-box; height:30px; font-size:11px; font-weight:800; border:1px solid #86efac; border-radius:6px; padding:0 6px; background:#fff;">
-                  <option value="true" selected>\u{1F31F} \u9700\u8981\u6253\u5361\u6267\u884C</option>
-                  <option value="false">\u{1F4C4} \u4EC5\u4F5C\u4E3A\u77E5\u8BC6\u6C89\u6DC0</option>
-                </select>
-              </div>
-              <div>
-                <label style="display:block; font-size:10.5px; font-weight:800; color:#166534; margin-bottom:2px;">\u{1F4F8} \u7269\u8BC1\u4EA4\u4ED8\u7C7B\u578B</label>
-                <select id="node-evidence-card-custom" class="add-module-text-input" style="width:100%; box-sizing:border-box; height:30px; font-size:11px; font-weight:800; border:1px solid #86efac; border-radius:6px; padding:0 6px; background:#fff;">
-                  <option value="image" selected>\u{1F4F7} \u62CD\u7167\u7269\u8BC1</option>
-                  <option value="timer">\u23F1\uFE0F \u4E13\u6CE8\u8BA1\u65F6</option>
-                  <option value="text">\u270D\uFE0F \u5FC3\u5F97\u4FBF\u7B7E</option>
-                  <option value="audio">\u{1F399}\uFE0F \u539F\u58F0\u5F55\u97F3</option>
-                  <option value="video">\u{1F3A5} \u52A8\u4F5C\u89C6\u9891</option>
-                  <option value="composite">\u{1F31F} \u7EFC\u5408\u6253\u5361</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- \u81EA\u5B9A\u4E49\u5B57\u6BB5 1 & 2 -->
-            <div class="node-picker-fields-container" style="display:flex; flex-direction:column; gap:6px;" onclick="event.stopPropagation()">
-              <div style="display:flex; align-items:center; justify-content:space-between;">
-                <label style="display:block; font-size:10.5px; font-weight:800; color:#166534;">\u{1F4CB} \u81EA\u5B9A\u4E49\u5B57\u6BB5 (\u6570\u91CF\u7531\u60A8\u81EA\u5B9A\uFF0C\u53EF\u81EA\u7531\u589E\u51CF)</label>
-                <button type="button" onclick="addPickerCustomDynamicField()" style="padding:2px 8px; font-size:10px; font-weight:800; background:#dcfce7; color:#15803d; border:1px solid #86efac; border-radius:4px; cursor:pointer;">\u2795 \u589E\u6DFB\u5B57\u6BB5</button>
-              </div>
-              <div id="picker-custom-fields-list" style="display:flex; flex-direction:column; gap:6px;">
-                <div class="picker-custom-field-row" style="display:flex; gap:6px; align-items:center;">
-                  <input type="text" class="picker-field-key add-module-text-input" value="\u7814\u5B66\u6307\u5F15" placeholder="\u5B57\u6BB5\u540D" style="width:80px; height:28px; font-size:10.5px; font-weight:800; border:1px solid #86efac; border-radius:4px; padding:0 6px;">
-                  <input type="text" class="picker-field-val add-module-text-input" value="\u5B9E\u5730\u8BB0\u5F55\u957F\u5F81\u7CFB\u5217\u706B\u7BAD\u53C2\u6570\u4E0E\u63A8\u8FDB\u5242\u7279\u70B9\uFF0C\u62CD\u6444\u706B\u7BAD\u6A21\u578B\u5C55\u54C1" placeholder="\u5B57\u6BB5\u8BF4\u660E\u5185\u5BB9" style="flex:1; height:28px; font-size:10.5px; border:1px solid #86efac; border-radius:4px; padding:0 6px;">
-                  <button type="button" onclick="removePickerCustomDynamicField(this)" style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; border-radius:4px; width:22px; height:22px; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center;" title="\u5220\u9664\u6B64\u5B57\u6BB5">\u2715</button>
-                </div>
-                <div class="picker-custom-field-row" style="display:flex; gap:6px; align-items:center;">
-                  <input type="text" class="picker-field-key add-module-text-input" value="\u6838\u5FC3\u4EA4\u4ED8" placeholder="\u5B57\u6BB5\u540D" style="width:80px; height:28px; font-size:10.5px; font-weight:800; border:1px solid #86efac; border-radius:4px; padding:0 6px;">
-                  <input type="text" class="picker-field-val add-module-text-input" value="\u5236\u4F5C\u7B80\u6613\u6C14\u538B\u6C34\u706B\u7BAD\u6A21\u578B\u5E76\u5B8C\u6210\u6237\u5916\u8BD5\u98DE\u7559\u75D5\u5B58\u8BC1" placeholder="\u5B57\u6BB5\u8BF4\u660E\u5185\u5BB9" style="flex:1; height:28px; font-size:10.5px; border:1px solid #86efac; border-radius:4px; padding:0 6px;">
-                  <button type="button" onclick="removePickerCustomDynamicField(this)" style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; border-radius:4px; width:22px; height:22px; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center;" title="\u5220\u9664\u6B64\u5B57\u6BB5">\u2715</button>
-                </div>
-              </div>
-            </div>
-
-            <div class="node-picker-card-actions" style="margin-top:auto; padding-top:6px; display:flex; justify-content:flex-end;" onclick="event.stopPropagation()">
-              <button type="button" class="node-quick-add-btn" onclick="quickAddSingleNode('card-custom')" style="padding:6px 14px; font-size:11px; font-weight:850; background:#16a34a; color:#fff; border:none; border-radius:6px; cursor:pointer;">\u26A1 \u7ACB\u5373\u5355\u52A0\u5230\u753B\u5E03</button>
-            </div>
-          </div>
-          <!-- 6. \u{1F4C4} \u7B80\u5355\u6587\u672C\u8282\u70B9\u539F\u578B -->
-          <div class="node-picker-card archetype-picker-card" id="picker-card-text" style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:8px;" onclick="toggleNodePickerSelection('card-text', this, event)">
-            <div class="node-picker-card-top" style="display:flex; align-items:center; gap:8px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">
-              <input type="checkbox" class="node-picker-checkbox" data-type="card-text" onclick="event.stopPropagation(); updateNodePickerBatchCount();">
-              <span class="node-picker-icon" style="font-size:20px;">\u{1F4C4}</span>
-              <div class="node-picker-info" style="flex:1;">
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:4px;">
-                  <strong style="font-size:13px; color:#334155;">\u{1F4C4} \u7B80\u5355\u6587\u672C\u8282\u70B9 (Simple Text Node)</strong>
-                  <span class="card-graphic-pill" style="font-size:10px; background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;">\u7EAF\u5C55\u793A\xB7\u514D\u64CD\u4F5C</span>
-                </div>
-                <div class="node-picker-desc" style="font-size:11px; color:#64748b; margin-top:2px;">
-                  \u53EA\u9700\u8F93\u5165\u6807\u9898\u548C\u5185\u5BB9\u5373\u53EF\uFF0C\u7EAF\u6587\u672C\u5C55\u793A\u8282\u70B9\uFF0C\u4EC5\u4F9B\u67E5\u9605\uFF0C\u65E0\u9700\u4EFB\u4F55\u6253\u5361\u64CD\u4F5C\u3002
-                </div>
-              </div>
-            </div>
-
-            <!-- \u8BFE\u9898\u5927\u5B57\u6807\u9898 -->
-            <div onclick="event.stopPropagation()">
-              <label style="display:block; font-size:11px; font-weight:800; color:#334155; margin-bottom:2px;">\u{1F4DD} \u6807\u9898</label>
-              <input type="text" id="node-title-card-text" class="add-module-text-input" value="\u957F\u5F81\u8FD0\u8F7D\u706B\u7BAD\u8C31\u7CFB\u4E0E\u822A\u5929\u77E5\u8BC6\u5907\u5FD8" style="width:100%; box-sizing:border-box; height:32px; font-size:11.5px; font-weight:800; border:1px solid #cbd5e1; border-radius:6px; padding:0 8px;">
-            </div>
-
-            <!-- \u6B63\u6587\u6587\u672C -->
-            <div onclick="event.stopPropagation()">
-              <label style="display:block; font-size:10.5px; font-weight:800; color:#475569; margin-bottom:2px;">\u{1F4CB} \u5185\u5BB9</label>
-              <textarea id="node-content-card-text" class="add-module-text-input" style="width:100%; box-sizing:border-box; height:84px; font-size:10.5px; line-height:1.5; border:1px solid #cbd5e1; border-radius:4px; padding:4px 6px; resize:vertical;">\u957F\u5F81\u7CFB\u5217\u8FD0\u8F7D\u706B\u7BAD\u5DF2\u5B8C\u6210500+\u6B21\u53D1\u5C04\uFF0C\u957F\u5F81\u4E8C\u53F7F\u4E3A\u795E\u821F\u98DE\u8239\u4E13\u5C5E\u8F7D\u4EBA\u706B\u7BAD\uFF0C\u957F\u5F81\u4E94\u53F7\u652F\u6491\u63A2\u6708\u7A7A\u95F4\u7AD9\u5DE5\u7A0B\u3002\u672C\u8282\u70B9\u4E3A\u7EAF\u6587\u672C\u9605\u8BFB\u5907\u5FD8\uFF0C\u9605\u8BFB\u5B8C\u6BD5\u540E\u76F4\u63A5\u8FDB\u5165\u540E\u7EED\u5B9E\u64CD\u5361\u7247\u3002</textarea>
-            </div>
-
-            <div class="node-picker-card-actions" style="margin-top:auto; padding-top:6px; display:flex; justify-content:space-between; align-items:center;" onclick="event.stopPropagation()">
-              <span style="font-size:10.5px; color:#64748b; font-weight:700;">\u2713 \u4EC5\u4F9B\u67E5\u9605 \xB7 \u96F6\u64CD\u4F5C\u8D1F\u62C5</span>
-              <button type="button" class="node-quick-add-btn" onclick="quickAddSingleNode('card-text')" style="padding:6px 14px; font-size:11px; font-weight:850; background:#475569; color:#fff; border:none; border-radius:6px; cursor:pointer;">\u26A1 \u7ACB\u5373\u5355\u52A0\u5230\u753B\u5E03</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- \u5E95\u90E8\u6279\u91CF\u6DFB\u52A0\u63A7\u5236\u680F -->
-        <div class="node-picker-batch-footer">
-          <div class="batch-footer-left">
-            <button type="button" class="node-filter-tab" onclick="selectNodePickerCategory('all')">\u5168\u9009\u6240\u6709\u901A\u7528\u5361\u7247</button>
-            <button type="button" class="node-filter-tab" onclick="clearNodePickerSelection()">\u6E05\u9664\u52FE\u9009</button>
-            <span style="font-size: 11px; font-weight: 800; color: #6c5a45; margin-left: 6px;">
-              \u5DF2\u52FE\u9009 <span id="node-picker-batch-count" style="color:#d97706; font-size:13px; font-weight:900;">0</span> \u9879\u901A\u7528\u5361\u7247
-            </span>
-          </div>
-
-          <div class="batch-footer-right">
-            <button type="button" class="ui-btn" onclick="closeTertiaryAddNodeModal()" style="padding: 8px 18px;">
-              \u53D6\u6D88
-            </button>
-            <button type="button" class="ui-btn primary" id="btn-confirm-batch-add" onclick="handleConfirmBatchAddNodes()" style="padding: 8px 24px; font-weight: 900;">
-              \u2795 \u6279\u91CF\u6DFB\u52A0\u6240\u9009\u901A\u7528\u5361\u7247\u81F3\u753B\u5E03
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <div class="node-creator-body"><article id="node-creator-card" class="node-creator-card" role="tabpanel" aria-labelledby="node-creator-tab-drill" data-node-type="drill" oninput="captureNodeCreatorDraft()" onchange="captureNodeCreatorDraft()"></article></div>
+    <footer class="node-creator-footer">
+      <div><p id="node-creator-hint">\u586B\u5199\u89C4\u5212\u6807\u51C6\uFF0C\u6267\u884C\u65F6\u518D\u63D0\u4EA4\u5B9E\u9645\u7ED3\u679C\u3002</p><p id="node-creator-error" role="alert"></p></div>
+      <div class="node-creator-actions"><button type="button" class="node-creator-cancel" onclick="closeTertiaryAddNodeModal()">\u53D6\u6D88</button><button type="button" id="node-creator-submit" class="node-creator-submit" onclick="submitNodeCreator()">\u6DFB\u52A0\u5230\u753B\u5E03</button></div>
+    </footer>
   </div>
 </div><!-- /gallery-stage-view -->
 
@@ -10629,21 +10263,10 @@ function bootPrototypeRuntime() {
     renderTertiaryEdges();
   }
   function openTertiaryAddNodeModal() {
-    const modal = document.getElementById("modal-tertiary-add-node");
-    if (modal) {
-      modal.style.display = "flex";
-      modal.classList.add("open");
-      modal.classList.add("is-open");
-      updateNodePickerBatchCount();
-    }
+    return openNodeCreator();
   }
   function closeTertiaryAddNodeModal() {
-    const modal = document.getElementById("modal-tertiary-add-node");
-    if (modal) {
-      modal.style.display = "none";
-      modal.classList.remove("open");
-      modal.classList.remove("is-open");
-    }
+    return closeNodeCreator();
   }
   const openTertiaryCreateNodeModal = openTertiaryAddNodeModal;
   const closeTertiaryCreateNodeModal = closeTertiaryAddNodeModal;
@@ -17921,6 +17544,248 @@ function bootPrototypeRuntime() {
   window2.addEventListener("pageshow", refreshHomeExecutionDate);
   window2.addEventListener("visibilitychange", refreshHomeExecutionDate, true);
   setInterval(refreshHomeExecutionDate, 3e4);
+  let nodeCreatorSession = null, nodeCreatorPreferredType = "drill", nodeCreatorReturnFocus = null;
+  const nodeCreatorTypes = ["goal", "drill", "habit", "review", "custom", "text"];
+  function freshNodeCreatorDraft(type, project) {
+    return { id: domainId("node"), title: "", description: "", plannedDate: domainDefaultNodeDate(project), frequency: type === "habit" ? "daily" : "once", isCheckinNode: !["goal", "text"].includes(type), evidenceType: type === "drill" ? "photo" : type === "review" ? "text" : "none", plannedMinutes: 20, acceptanceCriteria: "", targetDeadline: "", textContent: "", dependencies: [], metrics: [], checklist: [], improvementList: [], customFieldsSchema: [] };
+  }
+  function nodeCreatorRow(key) {
+    if (key === "metrics")
+      return { id: domainId("metric"), name: "", targetValue: "" };
+    if (key === "checklist")
+      return { id: domainId("item"), title: "", required: true };
+    if (key === "improvementList")
+      return { id: domainId("improvement"), actionItem: "", isChecked: true };
+    return { key: domainId("field"), label: "", type: "text", required: true };
+  }
+  function nodeCreatorField(key, label, value, { type = "text", placeholder = "", area = false, extra = "" } = {}) {
+    return '<label class="node-creator-field"><span>' + label + "</span>" + (area ? '<textarea data-creator-field="' + key + '" rows="3" placeholder="' + escapeIslandText(placeholder) + '">' + escapeIslandText(value || "") + "</textarea>" : '<input data-creator-field="' + key + '" type="' + type + '" value="' + escapeIslandText(value ?? "") + '" placeholder="' + escapeIslandText(placeholder) + '" ' + extra + ">") + "</label>";
+  }
+  function nodeCreatorOptions(key, label, value, options) {
+    return '<label class="node-creator-field"><span>' + label + '</span><select data-creator-field="' + key + '">' + Object.entries(options).map(([k, v]) => '<option value="' + k + '"' + (k === value ? " selected" : "") + ">" + v + "</option>").join("") + "</select></label>";
+  }
+  function captureNodeCreatorDraft() {
+    if (!nodeCreatorSession)
+      return;
+    const d = nodeCreatorSession.drafts[nodeCreatorSession.type], panel = document.getElementById("node-creator-card");
+    if (!panel)
+      return;
+    panel.querySelectorAll("[data-creator-field]").forEach((el) => d[el.dataset.creatorField] = el.multiple ? Array.from(el.selectedOptions, (o) => o.value) : el.type === "checkbox" ? el.checked : el.value);
+    const settings = panel.querySelector(".node-creator-settings");
+    d.settingsOpen = !!settings?.open;
+    if (settings)
+      settings.querySelector("summary span").textContent = (d.plannedDate || "\u672A\u6392\u671F") + " \xB7 " + ({ once: "\u4E00\u6B21\u6027", daily: "\u6BCF\u65E5", weekdays: "\u5DE5\u4F5C\u65E5", weekly: "\u6BCF\u5468" }[d.frequency] || "\u4E00\u6B21\u6027");
+    const list = panel.querySelector("[data-creator-list]");
+    if (list)
+      d[list.dataset.creatorList] = Array.from(list.children).map((row) => {
+        const item = {};
+        for (const el of row.querySelectorAll("[data-row-field]"))
+          item[el.dataset.rowField] = el.type === "checkbox" ? el.checked : el.value;
+        return { ...JSON.parse(row.dataset.identity), ...item };
+      });
+  }
+  function renderNodeCreatorList(key, title, items) {
+    const text = (field, value, placeholder) => '<input data-row-field="' + field + '" value="' + escapeIslandText(value || "") + '" placeholder="' + placeholder + '" aria-label="' + placeholder + '">';
+    const checked = (field, value, label) => '<label class="node-creator-row-check"><input type="checkbox" data-row-field="' + field + '"' + (value !== false ? " checked" : "") + ">" + label + "</label>";
+    const rows = items.map((item, index) => {
+      let fields = "";
+      if (key === "metrics")
+        fields = text("name", item.name, "\u6307\u6807\u540D\u79F0") + text("targetValue", item.targetValue, "\u76EE\u6807\u6807\u51C6\uFF0C\u4F8B\u5982 \u226590%");
+      else if (key === "checklist")
+        fields = text("title", item.title, "\u5177\u4F53\u884C\u52A8") + checked("required", item.required, "\u5FC5\u9700");
+      else if (key === "improvementList")
+        fields = text("actionItem", item.actionItem, "\u4E0B\u4E00\u6B65\u63D0\u5347\u884C\u52A8") + checked("isChecked", item.isChecked, "\u53EF\u6D3E\u751F");
+      else
+        fields = text("label", item.label, "\u5B57\u6BB5\u540D\u79F0") + '<select data-row-field="type" aria-label="\u5B57\u6BB5\u7C7B\u578B">' + Object.entries({ text: "\u6587\u5B57", number: "\u6570\u5B57", boolean: "\u662F / \u5426", date: "\u65E5\u671F" }).map(([v, label]) => '<option value="' + v + '"' + (item.type === v ? " selected" : "") + ">" + label + "</option>").join("") + "</select>" + checked("required", item.required, "\u5FC5\u586B");
+      const identity = key === "customFieldsSchema" ? { key: item.key } : { id: item.id };
+      return '<div class="node-creator-list-row" data-kind="' + key + '" data-identity="' + escapeIslandText(JSON.stringify(identity)) + '">' + fields + '<button type="button" class="node-creator-remove" aria-label="\u79FB\u9664\u7B2C' + (index + 1) + '\u9879" onclick="removeNodeCreatorRow(' + index + ')">\u2715</button></div>';
+    }).join("");
+    return '<section class="node-creator-list-section"><div class="node-creator-section-title"><span>' + title + '</span><button type="button" class="node-creator-add-row" onclick="addNodeCreatorRow()">\uFF0B \u6DFB\u52A0\u4E00\u9879</button></div><div data-creator-list="' + key + '">' + rows + "</div>" + (!items.length ? '<p class="node-creator-empty">\u6309\u9700\u6DFB\u52A0\u5177\u4F53\u9879\u76EE\uFF0C\u4E5F\u53EF\u4EE5\u521B\u5EFA\u540E\u7EE7\u7EED\u5B8C\u5584\u3002</p>' : "") + "</section>";
+  }
+  function renderNodeCreatorCard() {
+    const session = nodeCreatorSession;
+    if (!session)
+      return;
+    const type = session.type, d = session.drafts[type], project = getDomainState().projects.find((p) => p.id === session.projectId), panel = document.getElementById("node-creator-card");
+    if (!panel || !project)
+      return;
+    const meta = { goal: ["\u{1F3AF}", "\u76EE\u6807\u5206\u89E3", "\u660E\u786E\u76EE\u6807\u3001\u91CF\u5316\u6307\u6807\u4E0E\u9A8C\u6536\u65B9\u5F0F"], drill: ["\u26A1", "\u653B\u575A\u5B9E\u8BAD", "\u5199\u4E0B\u7EC3\u4E60\u8981\u9886\uFF0C\u5B89\u6392\u4E13\u6CE8\u65F6\u957F\u4E0E\u4EA4\u4ED8\u8981\u6C42"], habit: ["\u{1F33F}", "\u4E60\u60EF\u8DF5\u884C", "\u628A\u6BCF\u5929\u8981\u575A\u6301\u7684\u884C\u52A8\u6574\u7406\u4E3A\u6E05\u5355"], review: ["\u{1F4DD}", "\u8BC4\u4F30\u590D\u76D8", "\u56DE\u770B\u8FC7\u7A0B\uFF0C\u8BA9\u590D\u76D8\u5F62\u6210\u4E0B\u4E00\u6B65\u884C\u52A8"], custom: ["\u2699\uFE0F", "\u81EA\u5B9A\u4E49\u914D\u7F6E", "\u6309\u9700\u8981\u5B9A\u4E49\u586B\u62A5\u5B57\u6BB5\u4E0E\u4EA4\u4ED8\u6807\u51C6"], text: ["\u{1F4C4}", "\u6587\u672C\u4FBF\u7B7E", "\u8BB0\u5F55\u60F3\u6CD5\u6216 Markdown \u8D44\u6599\uFF0C\u4E0D\u52A0\u5165\u6267\u884C\u4EFB\u52A1"] }[type];
+    let html = '<header class="node-creator-card-heading"><span>' + meta[0] + " " + meta[1] + "</span><p>" + meta[2] + "</p></header>";
+    html += nodeCreatorField("title", "\u8282\u70B9\u540D\u79F0", d.title, { placeholder: "\u586B\u5199 2\uFF5E30 \u5B57\u540D\u79F0", extra: 'maxlength="30" required' });
+    if (type === "text")
+      html += nodeCreatorField("textContent", "\u6B63\u6587 \xB7 \u652F\u6301 Markdown", d.textContent, { area: true, placeholder: "\u5199\u4E0B\u8D44\u6599\u3001\u60F3\u6CD5\u6216\u5907\u5FD8\u2026" });
+    else
+      html += nodeCreatorField("description", { goal: "\u76EE\u6807\u8BF4\u660E", drill: "\u6838\u5FC3\u653B\u575A\u8981\u9886", habit: "\u8DF5\u884C\u521D\u8877", review: "\u590D\u76D8\u6807\u7684\u4E0E\u8BF4\u660E", custom: "\u4EFB\u52A1\u8BF4\u660E" }[type], d.description, { area: true, placeholder: "\u586B\u5199\u8FD9\u5F20\u5361\u7247\u7684\u8BF4\u660E\u2026" });
+    if (type === "goal")
+      html += renderNodeCreatorList("metrics", "\u{1F3AF} \u91CF\u5316\u901A\u5173\u6307\u6807", d.metrics) + nodeCreatorField("acceptanceCriteria", "\u9A8C\u6536\u6807\u51C6", d.acceptanceCriteria, { area: true, placeholder: "\u4EC0\u4E48\u6210\u679C\u53EF\u4EE5\u8BF4\u660E\u76EE\u6807\u8FBE\u6210\uFF1F" }) + nodeCreatorField("targetDeadline", "\u671F\u671B\u5B8C\u6210\u65F6\u95F4", d.targetDeadline, { type: "datetime-local" });
+    if (type === "drill")
+      html += nodeCreatorField("plannedMinutes", "\u23F1 \u8BA1\u5212\u4E13\u6CE8\u65F6\u957F\uFF08\u5206\u949F\uFF09", d.plannedMinutes, { type: "number", extra: 'min="0" max="120" step="1"' });
+    if (type === "habit")
+      html += renderNodeCreatorList("checklist", "\u{1F6E1} \u8DF5\u884C\u9632\u5B88\u6E05\u5355", d.checklist);
+    if (type === "review")
+      html += renderNodeCreatorList("improvementList", "\u{1F680} \u63D0\u5347\u884C\u52A8", d.improvementList);
+    if (type === "custom")
+      html += renderNodeCreatorList("customFieldsSchema", "\u{1F4CB} \u81EA\u5B9A\u4E49\u5B57\u6BB5", d.customFieldsSchema);
+    if (type !== "text") {
+      const options = (getDomainState().nodesByProject[project.id] || []).filter((n) => n.isCheckinNode && n.status !== "archived");
+      html += '<details class="node-creator-settings"' + (d.settingsOpen ? " open" : "") + "><summary>\u8BA1\u5212\u4E0E\u4EA4\u4ED8\u8981\u6C42 <span>" + escapeIslandText(d.plannedDate) + " \xB7 " + { once: "\u4E00\u6B21\u6027", daily: "\u6BCF\u65E5", weekdays: "\u5DE5\u4F5C\u65E5", weekly: "\u6BCF\u5468" }[d.frequency] + '</span></summary><div class="node-creator-settings-body"><div class="node-creator-field-grid">' + nodeCreatorField("plannedDate", "\u8BA1\u5212\u65E5\u671F", d.plannedDate, { type: "date", extra: 'min="' + escapeIslandText(project.startDate) + '" max="' + escapeIslandText(project.endDate) + '"' }) + nodeCreatorOptions("frequency", "\u6267\u884C\u9891\u6B21", d.frequency, { once: "\u4E00\u6B21\u6027", daily: "\u6BCF\u65E5", weekdays: "\u5DE5\u4F5C\u65E5", weekly: "\u6BCF\u5468" }) + '</div><div class="node-creator-field-grid"><label class="node-creator-execution"><input type="checkbox" data-creator-field="isCheckinNode"' + (d.isCheckinNode ? " checked" : "") + ">\u52A0\u5165\u6267\u884C\u4EFB\u52A1</label>" + nodeCreatorOptions("evidenceType", "\u7269\u8BC1\u8981\u6C42", d.evidenceType, { none: "\u65E0\u9700\u9644\u4EF6", text: "\u6587\u5B57\u8BF4\u660E", photo: "\u7167\u7247", video: "\u89C6\u9891", audio: "\u97F3\u9891" }) + '</div><label class="node-creator-field"><span>\u524D\u7F6E\u8282\u70B9 \xB7 \u53EF\u591A\u9009</span><select data-creator-field="dependencies" multiple size="' + Math.min(3, Math.max(2, options.length)) + '">' + options.map((n) => '<option value="' + escapeIslandText(n.id) + '"' + (d.dependencies.includes(n.id) ? " selected" : "") + ">" + escapeIslandText(n.title) + "</option>").join("") + "</select></label></div></details>";
+    }
+    panel.dataset.nodeType = type;
+    panel.setAttribute("aria-labelledby", "node-creator-tab-" + type);
+    panel.innerHTML = html;
+    document.querySelectorAll("#modal-tertiary-add-node [data-creator-type]").forEach((tab) => {
+      const active = tab.dataset.creatorType === type;
+      tab.setAttribute("aria-selected", String(active));
+      tab.tabIndex = active ? 0 : -1;
+    });
+    document.getElementById("node-creator-error").textContent = "";
+    document.getElementById("node-creator-hint").textContent = type === "text" ? "\u6587\u672C\u4FBF\u7B7E\u4EC5\u4F9B\u8BB0\u5F55\u4E0E\u9605\u8BFB\u3002" : "\u89C4\u5212\u6807\u51C6\u5C06\u5728\u6267\u884C\u65F6\u4F7F\u7528\uFF0C\u5B9E\u9645\u7ED3\u679C\u5728\u6253\u5361\u9875\u5F55\u5165\u3002";
+    document.querySelector(".node-creator-body").scrollTop = 0;
+  }
+  function openNodeCreator() {
+    const project = getDomainState().projects.find((p) => p.id === window2.currentTertiaryProjId);
+    if (!project) {
+      showIslandToast("\u8BF7\u5148\u9009\u62E9\u9879\u76EE\u518D\u65B0\u589E\u8282\u70B9");
+      return false;
+    }
+    const modal = document.getElementById("modal-tertiary-add-node");
+    if (!modal)
+      return false;
+    if (nodeCreatorSession && modal.classList.contains("open"))
+      return true;
+    nodeCreatorReturnFocus = document.activeElement;
+    nodeCreatorSession = { projectId: project.id, type: nodeCreatorPreferredType, drafts: {}, busy: false };
+    nodeCreatorSession.drafts[nodeCreatorPreferredType] = freshNodeCreatorDraft(nodeCreatorPreferredType, project);
+    document.getElementById("node-creator-project").textContent = project.title + " \xB7 \u5148\u9009\u62E9\u7C7B\u578B\uFF0C\u518D\u586B\u5199\u5185\u5BB9";
+    document.getElementById("node-creator-submit").disabled = false;
+    renderNodeCreatorCard();
+    modal.style.display = "flex";
+    modal.classList.add("open", "is-open");
+    document.getElementById("node-creator-tab-" + nodeCreatorPreferredType).focus();
+    return true;
+  }
+  function closeNodeCreator() {
+    const modal = document.getElementById("modal-tertiary-add-node");
+    if (modal) {
+      modal.style.display = "none";
+      modal.classList.remove("open", "is-open");
+    }
+    nodeCreatorSession = null;
+    if (nodeCreatorReturnFocus?.isConnected)
+      nodeCreatorReturnFocus.focus({ preventScroll: true });
+    nodeCreatorReturnFocus = null;
+  }
+  function selectNodeCreatorType(type) {
+    var _a;
+    if (!nodeCreatorSession || !nodeCreatorTypes.includes(type) || nodeCreatorSession.type === type)
+      return;
+    captureNodeCreatorDraft();
+    const project = getDomainState().projects.find((p) => p.id === nodeCreatorSession.projectId);
+    if (!project)
+      return;
+    nodeCreatorSession.type = type;
+    nodeCreatorPreferredType = type;
+    (_a = nodeCreatorSession.drafts)[type] ?? (_a[type] = freshNodeCreatorDraft(type, project));
+    renderNodeCreatorCard();
+  }
+  function addNodeCreatorRow() {
+    if (!nodeCreatorSession)
+      return;
+    captureNodeCreatorDraft();
+    const key = { goal: "metrics", habit: "checklist", review: "improvementList", custom: "customFieldsSchema" }[nodeCreatorSession.type];
+    if (!key)
+      return;
+    const expanded = document.querySelector(".node-creator-settings")?.open;
+    nodeCreatorSession.drafts[nodeCreatorSession.type][key].push(nodeCreatorRow(key));
+    renderNodeCreatorCard();
+    if (expanded)
+      document.querySelector(".node-creator-settings").open = true;
+    const last = document.querySelector("[data-creator-list]")?.lastElementChild;
+    last?.querySelector("input")?.focus();
+  }
+  function removeNodeCreatorRow(index) {
+    if (!nodeCreatorSession)
+      return;
+    captureNodeCreatorDraft();
+    const key = { goal: "metrics", habit: "checklist", review: "improvementList", custom: "customFieldsSchema" }[nodeCreatorSession.type];
+    if (!key)
+      return;
+    nodeCreatorSession.drafts[nodeCreatorSession.type][key].splice(index, 1);
+    renderNodeCreatorCard();
+    document.querySelector(".node-creator-add-row")?.focus();
+  }
+  function submitNodeCreator() {
+    const session = nodeCreatorSession;
+    if (!session || session.busy)
+      return false;
+    captureNodeCreatorDraft();
+    const d = session.drafts[session.type], project = getDomainState().projects.find((p) => p.id === session.projectId), fail = (text, selector) => {
+      document.getElementById("node-creator-error").textContent = text;
+      const field = document.querySelector(selector || '[data-creator-field="title"]');
+      if (field?.closest("details"))
+        field.closest("details").open = true;
+      field?.focus();
+      return false;
+    };
+    if (!project || window2.currentTertiaryProjId !== project.id)
+      return fail("\u9879\u76EE\u5DF2\u5207\u6362\uFF0C\u8BF7\u5173\u95ED\u540E\u91CD\u65B0\u65B0\u589E\u8282\u70B9\u3002");
+    if (d.title.trim().length < 2 || d.title.trim().length > 30)
+      return fail("\u8282\u70B9\u540D\u79F0\u987B\u4E3A 2\uFF5E30 \u5B57\u3002");
+    if (!domainValidDate(d.plannedDate) || d.plannedDate < project.startDate || d.plannedDate > project.endDate)
+      return fail("\u8BA1\u5212\u65E5\u671F\u987B\u5728\u9879\u76EE\u5468\u671F\u5185\u3002", '[data-creator-field="plannedDate"]');
+    if (session.type === "drill" && (!Number.isFinite(Number(d.plannedMinutes)) || Number(d.plannedMinutes) < 0 || Number(d.plannedMinutes) > 120))
+      return fail("\u4E13\u6CE8\u65F6\u957F\u987B\u4E3A 0\uFF5E120 \u5206\u949F\u3002", '[data-creator-field="plannedMinutes"]');
+    if (session.type === "goal" && d.metrics.some((m) => !!m.name.trim() !== !!m.targetValue.trim()))
+      return fail("\u8BF7\u4E3A\u6307\u6807\u540C\u65F6\u586B\u5199\u540D\u79F0\u548C\u76EE\u6807\u6807\u51C6\u3002", "[data-creator-list] input");
+    const allowed = new Set((getDomainState().nodesByProject[project.id] || []).filter((n) => n.isCheckinNode && n.status !== "archived").map((n) => n.id));
+    if (d.dependencies.some((id) => !allowed.has(id)))
+      return fail("\u524D\u7F6E\u8282\u70B9\u5DF2\u53D8\u5316\uFF0C\u8BF7\u91CD\u65B0\u9009\u62E9\u3002");
+    const config = { id: d.id, title: d.title.trim(), nodeType: session.type, plannedDate: d.plannedDate, frequency: d.frequency, isCheckinNode: d.isCheckinNode, dependencies: d.dependencies, cardPayload: { description: d.description, plannedMinutes: session.type === "drill" ? Number(d.plannedMinutes) : 0, evidenceType: d.evidenceType, acceptanceCriteria: d.acceptanceCriteria, targetDeadline: d.targetDeadline || null, textContent: d.textContent, metrics: d.metrics.filter((m) => m.name.trim()).map((m) => ({ ...m, name: m.name.trim(), targetValue: m.targetValue.trim() })), checklist: d.checklist.filter((i) => i.title.trim()), improvementList: d.improvementList.filter((i) => i.actionItem.trim()), customFieldsSchema: d.customFieldsSchema.filter((f) => f.label.trim()) } };
+    session.busy = true;
+    document.getElementById("node-creator-submit").disabled = true;
+    const card = createTertiaryCustomPlanningCard(config);
+    if (!card) {
+      session.busy = false;
+      document.getElementById("node-creator-submit").disabled = false;
+      return fail("\u8282\u70B9\u672A\u80FD\u521B\u5EFA\uFF0C\u8BF7\u91CD\u8BD5\u3002");
+    }
+    closeNodeCreator();
+    card.classList.add("is-selected");
+    const stage = document.getElementById("tertiary-canvas-stage"), v = readMindmapViewport();
+    if (stage)
+      writeMindmapViewport({ x: stage.clientWidth / 2 - (parseFloat(card.style.left) + card.offsetWidth / 2) * v.zoom, y: Math.max(30, (stage.clientHeight - card.offsetHeight * v.zoom) / 2) - parseFloat(card.style.top) * v.zoom, zoom: v.zoom });
+    showIslandToast("\u5DF2\u6DFB\u52A0\u8282\u70B9\u300A" + config.title + "\u300B");
+    return true;
+  }
+  function handleNodeCreatorKeydown(event) {
+    if (event.isComposing)
+      return;
+    event.stopPropagation();
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      closeNodeCreator();
+      return;
+    }
+    const modal = document.getElementById("modal-tertiary-add-node"), tab = event.target.closest?.("[data-creator-type]");
+    if (tab && ["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
+      event.preventDefault();
+      const i = nodeCreatorTypes.indexOf(tab.dataset.creatorType), next = event.key === "Home" ? 0 : event.key === "End" ? 5 : (i + (event.key === "ArrowRight" ? 1 : 5)) % 6;
+      selectNodeCreatorType(nodeCreatorTypes[next]);
+      document.getElementById("node-creator-tab-" + nodeCreatorTypes[next]).focus();
+      return;
+    }
+    if (event.key === "Tab") {
+      const controls = Array.from(modal.querySelectorAll("button,input,textarea,select,[tabindex]")).filter((e) => !e.disabled && e.tabIndex >= 0 && e.getClientRects().length), first = controls[0], last = controls.at(-1);
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
+    }
+  }
   function canvasLocalPoint(stage, clientX, clientY) {
     const r = stage.getBoundingClientRect();
     return { x: (clientX - r.left) * stage.clientWidth / (r.width || 1), y: (clientY - r.top) * stage.clientHeight / (r.height || 1) };
@@ -20096,6 +19961,34 @@ function bootPrototypeRuntime() {
     window2.renderHomeExecutionQueue = renderHomeExecutionQueue;
   if (typeof refreshHomeExecutionDate === "function")
     window2.refreshHomeExecutionDate = refreshHomeExecutionDate;
+  if (typeof freshNodeCreatorDraft === "function")
+    window2.freshNodeCreatorDraft = freshNodeCreatorDraft;
+  if (typeof nodeCreatorRow === "function")
+    window2.nodeCreatorRow = nodeCreatorRow;
+  if (typeof nodeCreatorField === "function")
+    window2.nodeCreatorField = nodeCreatorField;
+  if (typeof nodeCreatorOptions === "function")
+    window2.nodeCreatorOptions = nodeCreatorOptions;
+  if (typeof captureNodeCreatorDraft === "function")
+    window2.captureNodeCreatorDraft = captureNodeCreatorDraft;
+  if (typeof renderNodeCreatorList === "function")
+    window2.renderNodeCreatorList = renderNodeCreatorList;
+  if (typeof renderNodeCreatorCard === "function")
+    window2.renderNodeCreatorCard = renderNodeCreatorCard;
+  if (typeof openNodeCreator === "function")
+    window2.openNodeCreator = openNodeCreator;
+  if (typeof closeNodeCreator === "function")
+    window2.closeNodeCreator = closeNodeCreator;
+  if (typeof selectNodeCreatorType === "function")
+    window2.selectNodeCreatorType = selectNodeCreatorType;
+  if (typeof addNodeCreatorRow === "function")
+    window2.addNodeCreatorRow = addNodeCreatorRow;
+  if (typeof removeNodeCreatorRow === "function")
+    window2.removeNodeCreatorRow = removeNodeCreatorRow;
+  if (typeof submitNodeCreator === "function")
+    window2.submitNodeCreator = submitNodeCreator;
+  if (typeof handleNodeCreatorKeydown === "function")
+    window2.handleNodeCreatorKeydown = handleNodeCreatorKeydown;
   if (typeof canvasLocalPoint === "function")
     window2.canvasLocalPoint = canvasLocalPoint;
   if (typeof readPlanViewport === "function")

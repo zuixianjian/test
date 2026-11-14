@@ -12430,11 +12430,82 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 #day-deck-empty-placeholder h3 { margin:0; font-size:17px; }
 #day-deck-empty-placeholder p { margin:0; font-size:12px; line-height:1.6; }
 
+/* One selected card below a stable type picker; the body alone scrolls. */
+#modal-tertiary-add-node.node-creator-modal { display:none; position:fixed; inset:0; z-index:25000; align-items:center; justify-content:center; padding:16px; background:#261d146b; overscroll-behavior:contain; }
+.node-creator-modal .node-creator-window { display:flex; flex-direction:column; width:760px!important; max-width:100%!important; height:auto!important; max-height:90vh!important; max-height:90dvh!important; min-height:0; margin:0; padding:0; overflow:hidden; border:1.5px solid #d8c8ab; border-radius:20px; background:#fffdf7; box-shadow:0 22px 70px #25160b4a; color:#493d2f; }
+.node-creator-header { display:flex; flex:none; align-items:center; justify-content:space-between; gap:16px; padding:17px 22px 14px; background:linear-gradient(135deg,#fff7e4,#f5faf4); border-bottom:1px solid #e7decc; }
+.node-creator-header h2 { margin:0; color:#594328; font-size:19px; line-height:1.4; }
+.node-creator-header p { margin:5px 0 0; font-size:12px; line-height:1.5; color:#938064; }
+.node-creator-modal button { width:auto; height:auto; margin:0; min-height:34px; border:1px solid #dfd2bd; border-radius:8px; padding:6px 11px; background:#fffdf8; color:#7b6546; font:inherit; font-size:12px; box-shadow:none; cursor:pointer; }
+.node-creator-modal button:focus-visible { outline:2px solid #cf9e55; outline-offset:2px; }
+.node-creator-modal .node-creator-close { flex:none; width:32px; min-width:32px; height:32px; min-height:32px; padding:0; background:#fffdf8; font-size:14px; }
+.node-creator-types { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); flex:none; gap:8px; padding:14px 22px; border-bottom:1px solid #ece4d5; background:#fffcf4; }
+.node-creator-types button { --creator-ink:#b45309; --creator-soft:#fffbeb; --creator-line:#f2d596; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; min-width:0; min-height:62px; padding:8px 4px; background:#fffdf8; border:1px solid #e6dcc8; color:#92836e; font-size:19px; transition:background .12s,border-color .12s; }
+.node-creator-types [data-creator-type="goal"] { --creator-ink:#2563eb; --creator-soft:#eff6ff; --creator-line:#b5cff5; }
+.node-creator-types [data-creator-type="habit"] { --creator-ink:#047857; --creator-soft:#ecfdf5; --creator-line:#9edcbd; }
+.node-creator-types [data-creator-type="review"] { --creator-ink:#7c3aed; --creator-soft:#f5f3ff; --creator-line:#cdb7f3; }
+.node-creator-types [data-creator-type="custom"] { --creator-ink:#15803d; --creator-soft:#f0fdf4; --creator-line:#b0dfb9; }
+.node-creator-types [data-creator-type="text"] { --creator-ink:#8b6740; --creator-soft:#faf6ec; --creator-line:#deceb0; }
+.node-creator-types button > span { font-size:11px; font-weight:750; white-space:nowrap; }
+.node-creator-types [aria-selected="true"] { background:var(--creator-soft); border-color:var(--creator-line); color:var(--creator-ink); box-shadow:0 0 0 1px var(--creator-line); }
+.node-creator-body { flex:1; min-height:0; overflow-y:auto; padding:18px 22px; overscroll-behavior:contain; touch-action:pan-y; background:#faf7ef; }
+.node-creator-card { --creator-ink:#b45309; --creator-soft:#fffbeb; --creator-line:#f2d596; display:flex; flex-direction:column; gap:13px; min-width:0; width:100%; padding:17px; border:1px solid var(--creator-line); border-radius:14px; background:#fffefb; box-sizing:border-box; }
+.node-creator-card[data-node-type="goal"] { --creator-ink:#2563eb; --creator-soft:#eff6ff; --creator-line:#b5cff5; }
+.node-creator-card[data-node-type="habit"] { --creator-ink:#047857; --creator-soft:#ecfdf5; --creator-line:#9edcbd; }
+.node-creator-card[data-node-type="review"] { --creator-ink:#7c3aed; --creator-soft:#f5f3ff; --creator-line:#cdb7f3; }
+.node-creator-card[data-node-type="custom"] { --creator-ink:#15803d; --creator-soft:#f0fdf4; --creator-line:#b0dfb9; }
+.node-creator-card[data-node-type="text"] { --creator-ink:#8b6740; --creator-soft:#faf6ec; --creator-line:#deceb0; }
+.node-creator-card-heading { padding:0 0 12px; border-bottom:1px solid #eee5d5; }
+.node-creator-card-heading > span { display:inline-flex; padding:4px 8px; border:1px solid var(--creator-line); border-radius:6px; background:var(--creator-soft); color:var(--creator-ink); font-size:12px; font-weight:800; }
+.node-creator-card-heading p { margin:7px 0 0; font-size:11px; line-height:1.5; color:#a08d72; }
+.node-creator-field { display:flex; flex-direction:column; min-width:0; gap:6px; font-size:12px; color:#79684e; }
+.node-creator-field > span, .node-creator-section-title { font-weight:750; }
+.node-creator-card input:not([type="checkbox"]), .node-creator-card textarea, .node-creator-card select { box-sizing:border-box; width:100%; min-width:0; min-height:36px; height:auto; margin:0; padding:8px 10px; border:1px solid #dcd3c2; border-radius:7px; background:#fffefb; color:#514431; box-shadow:none; font:inherit; font-size:12px; line-height:1.5; }
+.node-creator-card textarea { min-height:76px; resize:vertical; }
+.node-creator-card[data-node-type="text"] textarea { min-height:190px; }
+.node-creator-card input::placeholder, .node-creator-card textarea::placeholder { color:#b4a791; }
+.node-creator-card input:focus, .node-creator-card textarea:focus, .node-creator-card select:focus { outline:2px solid var(--creator-line); outline-offset:1px; border-color:var(--creator-ink); }
+.node-creator-card input[type="checkbox"] { width:16px; height:16px; min-height:16px; margin:0; flex:none; accent-color:var(--creator-ink); }
+.node-creator-list-section { padding:11px; border:1px solid var(--creator-line); border-radius:9px; background:var(--creator-soft); }
+.node-creator-section-title { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:8px; color:var(--creator-ink); font-size:12px; }
+.node-creator-modal .node-creator-add-row { flex:none; min-height:30px; padding:4px 8px; border-color:var(--creator-line); color:var(--creator-ink); background:#fffdfb; font-size:11px; }
+.node-creator-list-row { display:grid; grid-template-columns:minmax(0,1fr) auto 30px; gap:7px; align-items:center; margin-top:7px; }
+.node-creator-list-row[data-kind="metrics"] { grid-template-columns:minmax(0,1fr) minmax(0,1fr) 30px; }
+.node-creator-list-row[data-kind="customFieldsSchema"] { grid-template-columns:minmax(0,1fr) 100px auto 30px; }
+.node-creator-list-row .node-creator-row-check { display:flex; align-items:center; gap:4px; font-size:10px; white-space:nowrap; }
+.node-creator-modal .node-creator-remove { min-height:30px; width:30px; padding:0; border-color:#efc5ba; color:#b16b55; background:#fff8f4; }
+.node-creator-empty { margin:4px 0; color:#a4957b; font-size:11px; line-height:1.6; }
+.node-creator-settings { padding:0 11px; border:1px solid #e5dccb; border-radius:9px; background:#fcf9f1; }
+.node-creator-settings summary { padding:11px 0; font-size:11px; font-weight:750; color:#8c7655; cursor:pointer; }
+.node-creator-settings summary span { float:right; margin-left:10px; font-size:10px; color:#ad9d83; font-weight:500; }
+.node-creator-settings-body { display:flex; flex-direction:column; gap:12px; padding-bottom:12px; }
+.node-creator-field-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:end; }
+.node-creator-execution { display:flex; gap:7px; align-items:center; font-size:12px; min-height:36px; color:#7f7058; }
+.node-creator-footer { display:flex; flex:none; justify-content:space-between; align-items:center; gap:14px; padding:13px 22px; border-top:1px solid #e6dcca; background:#fffdf7; }
+.node-creator-footer p { margin:0; font-size:10.5px; line-height:1.6; color:#9e8a6d; }
+.node-creator-footer #node-creator-error { color:#b44f3b; font-size:11px; }
+.node-creator-actions { display:flex; gap:8px; flex:none; }
+.node-creator-modal .node-creator-actions button { min-height:38px; padding:8px 14px; font-weight:750; }
+.node-creator-modal .node-creator-submit { background:linear-gradient(#ffdc83,#f4bd50); color:#78501c; border-color:#dba744; }
+.node-creator-modal button:disabled { opacity:.55; cursor:wait; }
+@media(max-width:640px){
+  .node-creator-types { grid-template-columns:repeat(3,minmax(0,1fr)); padding:12px 15px; }
+  .node-creator-types button { flex-direction:row; min-height:44px; gap:7px; font-size:17px; }
+  .node-creator-header { padding:14px 15px; }
+  .node-creator-body { padding:13px 15px; }
+  .node-creator-card { padding:13px; }
+  .node-creator-footer { padding:12px 15px; align-items:flex-start; flex-wrap:wrap; }
+  .node-creator-actions { margin-left:auto; }
+  .node-creator-list-row[data-kind="customFieldsSchema"] { grid-template-columns:minmax(0,1fr) 85px 30px; }
+  .node-creator-list-row[data-kind="customFieldsSchema"] .node-creator-row-check { grid-column:1/3; grid-row:2; }
+  .node-creator-list-row[data-kind="customFieldsSchema"] .node-creator-remove { grid-column:3; grid-row:1; }
+}
+
 /* PRODUCT_CSS_END */
 </style>
 </head>
 <body>
-<div class="global-header product-contract-banner" data-product-contract="3">1.1.8 闭环交互预览 · 按项目/节点/每日任务实例关联 · 本预览数据保存在当前浏览器，组件画板样例不计为实际执行</div>
+<div class="global-header product-contract-banner" data-product-contract="3">1.1.9 闭环交互预览 · 按项目/节点/每日任务实例关联 · 本预览数据保存在当前浏览器，组件画板样例不计为实际执行</div>
   <!-- 顶部主控导航栏 (设备控制与主模态切换) -->
   <header class="global-header">
     <div class="system-title-group">
@@ -15008,391 +15079,25 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 </div>
 
 <!-- 2. 新增攻坚节点弹窗 (支持不可操作节点与可操作打卡节点，支持批量添加) -->
-<div class="workbench-modal-backdrop" id="modal-tertiary-add-node" onclick="handleTertiaryAddNodeBackdropClick(event)">
-  <div class="workbench-window" onclick="event.stopPropagation()" style="max-width: 860px; height: auto; max-height: 90vh;">
-    <div class="workbench-header" style="background: linear-gradient(135deg, #eff6ff, #f0fdf4); border-bottom: 2px solid #3b82f6;">
-      <div class="wb-title-group">
-        <div class="wb-icon" style="border-color:#3b82f6;">➕</div>
-        <div class="wb-title-texts">
-          <h2 style="color:#1e3a8a;">➕ 新增三级任务节点（📚 通用卡片原型库 · 支持自定义参数、单加与批量添加）</h2>
-          <p style="color:#047857;">全系统统一收敛为通用卡片原型体系，支持自定义卡片字段数量（自主增删）、打卡要求，以及纯查阅免操作的简单文本节点</p>
-        </div>
-      </div>
-      <button class="wb-close-btn" onclick="closeTertiaryAddNodeModal()">✕</button>
+<div class="workbench-modal-backdrop node-creator-modal" id="modal-tertiary-add-node" role="dialog" aria-modal="true" aria-labelledby="node-creator-title" onkeydown="handleNodeCreatorKeydown(event)" onclick="handleTertiaryAddNodeBackdropClick(event)">
+  <div class="workbench-window node-creator-window" onclick="event.stopPropagation()">
+    <header class="node-creator-header">
+      <div><h2 id="node-creator-title">新增节点</h2><p id="node-creator-project">先选择卡片类型，再填写节点内容</p></div>
+      <button type="button" class="node-creator-close" aria-label="关闭新增节点" onclick="closeTertiaryAddNodeModal()">✕</button>
+    </header>
+    <div class="node-creator-types" role="tablist" aria-label="选择卡片类型">
+      <button type="button" role="tab" id="node-creator-tab-goal" data-creator-type="goal" aria-controls="node-creator-card" aria-selected="false" tabindex="-1" onclick="selectNodeCreatorType('goal')">🎯 <span>目标分解</span></button>
+      <button type="button" role="tab" id="node-creator-tab-drill" data-creator-type="drill" aria-controls="node-creator-card" aria-selected="true" onclick="selectNodeCreatorType('drill')">⚡ <span>攻坚实训</span></button>
+      <button type="button" role="tab" id="node-creator-tab-habit" data-creator-type="habit" aria-controls="node-creator-card" aria-selected="false" tabindex="-1" onclick="selectNodeCreatorType('habit')">🌿 <span>习惯践行</span></button>
+      <button type="button" role="tab" id="node-creator-tab-review" data-creator-type="review" aria-controls="node-creator-card" aria-selected="false" tabindex="-1" onclick="selectNodeCreatorType('review')">📝 <span>评估复盘</span></button>
+      <button type="button" role="tab" id="node-creator-tab-custom" data-creator-type="custom" aria-controls="node-creator-card" aria-selected="false" tabindex="-1" onclick="selectNodeCreatorType('custom')">⚙️ <span>自定义</span></button>
+      <button type="button" role="tab" id="node-creator-tab-text" data-creator-type="text" aria-controls="node-creator-card" aria-selected="false" tabindex="-1" onclick="selectNodeCreatorType('text')">📄 <span>文本便签</span></button>
     </div>
-
-    <div class="workbench-body" style="padding: 16px 22px; display: flex; flex-direction: column; gap: 14px; max-height: calc(90vh - 130px); overflow-y: auto;">
-      
-      <!-- 通用卡片原型库面板 (#panel-node-template-library · 已去除重叠的自定义创建通用卡片页签，直接展示原型库) -->
-      <div id="panel-node-template-library" style="display: flex; flex-direction: column; gap: 14px;">
-        <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:10px 14px; font-size:11.5px; color:#1e40af; display:flex; align-items:center; gap:8px;">
-          <span style="font-size:16px;">💡</span>
-          <span><strong>通用卡片原型库</strong>：全系统所有任务与知识节点统一收敛于标准通用卡片。包含 <strong>⚙️ 自定义配置卡</strong>（自定义字段数量由您自定，可自由增减、配置打卡与物证）与 <strong>📄 简单文本节点</strong>（纯文本展示、仅供查阅、无需任何操作）。在原型库中可即时编辑参数并单加或批量排入画布！</span>
-        </div>
-
-        <div class="node-picker-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;">
-          <!-- 1. 🎯 目标分解卡原型 -->
-          <div class="node-picker-card archetype-picker-card" id="picker-card-goal" style="background:#f0f7ff; border:1.5px solid #bfdbfe; border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:8px;" onclick="toggleNodePickerSelection('card-goal', this, event)">
-            <div class="node-picker-card-top" style="display:flex; align-items:center; gap:8px; border-bottom:1px solid #dbeafe; padding-bottom:8px;">
-              <input type="checkbox" class="node-picker-checkbox" data-type="card-goal" onclick="event.stopPropagation(); updateNodePickerBatchCount();">
-              <span class="node-picker-icon" style="font-size:20px;">🎯</span>
-              <div class="node-picker-info" style="flex:1;">
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:4px;">
-                  <span class="node-picker-name" style="font-size:13px; font-weight:850; color:#1e3a8a;">🎯 目标分解卡 (Goal)</span>
-                  <span class="node-picker-cat-badge non-actionable" style="font-size:9.5px; padding:2px 6px; background:#dbeafe; color:#1e40af; border-radius:4px; font-weight:800;">多指标 · 交付沉淀</span>
-                </div>
-                <div class="node-picker-desc" style="font-size:10.5px; color:#3b82f6;">支持自定义增删多项量化通关指标、选择截止时间、提交照片/文字交付物并沉淀到成就馆</div>
-              </div>
-            </div>
-            
-            <!-- 专属信息录入区 -->
-            <div class="node-picker-fields-container" style="display:flex; flex-direction:column; gap:6px;" onclick="event.stopPropagation()">
-              <div>
-                <label style="display:block; font-size:10.5px; font-weight:800; color:#1e3a8a; margin-bottom:2px;">📌 目标大字标题</label>
-                <input type="text" id="node-title-card-goal" class="add-module-text-input" value="进退位口算满分达标目标" style="width:100%; box-sizing:border-box; height:28px; font-size:11px; padding:2px 8px; font-weight:800;">
-              </div>
-              <div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
-                  <label style="font-size:10.5px; font-weight:800; color:#1e3a8a;">🎯 量化通关指标 (可增删多项)</label>
-                  <button type="button" onclick="addGoalMetricModalRow('picker-goal-metrics-list')" style="padding:1px 7px; font-size:10px; font-weight:800; background:#2563eb; color:#fff; border:none; border-radius:4px; cursor:pointer;">➕ 新增指标</button>
-                </div>
-                <div style="display:grid; grid-template-columns:1fr 1fr 24px; gap:4px; font-size:9.5px; font-weight:800; color:#1e40af; padding:0 2px;">
-                  <span>指标名</span>
-                  <span>指标数据</span>
-                  <span></span>
-                </div>
-                <div id="picker-goal-metrics-list" style="display:flex; flex-direction:column; gap:4px;">
-                  <div class="goal-metric-row" style="display:grid; grid-template-columns:1fr 1fr 24px; align-items:center; gap:4px;">
-                    <input type="text" class="add-module-text-input goal-metric-name" value="单元口算正确率" placeholder="指标名" style="width:100%; box-sizing:border-box; height:25px; font-size:10.5px; padding:2px 6px;">
-                    <input type="text" class="add-module-text-input goal-metric-val" value="≥ 98%" placeholder="指标数据" style="width:100%; box-sizing:border-box; height:25px; font-size:10.5px; padding:2px 6px; font-weight:800; color:#15803d;">
-                    <button type="button" onclick="removeGoalMetricModalRow(this)" style="height:25px; padding:0; font-size:10px; font-weight:800; background:#fef2f2; color:#dc2626; border:1px solid #fecaca; border-radius:4px; cursor:pointer;">✕</button>
-                  </div>
-                  <div class="goal-metric-row" style="display:grid; grid-template-columns:1fr 1fr 24px; align-items:center; gap:4px;">
-                    <input type="text" class="add-module-text-input goal-metric-name" value="进退位心算提分" placeholder="指标名" style="width:100%; box-sizing:border-box; height:25px; font-size:10.5px; padding:2px 6px;">
-                    <input type="text" class="add-module-text-input goal-metric-val" value="Delta +15 分" placeholder="指标数据" style="width:100%; box-sizing:border-box; height:25px; font-size:10.5px; padding:2px 6px; font-weight:800; color:#15803d;">
-                    <button type="button" onclick="removeGoalMetricModalRow(this)" style="height:25px; padding:0; font-size:10px; font-weight:800; background:#fef2f2; color:#dc2626; border:1px solid #fecaca; border-radius:4px; cursor:pointer;">✕</button>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <label style="display:block; font-size:10.5px; font-weight:800; color:#1e3a8a; margin-bottom:2px;">📅 期望完成截止时间 (点击选择日期与时间)</label>
-                <input type="datetime-local" id="node-deadline-card-goal" class="add-module-text-input" value="2026-11-15T20:00" onclick="if(this.showPicker) this.showPicker();" style="width:100%; box-sizing:border-box; height:27px; font-size:10.5px; padding:2px 6px; cursor:pointer;">
-              </div>
-              <div>
-                <label style="display:block; font-size:10.5px; font-weight:800; color:#1e3a8a; margin-bottom:2px;">📋 通关验收交付标准与要领</label>
-                <textarea id="node-acceptance-card-goal" class="add-module-text-input" style="width:100%; box-sizing:border-box; height:36px; font-size:10.5px; padding:3px 6px; resize:vertical;">完成破十法思维实训与 3 次限时打卡，错题红笔归因清零。</textarea>
-              </div>
-              <div style="background:#fffbeb; border:1px solid #fcd34d; border-radius:6px; padding:5px 7px; display:flex; flex-direction:column; gap:4px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
-                  <label style="font-size:10px; font-weight:850; color:#92400e; white-space:nowrap;">📦 交付物提交:</label>
-                  <select id="node-deliverable-type-card-goal" class="add-module-text-input" onchange="switchModalGoalDeliverable('picker', this.value)" style="flex:1; height:24px; font-size:10px; font-weight:800; color:#92400e; padding:1px 4px; background:#fff; border:1px solid #f59e0b; cursor:pointer;">
-                    <option value="photo" selected>📷 拍照提交</option>
-                    <option value="video">🎥 视频提交</option>
-                    <option value="text">✍️ 文字记录提交</option>
-                  </select>
-                </div>
-                <div id="picker-goal-deliverable-media" onclick="createImageEvidencePrompt()" style="background:#fff; border:1px dashed #f59e0b; border-radius:4px; padding:4px 6px; font-size:9.5px; font-weight:800; color:#b45309; text-align:center; cursor:pointer;">
-                  📷 点击拍照或上传交付物照片
-                </div>
-                <input type="text" id="node-deliverable-card-goal" class="add-module-text-input" value="已完成阶段目标全部指标，附满分通关演算手稿。" placeholder="✍️ 输入交付物文字记录..." style="display:none; width:100%; box-sizing:border-box; height:24px; font-size:10px; padding:2px 6px; background:#fff;">
-              </div>
-            </div>
-
-            <div class="node-picker-card-actions" style="margin-top:auto; padding-top:6px; display:flex; justify-content:flex-end;" onclick="event.stopPropagation()">
-              <button type="button" class="node-quick-add-btn" onclick="quickAddSingleNode('card-goal')" style="padding:6px 14px; font-size:11px; font-weight:850; background:#2563eb; color:#fff; border:none; border-radius:6px; cursor:pointer;">⚡ 立即单加到画布</button>
-            </div>
-          </div>
-
-          <!-- 2. ⚡ 攻坚实训卡原型 -->
-          <div class="node-picker-card archetype-picker-card" id="picker-card-drill" style="background:#fffdf5; border:1.5px solid #fde68a; border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:8px;" onclick="toggleNodePickerSelection('card-drill', this, event)">
-            <div class="node-picker-card-top" style="display:flex; align-items:center; gap:8px; border-bottom:1px solid #fef3c7; padding-bottom:8px;">
-              <input type="checkbox" class="node-picker-checkbox" data-type="card-drill" onclick="event.stopPropagation(); updateNodePickerBatchCount();">
-              <span class="node-picker-icon" style="font-size:20px;">⚡</span>
-              <div class="node-picker-info" style="flex:1;">
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:4px;">
-                  <span class="node-picker-name" style="font-size:13px; font-weight:850; color:#92400e;">⚡ 攻坚实训卡 (Drill)</span>
-                  <span class="node-picker-cat-badge actionable" style="font-size:9.5px; padding:2px 6px; background:#fef3c7; color:#b45309; border-radius:4px; font-weight:800;">5分钟起 · 图文实训</span>
-                </div>
-                <div class="node-picker-desc" style="font-size:10.5px; color:#d97706;">支持 5 分钟起专注计时、上传实训图片与图片说明、拍照存证与打卡印章</div>
-              </div>
-            </div>
-            
-            <!-- 专属信息录入区 -->
-            <div class="node-picker-fields-container" style="display:flex; flex-direction:column; gap:6px;" onclick="event.stopPropagation()">
-              <div>
-                <label style="display:block; font-size:10.5px; font-weight:800; color:#78350f; margin-bottom:2px;">📌 实训大字标题</label>
-                <input type="text" id="node-title-card-drill" class="add-module-text-input" value="破十法心算极限实训" style="width:100%; box-sizing:border-box; height:28px; font-size:11px; padding:2px 8px; font-weight:800;">
-              </div>
-              <div>
-                <label style="display:block; font-size:10.5px; font-weight:800; color:#78350f; margin-bottom:2px;">⚡ 核心攻坚要领 / 通解模型 / 动作要领</label>
-                <textarea id="node-formula-card-drill" class="add-module-text-input" style="width:100%; box-sizing:border-box; height:38px; font-size:10.5px; padding:4px 8px; resize:vertical;">破十法心算通解模型：23 - 8 = 13 + (10 - 8) = 15，十位借一当十，手稿红笔标出退位借位点。</textarea>
-              </div>
-              <!-- 图片视频说明（单一上传框支持上传图片和视频 + 说明输入） -->
-              <div style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:6px; padding:5px 7px; display:flex; flex-direction:column; gap:4px;">
-                <label style="font-size:10px; font-weight:850; color:#0369a1;">🎬 图片视频说明</label>
-                <div onclick="createImageEvidencePrompt()" style="background:#fff; border:1.5px dashed #38bdf8; border-radius:5px; padding:5px 6px; font-size:10px; font-weight:800; color:#0284c7; text-align:center; cursor:pointer;">
-                  📷 / 🎥 点击上传图片或视频
-                </div>
-                <input type="text" id="node-imgdesc-card-drill" class="add-module-text-input" value="进退位口算题卡 30 题，红笔圈出借位退位点" placeholder="✍️ 输入图片或视频说明..." style="width:100%; box-sizing:border-box; height:24px; font-size:10px; padding:2px 6px; background:#fff;">
-              </div>
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
-                <div>
-                  <label style="display:block; font-size:10px; font-weight:800; color:#78350f; margin-bottom:2px;">⏱️ 计划专注时长 (5分钟起)</label>
-                  <select id="node-duration-card-drill" class="add-module-text-input" style="width:100%; box-sizing:border-box; height:26px; font-size:10.5px; padding:2px 6px;">
-                    <option value="5">⏱️ 5 分钟 (微习惯快练)</option>
-                    <option value="10">⏱️ 10 分钟 (轻量专攻)</option>
-                    <option value="15">⏱️ 15 分钟 (日常快练)</option>
-                    <option value="20" selected>⏱️ 20 分钟 (标准推荐)</option>
-                    <option value="25">⏱️ 25 分钟 (深度番茄)</option>
-                    <option value="30">⏱️ 30 分钟 (强化攻坚)</option>
-                    <option value="45">⏱️ 45 分钟 (全套模拟)</option>
-                  </select>
-                </div>
-                <div>
-                  <label style="display:block; font-size:10px; font-weight:800; color:#78350f; margin-bottom:2px;">📷 物证交付要求</label>
-                  <select id="node-evidence-card-drill" class="add-module-text-input" style="width:100%; box-sizing:border-box; height:26px; font-size:10.5px; padding:2px 6px;">
-                    <option value="image" selected>📷 拍照物证 (手稿拍照)</option>
-                    <option value="video">🎥 动作视频物证</option>
-                    <option value="timer">⏱️ 纯心流计时打卡</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div class="node-picker-card-actions" style="margin-top:auto; padding-top:6px; display:flex; justify-content:flex-end;" onclick="event.stopPropagation()">
-              <button type="button" class="node-quick-add-btn" onclick="quickAddSingleNode('card-drill')" style="padding:6px 14px; font-size:11px; font-weight:850; background:#d97706; color:#fff; border:none; border-radius:6px; cursor:pointer;">⚡ 立即单加到画布</button>
-            </div>
-          </div>
-
-          <!-- 3. 🌿 习惯践行卡原型 -->
-          <div class="node-picker-card archetype-picker-card" id="picker-card-habit" style="background:#f0fdf4; border:1.5px solid #bbf7d0; border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:8px;" onclick="toggleNodePickerSelection('card-habit', this, event)">
-            <div class="node-picker-card-top" style="display:flex; align-items:center; gap:8px; border-bottom:1px solid #dcfce7; padding-bottom:8px;">
-              <input type="checkbox" class="node-picker-checkbox" data-type="card-habit" onclick="event.stopPropagation(); updateNodePickerBatchCount();">
-              <span class="node-picker-icon" style="font-size:20px;">🌿</span>
-              <div class="node-picker-info" style="flex:1;">
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:4px;">
-                  <span class="node-picker-name" style="font-size:13px; font-weight:850; color:#14532d;">🌿 习惯践行卡 (Habit)</span>
-                  <span class="node-picker-cat-badge actionable" style="font-size:9.5px; padding:2px 6px; background:#dcfce7; color:#047857; border-radius:4px; font-weight:800;">日常自律 · 知行合一</span>
-                </div>
-                <div class="node-picker-desc" style="font-size:10.5px; color:#16a34a;">承载日常高频自律防守、圣贤原典晨读与言行躬行，配备防守清单与知行印章</div>
-              </div>
-            </div>
-            
-            <!-- 专属信息录入区 -->
-            <div class="node-picker-fields-container" style="display:flex; flex-direction:column; gap:6px;" onclick="event.stopPropagation()">
-              <div>
-                <label style="display:block; font-size:10.5px; font-weight:800; color:#14532d; margin-bottom:2px;">📌 习惯日课大字标题</label>
-                <input type="text" id="node-title-card-habit" class="add-module-text-input" value="每日口算自律防守日课" style="width:100%; box-sizing:border-box; height:28px; font-size:11px; padding:2px 8px; font-weight:800;">
-              </div>
-              <div>
-                <label style="display:block; font-size:10.5px; font-weight:800; color:#14532d; margin-bottom:2px;">🌿 经典经文训诂 / 自律防守红线提示</label>
-                <textarea id="node-quote-card-habit" class="add-module-text-input" style="width:100%; box-sizing:border-box; height:42px; font-size:10.5px; padding:4px 8px; resize:vertical;">自律守则与圣贤训诂：“知之者不如好之者”；恪守每日晨间 15 分钟无干扰口算盲刷自律防守线。</textarea>
-              </div>
-              <div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
-                  <label style="font-size:10.5px; font-weight:800; color:#14532d;">🛡️ 践行防守清单项 (可增删多项)</label>
-                  <button type="button" onclick="addHabitChecklistModalRow('picker-habit-checklist-list')" style="padding:1px 7px; font-size:10px; font-weight:800; background:#059669; color:#fff; border:none; border-radius:4px; cursor:pointer;">➕ 新增清单项</button>
-                </div>
-                <div id="picker-habit-checklist-list" style="display:flex; flex-direction:column; gap:4px;">
-                  <div class="habit-checklist-row" style="display:grid; grid-template-columns:1fr 24px; align-items:center; gap:4px;">
-                    <input type="text" class="add-module-text-input habit-checklist-text" value="1. 独立审题不依赖草稿" placeholder="输入践行防守清单项..." style="width:100%; box-sizing:border-box; height:25px; font-size:10.5px; padding:2px 6px;">
-                    <button type="button" onclick="removeHabitChecklistModalRow(this)" style="height:25px; padding:0; font-size:10px; font-weight:800; background:#fef2f2; color:#dc2626; border:1px solid #fecaca; border-radius:4px; cursor:pointer;">✕</button>
-                  </div>
-                  <div class="habit-checklist-row" style="display:grid; grid-template-columns:1fr 24px; align-items:center; gap:4px;">
-                    <input type="text" class="add-module-text-input habit-checklist-text" value="2. 错题立即红笔标退位点" placeholder="输入践行防守清单项..." style="width:100%; box-sizing:border-box; height:25px; font-size:10.5px; padding:2px 6px;">
-                    <button type="button" onclick="removeHabitChecklistModalRow(this)" style="height:25px; padding:0; font-size:10px; font-weight:800; background:#fef2f2; color:#dc2626; border:1px solid #fecaca; border-radius:4px; cursor:pointer;">✕</button>
-                  </div>
-                  <div class="habit-checklist-row" style="display:grid; grid-template-columns:1fr 24px; align-items:center; gap:4px;">
-                    <input type="text" class="add-module-text-input habit-checklist-text" value="3. 做毕自主整理书桌" placeholder="输入践行防守清单项..." style="width:100%; box-sizing:border-box; height:25px; font-size:10.5px; padding:2px 6px;">
-                    <button type="button" onclick="removeHabitChecklistModalRow(this)" style="height:25px; padding:0; font-size:10px; font-weight:800; background:#fef2f2; color:#dc2626; border:1px solid #fecaca; border-radius:4px; cursor:pointer;">✕</button>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <label style="display:block; font-size:10px; font-weight:800; color:#14532d; margin-bottom:2px;">🎙️ 物证交付方式</label>
-                <select id="node-evidence-card-habit" class="add-module-text-input" style="width:100%; box-sizing:border-box; height:26px; font-size:10.5px; padding:2px 6px;">
-                  <option value="audio" selected>🎙️ 晨读录音封存 (60秒原声)</option>
-                  <option value="image">📷 生活自律拍照存证</option>
-                  <option value="checklist">🛡️ 纯自律防守清单打卡</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="node-picker-card-actions" style="margin-top:auto; padding-top:6px; display:flex; justify-content:flex-end;" onclick="event.stopPropagation()">
-              <button type="button" class="node-quick-add-btn" onclick="quickAddSingleNode('card-habit')" style="padding:6px 14px; font-size:11px; font-weight:850; background:#059669; color:#fff; border:none; border-radius:6px; cursor:pointer;">⚡ 立即单加到画布</button>
-            </div>
-          </div>
-
-          <!-- 4. 📝 评估复盘卡原型 -->
-          <div class="node-picker-card archetype-picker-card" id="picker-card-reflection" style="background:#faf5ff; border:1.5px solid #e9d5ff; border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:8px;" onclick="toggleNodePickerSelection('card-reflection', this, event)">
-            <div class="node-picker-card-top" style="display:flex; align-items:center; gap:8px; border-bottom:1px solid #f3e8ff; padding-bottom:8px;">
-              <input type="checkbox" class="node-picker-checkbox" data-type="card-reflection" onclick="event.stopPropagation(); updateNodePickerBatchCount();">
-              <span class="node-picker-icon" style="font-size:20px;">📝</span>
-              <div class="node-picker-info" style="flex:1;">
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:4px;">
-                  <span class="node-picker-name" style="font-size:13px; font-weight:850; color:#581c87;">📝 评估复盘卡 (Reflection)</span>
-                  <span class="node-picker-cat-badge actionable" style="font-size:9.5px; padding:2px 6px; background:#f3e8ff; color:#7c3aed; border-radius:4px; font-weight:800;">复盘说明 · 提升清单</span>
-                </div>
-                <div class="node-picker-desc" style="font-size:10.5px; color:#9333ea;">承载复盘说明总结与多项可执行提升清单，支持自定义增删提升项与笃行打卡</div>
-              </div>
-            </div>
-            
-            <!-- 专属信息录入区 -->
-            <div class="node-picker-fields-container" style="display:flex; flex-direction:column; gap:6px;" onclick="event.stopPropagation()">
-              <div>
-                <label style="display:block; font-size:10.5px; font-weight:800; color:#581c87; margin-bottom:2px;">📌 复盘主题大字标题</label>
-                <input type="text" id="node-title-card-reflection" class="add-module-text-input" value="口算错因归因与反思便签" style="width:100%; box-sizing:border-box; height:28px; font-size:11px; padding:2px 8px; font-weight:800;">
-              </div>
-              <div>
-                <label style="display:block; font-size:10.5px; font-weight:800; color:#581c87; margin-bottom:2px;">📝 复盘说明</label>
-                <textarea id="node-cause-card-reflection" class="add-module-text-input" style="width:100%; box-sizing:border-box; height:42px; font-size:10.5px; padding:4px 8px; resize:vertical;">个位数不够减忘记从十位借 1 当 10，混淆减法借位原则；运算模型化速度大幅提升，审题需先圈出运算符！</textarea>
-              </div>
-              <div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
-                  <label style="font-size:10.5px; font-weight:800; color:#581c87;">🚀 提升清单 (可增删提升项)</label>
-                  <button type="button" onclick="addReflectionImprovementModalRow('picker-reflection-improvements-list')" style="padding:1px 7px; font-size:10px; font-weight:800; background:#7c3aed; color:#fff; border:none; border-radius:4px; cursor:pointer;">➕ 新增提升项</button>
-                </div>
-                <div id="picker-reflection-improvements-list" style="display:flex; flex-direction:column; gap:4px;">
-                  <div class="reflection-improvement-row" style="display:grid; grid-template-columns:1fr 24px; align-items:center; gap:4px;">
-                    <input type="text" class="add-module-text-input reflection-improvement-text" value="1. 审题时先用红笔圈出加减运算符号" placeholder="输入具体提升项..." style="width:100%; box-sizing:border-box; height:25px; font-size:10.5px; padding:2px 6px;">
-                    <button type="button" onclick="removeReflectionImprovementModalRow(this)" style="height:25px; padding:0; font-size:10px; font-weight:800; background:#fef2f2; color:#dc2626; border:1px solid #fecaca; border-radius:4px; cursor:pointer;">✕</button>
-                  </div>
-                  <div class="reflection-improvement-row" style="display:grid; grid-template-columns:1fr 24px; align-items:center; gap:4px;">
-                    <input type="text" class="add-module-text-input reflection-improvement-text" value="2. 遇到个位不够减立即标出十位退位点" placeholder="输入具体提升项..." style="width:100%; box-sizing:border-box; height:25px; font-size:10.5px; padding:2px 6px;">
-                    <button type="button" onclick="removeReflectionImprovementModalRow(this)" style="height:25px; padding:0; font-size:10px; font-weight:800; background:#fef2f2; color:#dc2626; border:1px solid #fecaca; border-radius:4px; cursor:pointer;">✕</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="node-picker-card-actions" style="margin-top:auto; padding-top:6px; display:flex; justify-content:flex-end;" onclick="event.stopPropagation()">
-              <button type="button" class="node-quick-add-btn" onclick="quickAddSingleNode('card-reflection')" style="padding:6px 14px; font-size:11px; font-weight:850; background:#7c3aed; color:#fff; border:none; border-radius:6px; cursor:pointer;">⚡ 立即单加到画布</button>
-            </div>
-          </div>
-          <!-- 5. ⚙️ 自定义配置卡原型 -->
-          <div class="node-picker-card archetype-picker-card" id="picker-card-custom" style="background:#f0fdf4; border:1.5px solid #86efac; border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:8px;" onclick="toggleNodePickerSelection('card-custom', this, event)">
-            <div class="node-picker-card-top" style="display:flex; align-items:center; gap:8px; border-bottom:1px solid #bbf7d0; padding-bottom:8px;">
-              <input type="checkbox" class="node-picker-checkbox" data-type="card-custom" onclick="event.stopPropagation(); updateNodePickerBatchCount();">
-              <span class="node-picker-icon" style="font-size:20px;">⚙️</span>
-              <div class="node-picker-info" style="flex:1;">
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:4px;">
-                  <strong style="font-size:13px; color:#14532d;">⚙️ 自定义配置卡 (Custom Archetype)</strong>
-                  <span class="card-graphic-pill" style="font-size:10px; background:#dcfce7; color:#15803d; border:1px solid #86efac;">自由定义原型</span>
-                </div>
-                <div class="node-picker-desc" style="font-size:11px; color:#166534; margin-top:2px;">
-                  自由定义卡片专属字段、是否需要打卡、打卡物证与印章，支持任意非标探索课题。
-                </div>
-              </div>
-            </div>
-
-            <!-- 卡片大字标题 -->
-            <div onclick="event.stopPropagation()">
-              <label style="display:block; font-size:11px; font-weight:800; color:#14532d; margin-bottom:2px;">📝 规划课题大字标题</label>
-              <input type="text" id="node-title-card-custom" class="add-module-text-input" value="航天科普馆自主研学与火箭模型制作" style="width:100%; box-sizing:border-box; height:32px; font-size:11.5px; font-weight:800; border:1px solid #86efac; border-radius:6px; padding:0 8px;">
-            </div>
-
-            <!-- 是否打卡 & 物证类型 & 印章 -->
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;" onclick="event.stopPropagation()">
-              <div>
-                <label style="display:block; font-size:10.5px; font-weight:800; color:#166534; margin-bottom:2px;">🌟 是否需要打卡</label>
-                <select id="node-actionable-card-custom" class="add-module-text-input" style="width:100%; box-sizing:border-box; height:30px; font-size:11px; font-weight:800; border:1px solid #86efac; border-radius:6px; padding:0 6px; background:#fff;">
-                  <option value="true" selected>🌟 需要打卡执行</option>
-                  <option value="false">📄 仅作为知识沉淀</option>
-                </select>
-              </div>
-              <div>
-                <label style="display:block; font-size:10.5px; font-weight:800; color:#166534; margin-bottom:2px;">📸 物证交付类型</label>
-                <select id="node-evidence-card-custom" class="add-module-text-input" style="width:100%; box-sizing:border-box; height:30px; font-size:11px; font-weight:800; border:1px solid #86efac; border-radius:6px; padding:0 6px; background:#fff;">
-                  <option value="image" selected>📷 拍照物证</option>
-                  <option value="timer">⏱️ 专注计时</option>
-                  <option value="text">✍️ 心得便签</option>
-                  <option value="audio">🎙️ 原声录音</option>
-                  <option value="video">🎥 动作视频</option>
-                  <option value="composite">🌟 综合打卡</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- 自定义字段 1 & 2 -->
-            <div class="node-picker-fields-container" style="display:flex; flex-direction:column; gap:6px;" onclick="event.stopPropagation()">
-              <div style="display:flex; align-items:center; justify-content:space-between;">
-                <label style="display:block; font-size:10.5px; font-weight:800; color:#166534;">📋 自定义字段 (数量由您自定，可自由增减)</label>
-                <button type="button" onclick="addPickerCustomDynamicField()" style="padding:2px 8px; font-size:10px; font-weight:800; background:#dcfce7; color:#15803d; border:1px solid #86efac; border-radius:4px; cursor:pointer;">➕ 增添字段</button>
-              </div>
-              <div id="picker-custom-fields-list" style="display:flex; flex-direction:column; gap:6px;">
-                <div class="picker-custom-field-row" style="display:flex; gap:6px; align-items:center;">
-                  <input type="text" class="picker-field-key add-module-text-input" value="研学指引" placeholder="字段名" style="width:80px; height:28px; font-size:10.5px; font-weight:800; border:1px solid #86efac; border-radius:4px; padding:0 6px;">
-                  <input type="text" class="picker-field-val add-module-text-input" value="实地记录长征系列火箭参数与推进剂特点，拍摄火箭模型展品" placeholder="字段说明内容" style="flex:1; height:28px; font-size:10.5px; border:1px solid #86efac; border-radius:4px; padding:0 6px;">
-                  <button type="button" onclick="removePickerCustomDynamicField(this)" style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; border-radius:4px; width:22px; height:22px; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center;" title="删除此字段">✕</button>
-                </div>
-                <div class="picker-custom-field-row" style="display:flex; gap:6px; align-items:center;">
-                  <input type="text" class="picker-field-key add-module-text-input" value="核心交付" placeholder="字段名" style="width:80px; height:28px; font-size:10.5px; font-weight:800; border:1px solid #86efac; border-radius:4px; padding:0 6px;">
-                  <input type="text" class="picker-field-val add-module-text-input" value="制作简易气压水火箭模型并完成户外试飞留痕存证" placeholder="字段说明内容" style="flex:1; height:28px; font-size:10.5px; border:1px solid #86efac; border-radius:4px; padding:0 6px;">
-                  <button type="button" onclick="removePickerCustomDynamicField(this)" style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; border-radius:4px; width:22px; height:22px; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center;" title="删除此字段">✕</button>
-                </div>
-              </div>
-            </div>
-
-            <div class="node-picker-card-actions" style="margin-top:auto; padding-top:6px; display:flex; justify-content:flex-end;" onclick="event.stopPropagation()">
-              <button type="button" class="node-quick-add-btn" onclick="quickAddSingleNode('card-custom')" style="padding:6px 14px; font-size:11px; font-weight:850; background:#16a34a; color:#fff; border:none; border-radius:6px; cursor:pointer;">⚡ 立即单加到画布</button>
-            </div>
-          </div>
-          <!-- 6. 📄 简单文本节点原型 -->
-          <div class="node-picker-card archetype-picker-card" id="picker-card-text" style="background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:8px;" onclick="toggleNodePickerSelection('card-text', this, event)">
-            <div class="node-picker-card-top" style="display:flex; align-items:center; gap:8px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">
-              <input type="checkbox" class="node-picker-checkbox" data-type="card-text" onclick="event.stopPropagation(); updateNodePickerBatchCount();">
-              <span class="node-picker-icon" style="font-size:20px;">📄</span>
-              <div class="node-picker-info" style="flex:1;">
-                <div style="display:flex; align-items:center; justify-content:space-between; gap:4px;">
-                  <strong style="font-size:13px; color:#334155;">📄 简单文本节点 (Simple Text Node)</strong>
-                  <span class="card-graphic-pill" style="font-size:10px; background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;">纯展示·免操作</span>
-                </div>
-                <div class="node-picker-desc" style="font-size:11px; color:#64748b; margin-top:2px;">
-                  只需输入标题和内容即可，纯文本展示节点，仅供查阅，无需任何打卡操作。
-                </div>
-              </div>
-            </div>
-
-            <!-- 课题大字标题 -->
-            <div onclick="event.stopPropagation()">
-              <label style="display:block; font-size:11px; font-weight:800; color:#334155; margin-bottom:2px;">📝 标题</label>
-              <input type="text" id="node-title-card-text" class="add-module-text-input" value="长征运载火箭谱系与航天知识备忘" style="width:100%; box-sizing:border-box; height:32px; font-size:11.5px; font-weight:800; border:1px solid #cbd5e1; border-radius:6px; padding:0 8px;">
-            </div>
-
-            <!-- 正文文本 -->
-            <div onclick="event.stopPropagation()">
-              <label style="display:block; font-size:10.5px; font-weight:800; color:#475569; margin-bottom:2px;">📋 内容</label>
-              <textarea id="node-content-card-text" class="add-module-text-input" style="width:100%; box-sizing:border-box; height:84px; font-size:10.5px; line-height:1.5; border:1px solid #cbd5e1; border-radius:4px; padding:4px 6px; resize:vertical;">长征系列运载火箭已完成500+次发射，长征二号F为神舟飞船专属载人火箭，长征五号支撑探月空间站工程。本节点为纯文本阅读备忘，阅读完毕后直接进入后续实操卡片。</textarea>
-            </div>
-
-            <div class="node-picker-card-actions" style="margin-top:auto; padding-top:6px; display:flex; justify-content:space-between; align-items:center;" onclick="event.stopPropagation()">
-              <span style="font-size:10.5px; color:#64748b; font-weight:700;">✓ 仅供查阅 · 零操作负担</span>
-              <button type="button" class="node-quick-add-btn" onclick="quickAddSingleNode('card-text')" style="padding:6px 14px; font-size:11px; font-weight:850; background:#475569; color:#fff; border:none; border-radius:6px; cursor:pointer;">⚡ 立即单加到画布</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 底部批量添加控制栏 -->
-        <div class="node-picker-batch-footer">
-          <div class="batch-footer-left">
-            <button type="button" class="node-filter-tab" onclick="selectNodePickerCategory('all')">全选所有通用卡片</button>
-            <button type="button" class="node-filter-tab" onclick="clearNodePickerSelection()">清除勾选</button>
-            <span style="font-size: 11px; font-weight: 800; color: #6c5a45; margin-left: 6px;">
-              已勾选 <span id="node-picker-batch-count" style="color:#d97706; font-size:13px; font-weight:900;">0</span> 项通用卡片
-            </span>
-          </div>
-
-          <div class="batch-footer-right">
-            <button type="button" class="ui-btn" onclick="closeTertiaryAddNodeModal()" style="padding: 8px 18px;">
-              取消
-            </button>
-            <button type="button" class="ui-btn primary" id="btn-confirm-batch-add" onclick="handleConfirmBatchAddNodes()" style="padding: 8px 24px; font-weight: 900;">
-              ➕ 批量添加所选通用卡片至画布
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <div class="node-creator-body"><article id="node-creator-card" class="node-creator-card" role="tabpanel" aria-labelledby="node-creator-tab-drill" data-node-type="drill" oninput="captureNodeCreatorDraft()" onchange="captureNodeCreatorDraft()"></article></div>
+    <footer class="node-creator-footer">
+      <div><p id="node-creator-hint">填写规划标准，执行时再提交实际结果。</p><p id="node-creator-error" role="alert"></p></div>
+      <div class="node-creator-actions"><button type="button" class="node-creator-cancel" onclick="closeTertiaryAddNodeModal()">取消</button><button type="button" id="node-creator-submit" class="node-creator-submit" onclick="submitNodeCreator()">添加到画布</button></div>
+    </footer>
   </div>
 </div><!-- /gallery-stage-view -->
 
@@ -21556,24 +21261,9 @@ function handleConfirmTertiaryCreateModule() {
 }
 
 // --- 2. 新增节点弹窗交互 (不可操作 4 类 + 可操作 4 类，支持批量添加) ---
-function openTertiaryAddNodeModal() {
-  const modal = document.getElementById('modal-tertiary-add-node');
-  if (modal) {
-    modal.style.display = 'flex';
-    modal.classList.add('open');
-    modal.classList.add('is-open');
-    updateNodePickerBatchCount();
-  }
-}
+function openTertiaryAddNodeModal() { return openNodeCreator(); }
 
-function closeTertiaryAddNodeModal() {
-  const modal = document.getElementById('modal-tertiary-add-node');
-  if (modal) {
-    modal.style.display = 'none';
-    modal.classList.remove('open');
-    modal.classList.remove('is-open');
-  }
-}
+function closeTertiaryAddNodeModal() { return closeNodeCreator(); }
 
 // 别名支持：无论以“新建节点”还是“新增节点”调用，均能触发
 const openTertiaryCreateNodeModal = openTertiaryAddNodeModal;
@@ -28806,6 +28496,141 @@ window.addEventListener('focus',refreshHomeExecutionDate);
 window.addEventListener('pageshow',refreshHomeExecutionDate);
 window.addEventListener('visibilitychange',refreshHomeExecutionDate,true);
 setInterval(refreshHomeExecutionDate,30000);
+
+// One visible planning card, with per-type drafts during this dialog session.
+let nodeCreatorSession=null,nodeCreatorPreferredType='drill',nodeCreatorReturnFocus=null;
+const nodeCreatorTypes=['goal','drill','habit','review','custom','text'];
+function freshNodeCreatorDraft(type,project){
+  return {id:domainId('node'),title:'',description:'',plannedDate:domainDefaultNodeDate(project),frequency:type==='habit'?'daily':'once',isCheckinNode:!['goal','text'].includes(type),evidenceType:type==='drill'?'photo':type==='review'?'text':'none',plannedMinutes:20,acceptanceCriteria:'',targetDeadline:'',textContent:'',dependencies:[],metrics:[],checklist:[],improvementList:[],customFieldsSchema:[]};
+}
+function nodeCreatorRow(key){
+  if(key==='metrics')return {id:domainId('metric'),name:'',targetValue:''};
+  if(key==='checklist')return {id:domainId('item'),title:'',required:true};
+  if(key==='improvementList')return {id:domainId('improvement'),actionItem:'',isChecked:true};
+  return {key:domainId('field'),label:'',type:'text',required:true};
+}
+function nodeCreatorField(key,label,value,{type='text',placeholder='',area=false,extra=''}={}){
+  return '<label class="node-creator-field"><span>'+label+'</span>'+(area?'<textarea data-creator-field="'+key+'" rows="3" placeholder="'+escapeIslandText(placeholder)+'">'+escapeIslandText(value||'')+'</textarea>':'<input data-creator-field="'+key+'" type="'+type+'" value="'+escapeIslandText(value??'')+'" placeholder="'+escapeIslandText(placeholder)+'" '+extra+'>')+'</label>';
+}
+function nodeCreatorOptions(key,label,value,options){
+  return '<label class="node-creator-field"><span>'+label+'</span><select data-creator-field="'+key+'">'+Object.entries(options).map(([k,v])=>'<option value="'+k+'"'+(k===value?' selected':'')+'>'+v+'</option>').join('')+'</select></label>';
+}
+function captureNodeCreatorDraft(){
+  if(!nodeCreatorSession)return;
+  const d=nodeCreatorSession.drafts[nodeCreatorSession.type],panel=document.getElementById('node-creator-card');if(!panel)return;
+  panel.querySelectorAll('[data-creator-field]').forEach(el=>d[el.dataset.creatorField]=el.multiple?Array.from(el.selectedOptions,o=>o.value):el.type==='checkbox'?el.checked:el.value);
+  const settings=panel.querySelector('.node-creator-settings');d.settingsOpen=!!settings?.open;
+  if(settings)settings.querySelector('summary span').textContent=(d.plannedDate||'未排期')+' · '+({once:'一次性',daily:'每日',weekdays:'工作日',weekly:'每周'}[d.frequency]||'一次性');
+  const list=panel.querySelector('[data-creator-list]');
+  if(list)d[list.dataset.creatorList]=Array.from(list.children).map(row=>{const item={};for(const el of row.querySelectorAll('[data-row-field]'))item[el.dataset.rowField]=el.type==='checkbox'?el.checked:el.value;return {...JSON.parse(row.dataset.identity),...item};});
+}
+function renderNodeCreatorList(key,title,items){
+  const text=(field,value,placeholder)=>'<input data-row-field="'+field+'" value="'+escapeIslandText(value||'')+'" placeholder="'+placeholder+'" aria-label="'+placeholder+'">';
+  const checked=(field,value,label)=>'<label class="node-creator-row-check"><input type="checkbox" data-row-field="'+field+'"'+(value!==false?' checked':'')+'>'+label+'</label>';
+  const rows=items.map((item,index)=>{
+    let fields='';
+    if(key==='metrics')fields=text('name',item.name,'指标名称')+text('targetValue',item.targetValue,'目标标准，例如 ≥90%');
+    else if(key==='checklist')fields=text('title',item.title,'具体行动')+checked('required',item.required,'必需');
+    else if(key==='improvementList')fields=text('actionItem',item.actionItem,'下一步提升行动')+checked('isChecked',item.isChecked,'可派生');
+    else fields=text('label',item.label,'字段名称')+'<select data-row-field="type" aria-label="字段类型">'+Object.entries({text:'文字',number:'数字',boolean:'是 / 否',date:'日期'}).map(([v,label])=>'<option value="'+v+'"'+(item.type===v?' selected':'')+'>'+label+'</option>').join('')+'</select>'+checked('required',item.required,'必填');
+    const identity=key==='customFieldsSchema'?{key:item.key}:{id:item.id};
+    return '<div class="node-creator-list-row" data-kind="'+key+'" data-identity="'+escapeIslandText(JSON.stringify(identity))+'">'+fields+'<button type="button" class="node-creator-remove" aria-label="移除第'+(index+1)+'项" onclick="removeNodeCreatorRow('+index+')">✕</button></div>';
+  }).join('');
+  return '<section class="node-creator-list-section"><div class="node-creator-section-title"><span>'+title+'</span><button type="button" class="node-creator-add-row" onclick="addNodeCreatorRow()">＋ 添加一项</button></div><div data-creator-list="'+key+'">'+rows+'</div>'+(!items.length?'<p class="node-creator-empty">按需添加具体项目，也可以创建后继续完善。</p>':'')+'</section>';
+}
+function renderNodeCreatorCard(){
+  const session=nodeCreatorSession;if(!session)return;
+  const type=session.type,d=session.drafts[type],project=getDomainState().projects.find(p=>p.id===session.projectId),panel=document.getElementById('node-creator-card');if(!panel||!project)return;
+  const meta={goal:['🎯','目标分解','明确目标、量化指标与验收方式'],drill:['⚡','攻坚实训','写下练习要领，安排专注时长与交付要求'],habit:['🌿','习惯践行','把每天要坚持的行动整理为清单'],review:['📝','评估复盘','回看过程，让复盘形成下一步行动'],custom:['⚙️','自定义配置','按需要定义填报字段与交付标准'],text:['📄','文本便签','记录想法或 Markdown 资料，不加入执行任务']}[type];
+  let html='<header class="node-creator-card-heading"><span>'+meta[0]+' '+meta[1]+'</span><p>'+meta[2]+'</p></header>';
+  html+=nodeCreatorField('title','节点名称',d.title,{placeholder:'填写 2～30 字名称',extra:'maxlength="30" required'});
+  if(type==='text')html+=nodeCreatorField('textContent','正文 · 支持 Markdown',d.textContent,{area:true,placeholder:'写下资料、想法或备忘…'});
+  else html+=nodeCreatorField('description',({goal:'目标说明',drill:'核心攻坚要领',habit:'践行初衷',review:'复盘标的与说明',custom:'任务说明'})[type],d.description,{area:true,placeholder:'填写这张卡片的说明…'});
+  if(type==='goal')html+=renderNodeCreatorList('metrics','🎯 量化通关指标',d.metrics)+nodeCreatorField('acceptanceCriteria','验收标准',d.acceptanceCriteria,{area:true,placeholder:'什么成果可以说明目标达成？'})+nodeCreatorField('targetDeadline','期望完成时间',d.targetDeadline,{type:'datetime-local'});
+  if(type==='drill')html+=nodeCreatorField('plannedMinutes','⏱ 计划专注时长（分钟）',d.plannedMinutes,{type:'number',extra:'min="0" max="120" step="1"'});
+  if(type==='habit')html+=renderNodeCreatorList('checklist','🛡 践行防守清单',d.checklist);
+  if(type==='review')html+=renderNodeCreatorList('improvementList','🚀 提升行动',d.improvementList);
+  if(type==='custom')html+=renderNodeCreatorList('customFieldsSchema','📋 自定义字段',d.customFieldsSchema);
+  if(type!=='text'){
+    const options=(getDomainState().nodesByProject[project.id]||[]).filter(n=>n.isCheckinNode&&n.status!=='archived');
+    html+='<details class="node-creator-settings"'+(d.settingsOpen?' open':'')+'><summary>计划与交付要求 <span>'+escapeIslandText(d.plannedDate)+' · '+({once:'一次性',daily:'每日',weekdays:'工作日',weekly:'每周'}[d.frequency])+'</span></summary><div class="node-creator-settings-body"><div class="node-creator-field-grid">'+nodeCreatorField('plannedDate','计划日期',d.plannedDate,{type:'date',extra:'min="'+escapeIslandText(project.startDate)+'" max="'+escapeIslandText(project.endDate)+'"'})+nodeCreatorOptions('frequency','执行频次',d.frequency,{once:'一次性',daily:'每日',weekdays:'工作日',weekly:'每周'})+'</div><div class="node-creator-field-grid"><label class="node-creator-execution"><input type="checkbox" data-creator-field="isCheckinNode"'+(d.isCheckinNode?' checked':'')+'>加入执行任务</label>'+nodeCreatorOptions('evidenceType','物证要求',d.evidenceType,{none:'无需附件',text:'文字说明',photo:'照片',video:'视频',audio:'音频'})+'</div><label class="node-creator-field"><span>前置节点 · 可多选</span><select data-creator-field="dependencies" multiple size="'+Math.min(3,Math.max(2,options.length))+'">'+options.map(n=>'<option value="'+escapeIslandText(n.id)+'"'+(d.dependencies.includes(n.id)?' selected':'')+'>'+escapeIslandText(n.title)+'</option>').join('')+'</select></label></div></details>';
+  }
+  panel.dataset.nodeType=type;panel.setAttribute('aria-labelledby','node-creator-tab-'+type);panel.innerHTML=html;
+  document.querySelectorAll('#modal-tertiary-add-node [data-creator-type]').forEach(tab=>{const active=tab.dataset.creatorType===type;tab.setAttribute('aria-selected',String(active));tab.tabIndex=active?0:-1;});
+  document.getElementById('node-creator-error').textContent='';
+  document.getElementById('node-creator-hint').textContent=type==='text'?'文本便签仅供记录与阅读。':'规划标准将在执行时使用，实际结果在打卡页录入。';
+  document.querySelector('.node-creator-body').scrollTop=0;
+}
+function openNodeCreator(){
+  const project=getDomainState().projects.find(p=>p.id===window.currentTertiaryProjId);
+  if(!project){showIslandToast('请先选择项目再新增节点');return false;}
+  const modal=document.getElementById('modal-tertiary-add-node');if(!modal)return false;
+  if(nodeCreatorSession&&modal.classList.contains('open'))return true;
+  nodeCreatorReturnFocus=document.activeElement;
+  nodeCreatorSession={projectId:project.id,type:nodeCreatorPreferredType,drafts:{},busy:false};
+  nodeCreatorSession.drafts[nodeCreatorPreferredType]=freshNodeCreatorDraft(nodeCreatorPreferredType,project);
+  document.getElementById('node-creator-project').textContent=project.title+' · 先选择类型，再填写内容';
+  document.getElementById('node-creator-submit').disabled=false;
+  renderNodeCreatorCard();modal.style.display='flex';modal.classList.add('open','is-open');
+  document.getElementById('node-creator-tab-'+nodeCreatorPreferredType).focus();return true;
+}
+function closeNodeCreator(){
+  const modal=document.getElementById('modal-tertiary-add-node');if(modal){modal.style.display='none';modal.classList.remove('open','is-open');}
+  nodeCreatorSession=null;
+  if(nodeCreatorReturnFocus?.isConnected)nodeCreatorReturnFocus.focus({preventScroll:true});nodeCreatorReturnFocus=null;
+}
+function selectNodeCreatorType(type){
+  if(!nodeCreatorSession||!nodeCreatorTypes.includes(type)||nodeCreatorSession.type===type)return;
+  captureNodeCreatorDraft();const project=getDomainState().projects.find(p=>p.id===nodeCreatorSession.projectId);if(!project)return;
+  nodeCreatorSession.type=type;nodeCreatorPreferredType=type;
+  nodeCreatorSession.drafts[type]??=freshNodeCreatorDraft(type,project);renderNodeCreatorCard();
+}
+function addNodeCreatorRow(){
+  if(!nodeCreatorSession)return;captureNodeCreatorDraft();
+  const key={goal:'metrics',habit:'checklist',review:'improvementList',custom:'customFieldsSchema'}[nodeCreatorSession.type];if(!key)return;
+  const expanded=document.querySelector('.node-creator-settings')?.open;
+  nodeCreatorSession.drafts[nodeCreatorSession.type][key].push(nodeCreatorRow(key));renderNodeCreatorCard();
+  if(expanded)document.querySelector('.node-creator-settings').open=true;
+  const last=document.querySelector('[data-creator-list]')?.lastElementChild;last?.querySelector('input')?.focus();
+}
+function removeNodeCreatorRow(index){
+  if(!nodeCreatorSession)return;captureNodeCreatorDraft();const key={goal:'metrics',habit:'checklist',review:'improvementList',custom:'customFieldsSchema'}[nodeCreatorSession.type];if(!key)return;
+  nodeCreatorSession.drafts[nodeCreatorSession.type][key].splice(index,1);renderNodeCreatorCard();document.querySelector('.node-creator-add-row')?.focus();
+}
+function submitNodeCreator(){
+  const session=nodeCreatorSession;if(!session||session.busy)return false;captureNodeCreatorDraft();
+  const d=session.drafts[session.type],project=getDomainState().projects.find(p=>p.id===session.projectId),fail=(text,selector)=>{document.getElementById('node-creator-error').textContent=text;const field=document.querySelector(selector||'[data-creator-field="title"]');if(field?.closest('details'))field.closest('details').open=true;field?.focus();return false;};
+  if(!project||window.currentTertiaryProjId!==project.id)return fail('项目已切换，请关闭后重新新增节点。');
+  if(d.title.trim().length<2||d.title.trim().length>30)return fail('节点名称须为 2～30 字。');
+  if(!domainValidDate(d.plannedDate)||d.plannedDate<project.startDate||d.plannedDate>project.endDate)return fail('计划日期须在项目周期内。','[data-creator-field="plannedDate"]');
+  if(session.type==='drill'&&(!Number.isFinite(Number(d.plannedMinutes))||Number(d.plannedMinutes)<0||Number(d.plannedMinutes)>120))return fail('专注时长须为 0～120 分钟。','[data-creator-field="plannedMinutes"]');
+  if(session.type==='goal'&&d.metrics.some(m=>!!m.name.trim()!==!!m.targetValue.trim()))return fail('请为指标同时填写名称和目标标准。','[data-creator-list] input');
+  const allowed=new Set((getDomainState().nodesByProject[project.id]||[]).filter(n=>n.isCheckinNode&&n.status!=='archived').map(n=>n.id));
+  if(d.dependencies.some(id=>!allowed.has(id)))return fail('前置节点已变化，请重新选择。');
+  const config={id:d.id,title:d.title.trim(),nodeType:session.type,plannedDate:d.plannedDate,frequency:d.frequency,isCheckinNode:d.isCheckinNode,dependencies:d.dependencies,cardPayload:{description:d.description,plannedMinutes:session.type==='drill'?Number(d.plannedMinutes):0,evidenceType:d.evidenceType,acceptanceCriteria:d.acceptanceCriteria,targetDeadline:d.targetDeadline||null,textContent:d.textContent,metrics:d.metrics.filter(m=>m.name.trim()).map(m=>({...m,name:m.name.trim(),targetValue:m.targetValue.trim()})),checklist:d.checklist.filter(i=>i.title.trim()),improvementList:d.improvementList.filter(i=>i.actionItem.trim()),customFieldsSchema:d.customFieldsSchema.filter(f=>f.label.trim())}};
+  session.busy=true;document.getElementById('node-creator-submit').disabled=true;
+  const card=createTertiaryCustomPlanningCard(config);
+  if(!card){session.busy=false;document.getElementById('node-creator-submit').disabled=false;return fail('节点未能创建，请重试。');}
+  closeNodeCreator();card.classList.add('is-selected');
+  const stage=document.getElementById('tertiary-canvas-stage'),v=readMindmapViewport();
+  if(stage)writeMindmapViewport({x:stage.clientWidth/2-(parseFloat(card.style.left)+card.offsetWidth/2)*v.zoom,y:Math.max(30,(stage.clientHeight-card.offsetHeight*v.zoom)/2)-parseFloat(card.style.top)*v.zoom,zoom:v.zoom});
+  showIslandToast('已添加节点《'+config.title+'》');return true;
+}
+function handleNodeCreatorKeydown(event){
+  if(event.isComposing)return;
+  event.stopPropagation();
+  if(event.key==='Escape'){event.preventDefault();event.stopPropagation();closeNodeCreator();return;}
+  const modal=document.getElementById('modal-tertiary-add-node'),tab=event.target.closest?.('[data-creator-type]');
+  if(tab&&['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){
+    event.preventDefault();const i=nodeCreatorTypes.indexOf(tab.dataset.creatorType),next=event.key==='Home'?0:event.key==='End'?5:(i+(event.key==='ArrowRight'?1:5))%6;
+    selectNodeCreatorType(nodeCreatorTypes[next]);document.getElementById('node-creator-tab-'+nodeCreatorTypes[next]).focus();return;
+  }
+  if(event.key==='Tab'){
+    const controls=Array.from(modal.querySelectorAll('button,input,textarea,select,[tabindex]')).filter(e=>!e.disabled&&e.tabIndex>=0&&e.getClientRects().length),first=controls[0],last=controls.at(-1);
+    if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}
+    else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}
+  }
+}
 
 // One gesture/viewport implementation for the planning sandbox and project canvas.
 function canvasLocalPoint(stage,clientX,clientY){const r=stage.getBoundingClientRect();return {x:(clientX-r.left)*stage.clientWidth/(r.width||1),y:(clientY-r.top)*stage.clientHeight/(r.height||1)};}

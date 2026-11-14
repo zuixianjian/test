@@ -1,0 +1,38 @@
+{
+  "version": "1.1.9",
+  "coreFilesMatch": true,
+  "assetsMatch": true,
+  "sha256": {
+    "manifest.json": "12cb798b72823dde5fdc2ff50e1bde637e7e3110aeb7266904a5d06ae0fb1256",
+    "main.js": "30d16a2709280a529b07f48cc40724686b25361bd421d316156e888f5fc45068",
+    "styles.css": "a7614e741ea2e4c701c9dbe7d057f6672370cd78315fb4e4577d933ba13627bb",
+    "versions.json": "6b7516a35a3be19aaa2429493c7a92dec8c254fc1576b39b4cbe07675d638299"
+  },
+  "zipSha256": "d6c49e3efda18d9e6edf39f937fd5bb955f40f150c029ed34d8781a9f7631899",
+  "checks": {
+    "creator": 31,
+    "creator-design": 32,
+    "execution": 34,
+    "execution-design": 32,
+    "cards": 24,
+    "cards-design": 23,
+    "mobile": 31,
+    "navigation": 41,
+    "navigation-design": 42,
+    "canvas": 44,
+    "canvas-design": 43,
+    "business": 85,
+    "design": 10
+  },
+  "screenshots": 48,
+  "hostContract": {
+    "installedSourceVersion": "1.14.5",
+    "appJsSha256": "95b9fd3944625c3b88116878b03d655147fed8cdfe6ddf931f2064ead78ccd5b",
+    "renameRejectsExistingDestination": true,
+    "swipeExclusionAttribute": "data-ignore-swipe",
+    "testAdapter": "strict; actual ItemView methods with simulated Obsidian API and Chrome native touch"
+  },
+  "limitations": [
+    "Not run on the user Android tablet; host contracts and browser touch simulation are not a device acceptance."
+  ]
+}
