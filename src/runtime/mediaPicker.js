@@ -18,12 +18,14 @@ function mediaOwner(context){
 }
 function mediaPickerControls(context,accept='image/*,video/*',disabled=false){
   const owner=mediaOwner(context),busy=mediaJobs.has(context+':'+owner),off=disabled||busy||mediaClosing;
-  const input=(source,label,types,capture='')=>'<label class="island-media-source" aria-disabled="'+off+'">'+label+'<input class="island-native-media-input" type="file" accept="'+types+'" '+(capture?'capture="environment"':'multiple')+' data-media-context="'+context+'" data-media-owner="'+escapeIslandText(owner)+'" data-media-source="'+source+'" aria-label="'+label+'" onchange="handleNativeMediaFiles(this)"'+(off?' disabled':'')+'></label>';
-  return '<div class="island-media-picker" data-picker-context="'+context+'" aria-busy="'+busy+'">'+input('gallery','🖼 选择照片/视频',accept)+input('photo','📷 拍摄照片','image/*','environment')+input('video','🎥 拍摄视频','video/*','environment')+(context==='execution'?input('audio','🎙 选择录音','audio/*'):'')+'<span class="island-media-status" role="status">'+(busy?'正在保存原件…':'原件保存到当前知识库')+'</span></div>';
+  const input=(source,label,types,capture='')=>'<label class="island-media-source" aria-disabled="'+off+'">'+label+'<input class="island-native-media-input" type="file" accept="'+types+'" '+(capture?'capture="'+capture+'"':'multiple')+' data-media-context="'+context+'" data-media-owner="'+escapeIslandText(owner)+'" data-media-source="'+source+'" aria-label="'+label+'" onchange="handleNativeMediaFiles(this)"'+(off?' disabled':'')+'></label>';
+  const audioOnly=context==='execution'&&accept==='audio/*';
+  const sources=audioOnly?input('audio','🎵 选择录音','audio/*')+input('recording','🎙 录制音频','audio/*','user'):input('gallery','🖼 选择照片/视频',accept)+input('photo','📷 拍摄照片','image/*','environment')+input('video','🎥 拍摄视频','video/*','environment')+(context==='execution'?input('audio','🎙 选择录音','audio/*'):'');
+  return '<div class="island-media-picker" data-picker-context="'+context+'" aria-busy="'+busy+'">'+sources+'<span class="island-media-status" role="status">'+(busy?'正在保存原件…':audioOnly?'原件保存到当前知识库；系统不支持直接录制时，可先录音再选择文件':'原件保存到当前知识库')+'</span></div>';
 }
 function mediaFileWithType(file){
   if(file.type)return file;
-  const extension=file.name.split('.').pop().toLowerCase(),mime={jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp',gif:'image/gif',heic:'image/heic',heif:'image/heif',mp4:'video/mp4',mov:'video/quicktime',webm:'video/webm',m4v:'video/mp4','3gp':'video/3gpp',mp3:'audio/mpeg',m4a:'audio/mp4',wav:'audio/wav',ogg:'audio/ogg'}[extension];
+  const extension=file.name.split('.').pop().toLowerCase(),mime={jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp',gif:'image/gif',heic:'image/heic',heif:'image/heif',mp4:'video/mp4',mov:'video/quicktime',webm:'video/webm',m4v:'video/mp4','3gp':'video/3gpp',mp3:'audio/mpeg',m4a:'audio/mp4',wav:'audio/wav',ogg:'audio/ogg',aac:'audio/aac',amr:'audio/amr',opus:'audio/ogg',flac:'audio/flac','3ga':'audio/3gpp'}[extension];
   return mime?new File([file],file.name,{type:mime,lastModified:file.lastModified}):file;
 }
 function refreshMediaBusy(context,owner){

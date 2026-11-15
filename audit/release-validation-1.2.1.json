@@ -1,0 +1,29 @@
+{
+  "version": "1.2.1",
+  "coreFilesMatch": true,
+  "assetsMatch": true,
+  "sha256": {
+    "manifest.json": "2c046d8a95eb2ffd03dd6e04afd6f759ea9a6464484cdc1065cc4c2d0e72b0cc",
+    "main.js": "3722d34a12d7278474e8daf82818bcb4bee1b662fc70934f5e062ae38c621126",
+    "styles.css": "695aa8a4572a00237c3191f5276660d82e97cbf579b79d0cb9b672bbf0e1306c",
+    "versions.json": "220f4e5c140aa3b0b59bcb37b27f0e2b2ca98cb766279fda0b025f073cbc8bfc"
+  },
+  "zipSha256": "388a6cee89a95a07bab235460b393807a3982b4919f0dce09540bc0afd7dbc84",
+  "checks": {
+    "phase-media-design": 33,
+    "phase-media": 36
+  },
+  "screenshots": 8,
+  "hostContract": {
+    "installedSourceVersion": "1.14.5",
+    "appJsSha256": "95b9fd3944625c3b88116878b03d655147fed8cdfe6ddf931f2064ead78ccd5b",
+    "renameRejectsExistingDestination": true,
+    "swipeExclusionAttribute": "data-ignore-swipe",
+    "testAdapter": "strict; actual ItemView methods with simulated Obsidian API and Chrome native touch"
+  },
+  "limitations": [
+    "Not run on the user Android tablet; host contracts and browser touch simulation are not a device acceptance.",
+    "Native file inputs request gallery, rear photo and rear video capture; actual chooser/camera/recorder support and permissions depend on the Android Obsidian host.",
+    "Video fixtures verify input and original-file persistence, not physical capture or codec playback."
+  ]
+}

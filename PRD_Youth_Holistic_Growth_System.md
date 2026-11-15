@@ -1,6 +1,6 @@
 # 终身岛民 · 青少儿全人成长与自主进化系统
 
-产品需求与实现契约，版本 **1.2.0**，更新日期 **2026-11-15**。
+产品需求与实现契约，版本 **1.2.1**，更新日期 **2026-11-15**。
 
 本版统一数据来源、页面职责、任务调度、验收规则、跨模块回写与恢复边界。旧版保存在 `docs/history/PRD_Youth_Holistic_Growth_System_1.0.15.md`，不再作为当前字段或状态机契约。高保真外观以 `high_fidelity_ui_preview.html` 为参考；规则由与插件共享的 `src/core/domain.mjs` 和 `src/runtime/closedLoop*.js` 实现。组件画板中的题目、人物与数值为样式样例，不得成为用户事实。
 
@@ -114,6 +114,8 @@ interface WorkNode {
 执行物证、悬赏交付、每日随记、生活高光和规划资料使用统一入口：“选择照片/视频”“拍摄照片”“拍摄视频”。普通选择允许照片/视频多选，不设置capture；拍照请求image/*、拍视频请求video/*，两者设置capture=environment。执行另外保留录音选择。入口直接点击原生文件输入，交给Android/Obsidian系统选择器处理。拍摄能力取决于宿主FileChooser实现；这些属性是系统请求，不承诺特定相册应用或相机必定可用，真机需验收。[W3C媒体采集规范](https://www.w3.org/TR/html-media-capture/)与[Android宿主接口说明](https://developer.android.com/reference/android/webkit/WebChromeClient.FileChooserParams)。
 
 仅真实选中文件后保存Vault原件及Attachment，不用按钮点击或演示图片生成交付事实。限制单文件200MB，校验入口接受的媒体类型；系统返回空MIME时可按已知扩展名补类型，字节不改变。附件绑定发起时的任务、契约、随记日期、生活高光草稿或项目，切换页面不能串入另一对象。保存期间禁用重复选择及对应提交/核准；关闭视图或卸载先等待已启动写入，再保存元数据。已验收任务和已兑现契约不开放替换物证。
+
+音频打卡按执行会话中的规划evidenceType=audio展示专用“选择录音 / 录制音频”，隐藏照片/视频入口。选择录音使用audio/*且不带capture，可选已有文件；录制音频使用audio/*和capture=user，请求系统麦克风采集。若宿主未提供录音界面，可先使用平板录音应用，再选择文件。支持常见MP3、M4A、WAV、OGG及AMR/AAC/OPUS/FLAC/3GA的类型补全；这不保证所有格式在宿主都能播放。提交必须有真实音频路径，文字或照片不能替代；保留原件、实测可读时长和音频回放入口，验收后禁止替换。规划页只设置音频要求，不录音。
 
 `date`是实际提交的自然日；`scheduledDate`是计划日。逾期补做仍保存实际发生日期，不自动伪造昨日打卡；原计划实例可因此完成，连续天数只计算实际日期。
 
