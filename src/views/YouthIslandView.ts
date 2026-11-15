@@ -317,6 +317,7 @@ export class YouthIslandView extends ItemView {
       this.stateChangeHandler = null;
     }
     try {
+      await (window as any).flushMediaBeforeClose?.();
       (window as any).saveExecutionDraft?.();
       await this.plugin.vaultStorage.syncRuntimeToVault();
     }

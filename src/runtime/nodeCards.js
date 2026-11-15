@@ -43,7 +43,7 @@ function renderPlanningNodeCard(node){
     body+=planningCardSection('🎯 量化通关指标',metrics,planningCardListButton(node,'metrics','编辑指标'),'node-card-metrics');
     body+=planningCardSection('📋 验收标准',planningCardArea(node,'acceptanceCriteria',p.acceptanceCriteria,'写明成果与验收方式…'),'','node-card-acceptance');
     body+='<label class="node-deadline-row"><span>📅 期望完成</span>'+planningCardInput(node,'targetDeadline',p.targetDeadline,'datetime-local')+'</label>';
-    footer='<span>验收通过后沉淀成果</span><button type="button" class="node-primary-action" onclick="'+planningCardAction('depositGoalToAchievement('+JSON.stringify(node.id)+',event)')+'">🏆 记录已验收成果</button>';
+    footer='<span>规划目标与验收标准</span><span class="node-footer-chip">在执行页验收</span>';
   }else if(type==='drill'){
     body+='<section class="node-focus-panel"><div><span class="node-focus-caption">⏱ 计划专注</span><div class="node-focus-value">'+planningCardInput(node,'plannedMinutes',p.plannedMinutes,'number','min="0" max="120" step="1" aria-label="计划专注分钟"')+'<span>分钟</span></div></div><span class="node-focus-mark" aria-hidden="true">◷</span></section>';
     body+='<div class="node-proof-note"><span>📦 交付要求</span><strong>'+escapeIslandText({none:'完成规定练习',text:'执行时提交文字心得',photo:'执行时提交照片物证',video:'执行时提交视频物证',audio:'执行时提交音频物证'}[p.evidenceType]||'按要求提交物证')+'</strong></div>';
@@ -55,14 +55,14 @@ function renderPlanningNodeCard(node){
   }else if(type==='review'){
     const list=p.improvementList.map((item,i)=>'<li><span class="node-list-marker">'+(i+1)+'</span><span>'+escapeIslandText(item.actionItem)+'</span><small class="'+(item.derivedNodeId?'is-derived':'')+'">'+(item.derivedNodeId?'已派生':item.isChecked===false?'未选择':'待派生')+'</small></li>').join('');
     body+=planningCardSection('🚀 提升行动','<ol class="node-improvements">'+list+'</ol>'+(!list?'<p class="node-card-empty">把复盘结论变成下一次的具体行动。</p>':''),planningCardListButton(node,'improvementList','编辑行动'));
-    footer='<span>复盘沉淀 · 靶向提升</span><button type="button" class="node-primary-action" onclick="'+planningCardAction('deriveNodesFromReflectionCard('+JSON.stringify(node.id)+',event)')+'">🌱 派生实训节点</button>';
+    footer='<span>编排后续成长计划</span><button type="button" class="node-primary-action" onclick="'+planningCardAction('deriveNodesFromReflectionCard('+JSON.stringify(node.id)+',event)')+'">🌱 派生后续规划</button>';
   }else if(type==='custom'){
     const names={text:'文字',number:'数字',boolean:'是 / 否',date:'日期'},list=p.customFieldsSchema.map(field=>'<div class="node-custom-field"><span>'+escapeIslandText(field.label)+'</span><span class="node-field-kind">'+escapeIslandText(names[field.type]||field.type)+(field.required?' · 必填':' · 选填')+'</span></div>').join('');
     body+=planningCardSection('📋 自定义字段',list||'<p class="node-card-empty">添加需要填报的项目与字段类型。</p>',planningCardListButton(node,'customFieldsSchema','维护字段'));
     footer='<span>执行时填写实际结果</span><span class="node-footer-chip">'+p.customFieldsSchema.length+' 个字段</span>';
   }else{
     body+='<div class="node-text-paper">'+planningCardArea(node,'textContent',p.textContent,'写下想法、资料或 Markdown 正文…')+'</div>';
-    footer='<span>纯记录 · 不计入履约</span><button type="button" class="node-secondary-action" onclick="'+planningCardAction('acknowledgeDomainText('+JSON.stringify(node.id)+')')+'">👁 阅读留痕</button>';
+    footer='<span>资料与想法 · 不计入履约</span><span class="node-footer-chip">规划便签</span>';
   }
   body+=planningCardSettings(node);
   return '<article class="a-my-island-work-node-card tertiary-card tertiary-'+legacy+'-card domain-node-card" id="'+escapeIslandText(node.id)+'" data-domain-node="true" data-node-type="'+type+'" data-label="'+escapeIslandText(node.title)+'" data-group-id="'+escapeIslandText(node.groupId||'')+'" data-group-root="'+escapeIslandText(node.groupRoot||'')+'" style="position:absolute;left:'+Number(node.canvasPosition.x)+'px;top:'+Number(node.canvasPosition.y)+'px;width:340px;"><header class="work-node-card-header" ondblclick="'+planningCardAction('toggleTertiaryCardMinimize('+JSON.stringify(node.id)+',event)')+'" title="拖动标题栏移动；双击折叠或展开"><div class="node-card-kicker"><span class="work-node-badge">'+meta[0]+' '+meta[1]+'</span><span class="node-card-status" id="status-text-'+escapeIslandText(node.id)+'">'+status+'</span><button type="button" class="node-card-collapse-toggle" aria-label="折叠或展开节点" onclick="'+planningCardAction('toggleTertiaryCardMinimize('+JSON.stringify(node.id)+',event)')+'">⌃</button></div><div class="node-card-title-row"><span class="work-node-title">'+escapeIslandText(node.title)+'</span><button type="button" class="node-title-edit" aria-label="编辑节点名称" onclick="'+planningCardAction('editPlanningCardTitle('+JSON.stringify(node.id)+',event)')+'">✎</button></div><p class="node-card-subtitle">'+meta[2]+'</p></header><div class="work-node-body domain-planning-body">'+body+'</div><footer class="node-card-footer">'+footer+'</footer><button type="button" class="work-card-connect-handle" data-card-id="'+escapeIslandText(node.id)+'" aria-label="从此节点连接路线" title="拖向目标节点，或点击选择连线起点" onclick="startOrFinishConnecting(this.dataset.cardId,event)">🔗</button></article>';

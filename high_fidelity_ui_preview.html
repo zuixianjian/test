@@ -12501,11 +12501,57 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
   .node-creator-list-row[data-kind="customFieldsSchema"] .node-creator-remove { grid-column:3; grid-row:1; }
 }
 
+.island-media-picker { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:8px 0; }
+.island-media-source { position:relative; display:inline-flex; align-items:center; justify-content:center; min-height:38px; padding:8px 12px; border:1px solid #c8dfe7; border-radius:8px; background:#f1faff; color:#37758c; font-size:11.5px; font-weight:750; cursor:pointer; overflow:hidden; }
+.island-native-media-input { position:absolute!important; inset:0; width:100%!important; height:100%!important; margin:0!important; padding:0!important; opacity:0; cursor:pointer; }
+.island-media-source:focus-within { outline:2px solid #89c2d7; outline-offset:2px; }
+.island-media-source[aria-disabled="true"] { opacity:.5; cursor:default; }
+.island-media-status { flex-basis:100%; color:#9b8e7c; font-size:10px; }
+#bounty-modal-backdrop.bounty-dialog { padding:16px; background:#2c211575; z-index:24500; }
+.bounty-dialog-window { display:flex; flex-direction:column; width:800px; max-width:100%; max-height:90vh; max-height:90dvh; border:1.5px solid #dfcaa5; border-radius:20px; background:#fffdf7; box-shadow:0 22px 70px #24180c55; color:#59452d; overflow:hidden; }
+.bounty-dialog-header { display:flex; flex:none; align-items:center; justify-content:space-between; gap:15px; padding:18px 23px; border-bottom:1px solid #e8dcc5; background:linear-gradient(120deg,#fff2d1,#faf9eb); }
+.bounty-dialog-header h2 { margin:0; font-size:19px; color:#7a5125; }
+.bounty-dialog-header p { margin:5px 0 0; font-size:11px; color:#a18760; }
+.bounty-dialog button { width:auto; height:auto; min-height:34px; padding:6px 12px; margin:0; border:1px solid #dfd1b7; border-radius:8px; background:#fffdf8; color:#886c44; box-shadow:none; font-size:11.5px; font-weight:750; cursor:pointer; }
+.bounty-dialog .bounty-close { min-width:32px; width:32px; height:32px; padding:0; }
+.bounty-dialog-toolbar { display:flex; flex:none; align-items:center; justify-content:space-between; padding:11px 23px; gap:10px; border-bottom:1px solid #eee5d4; }
+.bounty-dialog-toolbar #bounty-modal-status-badge { display:inline-flex; padding:4px 9px; border-radius:6px; color:#fff; font-size:10.5px; }
+.bounty-dialog-body { padding:18px 23px; overflow:auto; min-height:0; overscroll-behavior:contain; touch-action:pan-y; background:#faf6ed; }
+.bounty-panel { margin-bottom:14px; padding:17px; border:1px solid #e5d7bf; border-radius:13px; background:#fffefb; }
+.bounty-dialog [hidden] { display:none!important; }
+.bounty-panel h3, .bounty-history h3 { margin:0 0 12px; font-size:14px; color:#765637; }
+.bounty-panel h4 { font-size:11.5px; margin:15px 0 7px; color:#967149; }
+.bounty-panel label { display:flex; flex-direction:column; gap:6px; margin:11px 0; color:#8b7351; font-size:11.5px; font-weight:650; }
+.bounty-panel input:not([type="checkbox"]):not([type="file"]), .bounty-panel textarea, .bounty-panel select { box-sizing:border-box; width:100%; min-width:0; min-height:36px; padding:8px 10px; border:1px solid #ded2bd; border-radius:7px; background:#fffdf8; color:#594630; font:inherit; font-size:12px; box-shadow:none; }
+.bounty-panel textarea { min-height:78px; resize:vertical; }
+.bounty-panel #bounty-modal-title { font-size:17px; line-height:1.5; overflow-wrap:anywhere; margin:8px 0; }
+.bounty-muted { margin:6px 0; color:#a3937a; font-size:10.5px; line-height:1.6; }
+.bounty-reward { display:flex; flex-direction:column; gap:6px; margin:15px 0; padding:11px 13px; border:1px solid #edd29a; border-radius:9px; background:#fff7e2; }
+.bounty-reward span { font-size:10.5px; color:#b3945b; }
+.bounty-reward strong { font-size:14px; color:#9b6b2f; overflow-wrap:anywhere; }
+#bounty-modal-criteria { margin:0; padding:10px 12px; white-space:pre-wrap; overflow-wrap:anywhere; background:#faf9f5; border:1px solid #e9e2d5; border-radius:8px; font-size:12px; line-height:1.7; }
+.bounty-steps { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; list-style:none; margin:17px 0 8px; padding:0; }
+.bounty-steps li { border:1px solid #e8dfcd; background:#fbf8f0; padding:9px 6px; border-radius:7px; text-align:center; font-size:10.5px; color:#9b8968; }
+.bounty-panel .bounty-check { flex-direction:row; align-items:center; gap:7px; }
+.bounty-check input { width:16px; height:16px; margin:0; }
+.bounty-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.bounty-media-list { display:flex; flex-wrap:wrap; gap:6px; }
+.bounty-dialog .bounty-media-item { max-width:100%; overflow-wrap:anywhere; font-size:11px; background:#f3faf5; border-color:#ccdfcf; color:#598365; }
+.bounty-dialog .bounty-history-item { display:flex; width:100%; justify-content:space-between; gap:12px; margin:7px 0; text-align:left; }
+.bounty-history-item span { overflow-wrap:anywhere; }
+.bounty-history-item small { flex:none; color:#9c8d75; font-size:10px; }
+.bounty-dialog-footer { display:flex; flex:none; align-items:center; justify-content:space-between; gap:12px; padding:13px 23px; border-top:1px solid #e6dbc6; background:#fffdf8; }
+.bounty-dialog-footer > span { font-size:10.5px; color:#ad9978; }
+.bounty-dialog-footer > div { display:flex; gap:8px; }
+.bounty-dialog button.bounty-primary { background:linear-gradient(#ffdc8b,#f0bf5f); border-color:#dfad51; color:#88601c; }
+.bounty-dialog button:disabled { opacity:.55; cursor:default; }
+@media(max-width:600px){.bounty-dialog-header,.bounty-dialog-toolbar,.bounty-dialog-footer{padding:13px 15px}.bounty-dialog-body{padding:13px 15px}.bounty-form-grid{grid-template-columns:1fr}.bounty-dialog-footer{flex-wrap:wrap}.bounty-dialog-footer>div{margin-left:auto}.island-media-source{flex:1;min-width:105px}.bounty-steps{gap:4px}.bounty-steps li{font-size:9.5px}}
+
 /* PRODUCT_CSS_END */
 </style>
 </head>
 <body>
-<div class="global-header product-contract-banner" data-product-contract="3">1.1.9 闭环交互预览 · 按项目/节点/每日任务实例关联 · 本预览数据保存在当前浏览器，组件画板样例不计为实际执行</div>
+<div class="global-header product-contract-banner" data-product-contract="3">1.2.0 闭环交互预览 · 按项目/节点/每日任务实例关联 · 本预览数据保存在当前浏览器，组件画板样例不计为实际执行</div>
   <!-- 顶部主控导航栏 (设备控制与主模态切换) -->
   <header class="global-header">
     <div class="system-title-group">
@@ -15127,171 +15173,20 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
   </div>
 </div>
 
-  <div class="workbench-modal-backdrop" id="bounty-modal-backdrop" onclick="handleBountyBackdropClick(event)">
-    <div class="workbench-window" style="max-width: 700px; height: auto; max-height: 92vh; border: 2.5px solid #d97706; box-shadow: 0 20px 50px rgba(120, 53, 15, 0.35);">
-      <!-- 弹窗顶控栏 -->
-      <div class="workbench-header" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 60%, #fed7aa 100%); border-bottom: 2px solid #f59e0b; padding: 14px 20px;">
-        <div class="wb-title-group">
-          <div class="wb-icon" style="border-color:#f59e0b; background:#fff7ed; font-size:24px;">📜</div>
-          <div class="wb-title-texts">
-            <h2 style="color:#78350f; font-size:16px; margin:0; display:flex; align-items:center; gap:8px;">
-              家长置顶悬赏挑战契约书
-              <span id="bounty-modal-status-badge" style="background:#ea580c; color:#fff; font-size:10px; font-weight:850; padding:2px 8px; border-radius:10px; box-shadow:0 2px 4px rgba(234,88,12,0.25);">⚡ 已揭榜攻坚中 · 7天内有效</span>
-            </h2>
-            <p id="bounty-modal-contract-no" style="color:#b45309; font-size:11px; margin:2px 0 0 0;">契约编号：BC-202611-MATH95 · 亲子共同协商荣誉契约 · 非金钱精神/体验心愿激励</p>
-          </div>
-        </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <button type="button" class="card-graphic-pill pill-brush" onclick="toggleBountyPublishForm()" style="height:30px; padding:0 12px; font-size:11px; font-weight:850;">➕ 家长发布新悬赏</button>
-          <button class="wb-close-btn" onclick="closeBountyModal()" title="关闭契约书">✕</button>
-        </div>
-      </div>
-
-      <!-- 弹窗主体 -->
-      <div class="workbench-body" style="padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; background: #fffdfa; overflow-y: auto;">
-
-        <!-- 0. 家长发布新悬赏折叠表单 -->
-        <div id="bounty-publish-form-box" style="display:none; background:#fff7ed; border:2px dashed #f59e0b; border-radius:12px; padding:14px 16px; flex-direction:column; gap:10px;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <strong style="font-size:13px; color:#9a3412;">👨‍👩‍👦 家长发起新悬赏荣誉挑战（纯非金钱心愿激励）</strong>
-            <button type="button" onclick="toggleBountyPublishForm()" style="background:transparent; border:none; color:#9a3412; font-size:12px; font-weight:800; cursor:pointer;">收起 ▲</button>
-          </div>
-          <div style="display:grid; grid-template-columns:1.4fr 1fr; gap:10px;">
-            <div>
-              <label style="font-size:11px; font-weight:800; color:#78350f; display:block; margin-bottom:4px;">挑战任务名称 *</label>
-              <input id="bounty-new-title" type="text" placeholder="如：连续7天晨读《论语》并工整摘抄金句" style="width:100%; box-sizing:border-box; padding:7px 10px; border:1.5px solid #fdba74; border-radius:8px; font-size:12px; background:#fff;">
-            </div>
-            <div>
-              <label style="font-size:11px; font-weight:800; color:#78350f; display:block; margin-bottom:4px;">关联规划场馆</label>
-              <select id="bounty-new-pavilion" style="width:100%; box-sizing:border-box; padding:7px 10px; border:1.5px solid #fdba74; border-radius:8px; font-size:12px; background:#fff; font-weight:700;">
-                <option value="🏫 校史馆 · 学业攻坚">🏫 校史馆 · 学业攻坚</option>
-                <option value="🥋 武道馆 · 兴趣特长">🥋 武道馆 · 兴趣特长</option>
-                <option value="📜 修身阁 · 品格立宪">📜 修身阁 · 品格立宪</option>
-                <option value="🧠 思辨馆 · 认知思辨">🧠 思辨馆 · 认知思辨</option>
-              </select>
-            </div>
-          </div>
-          <div style="display:grid; grid-template-columns:1.4fr 0.6fr; gap:10px;">
-            <div>
-              <label style="font-size:11px; font-weight:800; color:#78350f; display:block; margin-bottom:4px;">心愿体验奖励（非金钱实物/亲子体验）*</label>
-              <input id="bounty-new-reward" type="text" placeholder="如：周末全家露营观星之旅 + 自选科普新书1本" style="width:100%; box-sizing:border-box; padding:7px 10px; border:1.5px solid #fdba74; border-radius:8px; font-size:12px; background:#fff;">
-            </div>
-            <div>
-              <label style="font-size:11px; font-weight:800; color:#78350f; display:block; margin-bottom:4px;">挑战期限（天）</label>
-              <input id="bounty-new-days" type="number" min="1" max="60" value="7" style="width:100%; box-sizing:border-box; padding:7px 10px; border:1.5px solid #fdba74; border-radius:8px; font-size:12px; background:#fff; font-weight:800;">
-            </div>
-          </div>
-          <div>
-            <label style="font-size:11px; font-weight:800; color:#78350f; display:block; margin-bottom:4px;">客观验收标准 *</label>
-            <textarea id="bounty-new-criteria" rows="2" placeholder="写明清晰可核验的交付物标准，例如：每日上传晨读打卡录音或摘抄照片，无漏卡记录..." style="width:100%; box-sizing:border-box; padding:7px 10px; border:1.5px solid #fdba74; border-radius:8px; font-size:12px; resize:none; background:#fff;"></textarea>
-          </div>
-          <div style="display:flex; justify-content:flex-end; gap:8px;">
-            <button type="button" class="card-graphic-pill pill-seal" onclick="submitNewParentBounty()" style="height:32px; padding:0 18px; font-size:12px; font-weight:900; background:linear-gradient(135deg,#ea580c,#c2410c); color:#fff; border:none; border-radius:8px; cursor:pointer;">🚀 正式发布悬赏令（待孩子揭榜）</button>
-          </div>
-        </div>
-        
-        <!-- 1. 核心挑战标的卡 -->
-        <div style="background: linear-gradient(135deg, #fffbf0 0%, #fff7ed 100%); border: 1.5px solid #fed7aa; border-radius: 14px; padding: 14px 16px;">
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; gap:12px;">
-            <div>
-              <span id="bounty-card-stage-pill" style="background:#ea580c; color:#fff; font-size:10px; font-weight:800; padding:2px 7px; border-radius:6px;">置顶荣誉挑战</span>
-              <h3 id="bounty-modal-title" style="margin:4px 0 2px 0; font-size:15px; font-weight:900; color:#451a03;">《小学数学口算达标与逆向思维训练》</h3>
-              <div id="bounty-modal-meta" style="font-size:11px; color:#78350f;">🎯 关联规划：🏫 校史馆 · 学业攻坚 | 👨 爸爸发起悬赏</div>
-            </div>
-            <div style="text-align:right; flex-shrink:0;">
-              <span style="font-size:10px; color:#9a3412; font-weight:700;">心愿荣誉激励</span>
-              <div id="bounty-modal-reward" style="font-size:15px; font-weight:900; color:#c2410c;">🎟️ 科技馆探索门票 + 研学新书</div>
-              <span style="font-size:10px; background:#fef08a; color:#854d0e; padding:1px 6px; border-radius:6px; font-weight:800;">非金钱体验激励 ✨</span>
-            </div>
-          </div>
-          <div id="bounty-modal-criteria" style="background: #ffffff; border: 1px solid #fed7aa; border-radius: 8px; padding: 10px 12px; font-size: 11.5px; color: #431407; line-height: 1.6;">
-            <strong>📋 契约验收标准：</strong><br>
-            1. 攻克 30 道进退位口算题卡，限时 20 分钟番茄实训钟留痕；<br>
-            2. 演算题卡清晰拍照上传，红笔订正借位标记与凑十破十过程清晰；<br>
-            3. 家长核验物证并填写鼓励寄语盖戳，心愿契约即时兑现并载入成就馆。
-          </div>
-        </div>
-
-        <!-- 2. 三阶段流转契约战报 (阶段 1 ➔ 阶段 2 ➔ 阶段 3) -->
-        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-          <!-- 阶段 1 -->
-          <div style="background:#fff; border:1.5px solid #cbd5e1; border-radius:12px; padding:10px; display:flex; flex-direction:column; gap:4px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:4px;">
-              <span style="font-size:11px; font-weight:900; color:#334155;">1. 家长发布悬赏</span>
-              <span style="font-size:10px; color:#15803d; font-weight:800;">✓ 已张榜</span>
-            </div>
-            <div style="font-size:10.5px; color:#64748b; line-height:1.5;">
-              家长设定清晰挑战标准与心愿体验激励，张榜于执行中心顶栏告示牌。
-            </div>
-            <span style="margin-top:auto; font-size:9.5px; color:#059669; background:#dcfce7; padding:2px 6px; border-radius:6px; font-weight:bold; width:fit-content;">心愿承诺已立约</span>
-          </div>
-
-          <!-- 阶段 2 -->
-          <div style="background:#fffbeb; border:2px solid #f59e0b; border-radius:12px; padding:10px; display:flex; flex-direction:column; gap:4px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #fef3c7; padding-bottom:4px;">
-              <span style="font-size:11px; font-weight:900; color:#92400e;">2. 孩子揭榜交付</span>
-              <span id="bounty-stage2-status" style="font-size:10px; color:#ea580c; font-weight:800;">⚡ 正在攻坚</span>
-            </div>
-            <div id="bounty-stage2-desc" style="font-size:10.5px; color:#78350f; line-height:1.5;">
-              孩子主动应战，自动派生实训任务卡至今日待办，提交手稿照片/视频物证。
-            </div>
-            <div style="margin-top:auto; display:flex; gap:6px;">
-              <button type="button" id="bounty-action-accept-btn" class="card-graphic-pill pill-seal" style="display:none; flex:1; height:26px; font-size:10px; padding:0 8px; background:#ea580c; color:#fff; border:none;" onclick="acceptParentBounty()">⚔️ 揭榜应战！</button>
-              <button type="button" id="bounty-evidence-btn" class="card-graphic-pill pill-camera" style="flex:1; height:26px; font-size:10px; padding:0 8px;" onclick="uploadBountyEvidence()">📸 上传挑战物证</button>
-            </div>
-          </div>
-
-          <!-- 阶段 3 -->
-          <div style="background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; padding:10px; display:flex; flex-direction:column; gap:4px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:4px;">
-              <span style="font-size:11px; font-weight:900; color:#334155;">3. 亲子验收兑现</span>
-              <span id="bounty-stage3-status" style="font-size:10px; color:#b45309; font-weight:800;">🟡 待核验</span>
-            </div>
-            <div style="font-size:10.5px; color:#64748b; line-height:1.5;">
-              核验物证真实性，家长填写鼓励寄语盖戳，同步铭刻成就馆与每日随记。
-            </div>
-            <div id="bounty-parent-stamp" style="margin-top:auto; font-size:9.5px; color:#92400e; border:1.5px dashed #f59e0b; padding:3px 6px; border-radius:6px; text-align:center; font-weight:800; background:#fefce8;">
-              🟡 待家长核准盖戳
-            </div>
-          </div>
-        </div>
-
-        <!-- 3. 家长验收寄语与双方画押存证栏 -->
-        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 14px; display:flex; flex-direction:column; gap:8px;">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-size:11px; font-weight:800; color:#334155; white-space:nowrap;">💬 家长验收寄语：</span>
-            <input id="bounty-parent-comment-input" type="text" value="" placeholder="家长鼓励寄语..." placeholder="输入家长核验鼓励寄语..." style="flex:1; padding:5px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:11.5px; background:#fff; color:#1e293b;">
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <span style="font-size:11px; font-weight:800; color:#334155;">双方画押存证：</span>
-              <span id="bounty-child-sign-pill" style="font-size:10.5px; color:#059669; background:#dcfce7; padding:2px 8px; border-radius:6px; font-weight:700;">✓ 孩子已揭榜署名 (齐天)</span>
-              <span id="bounty-parent-sign-pill" style="font-size:10.5px; color:#b45309; background:#fef3c7; padding:2px 8px; border-radius:6px; font-weight:700;">⌛ 家长待核准 (爸爸)</span>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- 弹窗底控栏 -->
-      <div class="workbench-footer" style="background: #faf6ed; border-top: 1.5px solid #e5d5be; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-size: 11px; color: #8c6b45;">
-          📁 存证路径：<code id="bounty-vault-path" style="background:#eedcc3; padding:2px 6px; border-radius:4px; font-size:10px;">09_Bounties_悬赏公告/bounty-2026-midterm-math.md</code>
-        </span>
-        <div style="display:flex; gap:10px;">
-          <button type="button" class="card-graphic-pill pill-note" onclick="closeBountyModal()" style="height:34px; padding:0 18px; border-radius:8px; font-size:11.5px;">
-            返回海岛
-          </button>
-          <button type="button" id="bounty-footer-accept-btn" class="card-graphic-pill pill-seal" onclick="acceptParentBounty()" style="display:none; height:34px; padding:0 20px; border-radius:8px; font-size:12px; font-weight:900; background:linear-gradient(135deg, #ea580c, #c2410c); color:#fff; border:1.5px solid #9a3412;">
-            ⚔️ 立即揭榜应战（同步至今日待办）
-          </button>
-          <button type="button" id="bounty-action-redeem-btn" class="card-graphic-pill pill-seal" onclick="completeBountyDemo()" style="height:34px; padding:0 20px; border-radius:8px; font-size:12px; font-weight:900; background:linear-gradient(135deg, #d97706, #b45309); color:#fff; border:1.5px solid #92400e;">
-            ✓ 家长核验通过 · 兑现心愿并入驻成就馆
-          </button>
-        </div>
-      </div>
+  <div class="workbench-modal-backdrop bounty-dialog" id="bounty-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="bounty-dialog-title" onclick="handleBountyBackdropClick(event)" onkeydown="handleBountyDialogKeydown(event)">
+  <div class="bounty-dialog-window" onclick="event.stopPropagation()">
+    <header class="bounty-dialog-header"><div><h2 id="bounty-dialog-title">🏅 亲子悬赏契约</h2><p>一起约定挑战，用真实过程见证成长</p></div><button type="button" class="bounty-close" aria-label="关闭悬赏契约" onclick="closeBountyModal()">✕</button></header>
+    <div class="bounty-dialog-toolbar"><span id="bounty-modal-status-badge">待立约</span><button type="button" onclick="toggleBountyPublishForm()">＋ 发布新契约</button></div>
+    <div id="bounty-modal-body" class="bounty-dialog-body">
+      <section id="bounty-publish-form-box" class="bounty-panel bounty-publish" style="display:none"><h3>约定一个新挑战</h3><label>挑战主题<input id="bounty-new-title" maxlength="60" placeholder="例如：独立完成一个观察项目"></label><div class="bounty-form-grid"><label>成长场馆<select id="bounty-new-pavilion"><option>校史馆 · 学业攻坚</option><option>武道馆 · 兴趣成长</option><option>思辨馆 · 思考探索</option><option>修身阁 · 知行合一</option></select></label><label>挑战期限（天）<input id="bounty-new-days" type="number" min="1" max="366" value="7"></label></div><label>共同约定的体验心愿<input id="bounty-new-reward" placeholder="例如：一次亲子自然探索"></label><label>验收标准<textarea id="bounty-new-criteria" rows="3" placeholder="写清要完成什么，以及如何共同验收"></textarea></label><button type="button" class="bounty-primary" onclick="submitNewParentBounty()">发布契约</button></section>
+      <section class="bounty-panel bounty-current"><p id="bounty-modal-meta" class="bounty-muted"></p><h3 id="bounty-modal-title"></h3><p id="bounty-modal-contract-no" class="bounty-muted"></p><div class="bounty-reward"><span>🎁 约定心愿</span><strong id="bounty-modal-reward"></strong></div><h4>📋 验收标准</h4><p id="bounty-modal-criteria"></p><ol class="bounty-steps"><li>① 家长立约</li><li id="bounty-stage2-status">② 孩子揭榜</li><li id="bounty-stage3-status">③ 共同验收</li></ol><p id="bounty-stage2-desc" class="bounty-muted"></p></section>
+      <section class="bounty-panel bounty-delivery"><h3>📸 留下挑战过程</h3><div id="bounty-media-controls"></div><div id="bounty-media-list" class="bounty-media-list"></div></section>
+      <section class="bounty-panel bounty-verification"><h3>🤝 共同验收</h3><label>家长验收寄语<textarea id="bounty-parent-comment-input" rows="3" placeholder="对照标准，写下真实观察与鼓励"></textarea></label><label class="bounty-check"><input type="checkbox" id="domain-parent-confirm">已共同核验原件和验收标准</label><p id="bounty-parent-stamp" class="bounty-muted"></p></section>
+      <section id="domain-bounty-history" class="bounty-history"></section>
     </div>
-  </div><!-- /modal-top-bounty-contract -->
+    <footer class="bounty-dialog-footer"><span>真实交付 · 共同见证</span><div><button type="button" onclick="closeBountyModal()">关闭</button><button type="button" class="bounty-primary" id="bounty-action-accept-btn" onclick="acceptParentBounty()">揭榜应战</button><button type="button" class="bounty-primary" id="bounty-action-redeem-btn" onclick="completeBountyDemo()">核验通过并兑现</button></div></footer>
+  </div>
+</div><!-- /modal-top-bounty-contract -->
 </main><!-- /main-viewport -->
 
   <!-- 客户端交互脚本与数据源 -->
@@ -18992,9 +18887,7 @@ function renderBountyModalAndBillboard() {
   if (mTitle) mTitle.textContent = '《' + b.title + '》';
   if (mMeta) mMeta.textContent = '🎯 关联规划：' + b.pavilionLabel + ' | 👨‍👩‍👦 家长发起悬赏';
   if (mReward) mReward.textContent = b.reward;
-  if (mCriteria) {
-    mCriteria.innerHTML = '<strong>📋 契约验收标准：</strong><br>' + String(b.criteria).replace(/\n/g, '<br>');
-  }
+  if (mCriteria) mCriteria.textContent = b.criteria;
   if (vaultPath) vaultPath.textContent = b.vaultFile;
 
   if (b.status === 'published') {
@@ -28065,7 +27958,7 @@ handleDeleteActiveEdge=function(){
 };
 function editDomainList(id,key){const node=getDomainNode(id);const list=node.cardPayload[key]||[];const sample=key==='customFieldsSchema'?'[{"key":"count","label":"完成次数","type":"number","required":true}]':key==='metrics'?'[{"name":"正确率","targetValue":"≥98%"}]':key==='checklist'?'[{"title":"完成规范动作","required":true}]':'[{"actionItem":"下一次的具体行动","isChecked":true}]';
   document.getElementById('domain-list-editor')?.remove();const modal=document.createElement('div');modal.className='domain-modal';modal.id='domain-list-editor';modal.innerHTML='<div class="note-card-box"><h3>编辑'+({metrics:'通关指标',checklist:'防守清单',improvementList:'提升行动',customFieldsSchema:'填报项目'}[key])+'</h3><div id="domain-list-rows"></div><button class="ui-btn" id="domain-list-add">➕ 增加一项</button><div id="domain-list-error" role="alert"></div><button class="ui-btn primary" id="domain-list-save">保存</button><button class="ui-btn" onclick="document.getElementById(\'domain-list-editor\').remove()">取消</button></div>';(document.querySelector('.youth-island-plugin-root')||document.body).appendChild(modal);
-  const rows=modal.querySelector('#domain-list-rows');const add=item=>{const row=document.createElement('div');row.className='domain-list-row';row.dataset.id=item.id||domainId('item');row.dataset.key=item.key||domainId('field');row.innerHTML='<input class="domain-item-label" placeholder="'+(key==='metrics'?'指标名称':key==='customFieldsSchema'?'填报项目名称':'具体行动')+'">'+(key==='metrics'?'<input class="domain-item-target" placeholder="例如 ≥98% 或文字验收标准">':'')+(key==='customFieldsSchema'?'<select class="domain-item-type"><option value="text">文字</option><option value="number">数字</option><option value="boolean">是/否</option><option value="date">日期</option></select><label><input class="domain-item-required" type="checkbox" checked>必填</label>':'')+'<button class="ui-btn">移除</button>';row.querySelector('.domain-item-label').value=item.name||item.title||item.actionItem||item.label||'';if(key==='metrics')row.querySelector('.domain-item-target').value=item.targetValue||'';if(key==='customFieldsSchema'){row.querySelector('select').value=item.type||'text';row.querySelector('input[type=checkbox]').checked=item.required!==false;}row.querySelector('button').onclick=()=>row.remove();rows.appendChild(row);};(list.length?list:[{}]).forEach(add);modal.querySelector('#domain-list-add').onclick=()=>add({});modal.querySelector('#domain-list-save').onclick=()=>{const parsed=Array.from(rows.children).map(row=>{const label=row.querySelector('.domain-item-label').value.trim(),id=row.dataset.id;if(!label)return null;if(key==='metrics')return {id,name:label,targetValue:row.querySelector('.domain-item-target').value.trim()};if(key==='customFieldsSchema')return {key:row.dataset.key,label,type:row.querySelector('select').value,required:row.querySelector('input[type=checkbox]').checked};const existing=list.find(x=>x.id===id);return key==='checklist'?{id,title:label,required:true}:{...existing,id,actionItem:label,isChecked:true};}).filter(Boolean);if(!parsed.length){modal.querySelector('#domain-list-error').textContent='请至少填写一项';return;}recordDomainHistory();node.cardPayload[key]=parsed;renderDomainCanvas(node.projectId);saveCurrentProjectCanvasSnapshot();refreshDomainProjections();modal.remove();notifyIslandStateChanged();};
+  const rows=modal.querySelector('#domain-list-rows');const add=item=>{const row=document.createElement('div');row.className='domain-list-row';row.dataset.id=item.id||domainId('item');row.dataset.key=item.key||domainId('field');row.innerHTML='<input class="domain-item-label" placeholder="'+(key==='metrics'?'指标名称':key==='customFieldsSchema'?'填报项目名称':'具体行动')+'">'+(key==='metrics'?'<input class="domain-item-target" placeholder="例如 ≥98% 或文字验收标准">':'')+(key==='customFieldsSchema'?'<select class="domain-item-type"><option value="text">文字</option><option value="number">数字</option><option value="boolean">是/否</option><option value="date">日期</option></select><label><input class="domain-item-required" type="checkbox" checked>必填</label>':'')+'<button class="ui-btn">移除</button>';row.querySelector('.domain-item-label').value=item.name||item.title||item.actionItem||item.label||'';if(key==='metrics')row.querySelector('.domain-item-target').value=item.targetValue||'';if(key==='customFieldsSchema'){row.querySelector('select').value=item.type||'text';row.querySelector('input[type=checkbox]').checked=item.required!==false;}row.querySelector('button').onclick=()=>row.remove();rows.appendChild(row);};(list.length?list:[{}]).forEach(add);modal.querySelector('#domain-list-add').onclick=()=>add({});modal.querySelector('#domain-list-save').onclick=()=>{if(!planningWriteAllowed())return;const parsed=Array.from(rows.children).map(row=>{const label=row.querySelector('.domain-item-label').value.trim(),id=row.dataset.id;if(!label)return null;if(key==='metrics')return {id,name:label,targetValue:row.querySelector('.domain-item-target').value.trim()};if(key==='customFieldsSchema')return {key:row.dataset.key,label,type:row.querySelector('select').value,required:row.querySelector('input[type=checkbox]').checked};const existing=list.find(x=>x.id===id);return key==='checklist'?{id,title:label,required:true}:{...existing,id,actionItem:label,isChecked:true};}).filter(Boolean);if(!parsed.length){modal.querySelector('#domain-list-error').textContent='请至少填写一项';return;}recordDomainHistory();node.cardPayload[key]=parsed;renderDomainCanvas(node.projectId);saveCurrentProjectCanvasSnapshot();refreshDomainProjections();modal.remove();notifyIslandStateChanged();};
 }
 function openDomainEditor(title,text,onSave){document.getElementById('domain-editor')?.remove();const modal=document.createElement('div');modal.id='domain-editor';modal.className='domain-modal';modal.innerHTML='<div class="note-card-box"><h3>'+escapeIslandText(title)+'</h3><textarea id="domain-editor-text" style="width:100%;min-height:240px;"></textarea><div id="domain-editor-error" role="alert"></div><button class="ui-btn primary" id="domain-editor-save">保存</button><button class="ui-btn" onclick="document.getElementById(\'domain-editor\').remove()">取消</button></div>';document.querySelector('.youth-island-plugin-root')?.appendChild(modal)||document.body.appendChild(modal);modal.querySelector('textarea').value=text;modal.querySelector('#domain-editor-save').onclick=()=>{try{onSave(modal.querySelector('textarea').value);modal.remove();notifyIslandStateChanged();}catch(error){modal.querySelector('#domain-editor-error').textContent=error.message;}};}
 createTertiaryCustomPlanningCard=function(config){const state=getDomainState(),project=state.projects.find(p=>p.id===window.currentTertiaryProjId);if(!project){showIslandToast('请先选择项目再新增节点');return null;}recordDomainHistory();const nodes=state.nodesByProject[project.id]||(state.nodesByProject[project.id]=[]);const node=domainNode({...config,plannedDate:config.plannedDate||domainDefaultNodeDate(project)},project);node.canvasPosition=config.canvasPosition||{x:80+(nodes.length%3)*400,y:90+Math.floor(nodes.length/3)*440};nodes.push(node);renderDomainCanvas(project.id);saveCurrentProjectCanvasSnapshot();refreshDomainProjections();domainEvent('node.created',node.id,'新增规划节点《'+node.title+'》',{projectId:project.id});return document.getElementById(node.id);};
@@ -28117,13 +28010,15 @@ function openDomainTask(key) {
   document.getElementById('exec-project-map-title').textContent=state.projects.find(p=>p.id===task.projectId)?.title||'亲子契约';
   document.getElementById('exec-project-map-summary').textContent='当前项目的真实节点与前置依赖';
   document.getElementById('btn-exec-popup-toggle-project').style.display=task.projectId?'inline-flex':'none';
+  evidenceSession.planningNode=freezeExecutionPlanning(node,saved);
   renderDomainExecution(node,saved,draft);return true;
 }
 openExecCardPopupView=function(type,card){const id=card?.dataset.taskInstanceId||card?.dataset.taskId||type;return openDomainTask(id);};
 openExecutionWorkspace=openDomainTask;
-function openGoalAcceptance(id){const node=getDomainNode(id);if(!node||node.nodeType!=='goal')return;saveExecutionDraft();const task={id:taskInstanceId(node.id,domainDate()),nodeId:node.id,projectId:node.projectId,pavilionId:node.pavilionId,nodeType:'goal',date:domainDate(),title:node.title,status:'ready',acceptance:true};const draft=getDomainState().drafts[task.id]||{};switchMainSection('island');switchHomeGlobalView('exec');originalOpenExec('goal');evidenceSession={taskId:task.id,taskInstanceId:task.id,nodeId:node.id,projectId:node.projectId,pavilionId:node.pavilionId,title:node.title,date:task.date,seconds:draft.seconds||0,startedAt:0,media:[...(draft.media||[])],saved:false,task};document.getElementById('exec-popup-title').textContent=node.title+' · 成果验收';document.getElementById('exec-popup-breadcrumb').textContent=(getDomainState().projects.find(p=>p.id===node.projectId)?.title||'')+' / '+node.title;renderDomainExecution(node,null,draft);}
+function openGoalAcceptance(id){const node=getDomainNode(id);if(!node||node.nodeType!=='goal')return;saveExecutionDraft();const task={id:taskInstanceId(node.id,domainDate()),nodeId:node.id,projectId:node.projectId,pavilionId:node.pavilionId,nodeType:'goal',date:domainDate(),title:node.title,status:'ready',acceptance:true};const draft=getDomainState().drafts[task.id]||{};switchMainSection('island');switchHomeGlobalView('exec');originalOpenExec('goal');evidenceSession={taskId:task.id,taskInstanceId:task.id,nodeId:node.id,projectId:node.projectId,pavilionId:node.pavilionId,title:node.title,date:task.date,planningNode:freezeExecutionPlanning(node,null),seconds:draft.seconds||0,startedAt:0,media:[...(draft.media||[])],saved:false,task};document.getElementById('exec-popup-title').textContent=node.title+' · 成果验收';document.getElementById('exec-popup-breadcrumb').textContent=(getDomainState().projects.find(p=>p.id===node.projectId)?.title||'')+' / '+node.title;renderDomainExecution(node,null,draft);}
 function domainEvidenceLabel(type){return {none:'无需附件',text:'文字说明（至少15字）',photo:'照片原件',video:'视频原件',audio:'音频原件'}[type]||'照片或视频原件';}
 function renderDomainExecution(node,saved,draft={}) {
+  node=evidenceSession?.planningNode||node;
   const p=node?.cardPayload||{},container=document.getElementById('exec-popup-task-view');delete container.dataset.activeCheckinType;
   let fields='';
   if(node?.nodeType==='goal'&&!p.metrics.length)fields+='<p>尚无验收指标，请先回到目标规划维护标准。</p><button class="ui-btn" onclick="jumpToDomainSource(\''+node.projectId+'\',\''+node.id+'\');editDomainList(\''+node.id+'\',\'metrics\')">完善目标指标</button>';
@@ -28132,7 +28027,7 @@ function renderDomainExecution(node,saved,draft={}) {
   if(node?.nodeType==='review')fields+='<label>下阶段提升行动（每行一项）<textarea id="domain-review-improvements">'+escapeIslandText((saved?.improvementList||draft.improvementList||p.improvementList).map(x=>x.actionItem).join('\n'))+'</textarea></label>';
   if(node?.nodeType==='custom')fields+='<h4>实测字段</h4>'+p.customFieldsSchema.map(f=>'<label>'+escapeIslandText(f.label)+(f.required?' *':'')+(f.type==='boolean'?'<input class="domain-custom-value" data-key="'+escapeIslandText(f.key)+'" type="checkbox">':'<input class="domain-custom-value" data-key="'+escapeIslandText(f.key)+'" type="'+(f.type==='number'?'number':f.type==='date'?'date':'text')+'" value="'+escapeIslandText(saved?.customFieldValues?.[f.key]??draft.customFieldValues?.[f.key]??'')+'">')+'</label>').join('');
   const bounty=evidenceSession.task.bountyId?getDomainState().bounties.find(b=>b.id===evidenceSession.task.bountyId):null;
-  container.innerHTML='<div class="note-card-box island-real-execution-form"><h3>'+escapeIslandText(evidenceSession.title)+'</h3><section id="island-execution-standard"><h4>规划标准 · 只读</h4><p>'+escapeIslandText(p.description||bounty?.criteria||'')+'</p><p>预计专注：'+(p.plannedMinutes||0)+'分钟；交付要求：'+escapeIslandText(domainEvidenceLabel(p.evidenceType))+'</p><p>来源项目：'+escapeIslandText(getDomainState().projects.find(x=>x.id===evidenceSession.projectId)?.title||'亲子契约')+'</p></section><section class="island-real-execution-entry" oninput="saveExecutionDraft()"><div class="domain-planning-row"><strong id="island-real-elapsed">00:00</strong><button class="ui-btn" id="island-real-timer" onclick="toggleEvidenceTimer()">▶ 开始/继续专注</button></div>'+fields+'<label>'+(node?.nodeType==='review'?'复盘说明（至少15字）':'执行心得与交付说明')+'<textarea id="island-real-reflection">'+escapeIslandText(saved?.reflection||draft.reflection||'')+'</textarea></label><label>真实物证<input type="file" accept="image/*,video/*,audio/*" onchange="uploadExecutionEvidence(this)"></label><div id="island-real-media-list"></div><div id="domain-exec-errors" role="alert"></div><button class="ui-btn primary" id="island-real-submit" onclick="submitRealExecution()">'+(saved?'✓ 已记录':'提交并校验')+'</button>'+(node?.nodeType==='review'?'<button class="ui-btn" onclick="deriveNodesFromReflectionCard(\''+node.id+'\',event)">🌱 将已保存提升行动派生实训</button>':'')+(node?.nodeType==='goal'?'<button class="ui-btn" onclick="depositGoalToAchievement(\''+node.id+'\',event)">🏆 归档已验收成果</button>':'')+'</section></div>';
+  container.innerHTML='<div class="note-card-box island-real-execution-form"><h3>'+escapeIslandText(evidenceSession.title)+'</h3>'+executionPlanningHtml(node,bounty)+'<section class="island-real-execution-entry" oninput="saveExecutionDraft()"><div class="domain-planning-row"><strong id="island-real-elapsed">00:00</strong><button class="ui-btn" id="island-real-timer" onclick="toggleEvidenceTimer()">▶ 开始/继续专注</button></div>'+fields+'<label>'+(node?.nodeType==='review'?'复盘说明（至少15字）':'执行心得与交付说明')+'<textarea id="island-real-reflection">'+escapeIslandText(saved?.reflection||draft.reflection||'')+'</textarea></label>'+mediaPickerControls('execution','image/*,video/*',!!saved)+'<div id="island-real-media-list"></div><div id="domain-exec-errors" role="alert"></div><button class="ui-btn primary" id="island-real-submit" onclick="submitRealExecution()">'+(saved?'✓ 已记录':'提交并校验')+'</button>'+(node?.nodeType==='goal'?'<button class="ui-btn" onclick="depositGoalToAchievement(\''+node.id+'\',event)">🏆 归档已验收成果</button>':'')+'</section></div>';
   container.querySelectorAll('.domain-metric-confirm').forEach(el=>el.checked=!!(saved?.metricConfirmations||draft.metricConfirmations||{})[el.dataset.key]);
   container.querySelectorAll('.domain-custom-value[type=checkbox]').forEach(el=>el.checked=!!(saved?.customFieldValues||draft.customFieldValues||{})[el.dataset.key]);
   if(saved)container.querySelectorAll('input,textarea,#island-real-submit,#island-real-timer').forEach(el=>el.disabled=true);
@@ -28143,7 +28038,7 @@ function collectDomainExecution(){const data={reflection:document.getElementById
   document.querySelectorAll('.domain-metric-confirm').forEach(el=>data.metricConfirmations[el.dataset.key]=el.checked);
   document.querySelectorAll('.domain-check-result').forEach(el=>data.checklistResults[el.dataset.key]=el.checked);
   document.querySelectorAll('.domain-custom-value').forEach(el=>data.customFieldValues[el.dataset.key]=el.type==='checkbox'?el.checked:el.value);
-  const node=getDomainNode(evidenceSession?.nodeId);const improvements=document.getElementById('domain-review-improvements')?.value.split('\n').map(x=>x.trim()).filter(Boolean)||[];
+  const node=evidenceSession?.planningNode||getDomainNode(evidenceSession?.nodeId);const improvements=document.getElementById('domain-review-improvements')?.value.split('\n').map(x=>x.trim()).filter(Boolean)||[];
   data.improvementList=improvements.map(text=>({...node?.cardPayload.improvementList.find(x=>x.actionItem===text),actionItem:text,id:node?.cardPayload.improvementList.find(x=>x.actionItem===text)?.id||domainId('improvement'),isChecked:true}));return data;
 }
 saveExecutionDraft=function(){if(!evidenceSession||evidenceSession.saved)return;getDomainState().drafts[evidenceSession.taskId]={...collectDomainExecution(),seconds:getEvidenceElapsed(),savedAt:new Date().toISOString()};notifyIslandStateChanged();};
@@ -28158,10 +28053,10 @@ triggerGlobalCheckinClosedLoop=function(input){
   const existing=state.records.find(r=>r.taskInstanceId===task.id&&r.validated===true);if(existing)return existing;
   if(task.bountyId){const b=state.bounties.find(x=>x.id===task.bountyId);if(!input.media?.some(m=>m.path&&['image','video'].includes(m.type))){showIslandToast('请提交挑战照片或视频');return false;}b.evidence=input.media;b.evidencePath=input.media[0].path;b.evidenceName=input.media[0].name;b.evidenceUploaded=true;b.childReport=input.reflection||'';domainEvent('bounty.evidence',b.id,'悬赏物证已交付，等待家长核验');renderBountyModalAndBillboard();showIslandToast('物证已保存，请家长填写寄语并核准兑现');return {id:domainId('submission'),...input,validated:false};}
   const source=getDomainNode(task.nodeId);if(!source)return false;
-  const validation=validateDomainExecution(source,input);if(!validation.valid){const area=document.getElementById('domain-exec-errors');if(area)area.textContent=validation.errors.join('；');showIslandToast(validation.errors[0]);return false;}
-  const record={...input,id:domainId('record'),taskInstanceId:task.id,taskId:task.id,nodeId:source.id,projectId:source.projectId,pavilionId:source.pavilionId,title:source.title,sourceSnapshot:JSON.parse(JSON.stringify({title:source.title,nodeType:source.nodeType,projectId:source.projectId,cardPayload:source.cardPayload})),date:domainDate(),scheduledDate:task.date,completedAt:new Date().toISOString(),validated:true,metrics:validation.metrics,media:(input.media||[]).map(m=>({...m})),focusSeconds:Math.max(0,Math.floor(Number(input.focusSeconds)||0))};
+  const standard=evidenceSession?.taskId===task.id?(evidenceSession.planningNode||source):source;
+  const validation=validateDomainExecution(standard,input);if(!validation.valid){const area=document.getElementById('domain-exec-errors');if(area)area.textContent=validation.errors.join('；');showIslandToast(validation.errors[0]);return false;}
+  const record={...input,id:domainId('record'),taskInstanceId:task.id,taskId:task.id,nodeId:source.id,projectId:source.projectId,pavilionId:source.pavilionId,title:source.title,sourceSnapshot:JSON.parse(JSON.stringify({title:standard.title,nodeType:standard.nodeType,projectId:standard.projectId,cardPayload:standard.cardPayload})),date:domainDate(),scheduledDate:task.date,completedAt:new Date().toISOString(),validated:true,metrics:validation.metrics,media:(input.media||[]).map(m=>({...m})),focusSeconds:Math.max(0,Math.floor(Number(input.focusSeconds)||0))};
   state.records.push(record);source.executionRecords.push(record.id);source.updatedAt=record.completedAt;source.status='completed';
-  if(source.nodeType==='review')source.cardPayload.improvementList=record.improvementList;
   delete state.drafts[task.id];const project=state.projects.find(p=>p.id===source.projectId);project.completedDays=[...new Set(state.records.filter(r=>r.projectId===project.id).map(r=>r.date))];
   domainEvent('checkin.completed',record.id,'完成《'+source.title+'》：实际专注 '+Math.floor(record.focusSeconds/60)+' 分钟，物证 '+record.media.length+' 项',{projectId:project.id,nodeId:source.id,recordId:record.id});
   const note=window.NOTE_STATE;for(const media of record.media)if(!note.mediaList.some(m=>m.id===media.id))note.mediaList.push({...media,sourceRecordId:record.id});
@@ -28390,7 +28285,7 @@ function renderPlanningNodeCard(node){
     body+=planningCardSection('🎯 量化通关指标',metrics,planningCardListButton(node,'metrics','编辑指标'),'node-card-metrics');
     body+=planningCardSection('📋 验收标准',planningCardArea(node,'acceptanceCriteria',p.acceptanceCriteria,'写明成果与验收方式…'),'','node-card-acceptance');
     body+='<label class="node-deadline-row"><span>📅 期望完成</span>'+planningCardInput(node,'targetDeadline',p.targetDeadline,'datetime-local')+'</label>';
-    footer='<span>验收通过后沉淀成果</span><button type="button" class="node-primary-action" onclick="'+planningCardAction('depositGoalToAchievement('+JSON.stringify(node.id)+',event)')+'">🏆 记录已验收成果</button>';
+    footer='<span>规划目标与验收标准</span><span class="node-footer-chip">在执行页验收</span>';
   }else if(type==='drill'){
     body+='<section class="node-focus-panel"><div><span class="node-focus-caption">⏱ 计划专注</span><div class="node-focus-value">'+planningCardInput(node,'plannedMinutes',p.plannedMinutes,'number','min="0" max="120" step="1" aria-label="计划专注分钟"')+'<span>分钟</span></div></div><span class="node-focus-mark" aria-hidden="true">◷</span></section>';
     body+='<div class="node-proof-note"><span>📦 交付要求</span><strong>'+escapeIslandText({none:'完成规定练习',text:'执行时提交文字心得',photo:'执行时提交照片物证',video:'执行时提交视频物证',audio:'执行时提交音频物证'}[p.evidenceType]||'按要求提交物证')+'</strong></div>';
@@ -28402,14 +28297,14 @@ function renderPlanningNodeCard(node){
   }else if(type==='review'){
     const list=p.improvementList.map((item,i)=>'<li><span class="node-list-marker">'+(i+1)+'</span><span>'+escapeIslandText(item.actionItem)+'</span><small class="'+(item.derivedNodeId?'is-derived':'')+'">'+(item.derivedNodeId?'已派生':item.isChecked===false?'未选择':'待派生')+'</small></li>').join('');
     body+=planningCardSection('🚀 提升行动','<ol class="node-improvements">'+list+'</ol>'+(!list?'<p class="node-card-empty">把复盘结论变成下一次的具体行动。</p>':''),planningCardListButton(node,'improvementList','编辑行动'));
-    footer='<span>复盘沉淀 · 靶向提升</span><button type="button" class="node-primary-action" onclick="'+planningCardAction('deriveNodesFromReflectionCard('+JSON.stringify(node.id)+',event)')+'">🌱 派生实训节点</button>';
+    footer='<span>编排后续成长计划</span><button type="button" class="node-primary-action" onclick="'+planningCardAction('deriveNodesFromReflectionCard('+JSON.stringify(node.id)+',event)')+'">🌱 派生后续规划</button>';
   }else if(type==='custom'){
     const names={text:'文字',number:'数字',boolean:'是 / 否',date:'日期'},list=p.customFieldsSchema.map(field=>'<div class="node-custom-field"><span>'+escapeIslandText(field.label)+'</span><span class="node-field-kind">'+escapeIslandText(names[field.type]||field.type)+(field.required?' · 必填':' · 选填')+'</span></div>').join('');
     body+=planningCardSection('📋 自定义字段',list||'<p class="node-card-empty">添加需要填报的项目与字段类型。</p>',planningCardListButton(node,'customFieldsSchema','维护字段'));
     footer='<span>执行时填写实际结果</span><span class="node-footer-chip">'+p.customFieldsSchema.length+' 个字段</span>';
   }else{
     body+='<div class="node-text-paper">'+planningCardArea(node,'textContent',p.textContent,'写下想法、资料或 Markdown 正文…')+'</div>';
-    footer='<span>纯记录 · 不计入履约</span><button type="button" class="node-secondary-action" onclick="'+planningCardAction('acknowledgeDomainText('+JSON.stringify(node.id)+')')+'">👁 阅读留痕</button>';
+    footer='<span>资料与想法 · 不计入履约</span><span class="node-footer-chip">规划便签</span>';
   }
   body+=planningCardSettings(node);
   return '<article class="a-my-island-work-node-card tertiary-card tertiary-'+legacy+'-card domain-node-card" id="'+escapeIslandText(node.id)+'" data-domain-node="true" data-node-type="'+type+'" data-label="'+escapeIslandText(node.title)+'" data-group-id="'+escapeIslandText(node.groupId||'')+'" data-group-root="'+escapeIslandText(node.groupRoot||'')+'" style="position:absolute;left:'+Number(node.canvasPosition.x)+'px;top:'+Number(node.canvasPosition.y)+'px;width:340px;"><header class="work-node-card-header" ondblclick="'+planningCardAction('toggleTertiaryCardMinimize('+JSON.stringify(node.id)+',event)')+'" title="拖动标题栏移动；双击折叠或展开"><div class="node-card-kicker"><span class="work-node-badge">'+meta[0]+' '+meta[1]+'</span><span class="node-card-status" id="status-text-'+escapeIslandText(node.id)+'">'+status+'</span><button type="button" class="node-card-collapse-toggle" aria-label="折叠或展开节点" onclick="'+planningCardAction('toggleTertiaryCardMinimize('+JSON.stringify(node.id)+',event)')+'">⌃</button></div><div class="node-card-title-row"><span class="work-node-title">'+escapeIslandText(node.title)+'</span><button type="button" class="node-title-edit" aria-label="编辑节点名称" onclick="'+planningCardAction('editPlanningCardTitle('+JSON.stringify(node.id)+',event)')+'">✎</button></div><p class="node-card-subtitle">'+meta[2]+'</p></header><div class="work-node-body domain-planning-body">'+body+'</div><footer class="node-card-footer">'+footer+'</footer><button type="button" class="work-card-connect-handle" data-card-id="'+escapeIslandText(node.id)+'" aria-label="从此节点连接路线" title="拖向目标节点，或点击选择连线起点" onclick="startOrFinishConnecting(this.dataset.cardId,event)">🔗</button></article>';
@@ -28630,6 +28525,177 @@ function handleNodeCreatorKeydown(event){
     if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}
     else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}
   }
+}
+
+// Execution facts never write back the user-entered planning standard.
+function freezeExecutionPlanning(node,saved){
+  if(!node)return null;
+  const snapshot=saved?.sourceSnapshot;
+  return JSON.parse(JSON.stringify(snapshot?{...node,...snapshot,cardPayload:snapshot.cardPayload}:node));
+}
+function planningWriteAllowed(){
+  if(!evidenceSession)return true;
+  showIslandToast('请先返回规划视图，再修改项目规划。');return false;
+}
+function executionPlanningHtml(node,bounty){
+  const p=node?.cardPayload||{},items=[];
+  if(p.metrics?.length)items.push('<p>目标指标</p><ul>'+p.metrics.map(m=>'<li>'+escapeIslandText(m.name)+'：'+escapeIslandText(m.targetValue)+'</li>').join('')+'</ul>');
+  if(p.acceptanceCriteria)items.push('<p>验收标准：'+escapeIslandText(p.acceptanceCriteria)+'</p>');
+  if(p.checklist?.length)items.push('<p>规划清单</p><ul>'+p.checklist.map(c=>'<li>'+escapeIslandText(c.title)+(c.required!==false?'（必需）':'')+'</li>').join('')+'</ul>');
+  if(p.improvementList?.length)items.push('<p>规划提升行动</p><ul>'+p.improvementList.map(c=>'<li>'+escapeIslandText(c.actionItem)+'</li>').join('')+'</ul>');
+  if(p.customFieldsSchema?.length)items.push('<p>规划字段：'+p.customFieldsSchema.map(f=>escapeIslandText(f.label)+(f.required?'（必填）':'')).join('、')+'</p>');
+  return '<section id="island-execution-standard"><h4>规划标准 · 只读</h4><p>'+escapeIslandText(p.description||bounty?.criteria||'')+'</p>'+items.join('')+'<p>计划专注：'+Number(p.plannedMinutes||0)+' 分钟 · '+escapeIslandText(bounty?'照片或视频原件':domainEvidenceLabel(p.evidenceType||'none'))+'</p></section>';
+}
+const boundaryUpdateNode=updateDomainNode,boundaryUpdateDependencies=updateDomainDependencies,boundaryEditList=editDomainList,boundaryCreateNode=createTertiaryCustomPlanningCard;
+updateDomainNode=function(...args){if(planningWriteAllowed())return boundaryUpdateNode(...args);return false;};
+updateDomainDependencies=function(...args){if(planningWriteAllowed())return boundaryUpdateDependencies(...args);return false;};
+editDomainList=function(...args){if(planningWriteAllowed())return boundaryEditList(...args);return false;};
+createTertiaryCustomPlanningCard=function(...args){if(planningWriteAllowed())return boundaryCreateNode(...args);return null;};
+const boundaryDerive=deriveNodesFromReflectionCard;
+deriveNodesFromReflectionCard=function(id,event){
+  if(!planningWriteAllowed())return false;
+  const source=getDomainNode(id),state=getDomainState(),record=[...state.records].reverse().find(r=>r.nodeId===id&&r.validated&&r.improvementList?.length);
+  if(!source||!record)return boundaryDerive(id,event);
+  event?.stopPropagation();const project=state.projects.find(p=>p.id===source.projectId),nodes=state.nodesByProject[project.id];let count=0;
+  recordDomainHistory();
+  source.groupId=source.groupId||domainId('group');source.groupRoot=id;
+  for(const action of record.improvementList.filter(i=>i.isChecked!==false&&i.actionItem?.trim())){
+    if(nodes.some(n=>n.cardPayload.derivedFrom?.recordId===record.id&&n.cardPayload.derivedFrom?.actionId===action.id))continue;
+    const date=domainDefaultNodeDate(project),child=domainNode({title:action.actionItem.slice(0,30),nodeType:'drill',plannedDate:date,groupId:source.groupId,groupRoot:id,cardPayload:{description:action.actionItem,plannedMinutes:20,evidenceType:'photo',derivedFrom:{nodeId:id,recordId:record.id,actionId:action.id}}},project);
+    child.canvasPosition={x:source.canvasPosition.x+400,y:source.canvasPosition.y+count*400};nodes.push(child);
+    window.PROJECT_CANVAS_STORE[project.id].edges.push({id:domainId('edge'),sourceId:id,targetId:child.id,type:'派生',label:'复盘后续规划'});count++;
+  }
+  renderDomainCanvas(project.id);saveCurrentProjectCanvasSnapshot();refreshDomainProjections();
+  if(count)domainEvent('review.derived',id,'基于已保存复盘创建 '+count+' 项后续规划',{projectId:project.id,recordId:record.id});else showIslandToast('该复盘行动已创建后续规划');return count;
+};
+const boundaryEnterPlanning=enterTertiaryWorkspace,boundarySwitchHome=switchHomeGlobalView;
+enterTertiaryWorkspace=function(...args){if(evidenceSession)closeExecCardPopupView();return boundaryEnterPlanning(...args);};
+switchHomeGlobalView=function(view){if(['plan','planning'].includes(view)&&evidenceSession)closeExecCardPopupView();return boundarySwitchHome(view);};
+
+// Separate ordinary media selection from direct camera requests. No simulated uploads.
+const mediaJobs=new Set();
+const mediaPromises=new Set();
+let mediaClosing=false;
+function handleNativeMediaFiles(input){
+  if(mediaClosing)return Promise.resolve(false);
+  const job=processNativeMediaFiles(input);mediaPromises.add(job);
+  job.then(()=>mediaPromises.delete(job),()=>mediaPromises.delete(job));return job;
+}
+async function flushMediaBeforeClose(){mediaClosing=true;await Promise.allSettled(Array.from(mediaPromises));}
+function mediaOwner(context){
+  if(context==='execution')return evidenceSession?.taskId||'';
+  if(context==='bounty')return window.BOUNTY_STATE?.id||'';
+  if(context==='journal')return window.NOTE_STATE.dateKey||domainDate();
+  if(context==='achievement')return window.__accidentalUploadToken||'';
+  if(context==='resource')return window.currentTertiaryProjId||'';
+  return context;
+}
+function mediaPickerControls(context,accept='image/*,video/*',disabled=false){
+  const owner=mediaOwner(context),busy=mediaJobs.has(context+':'+owner),off=disabled||busy||mediaClosing;
+  const input=(source,label,types,capture='')=>'<label class="island-media-source" aria-disabled="'+off+'">'+label+'<input class="island-native-media-input" type="file" accept="'+types+'" '+(capture?'capture="environment"':'multiple')+' data-media-context="'+context+'" data-media-owner="'+escapeIslandText(owner)+'" data-media-source="'+source+'" aria-label="'+label+'" onchange="handleNativeMediaFiles(this)"'+(off?' disabled':'')+'></label>';
+  return '<div class="island-media-picker" data-picker-context="'+context+'" aria-busy="'+busy+'">'+input('gallery','🖼 选择照片/视频',accept)+input('photo','📷 拍摄照片','image/*','environment')+input('video','🎥 拍摄视频','video/*','environment')+(context==='execution'?input('audio','🎙 选择录音','audio/*'):'')+'<span class="island-media-status" role="status">'+(busy?'正在保存原件…':'原件保存到当前知识库')+'</span></div>';
+}
+function mediaFileWithType(file){
+  if(file.type)return file;
+  const extension=file.name.split('.').pop().toLowerCase(),mime={jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp',gif:'image/gif',heic:'image/heic',heif:'image/heif',mp4:'video/mp4',mov:'video/quicktime',webm:'video/webm',m4v:'video/mp4','3gp':'video/3gpp',mp3:'audio/mpeg',m4a:'audio/mp4',wav:'audio/wav',ogg:'audio/ogg'}[extension];
+  return mime?new File([file],file.name,{type:mime,lastModified:file.lastModified}):file;
+}
+function refreshMediaBusy(context,owner){
+  const busy=mediaJobs.has(context+':'+owner);
+  document.querySelectorAll('.island-native-media-input').forEach(input=>{if(input.dataset.mediaContext===context&&input.dataset.mediaOwner===owner){input.disabled=busy||(context==='execution'&&!!evidenceSession?.saved);input.parentElement.setAttribute('aria-disabled',String(input.disabled));input.closest('.island-media-picker').setAttribute('aria-busy',String(busy));input.closest('.island-media-picker').querySelector('.island-media-status').textContent=busy?'正在保存原件…':'原件保存到当前知识库';}});
+  if(context==='execution'&&evidenceSession?.taskId===owner){const button=document.getElementById('island-real-submit');if(button)button.disabled=busy||evidenceSession.saved;}
+  if(context==='bounty'&&window.BOUNTY_STATE?.id===owner){const button=document.getElementById('bounty-action-redeem-btn');if(button)button.disabled=busy||window.BOUNTY_STATE.status!=='accepted';}
+}
+async function processNativeMediaFiles(input){
+  const files=Array.from(input.files||[]),context=input.dataset.mediaContext,owner=input.dataset.mediaOwner,key=context+':'+owner;
+  if(!files.length||mediaJobs.has(key))return false;
+  const session=context==='execution'?evidenceSession:null,bounty=context==='bounty'?getDomainState().bounties.find(b=>b.id===owner):null;
+  if(context==='execution'&&(!session||session.taskId!==owner||session.saved))return false;
+  if(context==='bounty'&&bounty?.status!=='accepted')return false;
+  if(context==='resource'&&window.currentTertiaryProjId!==owner)return false;
+  if(context==='achievement'&&window.__accidentalUploadToken!==owner)return false;
+  mediaJobs.add(key);refreshMediaBusy(context,owner);
+  try{
+    for(const original of files){
+      const file=mediaFileWithType(original),accept=input.accept.split(',');
+      if(!accept.some(a=>a.endsWith('/*')?file.type.startsWith(a.slice(0,-1)):file.type===a))throw new Error('请选择此入口支持的照片、视频或录音');
+      const media=await persistDomainMedia(file);
+      if(context==='execution'){
+        const active=evidenceSession?.taskId===owner&&!evidenceSession.saved?evidenceSession:session;
+        active.media.push(media);
+        if(active===evidenceSession){renderDomainEvidence();saveExecutionDraft();}
+        else getDomainState().drafts[owner]={...(getDomainState().drafts[owner]||{}),media:[...active.media]};
+      }else if(context==='bounty'){
+        bounty.evidence=[...(bounty.evidence||[]),media];bounty.evidencePath=media.path;bounty.evidenceName=media.name;bounty.evidenceUploaded=true;
+        invalidateBountyVerification(owner);
+        if(window.BOUNTY_STATE?.id===owner)renderBountyModalAndBillboard();
+      }else if(context==='journal'){
+        ensureBusinessDate();const note=window.NOTE_STATE,entry=note.dateKey===owner?null:note.historyEntries.find(e=>e.date===owner);
+        if(note.dateKey===owner)note.mediaList.unshift(media);else if(entry)entry.media=[...(entry.media||[]),media];
+        if(note.dateKey===owner)refreshNoteMediaGallery();
+      }else if(context==='achievement'){
+        if(window.__accidentalUploadToken!==owner)throw new Error('该高光记录已关闭，请重新选择附件');
+        window.__accidentalDomainMedia=media;const preview=document.getElementById('achieve-acc-image-preview');if(preview){preview.textContent='已保存原件：'+media.name;preview.style.display='block';}
+      }else if(context==='resource'){
+        if(window.currentTertiaryProjId!==owner)throw new Error('项目已切换，请在目标项目重新选择资料');
+        if(!planningWriteAllowed())throw new Error('请返回规划视图插入资料');
+        createTertiaryCustomPlanningCard({nodeType:'text',title:'资料 · '+media.name.slice(0,23),content:'![['+media.path+']]'});
+      }
+      notifyIslandStateChanged();
+    }
+    return true;
+  }catch(error){showIslandToast('附件保存失败：'+error.message);return false;}
+  finally{input.value='';mediaJobs.delete(key);refreshMediaBusy(context,owner);}
+}
+function openMediaSourceDialog(context){
+  document.getElementById('island-media-source-dialog')?.remove();
+  const dialog=document.createElement('div');dialog.id='island-media-source-dialog';dialog.className='domain-modal';dialog.innerHTML='<div class="note-card-box"><h3>添加照片或视频</h3>'+mediaPickerControls(context)+'<button type="button" onclick="document.getElementById(\'island-media-source-dialog\').remove()">完成 / 关闭</button></div>';
+  (document.querySelector('.youth-island-plugin-root')||document.body).append(dialog);
+}
+uploadBountyEvidence=function(){const input=document.querySelector('#bounty-media-controls [data-media-source="gallery"]');if(input&&!input.disabled)input.click();};
+createImageEvidencePrompt=function(){if(planningWriteAllowed())openMediaSourceDialog('resource');};
+const nativeMediaNoteRenderer=renderNoteSpecializedWorkspace;
+renderNoteSpecializedWorkspace=function(){const holder=document.createElement('div');holder.innerHTML=nativeMediaNoteRenderer();const input=holder.querySelector('#note-photo-file-input');if(input)input.parentElement.innerHTML=mediaPickerControls('journal');return holder.innerHTML;};
+renderNoteMediaGalleryHtml=function(){return window.NOTE_STATE.mediaList.map(m=>'<div class="note-history-card"><button class="ui-btn" onclick="openDomainMedia('+escapeIslandText(JSON.stringify(m.id))+')">'+escapeIslandText(m.name)+'</button><span>'+escapeIslandText(m.type==='image'?'照片原件':m.duration==null?'视频 / 录音原件':Math.round(m.duration)+'秒')+'</span><button class="ui-btn" onclick="removeNoteMedia('+escapeIslandText(JSON.stringify(m.id))+')">移除</button></div>').join('');};
+const nativeMediaAchievementOpen=openRegisterAccidentalAchievementModal;
+openRegisterAccidentalAchievementModal=function(){nativeMediaAchievementOpen();window.__accidentalUploadToken=domainId('highlight');window.__accidentalDomainMedia=null;const input=document.getElementById('accidental-image-file');if(input){const container=input.parentElement;container.innerHTML=mediaPickerControls('achievement');container.parentElement.querySelector('label').textContent='照片或视频物证';}else{const controls=document.querySelector('#register-accidental-achievement-modal .island-media-picker');if(controls)controls.outerHTML=mediaPickerControls('achievement');}};
+const mediaSubmitExecution=submitRealExecution;
+submitRealExecution=function(){if(evidenceSession&&mediaJobs.has('execution:'+evidenceSession.taskId)){showIslandToast('请等待原件保存完成');return false;}return mediaSubmitExecution();};
+const mediaRedeemBounty=completeBountyDemo;
+completeBountyDemo=function(){if(mediaJobs.has('bounty:'+window.BOUNTY_STATE?.id)){showIslandToast('请等待原件保存完成');return false;}return mediaRedeemBounty();};
+
+const bountyDialogRender=renderBountyModalAndBillboard;
+let bountyDialogLastId=null,bountyDialogFocus=null;
+const bountyGuardianDrafts=new Map();
+function invalidateBountyVerification(id){
+  const draft=bountyGuardianDrafts.get(id);if(draft)draft.confirmed=false;
+  if(window.BOUNTY_STATE?.id===id){const confirmation=document.getElementById('domain-parent-confirm');if(confirmation)confirmation.checked=false;}
+}
+renderBountyModalAndBillboard=function(){
+  const current=window.BOUNTY_STATE,id=current?.id||null,comment=document.getElementById('bounty-parent-comment-input'),confirmation=document.getElementById('domain-parent-confirm');
+  if(bountyDialogLastId&&bountyDialogLastId!==id)bountyGuardianDrafts.set(bountyDialogLastId,{comment:comment?.value||'',confirmed:confirmation?.checked||false});
+  bountyDialogRender();const b=window.BOUNTY_STATE,modal=document.getElementById('bounty-modal-backdrop');if(!modal)return;
+  modal.querySelector('.bounty-current').hidden=!b;modal.querySelector('.bounty-delivery').hidden=!b||b.status==='published';modal.querySelector('.bounty-verification').hidden=!b||b.status==='published';
+  if(b){
+    document.getElementById('bounty-modal-criteria').textContent=b.criteria;
+    document.getElementById('bounty-modal-contract-no').textContent='立约 '+b.createdDate+' · 到期 '+b.endDate;
+    document.getElementById('bounty-stage2-desc').textContent=b.status==='published'?'揭榜后开始挑战；完成后提交真实物证。':b.status==='accepted'?'按约定完成挑战并提交照片或视频，等待共同验收。':'原始物证和验收记录已归档。';
+    document.getElementById('bounty-media-controls').innerHTML=mediaPickerControls('bounty','image/*,video/*',b.status!=='accepted');
+    document.getElementById('bounty-media-list').innerHTML=(b.evidence||[]).map(m=>'<button type="button" class="bounty-media-item" onclick="openDomainMedia('+escapeIslandText(JSON.stringify(m.id))+')">'+(m.type==='video'?'🎥':'📷')+' '+escapeIslandText(m.name)+'</button>').join('')||'<p class="bounty-muted">还没有提交物证</p>';
+    if(bountyDialogLastId!==id){const draft=bountyGuardianDrafts.get(id);comment.value=b.parentComment||draft?.comment||'';confirmation.checked=!!draft?.confirmed;}
+    comment.disabled=b.status==='redeemed';confirmation.disabled=b.status==='redeemed';
+    if(b.status==='redeemed'){comment.value=b.parentComment;confirmation.checked=true;document.getElementById('bounty-action-redeem-btn').disabled=true;}
+  }
+  const names={published:'待揭榜',accepted:'进行中',redeemed:'已兑现'};
+  document.getElementById('domain-bounty-history').innerHTML='<h3>契约记录</h3>'+getDomainState().bounties.map(item=>'<button type="button" class="bounty-history-item" aria-pressed="'+(item.id===id)+'" onclick="selectDomainBounty('+escapeIslandText(JSON.stringify(item.id))+')"><span>'+escapeIslandText(item.title)+'</span><small>'+escapeIslandText(names[item.status]||item.status)+'</small></button>').join('');
+  bountyDialogLastId=id;
+};
+const bountyDialogOpen=openBountyModal,bountyDialogClose=closeBountyModal;
+openBountyModal=function(){bountyDialogFocus=document.activeElement;bountyDialogOpen();document.querySelector('#bounty-modal-backdrop .bounty-close')?.focus();};
+closeBountyModal=function(){bountyDialogClose();if(bountyDialogFocus?.isConnected)bountyDialogFocus.focus({preventScroll:true});bountyDialogFocus=null;};
+function handleBountyDialogKeydown(event){
+  event.stopPropagation();if(event.key==='Escape'){event.preventDefault();closeBountyModal();return;}
+  if(event.key==='Tab'){const list=Array.from(document.querySelectorAll('#bounty-modal-backdrop button,#bounty-modal-backdrop input,#bounty-modal-backdrop textarea,#bounty-modal-backdrop select')).filter(e=>!e.disabled&&e.getClientRects().length),first=list[0],last=list.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}
 }
 
 // One gesture/viewport implementation for the planning sandbox and project canvas.

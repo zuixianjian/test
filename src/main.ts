@@ -193,7 +193,7 @@ export default class YouthGrowthIslandPlugin extends Plugin {
   }
 
   public async onunload(): Promise<void> {
-    try { await this.vaultStorage.syncRuntimeToVault(); }
+    try { await (window as any).flushMediaBeforeClose?.(); await this.vaultStorage.syncRuntimeToVault(); }
     catch (error) { console.error("[YouthIsland] 关闭前保存未完成", error); }
     finally {
       this.app.workspace.detachLeavesOfType(VIEW_TYPE_YOUTH_ISLAND);

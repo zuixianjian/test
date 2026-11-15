@@ -1,0 +1,45 @@
+.island-media-picker { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:8px 0; }
+.island-media-source { position:relative; display:inline-flex; align-items:center; justify-content:center; min-height:38px; padding:8px 12px; border:1px solid #c8dfe7; border-radius:8px; background:#f1faff; color:#37758c; font-size:11.5px; font-weight:750; cursor:pointer; overflow:hidden; }
+.island-native-media-input { position:absolute!important; inset:0; width:100%!important; height:100%!important; margin:0!important; padding:0!important; opacity:0; cursor:pointer; }
+.island-media-source:focus-within { outline:2px solid #89c2d7; outline-offset:2px; }
+.island-media-source[aria-disabled="true"] { opacity:.5; cursor:default; }
+.island-media-status { flex-basis:100%; color:#9b8e7c; font-size:10px; }
+#bounty-modal-backdrop.bounty-dialog { padding:16px; background:#2c211575; z-index:24500; }
+.bounty-dialog-window { display:flex; flex-direction:column; width:800px; max-width:100%; max-height:90vh; max-height:90dvh; border:1.5px solid #dfcaa5; border-radius:20px; background:#fffdf7; box-shadow:0 22px 70px #24180c55; color:#59452d; overflow:hidden; }
+.bounty-dialog-header { display:flex; flex:none; align-items:center; justify-content:space-between; gap:15px; padding:18px 23px; border-bottom:1px solid #e8dcc5; background:linear-gradient(120deg,#fff2d1,#faf9eb); }
+.bounty-dialog-header h2 { margin:0; font-size:19px; color:#7a5125; }
+.bounty-dialog-header p { margin:5px 0 0; font-size:11px; color:#a18760; }
+.bounty-dialog button { width:auto; height:auto; min-height:34px; padding:6px 12px; margin:0; border:1px solid #dfd1b7; border-radius:8px; background:#fffdf8; color:#886c44; box-shadow:none; font-size:11.5px; font-weight:750; cursor:pointer; }
+.bounty-dialog .bounty-close { min-width:32px; width:32px; height:32px; padding:0; }
+.bounty-dialog-toolbar { display:flex; flex:none; align-items:center; justify-content:space-between; padding:11px 23px; gap:10px; border-bottom:1px solid #eee5d4; }
+.bounty-dialog-toolbar #bounty-modal-status-badge { display:inline-flex; padding:4px 9px; border-radius:6px; color:#fff; font-size:10.5px; }
+.bounty-dialog-body { padding:18px 23px; overflow:auto; min-height:0; overscroll-behavior:contain; touch-action:pan-y; background:#faf6ed; }
+.bounty-panel { margin-bottom:14px; padding:17px; border:1px solid #e5d7bf; border-radius:13px; background:#fffefb; }
+.bounty-dialog [hidden] { display:none!important; }
+.bounty-panel h3, .bounty-history h3 { margin:0 0 12px; font-size:14px; color:#765637; }
+.bounty-panel h4 { font-size:11.5px; margin:15px 0 7px; color:#967149; }
+.bounty-panel label { display:flex; flex-direction:column; gap:6px; margin:11px 0; color:#8b7351; font-size:11.5px; font-weight:650; }
+.bounty-panel input:not([type="checkbox"]):not([type="file"]), .bounty-panel textarea, .bounty-panel select { box-sizing:border-box; width:100%; min-width:0; min-height:36px; padding:8px 10px; border:1px solid #ded2bd; border-radius:7px; background:#fffdf8; color:#594630; font:inherit; font-size:12px; box-shadow:none; }
+.bounty-panel textarea { min-height:78px; resize:vertical; }
+.bounty-panel #bounty-modal-title { font-size:17px; line-height:1.5; overflow-wrap:anywhere; margin:8px 0; }
+.bounty-muted { margin:6px 0; color:#a3937a; font-size:10.5px; line-height:1.6; }
+.bounty-reward { display:flex; flex-direction:column; gap:6px; margin:15px 0; padding:11px 13px; border:1px solid #edd29a; border-radius:9px; background:#fff7e2; }
+.bounty-reward span { font-size:10.5px; color:#b3945b; }
+.bounty-reward strong { font-size:14px; color:#9b6b2f; overflow-wrap:anywhere; }
+#bounty-modal-criteria { margin:0; padding:10px 12px; white-space:pre-wrap; overflow-wrap:anywhere; background:#faf9f5; border:1px solid #e9e2d5; border-radius:8px; font-size:12px; line-height:1.7; }
+.bounty-steps { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; list-style:none; margin:17px 0 8px; padding:0; }
+.bounty-steps li { border:1px solid #e8dfcd; background:#fbf8f0; padding:9px 6px; border-radius:7px; text-align:center; font-size:10.5px; color:#9b8968; }
+.bounty-panel .bounty-check { flex-direction:row; align-items:center; gap:7px; }
+.bounty-check input { width:16px; height:16px; margin:0; }
+.bounty-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.bounty-media-list { display:flex; flex-wrap:wrap; gap:6px; }
+.bounty-dialog .bounty-media-item { max-width:100%; overflow-wrap:anywhere; font-size:11px; background:#f3faf5; border-color:#ccdfcf; color:#598365; }
+.bounty-dialog .bounty-history-item { display:flex; width:100%; justify-content:space-between; gap:12px; margin:7px 0; text-align:left; }
+.bounty-history-item span { overflow-wrap:anywhere; }
+.bounty-history-item small { flex:none; color:#9c8d75; font-size:10px; }
+.bounty-dialog-footer { display:flex; flex:none; align-items:center; justify-content:space-between; gap:12px; padding:13px 23px; border-top:1px solid #e6dbc6; background:#fffdf8; }
+.bounty-dialog-footer > span { font-size:10.5px; color:#ad9978; }
+.bounty-dialog-footer > div { display:flex; gap:8px; }
+.bounty-dialog button.bounty-primary { background:linear-gradient(#ffdc8b,#f0bf5f); border-color:#dfad51; color:#88601c; }
+.bounty-dialog button:disabled { opacity:.55; cursor:default; }
+@media(max-width:600px){.bounty-dialog-header,.bounty-dialog-toolbar,.bounty-dialog-footer{padding:13px 15px}.bounty-dialog-body{padding:13px 15px}.bounty-form-grid{grid-template-columns:1fr}.bounty-dialog-footer{flex-wrap:wrap}.bounty-dialog-footer>div{margin-left:auto}.island-media-source{flex:1;min-width:105px}.bounty-steps{gap:4px}.bounty-steps li{font-size:9.5px}}

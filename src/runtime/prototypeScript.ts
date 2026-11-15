@@ -3711,9 +3711,7 @@ function renderBountyModalAndBillboard() {
   if (mTitle) mTitle.textContent = '《' + b.title + '》';
   if (mMeta) mMeta.textContent = '🎯 关联规划：' + b.pavilionLabel + ' | 👨‍👩‍👦 家长发起悬赏';
   if (mReward) mReward.textContent = b.reward;
-  if (mCriteria) {
-    mCriteria.innerHTML = '<strong>📋 契约验收标准：</strong><br>' + String(b.criteria).replace(/\n/g, '<br>');
-  }
+  if (mCriteria) mCriteria.textContent = b.criteria;
   if (vaultPath) vaultPath.textContent = b.vaultFile;
 
   if (b.status === 'published') {
@@ -12784,7 +12782,7 @@ handleDeleteActiveEdge=function(){
 };
 function editDomainList(id,key){const node=getDomainNode(id);const list=node.cardPayload[key]||[];const sample=key==='customFieldsSchema'?'[{"key":"count","label":"完成次数","type":"number","required":true}]':key==='metrics'?'[{"name":"正确率","targetValue":"≥98%"}]':key==='checklist'?'[{"title":"完成规范动作","required":true}]':'[{"actionItem":"下一次的具体行动","isChecked":true}]';
   document.getElementById('domain-list-editor')?.remove();const modal=document.createElement('div');modal.className='domain-modal';modal.id='domain-list-editor';modal.innerHTML='<div class="note-card-box"><h3>编辑'+({metrics:'通关指标',checklist:'防守清单',improvementList:'提升行动',customFieldsSchema:'填报项目'}[key])+'</h3><div id="domain-list-rows"></div><button class="ui-btn" id="domain-list-add">➕ 增加一项</button><div id="domain-list-error" role="alert"></div><button class="ui-btn primary" id="domain-list-save">保存</button><button class="ui-btn" onclick="document.getElementById(\'domain-list-editor\').remove()">取消</button></div>';(document.querySelector('.youth-island-plugin-root')||document.body).appendChild(modal);
-  const rows=modal.querySelector('#domain-list-rows');const add=item=>{const row=document.createElement('div');row.className='domain-list-row';row.dataset.id=item.id||domainId('item');row.dataset.key=item.key||domainId('field');row.innerHTML='<input class="domain-item-label" placeholder="'+(key==='metrics'?'指标名称':key==='customFieldsSchema'?'填报项目名称':'具体行动')+'">'+(key==='metrics'?'<input class="domain-item-target" placeholder="例如 ≥98% 或文字验收标准">':'')+(key==='customFieldsSchema'?'<select class="domain-item-type"><option value="text">文字</option><option value="number">数字</option><option value="boolean">是/否</option><option value="date">日期</option></select><label><input class="domain-item-required" type="checkbox" checked>必填</label>':'')+'<button class="ui-btn">移除</button>';row.querySelector('.domain-item-label').value=item.name||item.title||item.actionItem||item.label||'';if(key==='metrics')row.querySelector('.domain-item-target').value=item.targetValue||'';if(key==='customFieldsSchema'){row.querySelector('select').value=item.type||'text';row.querySelector('input[type=checkbox]').checked=item.required!==false;}row.querySelector('button').onclick=()=>row.remove();rows.appendChild(row);};(list.length?list:[{}]).forEach(add);modal.querySelector('#domain-list-add').onclick=()=>add({});modal.querySelector('#domain-list-save').onclick=()=>{const parsed=Array.from(rows.children).map(row=>{const label=row.querySelector('.domain-item-label').value.trim(),id=row.dataset.id;if(!label)return null;if(key==='metrics')return {id,name:label,targetValue:row.querySelector('.domain-item-target').value.trim()};if(key==='customFieldsSchema')return {key:row.dataset.key,label,type:row.querySelector('select').value,required:row.querySelector('input[type=checkbox]').checked};const existing=list.find(x=>x.id===id);return key==='checklist'?{id,title:label,required:true}:{...existing,id,actionItem:label,isChecked:true};}).filter(Boolean);if(!parsed.length){modal.querySelector('#domain-list-error').textContent='请至少填写一项';return;}recordDomainHistory();node.cardPayload[key]=parsed;renderDomainCanvas(node.projectId);saveCurrentProjectCanvasSnapshot();refreshDomainProjections();modal.remove();notifyIslandStateChanged();};
+  const rows=modal.querySelector('#domain-list-rows');const add=item=>{const row=document.createElement('div');row.className='domain-list-row';row.dataset.id=item.id||domainId('item');row.dataset.key=item.key||domainId('field');row.innerHTML='<input class="domain-item-label" placeholder="'+(key==='metrics'?'指标名称':key==='customFieldsSchema'?'填报项目名称':'具体行动')+'">'+(key==='metrics'?'<input class="domain-item-target" placeholder="例如 ≥98% 或文字验收标准">':'')+(key==='customFieldsSchema'?'<select class="domain-item-type"><option value="text">文字</option><option value="number">数字</option><option value="boolean">是/否</option><option value="date">日期</option></select><label><input class="domain-item-required" type="checkbox" checked>必填</label>':'')+'<button class="ui-btn">移除</button>';row.querySelector('.domain-item-label').value=item.name||item.title||item.actionItem||item.label||'';if(key==='metrics')row.querySelector('.domain-item-target').value=item.targetValue||'';if(key==='customFieldsSchema'){row.querySelector('select').value=item.type||'text';row.querySelector('input[type=checkbox]').checked=item.required!==false;}row.querySelector('button').onclick=()=>row.remove();rows.appendChild(row);};(list.length?list:[{}]).forEach(add);modal.querySelector('#domain-list-add').onclick=()=>add({});modal.querySelector('#domain-list-save').onclick=()=>{if(!planningWriteAllowed())return;const parsed=Array.from(rows.children).map(row=>{const label=row.querySelector('.domain-item-label').value.trim(),id=row.dataset.id;if(!label)return null;if(key==='metrics')return {id,name:label,targetValue:row.querySelector('.domain-item-target').value.trim()};if(key==='customFieldsSchema')return {key:row.dataset.key,label,type:row.querySelector('select').value,required:row.querySelector('input[type=checkbox]').checked};const existing=list.find(x=>x.id===id);return key==='checklist'?{id,title:label,required:true}:{...existing,id,actionItem:label,isChecked:true};}).filter(Boolean);if(!parsed.length){modal.querySelector('#domain-list-error').textContent='请至少填写一项';return;}recordDomainHistory();node.cardPayload[key]=parsed;renderDomainCanvas(node.projectId);saveCurrentProjectCanvasSnapshot();refreshDomainProjections();modal.remove();notifyIslandStateChanged();};
 }
 function openDomainEditor(title,text,onSave){document.getElementById('domain-editor')?.remove();const modal=document.createElement('div');modal.id='domain-editor';modal.className='domain-modal';modal.innerHTML='<div class="note-card-box"><h3>'+escapeIslandText(title)+'</h3><textarea id="domain-editor-text" style="width:100%;min-height:240px;"></textarea><div id="domain-editor-error" role="alert"></div><button class="ui-btn primary" id="domain-editor-save">保存</button><button class="ui-btn" onclick="document.getElementById(\'domain-editor\').remove()">取消</button></div>';document.querySelector('.youth-island-plugin-root')?.appendChild(modal)||document.body.appendChild(modal);modal.querySelector('textarea').value=text;modal.querySelector('#domain-editor-save').onclick=()=>{try{onSave(modal.querySelector('textarea').value);modal.remove();notifyIslandStateChanged();}catch(error){modal.querySelector('#domain-editor-error').textContent=error.message;}};}
 createTertiaryCustomPlanningCard=function(config){const state=getDomainState(),project=state.projects.find(p=>p.id===window.currentTertiaryProjId);if(!project){showIslandToast('请先选择项目再新增节点');return null;}recordDomainHistory();const nodes=state.nodesByProject[project.id]||(state.nodesByProject[project.id]=[]);const node=domainNode({...config,plannedDate:config.plannedDate||domainDefaultNodeDate(project)},project);node.canvasPosition=config.canvasPosition||{x:80+(nodes.length%3)*400,y:90+Math.floor(nodes.length/3)*440};nodes.push(node);renderDomainCanvas(project.id);saveCurrentProjectCanvasSnapshot();refreshDomainProjections();domainEvent('node.created',node.id,'新增规划节点《'+node.title+'》',{projectId:project.id});return document.getElementById(node.id);};
@@ -12836,13 +12834,15 @@ function openDomainTask(key) {
   document.getElementById('exec-project-map-title').textContent=state.projects.find(p=>p.id===task.projectId)?.title||'亲子契约';
   document.getElementById('exec-project-map-summary').textContent='当前项目的真实节点与前置依赖';
   document.getElementById('btn-exec-popup-toggle-project').style.display=task.projectId?'inline-flex':'none';
+  evidenceSession.planningNode=freezeExecutionPlanning(node,saved);
   renderDomainExecution(node,saved,draft);return true;
 }
 openExecCardPopupView=function(type,card){const id=card?.dataset.taskInstanceId||card?.dataset.taskId||type;return openDomainTask(id);};
 openExecutionWorkspace=openDomainTask;
-function openGoalAcceptance(id){const node=getDomainNode(id);if(!node||node.nodeType!=='goal')return;saveExecutionDraft();const task={id:taskInstanceId(node.id,domainDate()),nodeId:node.id,projectId:node.projectId,pavilionId:node.pavilionId,nodeType:'goal',date:domainDate(),title:node.title,status:'ready',acceptance:true};const draft=getDomainState().drafts[task.id]||{};switchMainSection('island');switchHomeGlobalView('exec');originalOpenExec('goal');evidenceSession={taskId:task.id,taskInstanceId:task.id,nodeId:node.id,projectId:node.projectId,pavilionId:node.pavilionId,title:node.title,date:task.date,seconds:draft.seconds||0,startedAt:0,media:[...(draft.media||[])],saved:false,task};document.getElementById('exec-popup-title').textContent=node.title+' · 成果验收';document.getElementById('exec-popup-breadcrumb').textContent=(getDomainState().projects.find(p=>p.id===node.projectId)?.title||'')+' / '+node.title;renderDomainExecution(node,null,draft);}
+function openGoalAcceptance(id){const node=getDomainNode(id);if(!node||node.nodeType!=='goal')return;saveExecutionDraft();const task={id:taskInstanceId(node.id,domainDate()),nodeId:node.id,projectId:node.projectId,pavilionId:node.pavilionId,nodeType:'goal',date:domainDate(),title:node.title,status:'ready',acceptance:true};const draft=getDomainState().drafts[task.id]||{};switchMainSection('island');switchHomeGlobalView('exec');originalOpenExec('goal');evidenceSession={taskId:task.id,taskInstanceId:task.id,nodeId:node.id,projectId:node.projectId,pavilionId:node.pavilionId,title:node.title,date:task.date,planningNode:freezeExecutionPlanning(node,null),seconds:draft.seconds||0,startedAt:0,media:[...(draft.media||[])],saved:false,task};document.getElementById('exec-popup-title').textContent=node.title+' · 成果验收';document.getElementById('exec-popup-breadcrumb').textContent=(getDomainState().projects.find(p=>p.id===node.projectId)?.title||'')+' / '+node.title;renderDomainExecution(node,null,draft);}
 function domainEvidenceLabel(type){return {none:'无需附件',text:'文字说明（至少15字）',photo:'照片原件',video:'视频原件',audio:'音频原件'}[type]||'照片或视频原件';}
 function renderDomainExecution(node,saved,draft={}) {
+  node=evidenceSession?.planningNode||node;
   const p=node?.cardPayload||{},container=document.getElementById('exec-popup-task-view');delete container.dataset.activeCheckinType;
   let fields='';
   if(node?.nodeType==='goal'&&!p.metrics.length)fields+='<p>尚无验收指标，请先回到目标规划维护标准。</p><button class="ui-btn" onclick="jumpToDomainSource(\''+node.projectId+'\',\''+node.id+'\');editDomainList(\''+node.id+'\',\'metrics\')">完善目标指标</button>';
@@ -12851,7 +12851,7 @@ function renderDomainExecution(node,saved,draft={}) {
   if(node?.nodeType==='review')fields+='<label>下阶段提升行动（每行一项）<textarea id="domain-review-improvements">'+escapeIslandText((saved?.improvementList||draft.improvementList||p.improvementList).map(x=>x.actionItem).join('\n'))+'</textarea></label>';
   if(node?.nodeType==='custom')fields+='<h4>实测字段</h4>'+p.customFieldsSchema.map(f=>'<label>'+escapeIslandText(f.label)+(f.required?' *':'')+(f.type==='boolean'?'<input class="domain-custom-value" data-key="'+escapeIslandText(f.key)+'" type="checkbox">':'<input class="domain-custom-value" data-key="'+escapeIslandText(f.key)+'" type="'+(f.type==='number'?'number':f.type==='date'?'date':'text')+'" value="'+escapeIslandText(saved?.customFieldValues?.[f.key]??draft.customFieldValues?.[f.key]??'')+'">')+'</label>').join('');
   const bounty=evidenceSession.task.bountyId?getDomainState().bounties.find(b=>b.id===evidenceSession.task.bountyId):null;
-  container.innerHTML='<div class="note-card-box island-real-execution-form"><h3>'+escapeIslandText(evidenceSession.title)+'</h3><section id="island-execution-standard"><h4>规划标准 · 只读</h4><p>'+escapeIslandText(p.description||bounty?.criteria||'')+'</p><p>预计专注：'+(p.plannedMinutes||0)+'分钟；交付要求：'+escapeIslandText(domainEvidenceLabel(p.evidenceType))+'</p><p>来源项目：'+escapeIslandText(getDomainState().projects.find(x=>x.id===evidenceSession.projectId)?.title||'亲子契约')+'</p></section><section class="island-real-execution-entry" oninput="saveExecutionDraft()"><div class="domain-planning-row"><strong id="island-real-elapsed">00:00</strong><button class="ui-btn" id="island-real-timer" onclick="toggleEvidenceTimer()">▶ 开始/继续专注</button></div>'+fields+'<label>'+(node?.nodeType==='review'?'复盘说明（至少15字）':'执行心得与交付说明')+'<textarea id="island-real-reflection">'+escapeIslandText(saved?.reflection||draft.reflection||'')+'</textarea></label><label>真实物证<input type="file" accept="image/*,video/*,audio/*" onchange="uploadExecutionEvidence(this)"></label><div id="island-real-media-list"></div><div id="domain-exec-errors" role="alert"></div><button class="ui-btn primary" id="island-real-submit" onclick="submitRealExecution()">'+(saved?'✓ 已记录':'提交并校验')+'</button>'+(node?.nodeType==='review'?'<button class="ui-btn" onclick="deriveNodesFromReflectionCard(\''+node.id+'\',event)">🌱 将已保存提升行动派生实训</button>':'')+(node?.nodeType==='goal'?'<button class="ui-btn" onclick="depositGoalToAchievement(\''+node.id+'\',event)">🏆 归档已验收成果</button>':'')+'</section></div>';
+  container.innerHTML='<div class="note-card-box island-real-execution-form"><h3>'+escapeIslandText(evidenceSession.title)+'</h3>'+executionPlanningHtml(node,bounty)+'<section class="island-real-execution-entry" oninput="saveExecutionDraft()"><div class="domain-planning-row"><strong id="island-real-elapsed">00:00</strong><button class="ui-btn" id="island-real-timer" onclick="toggleEvidenceTimer()">▶ 开始/继续专注</button></div>'+fields+'<label>'+(node?.nodeType==='review'?'复盘说明（至少15字）':'执行心得与交付说明')+'<textarea id="island-real-reflection">'+escapeIslandText(saved?.reflection||draft.reflection||'')+'</textarea></label>'+mediaPickerControls('execution','image/*,video/*',!!saved)+'<div id="island-real-media-list"></div><div id="domain-exec-errors" role="alert"></div><button class="ui-btn primary" id="island-real-submit" onclick="submitRealExecution()">'+(saved?'✓ 已记录':'提交并校验')+'</button>'+(node?.nodeType==='goal'?'<button class="ui-btn" onclick="depositGoalToAchievement(\''+node.id+'\',event)">🏆 归档已验收成果</button>':'')+'</section></div>';
   container.querySelectorAll('.domain-metric-confirm').forEach(el=>el.checked=!!(saved?.metricConfirmations||draft.metricConfirmations||{})[el.dataset.key]);
   container.querySelectorAll('.domain-custom-value[type=checkbox]').forEach(el=>el.checked=!!(saved?.customFieldValues||draft.customFieldValues||{})[el.dataset.key]);
   if(saved)container.querySelectorAll('input,textarea,#island-real-submit,#island-real-timer').forEach(el=>el.disabled=true);
@@ -12862,7 +12862,7 @@ function collectDomainExecution(){const data={reflection:document.getElementById
   document.querySelectorAll('.domain-metric-confirm').forEach(el=>data.metricConfirmations[el.dataset.key]=el.checked);
   document.querySelectorAll('.domain-check-result').forEach(el=>data.checklistResults[el.dataset.key]=el.checked);
   document.querySelectorAll('.domain-custom-value').forEach(el=>data.customFieldValues[el.dataset.key]=el.type==='checkbox'?el.checked:el.value);
-  const node=getDomainNode(evidenceSession?.nodeId);const improvements=document.getElementById('domain-review-improvements')?.value.split('\n').map(x=>x.trim()).filter(Boolean)||[];
+  const node=evidenceSession?.planningNode||getDomainNode(evidenceSession?.nodeId);const improvements=document.getElementById('domain-review-improvements')?.value.split('\n').map(x=>x.trim()).filter(Boolean)||[];
   data.improvementList=improvements.map(text=>({...node?.cardPayload.improvementList.find(x=>x.actionItem===text),actionItem:text,id:node?.cardPayload.improvementList.find(x=>x.actionItem===text)?.id||domainId('improvement'),isChecked:true}));return data;
 }
 saveExecutionDraft=function(){if(!evidenceSession||evidenceSession.saved)return;getDomainState().drafts[evidenceSession.taskId]={...collectDomainExecution(),seconds:getEvidenceElapsed(),savedAt:new Date().toISOString()};notifyIslandStateChanged();};
@@ -12877,10 +12877,10 @@ triggerGlobalCheckinClosedLoop=function(input){
   const existing=state.records.find(r=>r.taskInstanceId===task.id&&r.validated===true);if(existing)return existing;
   if(task.bountyId){const b=state.bounties.find(x=>x.id===task.bountyId);if(!input.media?.some(m=>m.path&&['image','video'].includes(m.type))){showIslandToast('请提交挑战照片或视频');return false;}b.evidence=input.media;b.evidencePath=input.media[0].path;b.evidenceName=input.media[0].name;b.evidenceUploaded=true;b.childReport=input.reflection||'';domainEvent('bounty.evidence',b.id,'悬赏物证已交付，等待家长核验');renderBountyModalAndBillboard();showIslandToast('物证已保存，请家长填写寄语并核准兑现');return {id:domainId('submission'),...input,validated:false};}
   const source=getDomainNode(task.nodeId);if(!source)return false;
-  const validation=validateDomainExecution(source,input);if(!validation.valid){const area=document.getElementById('domain-exec-errors');if(area)area.textContent=validation.errors.join('；');showIslandToast(validation.errors[0]);return false;}
-  const record={...input,id:domainId('record'),taskInstanceId:task.id,taskId:task.id,nodeId:source.id,projectId:source.projectId,pavilionId:source.pavilionId,title:source.title,sourceSnapshot:JSON.parse(JSON.stringify({title:source.title,nodeType:source.nodeType,projectId:source.projectId,cardPayload:source.cardPayload})),date:domainDate(),scheduledDate:task.date,completedAt:new Date().toISOString(),validated:true,metrics:validation.metrics,media:(input.media||[]).map(m=>({...m})),focusSeconds:Math.max(0,Math.floor(Number(input.focusSeconds)||0))};
+  const standard=evidenceSession?.taskId===task.id?(evidenceSession.planningNode||source):source;
+  const validation=validateDomainExecution(standard,input);if(!validation.valid){const area=document.getElementById('domain-exec-errors');if(area)area.textContent=validation.errors.join('；');showIslandToast(validation.errors[0]);return false;}
+  const record={...input,id:domainId('record'),taskInstanceId:task.id,taskId:task.id,nodeId:source.id,projectId:source.projectId,pavilionId:source.pavilionId,title:source.title,sourceSnapshot:JSON.parse(JSON.stringify({title:standard.title,nodeType:standard.nodeType,projectId:standard.projectId,cardPayload:standard.cardPayload})),date:domainDate(),scheduledDate:task.date,completedAt:new Date().toISOString(),validated:true,metrics:validation.metrics,media:(input.media||[]).map(m=>({...m})),focusSeconds:Math.max(0,Math.floor(Number(input.focusSeconds)||0))};
   state.records.push(record);source.executionRecords.push(record.id);source.updatedAt=record.completedAt;source.status='completed';
-  if(source.nodeType==='review')source.cardPayload.improvementList=record.improvementList;
   delete state.drafts[task.id];const project=state.projects.find(p=>p.id===source.projectId);project.completedDays=[...new Set(state.records.filter(r=>r.projectId===project.id).map(r=>r.date))];
   domainEvent('checkin.completed',record.id,'完成《'+source.title+'》：实际专注 '+Math.floor(record.focusSeconds/60)+' 分钟，物证 '+record.media.length+' 项',{projectId:project.id,nodeId:source.id,recordId:record.id});
   const note=window.NOTE_STATE;for(const media of record.media)if(!note.mediaList.some(m=>m.id===media.id))note.mediaList.push({...media,sourceRecordId:record.id});
@@ -13109,7 +13109,7 @@ function renderPlanningNodeCard(node){
     body+=planningCardSection('🎯 量化通关指标',metrics,planningCardListButton(node,'metrics','编辑指标'),'node-card-metrics');
     body+=planningCardSection('📋 验收标准',planningCardArea(node,'acceptanceCriteria',p.acceptanceCriteria,'写明成果与验收方式…'),'','node-card-acceptance');
     body+='<label class="node-deadline-row"><span>📅 期望完成</span>'+planningCardInput(node,'targetDeadline',p.targetDeadline,'datetime-local')+'</label>';
-    footer='<span>验收通过后沉淀成果</span><button type="button" class="node-primary-action" onclick="'+planningCardAction('depositGoalToAchievement('+JSON.stringify(node.id)+',event)')+'">🏆 记录已验收成果</button>';
+    footer='<span>规划目标与验收标准</span><span class="node-footer-chip">在执行页验收</span>';
   }else if(type==='drill'){
     body+='<section class="node-focus-panel"><div><span class="node-focus-caption">⏱ 计划专注</span><div class="node-focus-value">'+planningCardInput(node,'plannedMinutes',p.plannedMinutes,'number','min="0" max="120" step="1" aria-label="计划专注分钟"')+'<span>分钟</span></div></div><span class="node-focus-mark" aria-hidden="true">◷</span></section>';
     body+='<div class="node-proof-note"><span>📦 交付要求</span><strong>'+escapeIslandText({none:'完成规定练习',text:'执行时提交文字心得',photo:'执行时提交照片物证',video:'执行时提交视频物证',audio:'执行时提交音频物证'}[p.evidenceType]||'按要求提交物证')+'</strong></div>';
@@ -13121,14 +13121,14 @@ function renderPlanningNodeCard(node){
   }else if(type==='review'){
     const list=p.improvementList.map((item,i)=>'<li><span class="node-list-marker">'+(i+1)+'</span><span>'+escapeIslandText(item.actionItem)+'</span><small class="'+(item.derivedNodeId?'is-derived':'')+'">'+(item.derivedNodeId?'已派生':item.isChecked===false?'未选择':'待派生')+'</small></li>').join('');
     body+=planningCardSection('🚀 提升行动','<ol class="node-improvements">'+list+'</ol>'+(!list?'<p class="node-card-empty">把复盘结论变成下一次的具体行动。</p>':''),planningCardListButton(node,'improvementList','编辑行动'));
-    footer='<span>复盘沉淀 · 靶向提升</span><button type="button" class="node-primary-action" onclick="'+planningCardAction('deriveNodesFromReflectionCard('+JSON.stringify(node.id)+',event)')+'">🌱 派生实训节点</button>';
+    footer='<span>编排后续成长计划</span><button type="button" class="node-primary-action" onclick="'+planningCardAction('deriveNodesFromReflectionCard('+JSON.stringify(node.id)+',event)')+'">🌱 派生后续规划</button>';
   }else if(type==='custom'){
     const names={text:'文字',number:'数字',boolean:'是 / 否',date:'日期'},list=p.customFieldsSchema.map(field=>'<div class="node-custom-field"><span>'+escapeIslandText(field.label)+'</span><span class="node-field-kind">'+escapeIslandText(names[field.type]||field.type)+(field.required?' · 必填':' · 选填')+'</span></div>').join('');
     body+=planningCardSection('📋 自定义字段',list||'<p class="node-card-empty">添加需要填报的项目与字段类型。</p>',planningCardListButton(node,'customFieldsSchema','维护字段'));
     footer='<span>执行时填写实际结果</span><span class="node-footer-chip">'+p.customFieldsSchema.length+' 个字段</span>';
   }else{
     body+='<div class="node-text-paper">'+planningCardArea(node,'textContent',p.textContent,'写下想法、资料或 Markdown 正文…')+'</div>';
-    footer='<span>纯记录 · 不计入履约</span><button type="button" class="node-secondary-action" onclick="'+planningCardAction('acknowledgeDomainText('+JSON.stringify(node.id)+')')+'">👁 阅读留痕</button>';
+    footer='<span>资料与想法 · 不计入履约</span><span class="node-footer-chip">规划便签</span>';
   }
   body+=planningCardSettings(node);
   return '<article class="a-my-island-work-node-card tertiary-card tertiary-'+legacy+'-card domain-node-card" id="'+escapeIslandText(node.id)+'" data-domain-node="true" data-node-type="'+type+'" data-label="'+escapeIslandText(node.title)+'" data-group-id="'+escapeIslandText(node.groupId||'')+'" data-group-root="'+escapeIslandText(node.groupRoot||'')+'" style="position:absolute;left:'+Number(node.canvasPosition.x)+'px;top:'+Number(node.canvasPosition.y)+'px;width:340px;"><header class="work-node-card-header" ondblclick="'+planningCardAction('toggleTertiaryCardMinimize('+JSON.stringify(node.id)+',event)')+'" title="拖动标题栏移动；双击折叠或展开"><div class="node-card-kicker"><span class="work-node-badge">'+meta[0]+' '+meta[1]+'</span><span class="node-card-status" id="status-text-'+escapeIslandText(node.id)+'">'+status+'</span><button type="button" class="node-card-collapse-toggle" aria-label="折叠或展开节点" onclick="'+planningCardAction('toggleTertiaryCardMinimize('+JSON.stringify(node.id)+',event)')+'">⌃</button></div><div class="node-card-title-row"><span class="work-node-title">'+escapeIslandText(node.title)+'</span><button type="button" class="node-title-edit" aria-label="编辑节点名称" onclick="'+planningCardAction('editPlanningCardTitle('+JSON.stringify(node.id)+',event)')+'">✎</button></div><p class="node-card-subtitle">'+meta[2]+'</p></header><div class="work-node-body domain-planning-body">'+body+'</div><footer class="node-card-footer">'+footer+'</footer><button type="button" class="work-card-connect-handle" data-card-id="'+escapeIslandText(node.id)+'" aria-label="从此节点连接路线" title="拖向目标节点，或点击选择连线起点" onclick="startOrFinishConnecting(this.dataset.cardId,event)">🔗</button></article>';
@@ -13349,6 +13349,177 @@ function handleNodeCreatorKeydown(event){
     if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}
     else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}
   }
+}
+
+// Execution facts never write back the user-entered planning standard.
+function freezeExecutionPlanning(node,saved){
+  if(!node)return null;
+  const snapshot=saved?.sourceSnapshot;
+  return JSON.parse(JSON.stringify(snapshot?{...node,...snapshot,cardPayload:snapshot.cardPayload}:node));
+}
+function planningWriteAllowed(){
+  if(!evidenceSession)return true;
+  showIslandToast('请先返回规划视图，再修改项目规划。');return false;
+}
+function executionPlanningHtml(node,bounty){
+  const p=node?.cardPayload||{},items=[];
+  if(p.metrics?.length)items.push('<p>目标指标</p><ul>'+p.metrics.map(m=>'<li>'+escapeIslandText(m.name)+'：'+escapeIslandText(m.targetValue)+'</li>').join('')+'</ul>');
+  if(p.acceptanceCriteria)items.push('<p>验收标准：'+escapeIslandText(p.acceptanceCriteria)+'</p>');
+  if(p.checklist?.length)items.push('<p>规划清单</p><ul>'+p.checklist.map(c=>'<li>'+escapeIslandText(c.title)+(c.required!==false?'（必需）':'')+'</li>').join('')+'</ul>');
+  if(p.improvementList?.length)items.push('<p>规划提升行动</p><ul>'+p.improvementList.map(c=>'<li>'+escapeIslandText(c.actionItem)+'</li>').join('')+'</ul>');
+  if(p.customFieldsSchema?.length)items.push('<p>规划字段：'+p.customFieldsSchema.map(f=>escapeIslandText(f.label)+(f.required?'（必填）':'')).join('、')+'</p>');
+  return '<section id="island-execution-standard"><h4>规划标准 · 只读</h4><p>'+escapeIslandText(p.description||bounty?.criteria||'')+'</p>'+items.join('')+'<p>计划专注：'+Number(p.plannedMinutes||0)+' 分钟 · '+escapeIslandText(bounty?'照片或视频原件':domainEvidenceLabel(p.evidenceType||'none'))+'</p></section>';
+}
+const boundaryUpdateNode=updateDomainNode,boundaryUpdateDependencies=updateDomainDependencies,boundaryEditList=editDomainList,boundaryCreateNode=createTertiaryCustomPlanningCard;
+updateDomainNode=function(...args){if(planningWriteAllowed())return boundaryUpdateNode(...args);return false;};
+updateDomainDependencies=function(...args){if(planningWriteAllowed())return boundaryUpdateDependencies(...args);return false;};
+editDomainList=function(...args){if(planningWriteAllowed())return boundaryEditList(...args);return false;};
+createTertiaryCustomPlanningCard=function(...args){if(planningWriteAllowed())return boundaryCreateNode(...args);return null;};
+const boundaryDerive=deriveNodesFromReflectionCard;
+deriveNodesFromReflectionCard=function(id,event){
+  if(!planningWriteAllowed())return false;
+  const source=getDomainNode(id),state=getDomainState(),record=[...state.records].reverse().find(r=>r.nodeId===id&&r.validated&&r.improvementList?.length);
+  if(!source||!record)return boundaryDerive(id,event);
+  event?.stopPropagation();const project=state.projects.find(p=>p.id===source.projectId),nodes=state.nodesByProject[project.id];let count=0;
+  recordDomainHistory();
+  source.groupId=source.groupId||domainId('group');source.groupRoot=id;
+  for(const action of record.improvementList.filter(i=>i.isChecked!==false&&i.actionItem?.trim())){
+    if(nodes.some(n=>n.cardPayload.derivedFrom?.recordId===record.id&&n.cardPayload.derivedFrom?.actionId===action.id))continue;
+    const date=domainDefaultNodeDate(project),child=domainNode({title:action.actionItem.slice(0,30),nodeType:'drill',plannedDate:date,groupId:source.groupId,groupRoot:id,cardPayload:{description:action.actionItem,plannedMinutes:20,evidenceType:'photo',derivedFrom:{nodeId:id,recordId:record.id,actionId:action.id}}},project);
+    child.canvasPosition={x:source.canvasPosition.x+400,y:source.canvasPosition.y+count*400};nodes.push(child);
+    window.PROJECT_CANVAS_STORE[project.id].edges.push({id:domainId('edge'),sourceId:id,targetId:child.id,type:'派生',label:'复盘后续规划'});count++;
+  }
+  renderDomainCanvas(project.id);saveCurrentProjectCanvasSnapshot();refreshDomainProjections();
+  if(count)domainEvent('review.derived',id,'基于已保存复盘创建 '+count+' 项后续规划',{projectId:project.id,recordId:record.id});else showIslandToast('该复盘行动已创建后续规划');return count;
+};
+const boundaryEnterPlanning=enterTertiaryWorkspace,boundarySwitchHome=switchHomeGlobalView;
+enterTertiaryWorkspace=function(...args){if(evidenceSession)closeExecCardPopupView();return boundaryEnterPlanning(...args);};
+switchHomeGlobalView=function(view){if(['plan','planning'].includes(view)&&evidenceSession)closeExecCardPopupView();return boundarySwitchHome(view);};
+
+// Separate ordinary media selection from direct camera requests. No simulated uploads.
+const mediaJobs=new Set();
+const mediaPromises=new Set();
+let mediaClosing=false;
+function handleNativeMediaFiles(input){
+  if(mediaClosing)return Promise.resolve(false);
+  const job=processNativeMediaFiles(input);mediaPromises.add(job);
+  job.then(()=>mediaPromises.delete(job),()=>mediaPromises.delete(job));return job;
+}
+async function flushMediaBeforeClose(){mediaClosing=true;await Promise.allSettled(Array.from(mediaPromises));}
+function mediaOwner(context){
+  if(context==='execution')return evidenceSession?.taskId||'';
+  if(context==='bounty')return window.BOUNTY_STATE?.id||'';
+  if(context==='journal')return window.NOTE_STATE.dateKey||domainDate();
+  if(context==='achievement')return window.__accidentalUploadToken||'';
+  if(context==='resource')return window.currentTertiaryProjId||'';
+  return context;
+}
+function mediaPickerControls(context,accept='image/*,video/*',disabled=false){
+  const owner=mediaOwner(context),busy=mediaJobs.has(context+':'+owner),off=disabled||busy||mediaClosing;
+  const input=(source,label,types,capture='')=>'<label class="island-media-source" aria-disabled="'+off+'">'+label+'<input class="island-native-media-input" type="file" accept="'+types+'" '+(capture?'capture="environment"':'multiple')+' data-media-context="'+context+'" data-media-owner="'+escapeIslandText(owner)+'" data-media-source="'+source+'" aria-label="'+label+'" onchange="handleNativeMediaFiles(this)"'+(off?' disabled':'')+'></label>';
+  return '<div class="island-media-picker" data-picker-context="'+context+'" aria-busy="'+busy+'">'+input('gallery','🖼 选择照片/视频',accept)+input('photo','📷 拍摄照片','image/*','environment')+input('video','🎥 拍摄视频','video/*','environment')+(context==='execution'?input('audio','🎙 选择录音','audio/*'):'')+'<span class="island-media-status" role="status">'+(busy?'正在保存原件…':'原件保存到当前知识库')+'</span></div>';
+}
+function mediaFileWithType(file){
+  if(file.type)return file;
+  const extension=file.name.split('.').pop().toLowerCase(),mime={jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp',gif:'image/gif',heic:'image/heic',heif:'image/heif',mp4:'video/mp4',mov:'video/quicktime',webm:'video/webm',m4v:'video/mp4','3gp':'video/3gpp',mp3:'audio/mpeg',m4a:'audio/mp4',wav:'audio/wav',ogg:'audio/ogg'}[extension];
+  return mime?new File([file],file.name,{type:mime,lastModified:file.lastModified}):file;
+}
+function refreshMediaBusy(context,owner){
+  const busy=mediaJobs.has(context+':'+owner);
+  document.querySelectorAll('.island-native-media-input').forEach(input=>{if(input.dataset.mediaContext===context&&input.dataset.mediaOwner===owner){input.disabled=busy||(context==='execution'&&!!evidenceSession?.saved);input.parentElement.setAttribute('aria-disabled',String(input.disabled));input.closest('.island-media-picker').setAttribute('aria-busy',String(busy));input.closest('.island-media-picker').querySelector('.island-media-status').textContent=busy?'正在保存原件…':'原件保存到当前知识库';}});
+  if(context==='execution'&&evidenceSession?.taskId===owner){const button=document.getElementById('island-real-submit');if(button)button.disabled=busy||evidenceSession.saved;}
+  if(context==='bounty'&&window.BOUNTY_STATE?.id===owner){const button=document.getElementById('bounty-action-redeem-btn');if(button)button.disabled=busy||window.BOUNTY_STATE.status!=='accepted';}
+}
+async function processNativeMediaFiles(input){
+  const files=Array.from(input.files||[]),context=input.dataset.mediaContext,owner=input.dataset.mediaOwner,key=context+':'+owner;
+  if(!files.length||mediaJobs.has(key))return false;
+  const session=context==='execution'?evidenceSession:null,bounty=context==='bounty'?getDomainState().bounties.find(b=>b.id===owner):null;
+  if(context==='execution'&&(!session||session.taskId!==owner||session.saved))return false;
+  if(context==='bounty'&&bounty?.status!=='accepted')return false;
+  if(context==='resource'&&window.currentTertiaryProjId!==owner)return false;
+  if(context==='achievement'&&window.__accidentalUploadToken!==owner)return false;
+  mediaJobs.add(key);refreshMediaBusy(context,owner);
+  try{
+    for(const original of files){
+      const file=mediaFileWithType(original),accept=input.accept.split(',');
+      if(!accept.some(a=>a.endsWith('/*')?file.type.startsWith(a.slice(0,-1)):file.type===a))throw new Error('请选择此入口支持的照片、视频或录音');
+      const media=await persistDomainMedia(file);
+      if(context==='execution'){
+        const active=evidenceSession?.taskId===owner&&!evidenceSession.saved?evidenceSession:session;
+        active.media.push(media);
+        if(active===evidenceSession){renderDomainEvidence();saveExecutionDraft();}
+        else getDomainState().drafts[owner]={...(getDomainState().drafts[owner]||{}),media:[...active.media]};
+      }else if(context==='bounty'){
+        bounty.evidence=[...(bounty.evidence||[]),media];bounty.evidencePath=media.path;bounty.evidenceName=media.name;bounty.evidenceUploaded=true;
+        invalidateBountyVerification(owner);
+        if(window.BOUNTY_STATE?.id===owner)renderBountyModalAndBillboard();
+      }else if(context==='journal'){
+        ensureBusinessDate();const note=window.NOTE_STATE,entry=note.dateKey===owner?null:note.historyEntries.find(e=>e.date===owner);
+        if(note.dateKey===owner)note.mediaList.unshift(media);else if(entry)entry.media=[...(entry.media||[]),media];
+        if(note.dateKey===owner)refreshNoteMediaGallery();
+      }else if(context==='achievement'){
+        if(window.__accidentalUploadToken!==owner)throw new Error('该高光记录已关闭，请重新选择附件');
+        window.__accidentalDomainMedia=media;const preview=document.getElementById('achieve-acc-image-preview');if(preview){preview.textContent='已保存原件：'+media.name;preview.style.display='block';}
+      }else if(context==='resource'){
+        if(window.currentTertiaryProjId!==owner)throw new Error('项目已切换，请在目标项目重新选择资料');
+        if(!planningWriteAllowed())throw new Error('请返回规划视图插入资料');
+        createTertiaryCustomPlanningCard({nodeType:'text',title:'资料 · '+media.name.slice(0,23),content:'![['+media.path+']]'});
+      }
+      notifyIslandStateChanged();
+    }
+    return true;
+  }catch(error){showIslandToast('附件保存失败：'+error.message);return false;}
+  finally{input.value='';mediaJobs.delete(key);refreshMediaBusy(context,owner);}
+}
+function openMediaSourceDialog(context){
+  document.getElementById('island-media-source-dialog')?.remove();
+  const dialog=document.createElement('div');dialog.id='island-media-source-dialog';dialog.className='domain-modal';dialog.innerHTML='<div class="note-card-box"><h3>添加照片或视频</h3>'+mediaPickerControls(context)+'<button type="button" onclick="document.getElementById(\'island-media-source-dialog\').remove()">完成 / 关闭</button></div>';
+  (document.querySelector('.youth-island-plugin-root')||document.body).append(dialog);
+}
+uploadBountyEvidence=function(){const input=document.querySelector('#bounty-media-controls [data-media-source="gallery"]');if(input&&!input.disabled)input.click();};
+createImageEvidencePrompt=function(){if(planningWriteAllowed())openMediaSourceDialog('resource');};
+const nativeMediaNoteRenderer=renderNoteSpecializedWorkspace;
+renderNoteSpecializedWorkspace=function(){const holder=document.createElement('div');holder.innerHTML=nativeMediaNoteRenderer();const input=holder.querySelector('#note-photo-file-input');if(input)input.parentElement.innerHTML=mediaPickerControls('journal');return holder.innerHTML;};
+renderNoteMediaGalleryHtml=function(){return window.NOTE_STATE.mediaList.map(m=>'<div class="note-history-card"><button class="ui-btn" onclick="openDomainMedia('+escapeIslandText(JSON.stringify(m.id))+')">'+escapeIslandText(m.name)+'</button><span>'+escapeIslandText(m.type==='image'?'照片原件':m.duration==null?'视频 / 录音原件':Math.round(m.duration)+'秒')+'</span><button class="ui-btn" onclick="removeNoteMedia('+escapeIslandText(JSON.stringify(m.id))+')">移除</button></div>').join('');};
+const nativeMediaAchievementOpen=openRegisterAccidentalAchievementModal;
+openRegisterAccidentalAchievementModal=function(){nativeMediaAchievementOpen();window.__accidentalUploadToken=domainId('highlight');window.__accidentalDomainMedia=null;const input=document.getElementById('accidental-image-file');if(input){const container=input.parentElement;container.innerHTML=mediaPickerControls('achievement');container.parentElement.querySelector('label').textContent='照片或视频物证';}else{const controls=document.querySelector('#register-accidental-achievement-modal .island-media-picker');if(controls)controls.outerHTML=mediaPickerControls('achievement');}};
+const mediaSubmitExecution=submitRealExecution;
+submitRealExecution=function(){if(evidenceSession&&mediaJobs.has('execution:'+evidenceSession.taskId)){showIslandToast('请等待原件保存完成');return false;}return mediaSubmitExecution();};
+const mediaRedeemBounty=completeBountyDemo;
+completeBountyDemo=function(){if(mediaJobs.has('bounty:'+window.BOUNTY_STATE?.id)){showIslandToast('请等待原件保存完成');return false;}return mediaRedeemBounty();};
+
+const bountyDialogRender=renderBountyModalAndBillboard;
+let bountyDialogLastId=null,bountyDialogFocus=null;
+const bountyGuardianDrafts=new Map();
+function invalidateBountyVerification(id){
+  const draft=bountyGuardianDrafts.get(id);if(draft)draft.confirmed=false;
+  if(window.BOUNTY_STATE?.id===id){const confirmation=document.getElementById('domain-parent-confirm');if(confirmation)confirmation.checked=false;}
+}
+renderBountyModalAndBillboard=function(){
+  const current=window.BOUNTY_STATE,id=current?.id||null,comment=document.getElementById('bounty-parent-comment-input'),confirmation=document.getElementById('domain-parent-confirm');
+  if(bountyDialogLastId&&bountyDialogLastId!==id)bountyGuardianDrafts.set(bountyDialogLastId,{comment:comment?.value||'',confirmed:confirmation?.checked||false});
+  bountyDialogRender();const b=window.BOUNTY_STATE,modal=document.getElementById('bounty-modal-backdrop');if(!modal)return;
+  modal.querySelector('.bounty-current').hidden=!b;modal.querySelector('.bounty-delivery').hidden=!b||b.status==='published';modal.querySelector('.bounty-verification').hidden=!b||b.status==='published';
+  if(b){
+    document.getElementById('bounty-modal-criteria').textContent=b.criteria;
+    document.getElementById('bounty-modal-contract-no').textContent='立约 '+b.createdDate+' · 到期 '+b.endDate;
+    document.getElementById('bounty-stage2-desc').textContent=b.status==='published'?'揭榜后开始挑战；完成后提交真实物证。':b.status==='accepted'?'按约定完成挑战并提交照片或视频，等待共同验收。':'原始物证和验收记录已归档。';
+    document.getElementById('bounty-media-controls').innerHTML=mediaPickerControls('bounty','image/*,video/*',b.status!=='accepted');
+    document.getElementById('bounty-media-list').innerHTML=(b.evidence||[]).map(m=>'<button type="button" class="bounty-media-item" onclick="openDomainMedia('+escapeIslandText(JSON.stringify(m.id))+')">'+(m.type==='video'?'🎥':'📷')+' '+escapeIslandText(m.name)+'</button>').join('')||'<p class="bounty-muted">还没有提交物证</p>';
+    if(bountyDialogLastId!==id){const draft=bountyGuardianDrafts.get(id);comment.value=b.parentComment||draft?.comment||'';confirmation.checked=!!draft?.confirmed;}
+    comment.disabled=b.status==='redeemed';confirmation.disabled=b.status==='redeemed';
+    if(b.status==='redeemed'){comment.value=b.parentComment;confirmation.checked=true;document.getElementById('bounty-action-redeem-btn').disabled=true;}
+  }
+  const names={published:'待揭榜',accepted:'进行中',redeemed:'已兑现'};
+  document.getElementById('domain-bounty-history').innerHTML='<h3>契约记录</h3>'+getDomainState().bounties.map(item=>'<button type="button" class="bounty-history-item" aria-pressed="'+(item.id===id)+'" onclick="selectDomainBounty('+escapeIslandText(JSON.stringify(item.id))+')"><span>'+escapeIslandText(item.title)+'</span><small>'+escapeIslandText(names[item.status]||item.status)+'</small></button>').join('');
+  bountyDialogLastId=id;
+};
+const bountyDialogOpen=openBountyModal,bountyDialogClose=closeBountyModal;
+openBountyModal=function(){bountyDialogFocus=document.activeElement;bountyDialogOpen();document.querySelector('#bounty-modal-backdrop .bounty-close')?.focus();};
+closeBountyModal=function(){bountyDialogClose();if(bountyDialogFocus?.isConnected)bountyDialogFocus.focus({preventScroll:true});bountyDialogFocus=null;};
+function handleBountyDialogKeydown(event){
+  event.stopPropagation();if(event.key==='Escape'){event.preventDefault();closeBountyModal();return;}
+  if(event.key==='Tab'){const list=Array.from(document.querySelectorAll('#bounty-modal-backdrop button,#bounty-modal-backdrop input,#bounty-modal-backdrop textarea,#bounty-modal-backdrop select')).filter(e=>!e.disabled&&e.getClientRects().length),first=list[0],last=list.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}
 }
 
 // One gesture/viewport implementation for the planning sandbox and project canvas.
@@ -14221,6 +14392,19 @@ window.addEventListener('youth-island:state-changed',()=>{queueCanvasNavigation(
   if (typeof removeNodeCreatorRow === "function") (window as any).removeNodeCreatorRow = removeNodeCreatorRow;
   if (typeof submitNodeCreator === "function") (window as any).submitNodeCreator = submitNodeCreator;
   if (typeof handleNodeCreatorKeydown === "function") (window as any).handleNodeCreatorKeydown = handleNodeCreatorKeydown;
+  if (typeof freezeExecutionPlanning === "function") (window as any).freezeExecutionPlanning = freezeExecutionPlanning;
+  if (typeof planningWriteAllowed === "function") (window as any).planningWriteAllowed = planningWriteAllowed;
+  if (typeof executionPlanningHtml === "function") (window as any).executionPlanningHtml = executionPlanningHtml;
+  if (typeof handleNativeMediaFiles === "function") (window as any).handleNativeMediaFiles = handleNativeMediaFiles;
+  if (typeof flushMediaBeforeClose === "function") (window as any).flushMediaBeforeClose = flushMediaBeforeClose;
+  if (typeof mediaOwner === "function") (window as any).mediaOwner = mediaOwner;
+  if (typeof mediaPickerControls === "function") (window as any).mediaPickerControls = mediaPickerControls;
+  if (typeof mediaFileWithType === "function") (window as any).mediaFileWithType = mediaFileWithType;
+  if (typeof refreshMediaBusy === "function") (window as any).refreshMediaBusy = refreshMediaBusy;
+  if (typeof processNativeMediaFiles === "function") (window as any).processNativeMediaFiles = processNativeMediaFiles;
+  if (typeof openMediaSourceDialog === "function") (window as any).openMediaSourceDialog = openMediaSourceDialog;
+  if (typeof invalidateBountyVerification === "function") (window as any).invalidateBountyVerification = invalidateBountyVerification;
+  if (typeof handleBountyDialogKeydown === "function") (window as any).handleBountyDialogKeydown = handleBountyDialogKeydown;
   if (typeof canvasLocalPoint === "function") (window as any).canvasLocalPoint = canvasLocalPoint;
   if (typeof readPlanViewport === "function") (window as any).readPlanViewport = readPlanViewport;
   if (typeof writePlanViewport === "function") (window as any).writePlanViewport = writePlanViewport;

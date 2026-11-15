@@ -1,0 +1,46 @@
+{
+  "version": "1.2.0",
+  "suite": "creator",
+  "checks": [
+    "dialog has six type tabs and exactly one form card, without the old catalogue",
+    "initial drill card is empty and has one add action instead of batch selection",
+    "type choices stay above the editable card and receive initial focus",
+    "changing type replaces the form and does not mix fields from other types",
+    "switching back preserves that type draft, settings and live schedule summary",
+    "type switching and list editing create no business nodes",
+    "cancel closes the dialog and restores the toolbar focus",
+    "reopening after cancel starts a clean draft",
+    "invalid title stays in the dialog with a focused error and no created node",
+    "invalid focus time is rejected before any transaction",
+    "partial goal metric is rejected while the draft remains editable",
+    "adding and removing rows preserves the remaining structured metric",
+    "out of project date is rejected and its settings are expanded",
+    "goal submit saves the exact fields, closes once and selects the actual new card",
+    "repeated submit cannot duplicate a successfully created node",
+    "new node participates in the project undo transaction",
+    "redo restores the same canonical node",
+    "drill creates a ready task today with its real time and evidence requirement",
+    "habit saves its daily plan and required versus optional actions",
+    "review saves canonical action and derive selection instead of the legacy alias",
+    "custom fields retain stable keys, actual types and required flags",
+    "text saves its actual Markdown without creating an execution task",
+    "six successful type submissions add exactly six nodes",
+    "new nodes feed the existing strict-today execution projection without duplicates",
+    "independent design reloads the created nodes from IndexedDB",
+    "created node data and typed schemas survive a full runtime restart",
+    "keyboard type navigation activates one form and updates the selected tab",
+    "Tab at the footer stays inside the modal",
+    "Escape closes the dialog even while editing an input",
+    "native touch scrolls only the long form while type tabs and footer stay fixed",
+    "portrait tablet keeps the type choices and add button inside the dialog",
+    "narrow layout wraps type choices into two rows without horizontal overflow"
+  ],
+  "screenshot": true,
+  "portrait": true,
+  "capturePages": [
+    {
+      "name": "creator-custom-design",
+      "code": "window.selectNodeCreatorType('custom');new Promise(r=>setTimeout(r,100))"
+    }
+  ]
+}

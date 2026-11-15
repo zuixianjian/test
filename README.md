@@ -1,6 +1,6 @@
 # 终身岛民 · Obsidian 成长工作台
 
-当前版本 **1.1.9**。脑图新增节点改为顶部选择类型、下方录入当前卡片的单卡片弹窗，移除六卡并排和批量勾选。支持切换保留本次草稿、列表增删、字段类型和真实任务同步。保留今日待办的五类样式及严格今日筛选。
+当前版本 **1.2.0**。规划脑图只维护计划与标准，执行只录入实际结果，复盘不再覆盖原始规划。悬赏契约重做为分阶段卡片弹窗；照片/视频选择与拍照、拍视频分别提供系统入口，原件保存到Vault。保留单卡片新增节点、今日卡片样式及严格今日筛选。
 
 产品契约见 [PRD](PRD_Youth_Holistic_Growth_System.md)，交互设计见 [高保真设计预览](high_fidelity_ui_preview.html)，修复与验收范围见 [1.1.0 交付记录](PLUGIN_REVIEW_1.1.0.md)。原始问题证据保留在 [审查报告](audit/PRD_DESIGN_PLUGIN_CLOSED_LOOP_AUDIT.md)。
 
@@ -22,7 +22,9 @@
 
 1.1.9新增节点弹窗一次只展示当前类型的录入卡片。各类型可维护真实规划字段；顶部类型栏和底部添加按钮固定，长表单独立滚动。录入草稿、校验、键盘操作、真实新增及任务投影见[新增节点交互记录](PLUGIN_REVIEW_1.1.9.md)。
 
-执行中心的日/周/月从同一调度结果读取任务。规划场馆使用项目甘特与结构化脑图；实训、习惯、复盘、目标及自定义表单按各自标准校验。验收记录连接源节点、真实附件、项目进度、随记和成果。悬赏需要家长寄语及核验，生活高光保存照片原件，亲子公约保存真实姓名、条款与签署版本。
+1.2.0移除规划节点的执行/验收/阅读打卡控件；执行展示打开时的只读规划标准，实际复盘独立保存，回到规划才能派生后续计划。悬赏按发布、揭榜、核准分区；媒体统一支持选择照片/视频、拍照和拍视频，并等待原件写完再保存关闭。验证与Android宿主限制见[规划与执行及媒体入口交付记录](PLUGIN_REVIEW_1.2.0.md)。
+
+执行中心的日/周/月从同一调度结果读取任务。规划场馆使用项目甘特与结构化脑图；实训、习惯、复盘、目标及自定义表单按各自标准校验。验收记录连接源节点、真实附件、项目进度、随记和成果。悬赏需要家长寄语及核验，生活高光保存照片或视频原件，亲子公约保存真实姓名、条款与签署版本。
 
 藏金屋只记录独立收支。经典指引来自本地参考语料。组件画板是设计样例；没有采集的能力评分、运动热量和智能识别结果不作为用户事实展示。
 
@@ -46,6 +48,8 @@ npm.cmd run test:execution
 npm.cmd run test:execution:design
 npm.cmd run test:creator
 npm.cmd run test:creator:design
+npm.cmd run test:phase-media
+npm.cmd run test:phase-media:design
 npm.cmd run package-android
 ```
 
@@ -61,6 +65,9 @@ npm.cmd run package-android
 | `src/runtime/nodeCards.js` / `src/ui/nodeCards.css` | 六类规划节点的共享渲染、卡片分区、类型色和编辑摘要同步 |
 | `src/runtime/homeExecutionQueue.js` | 首页执行队列、空态、轮播恢复、跨日刷新与前置导航 |
 | `src/runtime/nodeCreator.js` / `src/ui/nodeCreator.html` / `src/ui/nodeCreator.css` | 单卡片新增弹窗、类型草稿、校验和真实新增事务 |
+| `src/runtime/planningBoundary.js` | 执行标准快照、规划编辑边界、实际复盘后续规划 |
+| `src/runtime/mediaPicker.js` | 系统选择/拍摄入口、原件写入、来源绑定与关闭等待 |
+| `src/runtime/bountyDialog.js` / `src/ui/bountyDialog.html` / `src/ui/phaseMedia.css` | 悬赏分阶段弹窗、状态与响应式媒体入口 |
 | `src/runtime/closedLoopRuntime.js` | 领域状态、规划编辑、同源任务与统计投影 |
 | `src/runtime/closedLoopWorkflows.js` | 执行草稿、原件、成果与复盘派生 |
 | `src/runtime/closedLoopModules.js` | 悬赏、公约、随记、真实导出、Canvas边界与设计适配器 |
@@ -75,9 +82,9 @@ npm.cmd run package-android
 
 ## 安装
 
-解压 `release/youth-holistic-growth-island-1.1.9.zip`，将其中整个 `youth-holistic-growth-island` 文件夹复制到知识库的 `.obsidian/plugins/`。安装文件包括 `manifest.json`、`versions.json`、`main.js`、`styles.css`和ASCII命名的场景/头像资源。已有仓库升级前保留一份备份，然后重启或重载插件。
+解压 `release/youth-holistic-growth-island-1.2.0.zip`，将其中整个 `youth-holistic-growth-island` 文件夹复制到知识库的 `.obsidian/plugins/`。安装文件包括 `manifest.json`、`versions.json`、`main.js`、`styles.css`和ASCII命名的场景/头像资源。已有仓库升级前保留一份备份，然后重启或重载插件。
 
-BRAT用户需选择正式Release版本1.1.9或Latest，执行更新后**完全关闭并重新打开Obsidian**。旧版本在保存失败时可能未清理旧运行时，仅切换页面不能保证加载新代码；到插件设置确认当前版本v1.1.9和保存状态。发布需推送与manifest一致的数字标签，单独推送master不会产生BRAT更新；工作流发布前执行构建、类型检查和纯规则测试。
+BRAT用户需选择正式Release版本1.2.0或Latest，执行更新后**完全关闭并重新打开Obsidian**。旧版本在保存失败时可能未清理旧运行时，仅切换页面不能保证加载新代码；到插件设置确认当前版本v1.2.0和保存状态。发布需推送与manifest一致的数字标签，单独推送master不会产生BRAT更新；工作流发布前执行构建、类型检查和纯规则测试。
 
 通过侧栏指南针或命令打开。设置中可指定数据子目录、默认执行/规划视图以及是否随Obsidian启动。
 

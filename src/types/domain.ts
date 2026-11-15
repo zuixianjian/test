@@ -23,6 +23,7 @@ export interface DomainWorkNode {
     improvementList: Array<{ id: string; actionItem: string; isChecked: boolean; derivedNodeId?: string }>;
     customFieldsSchema: Array<{ key: string; label: string; type: "text" | "number" | "boolean" | "date"; required: boolean }>;
     textContent: string; acceptanceCriteria: string; targetDeadline: string | null;
+    derivedFrom?: { nodeId: string; recordId: string | null; actionId: string };
   };
 }
 export interface TaskInstance {
@@ -38,6 +39,7 @@ export interface CheckinRecord {
   metrics?: Array<{ id: string; name: string; targetValue: string; actual: string; passed: boolean }>;
   checklistResults?: Record<string, boolean>; customFieldValues?: Record<string, string | number | boolean>;
   improvementList?: DomainWorkNode["cardPayload"]["improvementList"];
+  sourceSnapshot?: Pick<DomainWorkNode, "title" | "nodeType" | "projectId" | "cardPayload">;
   legacyUnverified?: boolean;
 }
 export interface FamilyPact {

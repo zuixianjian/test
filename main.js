@@ -663,7 +663,7 @@ ${(n.cardPayload?.metrics || []).map((m) => `${m.name}: ${m.targetValue}`).join(
 var import_obsidian2 = require("obsidian");
 
 // src/ui/template.ts
-var ISLAND_UI_HTML = `<div class="global-header product-contract-banner" data-product-contract="3">1.1.9 \u95ED\u73AF\u4EA4\u4E92\u9884\u89C8 \xB7 \u6309\u9879\u76EE/\u8282\u70B9/\u6BCF\u65E5\u4EFB\u52A1\u5B9E\u4F8B\u5173\u8054 \xB7 \u672C\u9884\u89C8\u6570\u636E\u4FDD\u5B58\u5728\u5F53\u524D\u6D4F\u89C8\u5668\uFF0C\u7EC4\u4EF6\u753B\u677F\u6837\u4F8B\u4E0D\u8BA1\u4E3A\u5B9E\u9645\u6267\u884C</div>
+var ISLAND_UI_HTML = `<div class="global-header product-contract-banner" data-product-contract="3">1.2.0 \u95ED\u73AF\u4EA4\u4E92\u9884\u89C8 \xB7 \u6309\u9879\u76EE/\u8282\u70B9/\u6BCF\u65E5\u4EFB\u52A1\u5B9E\u4F8B\u5173\u8054 \xB7 \u672C\u9884\u89C8\u6570\u636E\u4FDD\u5B58\u5728\u5F53\u524D\u6D4F\u89C8\u5668\uFF0C\u7EC4\u4EF6\u753B\u677F\u6837\u4F8B\u4E0D\u8BA1\u4E3A\u5B9E\u9645\u6267\u884C</div>
   <!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5907\u63A7\u5236\u4E0E\u4E3B\u6A21\u6001\u5207\u6362) -->
   <header class="global-header">
     <div class="system-title-group">
@@ -3285,171 +3285,20 @@ var ISLAND_UI_HTML = `<div class="global-header product-contract-banner" data-pr
   </div>
 </div>
 
-  <div class="workbench-modal-backdrop" id="bounty-modal-backdrop" onclick="handleBountyBackdropClick(event)">
-    <div class="workbench-window" style="max-width: 700px; height: auto; max-height: 92vh; border: 2.5px solid #d97706; box-shadow: 0 20px 50px rgba(120, 53, 15, 0.35);">
-      <!-- \u5F39\u7A97\u9876\u63A7\u680F -->
-      <div class="workbench-header" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 60%, #fed7aa 100%); border-bottom: 2px solid #f59e0b; padding: 14px 20px;">
-        <div class="wb-title-group">
-          <div class="wb-icon" style="border-color:#f59e0b; background:#fff7ed; font-size:24px;">\u{1F4DC}</div>
-          <div class="wb-title-texts">
-            <h2 style="color:#78350f; font-size:16px; margin:0; display:flex; align-items:center; gap:8px;">
-              \u5BB6\u957F\u7F6E\u9876\u60AC\u8D4F\u6311\u6218\u5951\u7EA6\u4E66
-              <span id="bounty-modal-status-badge" style="background:#ea580c; color:#fff; font-size:10px; font-weight:850; padding:2px 8px; border-radius:10px; box-shadow:0 2px 4px rgba(234,88,12,0.25);">\u26A1 \u5DF2\u63ED\u699C\u653B\u575A\u4E2D \xB7 7\u5929\u5185\u6709\u6548</span>
-            </h2>
-            <p id="bounty-modal-contract-no" style="color:#b45309; font-size:11px; margin:2px 0 0 0;">\u5951\u7EA6\u7F16\u53F7\uFF1ABC-202611-MATH95 \xB7 \u4EB2\u5B50\u5171\u540C\u534F\u5546\u8363\u8A89\u5951\u7EA6 \xB7 \u975E\u91D1\u94B1\u7CBE\u795E/\u4F53\u9A8C\u5FC3\u613F\u6FC0\u52B1</p>
-          </div>
-        </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <button type="button" class="card-graphic-pill pill-brush" onclick="toggleBountyPublishForm()" style="height:30px; padding:0 12px; font-size:11px; font-weight:850;">\u2795 \u5BB6\u957F\u53D1\u5E03\u65B0\u60AC\u8D4F</button>
-          <button class="wb-close-btn" onclick="closeBountyModal()" title="\u5173\u95ED\u5951\u7EA6\u4E66">\u2715</button>
-        </div>
-      </div>
-
-      <!-- \u5F39\u7A97\u4E3B\u4F53 -->
-      <div class="workbench-body" style="padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; background: #fffdfa; overflow-y: auto;">
-
-        <!-- 0. \u5BB6\u957F\u53D1\u5E03\u65B0\u60AC\u8D4F\u6298\u53E0\u8868\u5355 -->
-        <div id="bounty-publish-form-box" style="display:none; background:#fff7ed; border:2px dashed #f59e0b; border-radius:12px; padding:14px 16px; flex-direction:column; gap:10px;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <strong style="font-size:13px; color:#9a3412;">\u{1F468}\u200D\u{1F469}\u200D\u{1F466} \u5BB6\u957F\u53D1\u8D77\u65B0\u60AC\u8D4F\u8363\u8A89\u6311\u6218\uFF08\u7EAF\u975E\u91D1\u94B1\u5FC3\u613F\u6FC0\u52B1\uFF09</strong>
-            <button type="button" onclick="toggleBountyPublishForm()" style="background:transparent; border:none; color:#9a3412; font-size:12px; font-weight:800; cursor:pointer;">\u6536\u8D77 \u25B2</button>
-          </div>
-          <div style="display:grid; grid-template-columns:1.4fr 1fr; gap:10px;">
-            <div>
-              <label style="font-size:11px; font-weight:800; color:#78350f; display:block; margin-bottom:4px;">\u6311\u6218\u4EFB\u52A1\u540D\u79F0 *</label>
-              <input id="bounty-new-title" type="text" placeholder="\u5982\uFF1A\u8FDE\u7EED7\u5929\u6668\u8BFB\u300A\u8BBA\u8BED\u300B\u5E76\u5DE5\u6574\u6458\u6284\u91D1\u53E5" style="width:100%; box-sizing:border-box; padding:7px 10px; border:1.5px solid #fdba74; border-radius:8px; font-size:12px; background:#fff;">
-            </div>
-            <div>
-              <label style="font-size:11px; font-weight:800; color:#78350f; display:block; margin-bottom:4px;">\u5173\u8054\u89C4\u5212\u573A\u9986</label>
-              <select id="bounty-new-pavilion" style="width:100%; box-sizing:border-box; padding:7px 10px; border:1.5px solid #fdba74; border-radius:8px; font-size:12px; background:#fff; font-weight:700;">
-                <option value="\u{1F3EB} \u6821\u53F2\u9986 \xB7 \u5B66\u4E1A\u653B\u575A">\u{1F3EB} \u6821\u53F2\u9986 \xB7 \u5B66\u4E1A\u653B\u575A</option>
-                <option value="\u{1F94B} \u6B66\u9053\u9986 \xB7 \u5174\u8DA3\u7279\u957F">\u{1F94B} \u6B66\u9053\u9986 \xB7 \u5174\u8DA3\u7279\u957F</option>
-                <option value="\u{1F4DC} \u4FEE\u8EAB\u9601 \xB7 \u54C1\u683C\u7ACB\u5BAA">\u{1F4DC} \u4FEE\u8EAB\u9601 \xB7 \u54C1\u683C\u7ACB\u5BAA</option>
-                <option value="\u{1F9E0} \u601D\u8FA8\u9986 \xB7 \u8BA4\u77E5\u601D\u8FA8">\u{1F9E0} \u601D\u8FA8\u9986 \xB7 \u8BA4\u77E5\u601D\u8FA8</option>
-              </select>
-            </div>
-          </div>
-          <div style="display:grid; grid-template-columns:1.4fr 0.6fr; gap:10px;">
-            <div>
-              <label style="font-size:11px; font-weight:800; color:#78350f; display:block; margin-bottom:4px;">\u5FC3\u613F\u4F53\u9A8C\u5956\u52B1\uFF08\u975E\u91D1\u94B1\u5B9E\u7269/\u4EB2\u5B50\u4F53\u9A8C\uFF09*</label>
-              <input id="bounty-new-reward" type="text" placeholder="\u5982\uFF1A\u5468\u672B\u5168\u5BB6\u9732\u8425\u89C2\u661F\u4E4B\u65C5 + \u81EA\u9009\u79D1\u666E\u65B0\u4E661\u672C" style="width:100%; box-sizing:border-box; padding:7px 10px; border:1.5px solid #fdba74; border-radius:8px; font-size:12px; background:#fff;">
-            </div>
-            <div>
-              <label style="font-size:11px; font-weight:800; color:#78350f; display:block; margin-bottom:4px;">\u6311\u6218\u671F\u9650\uFF08\u5929\uFF09</label>
-              <input id="bounty-new-days" type="number" min="1" max="60" value="7" style="width:100%; box-sizing:border-box; padding:7px 10px; border:1.5px solid #fdba74; border-radius:8px; font-size:12px; background:#fff; font-weight:800;">
-            </div>
-          </div>
-          <div>
-            <label style="font-size:11px; font-weight:800; color:#78350f; display:block; margin-bottom:4px;">\u5BA2\u89C2\u9A8C\u6536\u6807\u51C6 *</label>
-            <textarea id="bounty-new-criteria" rows="2" placeholder="\u5199\u660E\u6E05\u6670\u53EF\u6838\u9A8C\u7684\u4EA4\u4ED8\u7269\u6807\u51C6\uFF0C\u4F8B\u5982\uFF1A\u6BCF\u65E5\u4E0A\u4F20\u6668\u8BFB\u6253\u5361\u5F55\u97F3\u6216\u6458\u6284\u7167\u7247\uFF0C\u65E0\u6F0F\u5361\u8BB0\u5F55..." style="width:100%; box-sizing:border-box; padding:7px 10px; border:1.5px solid #fdba74; border-radius:8px; font-size:12px; resize:none; background:#fff;"></textarea>
-          </div>
-          <div style="display:flex; justify-content:flex-end; gap:8px;">
-            <button type="button" class="card-graphic-pill pill-seal" onclick="submitNewParentBounty()" style="height:32px; padding:0 18px; font-size:12px; font-weight:900; background:linear-gradient(135deg,#ea580c,#c2410c); color:#fff; border:none; border-radius:8px; cursor:pointer;">\u{1F680} \u6B63\u5F0F\u53D1\u5E03\u60AC\u8D4F\u4EE4\uFF08\u5F85\u5B69\u5B50\u63ED\u699C\uFF09</button>
-          </div>
-        </div>
-        
-        <!-- 1. \u6838\u5FC3\u6311\u6218\u6807\u7684\u5361 -->
-        <div style="background: linear-gradient(135deg, #fffbf0 0%, #fff7ed 100%); border: 1.5px solid #fed7aa; border-radius: 14px; padding: 14px 16px;">
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; gap:12px;">
-            <div>
-              <span id="bounty-card-stage-pill" style="background:#ea580c; color:#fff; font-size:10px; font-weight:800; padding:2px 7px; border-radius:6px;">\u7F6E\u9876\u8363\u8A89\u6311\u6218</span>
-              <h3 id="bounty-modal-title" style="margin:4px 0 2px 0; font-size:15px; font-weight:900; color:#451a03;">\u300A\u5C0F\u5B66\u6570\u5B66\u53E3\u7B97\u8FBE\u6807\u4E0E\u9006\u5411\u601D\u7EF4\u8BAD\u7EC3\u300B</h3>
-              <div id="bounty-modal-meta" style="font-size:11px; color:#78350f;">\u{1F3AF} \u5173\u8054\u89C4\u5212\uFF1A\u{1F3EB} \u6821\u53F2\u9986 \xB7 \u5B66\u4E1A\u653B\u575A | \u{1F468} \u7238\u7238\u53D1\u8D77\u60AC\u8D4F</div>
-            </div>
-            <div style="text-align:right; flex-shrink:0;">
-              <span style="font-size:10px; color:#9a3412; font-weight:700;">\u5FC3\u613F\u8363\u8A89\u6FC0\u52B1</span>
-              <div id="bounty-modal-reward" style="font-size:15px; font-weight:900; color:#c2410c;">\u{1F39F}\uFE0F \u79D1\u6280\u9986\u63A2\u7D22\u95E8\u7968 + \u7814\u5B66\u65B0\u4E66</div>
-              <span style="font-size:10px; background:#fef08a; color:#854d0e; padding:1px 6px; border-radius:6px; font-weight:800;">\u975E\u91D1\u94B1\u4F53\u9A8C\u6FC0\u52B1 \u2728</span>
-            </div>
-          </div>
-          <div id="bounty-modal-criteria" style="background: #ffffff; border: 1px solid #fed7aa; border-radius: 8px; padding: 10px 12px; font-size: 11.5px; color: #431407; line-height: 1.6;">
-            <strong>\u{1F4CB} \u5951\u7EA6\u9A8C\u6536\u6807\u51C6\uFF1A</strong><br>
-            1. \u653B\u514B 30 \u9053\u8FDB\u9000\u4F4D\u53E3\u7B97\u9898\u5361\uFF0C\u9650\u65F6 20 \u5206\u949F\u756A\u8304\u5B9E\u8BAD\u949F\u7559\u75D5\uFF1B<br>
-            2. \u6F14\u7B97\u9898\u5361\u6E05\u6670\u62CD\u7167\u4E0A\u4F20\uFF0C\u7EA2\u7B14\u8BA2\u6B63\u501F\u4F4D\u6807\u8BB0\u4E0E\u51D1\u5341\u7834\u5341\u8FC7\u7A0B\u6E05\u6670\uFF1B<br>
-            3. \u5BB6\u957F\u6838\u9A8C\u7269\u8BC1\u5E76\u586B\u5199\u9F13\u52B1\u5BC4\u8BED\u76D6\u6233\uFF0C\u5FC3\u613F\u5951\u7EA6\u5373\u65F6\u5151\u73B0\u5E76\u8F7D\u5165\u6210\u5C31\u9986\u3002
-          </div>
-        </div>
-
-        <!-- 2. \u4E09\u9636\u6BB5\u6D41\u8F6C\u5951\u7EA6\u6218\u62A5 (\u9636\u6BB5 1 \u2794 \u9636\u6BB5 2 \u2794 \u9636\u6BB5 3) -->
-        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-          <!-- \u9636\u6BB5 1 -->
-          <div style="background:#fff; border:1.5px solid #cbd5e1; border-radius:12px; padding:10px; display:flex; flex-direction:column; gap:4px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:4px;">
-              <span style="font-size:11px; font-weight:900; color:#334155;">1. \u5BB6\u957F\u53D1\u5E03\u60AC\u8D4F</span>
-              <span style="font-size:10px; color:#15803d; font-weight:800;">\u2713 \u5DF2\u5F20\u699C</span>
-            </div>
-            <div style="font-size:10.5px; color:#64748b; line-height:1.5;">
-              \u5BB6\u957F\u8BBE\u5B9A\u6E05\u6670\u6311\u6218\u6807\u51C6\u4E0E\u5FC3\u613F\u4F53\u9A8C\u6FC0\u52B1\uFF0C\u5F20\u699C\u4E8E\u6267\u884C\u4E2D\u5FC3\u9876\u680F\u544A\u793A\u724C\u3002
-            </div>
-            <span style="margin-top:auto; font-size:9.5px; color:#059669; background:#dcfce7; padding:2px 6px; border-radius:6px; font-weight:bold; width:fit-content;">\u5FC3\u613F\u627F\u8BFA\u5DF2\u7ACB\u7EA6</span>
-          </div>
-
-          <!-- \u9636\u6BB5 2 -->
-          <div style="background:#fffbeb; border:2px solid #f59e0b; border-radius:12px; padding:10px; display:flex; flex-direction:column; gap:4px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #fef3c7; padding-bottom:4px;">
-              <span style="font-size:11px; font-weight:900; color:#92400e;">2. \u5B69\u5B50\u63ED\u699C\u4EA4\u4ED8</span>
-              <span id="bounty-stage2-status" style="font-size:10px; color:#ea580c; font-weight:800;">\u26A1 \u6B63\u5728\u653B\u575A</span>
-            </div>
-            <div id="bounty-stage2-desc" style="font-size:10.5px; color:#78350f; line-height:1.5;">
-              \u5B69\u5B50\u4E3B\u52A8\u5E94\u6218\uFF0C\u81EA\u52A8\u6D3E\u751F\u5B9E\u8BAD\u4EFB\u52A1\u5361\u81F3\u4ECA\u65E5\u5F85\u529E\uFF0C\u63D0\u4EA4\u624B\u7A3F\u7167\u7247/\u89C6\u9891\u7269\u8BC1\u3002
-            </div>
-            <div style="margin-top:auto; display:flex; gap:6px;">
-              <button type="button" id="bounty-action-accept-btn" class="card-graphic-pill pill-seal" style="display:none; flex:1; height:26px; font-size:10px; padding:0 8px; background:#ea580c; color:#fff; border:none;" onclick="acceptParentBounty()">\u2694\uFE0F \u63ED\u699C\u5E94\u6218\uFF01</button>
-              <button type="button" id="bounty-evidence-btn" class="card-graphic-pill pill-camera" style="flex:1; height:26px; font-size:10px; padding:0 8px;" onclick="uploadBountyEvidence()">\u{1F4F8} \u4E0A\u4F20\u6311\u6218\u7269\u8BC1</button>
-            </div>
-          </div>
-
-          <!-- \u9636\u6BB5 3 -->
-          <div style="background:#fff; border:1.5px solid #e2e8f0; border-radius:12px; padding:10px; display:flex; flex-direction:column; gap:4px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #f1f5f9; padding-bottom:4px;">
-              <span style="font-size:11px; font-weight:900; color:#334155;">3. \u4EB2\u5B50\u9A8C\u6536\u5151\u73B0</span>
-              <span id="bounty-stage3-status" style="font-size:10px; color:#b45309; font-weight:800;">\u{1F7E1} \u5F85\u6838\u9A8C</span>
-            </div>
-            <div style="font-size:10.5px; color:#64748b; line-height:1.5;">
-              \u6838\u9A8C\u7269\u8BC1\u771F\u5B9E\u6027\uFF0C\u5BB6\u957F\u586B\u5199\u9F13\u52B1\u5BC4\u8BED\u76D6\u6233\uFF0C\u540C\u6B65\u94ED\u523B\u6210\u5C31\u9986\u4E0E\u6BCF\u65E5\u968F\u8BB0\u3002
-            </div>
-            <div id="bounty-parent-stamp" style="margin-top:auto; font-size:9.5px; color:#92400e; border:1.5px dashed #f59e0b; padding:3px 6px; border-radius:6px; text-align:center; font-weight:800; background:#fefce8;">
-              \u{1F7E1} \u5F85\u5BB6\u957F\u6838\u51C6\u76D6\u6233
-            </div>
-          </div>
-        </div>
-
-        <!-- 3. \u5BB6\u957F\u9A8C\u6536\u5BC4\u8BED\u4E0E\u53CC\u65B9\u753B\u62BC\u5B58\u8BC1\u680F -->
-        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:10px 14px; display:flex; flex-direction:column; gap:8px;">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-size:11px; font-weight:800; color:#334155; white-space:nowrap;">\u{1F4AC} \u5BB6\u957F\u9A8C\u6536\u5BC4\u8BED\uFF1A</span>
-            <input id="bounty-parent-comment-input" type="text" value="" placeholder="\u5BB6\u957F\u9F13\u52B1\u5BC4\u8BED..." placeholder="\u8F93\u5165\u5BB6\u957F\u6838\u9A8C\u9F13\u52B1\u5BC4\u8BED..." style="flex:1; padding:5px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:11.5px; background:#fff; color:#1e293b;">
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <span style="font-size:11px; font-weight:800; color:#334155;">\u53CC\u65B9\u753B\u62BC\u5B58\u8BC1\uFF1A</span>
-              <span id="bounty-child-sign-pill" style="font-size:10.5px; color:#059669; background:#dcfce7; padding:2px 8px; border-radius:6px; font-weight:700;">\u2713 \u5B69\u5B50\u5DF2\u63ED\u699C\u7F72\u540D (\u9F50\u5929)</span>
-              <span id="bounty-parent-sign-pill" style="font-size:10.5px; color:#b45309; background:#fef3c7; padding:2px 8px; border-radius:6px; font-weight:700;">\u231B \u5BB6\u957F\u5F85\u6838\u51C6 (\u7238\u7238)</span>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- \u5F39\u7A97\u5E95\u63A7\u680F -->
-      <div class="workbench-footer" style="background: #faf6ed; border-top: 1.5px solid #e5d5be; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-size: 11px; color: #8c6b45;">
-          \u{1F4C1} \u5B58\u8BC1\u8DEF\u5F84\uFF1A<code id="bounty-vault-path" style="background:#eedcc3; padding:2px 6px; border-radius:4px; font-size:10px;">09_Bounties_\u60AC\u8D4F\u516C\u544A/bounty-2026-midterm-math.md</code>
-        </span>
-        <div style="display:flex; gap:10px;">
-          <button type="button" class="card-graphic-pill pill-note" onclick="closeBountyModal()" style="height:34px; padding:0 18px; border-radius:8px; font-size:11.5px;">
-            \u8FD4\u56DE\u6D77\u5C9B
-          </button>
-          <button type="button" id="bounty-footer-accept-btn" class="card-graphic-pill pill-seal" onclick="acceptParentBounty()" style="display:none; height:34px; padding:0 20px; border-radius:8px; font-size:12px; font-weight:900; background:linear-gradient(135deg, #ea580c, #c2410c); color:#fff; border:1.5px solid #9a3412;">
-            \u2694\uFE0F \u7ACB\u5373\u63ED\u699C\u5E94\u6218\uFF08\u540C\u6B65\u81F3\u4ECA\u65E5\u5F85\u529E\uFF09
-          </button>
-          <button type="button" id="bounty-action-redeem-btn" class="card-graphic-pill pill-seal" onclick="completeBountyDemo()" style="height:34px; padding:0 20px; border-radius:8px; font-size:12px; font-weight:900; background:linear-gradient(135deg, #d97706, #b45309); color:#fff; border:1.5px solid #92400e;">
-            \u2713 \u5BB6\u957F\u6838\u9A8C\u901A\u8FC7 \xB7 \u5151\u73B0\u5FC3\u613F\u5E76\u5165\u9A7B\u6210\u5C31\u9986
-          </button>
-        </div>
-      </div>
+  <div class="workbench-modal-backdrop bounty-dialog" id="bounty-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="bounty-dialog-title" onclick="handleBountyBackdropClick(event)" onkeydown="handleBountyDialogKeydown(event)">
+  <div class="bounty-dialog-window" onclick="event.stopPropagation()">
+    <header class="bounty-dialog-header"><div><h2 id="bounty-dialog-title">\u{1F3C5} \u4EB2\u5B50\u60AC\u8D4F\u5951\u7EA6</h2><p>\u4E00\u8D77\u7EA6\u5B9A\u6311\u6218\uFF0C\u7528\u771F\u5B9E\u8FC7\u7A0B\u89C1\u8BC1\u6210\u957F</p></div><button type="button" class="bounty-close" aria-label="\u5173\u95ED\u60AC\u8D4F\u5951\u7EA6" onclick="closeBountyModal()">\u2715</button></header>
+    <div class="bounty-dialog-toolbar"><span id="bounty-modal-status-badge">\u5F85\u7ACB\u7EA6</span><button type="button" onclick="toggleBountyPublishForm()">\uFF0B \u53D1\u5E03\u65B0\u5951\u7EA6</button></div>
+    <div id="bounty-modal-body" class="bounty-dialog-body">
+      <section id="bounty-publish-form-box" class="bounty-panel bounty-publish" style="display:none"><h3>\u7EA6\u5B9A\u4E00\u4E2A\u65B0\u6311\u6218</h3><label>\u6311\u6218\u4E3B\u9898<input id="bounty-new-title" maxlength="60" placeholder="\u4F8B\u5982\uFF1A\u72EC\u7ACB\u5B8C\u6210\u4E00\u4E2A\u89C2\u5BDF\u9879\u76EE"></label><div class="bounty-form-grid"><label>\u6210\u957F\u573A\u9986<select id="bounty-new-pavilion"><option>\u6821\u53F2\u9986 \xB7 \u5B66\u4E1A\u653B\u575A</option><option>\u6B66\u9053\u9986 \xB7 \u5174\u8DA3\u6210\u957F</option><option>\u601D\u8FA8\u9986 \xB7 \u601D\u8003\u63A2\u7D22</option><option>\u4FEE\u8EAB\u9601 \xB7 \u77E5\u884C\u5408\u4E00</option></select></label><label>\u6311\u6218\u671F\u9650\uFF08\u5929\uFF09<input id="bounty-new-days" type="number" min="1" max="366" value="7"></label></div><label>\u5171\u540C\u7EA6\u5B9A\u7684\u4F53\u9A8C\u5FC3\u613F<input id="bounty-new-reward" placeholder="\u4F8B\u5982\uFF1A\u4E00\u6B21\u4EB2\u5B50\u81EA\u7136\u63A2\u7D22"></label><label>\u9A8C\u6536\u6807\u51C6<textarea id="bounty-new-criteria" rows="3" placeholder="\u5199\u6E05\u8981\u5B8C\u6210\u4EC0\u4E48\uFF0C\u4EE5\u53CA\u5982\u4F55\u5171\u540C\u9A8C\u6536"></textarea></label><button type="button" class="bounty-primary" onclick="submitNewParentBounty()">\u53D1\u5E03\u5951\u7EA6</button></section>
+      <section class="bounty-panel bounty-current"><p id="bounty-modal-meta" class="bounty-muted"></p><h3 id="bounty-modal-title"></h3><p id="bounty-modal-contract-no" class="bounty-muted"></p><div class="bounty-reward"><span>\u{1F381} \u7EA6\u5B9A\u5FC3\u613F</span><strong id="bounty-modal-reward"></strong></div><h4>\u{1F4CB} \u9A8C\u6536\u6807\u51C6</h4><p id="bounty-modal-criteria"></p><ol class="bounty-steps"><li>\u2460 \u5BB6\u957F\u7ACB\u7EA6</li><li id="bounty-stage2-status">\u2461 \u5B69\u5B50\u63ED\u699C</li><li id="bounty-stage3-status">\u2462 \u5171\u540C\u9A8C\u6536</li></ol><p id="bounty-stage2-desc" class="bounty-muted"></p></section>
+      <section class="bounty-panel bounty-delivery"><h3>\u{1F4F8} \u7559\u4E0B\u6311\u6218\u8FC7\u7A0B</h3><div id="bounty-media-controls"></div><div id="bounty-media-list" class="bounty-media-list"></div></section>
+      <section class="bounty-panel bounty-verification"><h3>\u{1F91D} \u5171\u540C\u9A8C\u6536</h3><label>\u5BB6\u957F\u9A8C\u6536\u5BC4\u8BED<textarea id="bounty-parent-comment-input" rows="3" placeholder="\u5BF9\u7167\u6807\u51C6\uFF0C\u5199\u4E0B\u771F\u5B9E\u89C2\u5BDF\u4E0E\u9F13\u52B1"></textarea></label><label class="bounty-check"><input type="checkbox" id="domain-parent-confirm">\u5DF2\u5171\u540C\u6838\u9A8C\u539F\u4EF6\u548C\u9A8C\u6536\u6807\u51C6</label><p id="bounty-parent-stamp" class="bounty-muted"></p></section>
+      <section id="domain-bounty-history" class="bounty-history"></section>
     </div>
-  </div><!-- /modal-top-bounty-contract -->
+    <footer class="bounty-dialog-footer"><span>\u771F\u5B9E\u4EA4\u4ED8 \xB7 \u5171\u540C\u89C1\u8BC1</span><div><button type="button" onclick="closeBountyModal()">\u5173\u95ED</button><button type="button" class="bounty-primary" id="bounty-action-accept-btn" onclick="acceptParentBounty()">\u63ED\u699C\u5E94\u6218</button><button type="button" class="bounty-primary" id="bounty-action-redeem-btn" onclick="completeBountyDemo()">\u6838\u9A8C\u901A\u8FC7\u5E76\u5151\u73B0</button></div></footer>
+  </div>
+</div><!-- /modal-top-bounty-contract -->
 </main><!-- /main-viewport -->
 
   <!-- \u5BA2\u6237\u7AEF\u4EA4\u4E92\u811A\u672C\u4E0E\u6570\u636E\u6E90 -->
@@ -8120,9 +7969,8 @@ function bootPrototypeRuntime() {
       mMeta.textContent = "\u{1F3AF} \u5173\u8054\u89C4\u5212\uFF1A" + b.pavilionLabel + " | \u{1F468}\u200D\u{1F469}\u200D\u{1F466} \u5BB6\u957F\u53D1\u8D77\u60AC\u8D4F";
     if (mReward)
       mReward.textContent = b.reward;
-    if (mCriteria) {
-      mCriteria.innerHTML = "<strong>\u{1F4CB} \u5951\u7EA6\u9A8C\u6536\u6807\u51C6\uFF1A</strong><br>" + String(b.criteria).replace(/\n/g, "<br>");
-    }
+    if (mCriteria)
+      mCriteria.textContent = b.criteria;
     if (vaultPath)
       vaultPath.textContent = b.vaultFile;
     if (b.status === "published") {
@@ -16032,6 +15880,8 @@ function bootPrototypeRuntime() {
     (list.length ? list : [{}]).forEach(add);
     modal.querySelector("#domain-list-add").onclick = () => add({});
     modal.querySelector("#domain-list-save").onclick = () => {
+      if (!planningWriteAllowed())
+        return;
       const parsed = Array.from(rows.children).map((row) => {
         const label = row.querySelector(".domain-item-label").value.trim(), id2 = row.dataset.id;
         if (!label)
@@ -16287,6 +16137,7 @@ function bootPrototypeRuntime() {
     document.getElementById("exec-project-map-title").textContent = state.projects.find((p) => p.id === task.projectId)?.title || "\u4EB2\u5B50\u5951\u7EA6";
     document.getElementById("exec-project-map-summary").textContent = "\u5F53\u524D\u9879\u76EE\u7684\u771F\u5B9E\u8282\u70B9\u4E0E\u524D\u7F6E\u4F9D\u8D56";
     document.getElementById("btn-exec-popup-toggle-project").style.display = task.projectId ? "inline-flex" : "none";
+    evidenceSession.planningNode = freezeExecutionPlanning(node, saved);
     renderDomainExecution(node, saved, draft);
     return true;
   }
@@ -16305,7 +16156,7 @@ function bootPrototypeRuntime() {
     switchMainSection("island");
     switchHomeGlobalView("exec");
     originalOpenExec("goal");
-    evidenceSession = { taskId: task.id, taskInstanceId: task.id, nodeId: node.id, projectId: node.projectId, pavilionId: node.pavilionId, title: node.title, date: task.date, seconds: draft.seconds || 0, startedAt: 0, media: [...draft.media || []], saved: false, task };
+    evidenceSession = { taskId: task.id, taskInstanceId: task.id, nodeId: node.id, projectId: node.projectId, pavilionId: node.pavilionId, title: node.title, date: task.date, planningNode: freezeExecutionPlanning(node, null), seconds: draft.seconds || 0, startedAt: 0, media: [...draft.media || []], saved: false, task };
     document.getElementById("exec-popup-title").textContent = node.title + " \xB7 \u6210\u679C\u9A8C\u6536";
     document.getElementById("exec-popup-breadcrumb").textContent = (getDomainState().projects.find((p) => p.id === node.projectId)?.title || "") + " / " + node.title;
     renderDomainExecution(node, null, draft);
@@ -16314,6 +16165,7 @@ function bootPrototypeRuntime() {
     return { none: "\u65E0\u9700\u9644\u4EF6", text: "\u6587\u5B57\u8BF4\u660E\uFF08\u81F3\u5C1115\u5B57\uFF09", photo: "\u7167\u7247\u539F\u4EF6", video: "\u89C6\u9891\u539F\u4EF6", audio: "\u97F3\u9891\u539F\u4EF6" }[type] || "\u7167\u7247\u6216\u89C6\u9891\u539F\u4EF6";
   }
   function renderDomainExecution(node, saved, draft = {}) {
+    node = evidenceSession?.planningNode || node;
     const p = node?.cardPayload || {}, container = document.getElementById("exec-popup-task-view");
     delete container.dataset.activeCheckinType;
     let fields = "";
@@ -16328,7 +16180,7 @@ function bootPrototypeRuntime() {
     if (node?.nodeType === "custom")
       fields += "<h4>\u5B9E\u6D4B\u5B57\u6BB5</h4>" + p.customFieldsSchema.map((f) => "<label>" + escapeIslandText(f.label) + (f.required ? " *" : "") + (f.type === "boolean" ? '<input class="domain-custom-value" data-key="' + escapeIslandText(f.key) + '" type="checkbox">' : '<input class="domain-custom-value" data-key="' + escapeIslandText(f.key) + '" type="' + (f.type === "number" ? "number" : f.type === "date" ? "date" : "text") + '" value="' + escapeIslandText(saved?.customFieldValues?.[f.key] ?? draft.customFieldValues?.[f.key] ?? "") + '">') + "</label>").join("");
     const bounty = evidenceSession.task.bountyId ? getDomainState().bounties.find((b) => b.id === evidenceSession.task.bountyId) : null;
-    container.innerHTML = '<div class="note-card-box island-real-execution-form"><h3>' + escapeIslandText(evidenceSession.title) + '</h3><section id="island-execution-standard"><h4>\u89C4\u5212\u6807\u51C6 \xB7 \u53EA\u8BFB</h4><p>' + escapeIslandText(p.description || bounty?.criteria || "") + "</p><p>\u9884\u8BA1\u4E13\u6CE8\uFF1A" + (p.plannedMinutes || 0) + "\u5206\u949F\uFF1B\u4EA4\u4ED8\u8981\u6C42\uFF1A" + escapeIslandText(domainEvidenceLabel(p.evidenceType)) + "</p><p>\u6765\u6E90\u9879\u76EE\uFF1A" + escapeIslandText(getDomainState().projects.find((x) => x.id === evidenceSession.projectId)?.title || "\u4EB2\u5B50\u5951\u7EA6") + '</p></section><section class="island-real-execution-entry" oninput="saveExecutionDraft()"><div class="domain-planning-row"><strong id="island-real-elapsed">00:00</strong><button class="ui-btn" id="island-real-timer" onclick="toggleEvidenceTimer()">\u25B6 \u5F00\u59CB/\u7EE7\u7EED\u4E13\u6CE8</button></div>' + fields + "<label>" + (node?.nodeType === "review" ? "\u590D\u76D8\u8BF4\u660E\uFF08\u81F3\u5C1115\u5B57\uFF09" : "\u6267\u884C\u5FC3\u5F97\u4E0E\u4EA4\u4ED8\u8BF4\u660E") + '<textarea id="island-real-reflection">' + escapeIslandText(saved?.reflection || draft.reflection || "") + '</textarea></label><label>\u771F\u5B9E\u7269\u8BC1<input type="file" accept="image/*,video/*,audio/*" onchange="uploadExecutionEvidence(this)"></label><div id="island-real-media-list"></div><div id="domain-exec-errors" role="alert"></div><button class="ui-btn primary" id="island-real-submit" onclick="submitRealExecution()">' + (saved ? "\u2713 \u5DF2\u8BB0\u5F55" : "\u63D0\u4EA4\u5E76\u6821\u9A8C") + "</button>" + (node?.nodeType === "review" ? `<button class="ui-btn" onclick="deriveNodesFromReflectionCard('` + node.id + `',event)">\u{1F331} \u5C06\u5DF2\u4FDD\u5B58\u63D0\u5347\u884C\u52A8\u6D3E\u751F\u5B9E\u8BAD</button>` : "") + (node?.nodeType === "goal" ? `<button class="ui-btn" onclick="depositGoalToAchievement('` + node.id + `',event)">\u{1F3C6} \u5F52\u6863\u5DF2\u9A8C\u6536\u6210\u679C</button>` : "") + "</section></div>";
+    container.innerHTML = '<div class="note-card-box island-real-execution-form"><h3>' + escapeIslandText(evidenceSession.title) + "</h3>" + executionPlanningHtml(node, bounty) + '<section class="island-real-execution-entry" oninput="saveExecutionDraft()"><div class="domain-planning-row"><strong id="island-real-elapsed">00:00</strong><button class="ui-btn" id="island-real-timer" onclick="toggleEvidenceTimer()">\u25B6 \u5F00\u59CB/\u7EE7\u7EED\u4E13\u6CE8</button></div>' + fields + "<label>" + (node?.nodeType === "review" ? "\u590D\u76D8\u8BF4\u660E\uFF08\u81F3\u5C1115\u5B57\uFF09" : "\u6267\u884C\u5FC3\u5F97\u4E0E\u4EA4\u4ED8\u8BF4\u660E") + '<textarea id="island-real-reflection">' + escapeIslandText(saved?.reflection || draft.reflection || "") + "</textarea></label>" + mediaPickerControls("execution", "image/*,video/*", !!saved) + '<div id="island-real-media-list"></div><div id="domain-exec-errors" role="alert"></div><button class="ui-btn primary" id="island-real-submit" onclick="submitRealExecution()">' + (saved ? "\u2713 \u5DF2\u8BB0\u5F55" : "\u63D0\u4EA4\u5E76\u6821\u9A8C") + "</button>" + (node?.nodeType === "goal" ? `<button class="ui-btn" onclick="depositGoalToAchievement('` + node.id + `',event)">\u{1F3C6} \u5F52\u6863\u5DF2\u9A8C\u6536\u6210\u679C</button>` : "") + "</section></div>";
     container.querySelectorAll(".domain-metric-confirm").forEach((el) => el.checked = !!(saved?.metricConfirmations || draft.metricConfirmations || {})[el.dataset.key]);
     container.querySelectorAll(".domain-custom-value[type=checkbox]").forEach((el) => el.checked = !!(saved?.customFieldValues || draft.customFieldValues || {})[el.dataset.key]);
     if (saved)
@@ -16342,7 +16194,7 @@ function bootPrototypeRuntime() {
     document.querySelectorAll(".domain-metric-confirm").forEach((el) => data.metricConfirmations[el.dataset.key] = el.checked);
     document.querySelectorAll(".domain-check-result").forEach((el) => data.checklistResults[el.dataset.key] = el.checked);
     document.querySelectorAll(".domain-custom-value").forEach((el) => data.customFieldValues[el.dataset.key] = el.type === "checkbox" ? el.checked : el.value);
-    const node = getDomainNode(evidenceSession?.nodeId);
+    const node = evidenceSession?.planningNode || getDomainNode(evidenceSession?.nodeId);
     const improvements = document.getElementById("domain-review-improvements")?.value.split("\n").map((x) => x.trim()).filter(Boolean) || [];
     data.improvementList = improvements.map((text) => ({ ...node?.cardPayload.improvementList.find((x) => x.actionItem === text), actionItem: text, id: node?.cardPayload.improvementList.find((x) => x.actionItem === text)?.id || domainId("improvement"), isChecked: true }));
     return data;
@@ -16415,7 +16267,8 @@ function bootPrototypeRuntime() {
     const source = getDomainNode(task.nodeId);
     if (!source)
       return false;
-    const validation = validateDomainExecution(source, input);
+    const standard = evidenceSession?.taskId === task.id ? evidenceSession.planningNode || source : source;
+    const validation = validateDomainExecution(standard, input);
     if (!validation.valid) {
       const area = document.getElementById("domain-exec-errors");
       if (area)
@@ -16423,13 +16276,11 @@ function bootPrototypeRuntime() {
       showIslandToast(validation.errors[0]);
       return false;
     }
-    const record = { ...input, id: domainId("record"), taskInstanceId: task.id, taskId: task.id, nodeId: source.id, projectId: source.projectId, pavilionId: source.pavilionId, title: source.title, sourceSnapshot: JSON.parse(JSON.stringify({ title: source.title, nodeType: source.nodeType, projectId: source.projectId, cardPayload: source.cardPayload })), date: domainDate(), scheduledDate: task.date, completedAt: (/* @__PURE__ */ new Date()).toISOString(), validated: true, metrics: validation.metrics, media: (input.media || []).map((m) => ({ ...m })), focusSeconds: Math.max(0, Math.floor(Number(input.focusSeconds) || 0)) };
+    const record = { ...input, id: domainId("record"), taskInstanceId: task.id, taskId: task.id, nodeId: source.id, projectId: source.projectId, pavilionId: source.pavilionId, title: source.title, sourceSnapshot: JSON.parse(JSON.stringify({ title: standard.title, nodeType: standard.nodeType, projectId: standard.projectId, cardPayload: standard.cardPayload })), date: domainDate(), scheduledDate: task.date, completedAt: (/* @__PURE__ */ new Date()).toISOString(), validated: true, metrics: validation.metrics, media: (input.media || []).map((m) => ({ ...m })), focusSeconds: Math.max(0, Math.floor(Number(input.focusSeconds) || 0)) };
     state.records.push(record);
     source.executionRecords.push(record.id);
     source.updatedAt = record.completedAt;
     source.status = "completed";
-    if (source.nodeType === "review")
-      source.cardPayload.improvementList = record.improvementList;
     delete state.drafts[task.id];
     const project = state.projects.find((p) => p.id === source.projectId);
     project.completedDays = [...new Set(state.records.filter((r) => r.projectId === project.id).map((r) => r.date))];
@@ -17410,7 +17261,7 @@ function bootPrototypeRuntime() {
       body += planningCardSection("\u{1F3AF} \u91CF\u5316\u901A\u5173\u6307\u6807", metrics, planningCardListButton(node, "metrics", "\u7F16\u8F91\u6307\u6807"), "node-card-metrics");
       body += planningCardSection("\u{1F4CB} \u9A8C\u6536\u6807\u51C6", planningCardArea(node, "acceptanceCriteria", p.acceptanceCriteria, "\u5199\u660E\u6210\u679C\u4E0E\u9A8C\u6536\u65B9\u5F0F\u2026"), "", "node-card-acceptance");
       body += '<label class="node-deadline-row"><span>\u{1F4C5} \u671F\u671B\u5B8C\u6210</span>' + planningCardInput(node, "targetDeadline", p.targetDeadline, "datetime-local") + "</label>";
-      footer = '<span>\u9A8C\u6536\u901A\u8FC7\u540E\u6C89\u6DC0\u6210\u679C</span><button type="button" class="node-primary-action" onclick="' + planningCardAction("depositGoalToAchievement(" + JSON.stringify(node.id) + ",event)") + '">\u{1F3C6} \u8BB0\u5F55\u5DF2\u9A8C\u6536\u6210\u679C</button>';
+      footer = '<span>\u89C4\u5212\u76EE\u6807\u4E0E\u9A8C\u6536\u6807\u51C6</span><span class="node-footer-chip">\u5728\u6267\u884C\u9875\u9A8C\u6536</span>';
     } else if (type === "drill") {
       body += '<section class="node-focus-panel"><div><span class="node-focus-caption">\u23F1 \u8BA1\u5212\u4E13\u6CE8</span><div class="node-focus-value">' + planningCardInput(node, "plannedMinutes", p.plannedMinutes, "number", 'min="0" max="120" step="1" aria-label="\u8BA1\u5212\u4E13\u6CE8\u5206\u949F"') + '<span>\u5206\u949F</span></div></div><span class="node-focus-mark" aria-hidden="true">\u25F7</span></section>';
       body += '<div class="node-proof-note"><span>\u{1F4E6} \u4EA4\u4ED8\u8981\u6C42</span><strong>' + escapeIslandText({ none: "\u5B8C\u6210\u89C4\u5B9A\u7EC3\u4E60", text: "\u6267\u884C\u65F6\u63D0\u4EA4\u6587\u5B57\u5FC3\u5F97", photo: "\u6267\u884C\u65F6\u63D0\u4EA4\u7167\u7247\u7269\u8BC1", video: "\u6267\u884C\u65F6\u63D0\u4EA4\u89C6\u9891\u7269\u8BC1", audio: "\u6267\u884C\u65F6\u63D0\u4EA4\u97F3\u9891\u7269\u8BC1" }[p.evidenceType] || "\u6309\u8981\u6C42\u63D0\u4EA4\u7269\u8BC1") + "</strong></div>";
@@ -17422,14 +17273,14 @@ function bootPrototypeRuntime() {
     } else if (type === "review") {
       const list = p.improvementList.map((item, i) => '<li><span class="node-list-marker">' + (i + 1) + "</span><span>" + escapeIslandText(item.actionItem) + '</span><small class="' + (item.derivedNodeId ? "is-derived" : "") + '">' + (item.derivedNodeId ? "\u5DF2\u6D3E\u751F" : item.isChecked === false ? "\u672A\u9009\u62E9" : "\u5F85\u6D3E\u751F") + "</small></li>").join("");
       body += planningCardSection("\u{1F680} \u63D0\u5347\u884C\u52A8", '<ol class="node-improvements">' + list + "</ol>" + (!list ? '<p class="node-card-empty">\u628A\u590D\u76D8\u7ED3\u8BBA\u53D8\u6210\u4E0B\u4E00\u6B21\u7684\u5177\u4F53\u884C\u52A8\u3002</p>' : ""), planningCardListButton(node, "improvementList", "\u7F16\u8F91\u884C\u52A8"));
-      footer = '<span>\u590D\u76D8\u6C89\u6DC0 \xB7 \u9776\u5411\u63D0\u5347</span><button type="button" class="node-primary-action" onclick="' + planningCardAction("deriveNodesFromReflectionCard(" + JSON.stringify(node.id) + ",event)") + '">\u{1F331} \u6D3E\u751F\u5B9E\u8BAD\u8282\u70B9</button>';
+      footer = '<span>\u7F16\u6392\u540E\u7EED\u6210\u957F\u8BA1\u5212</span><button type="button" class="node-primary-action" onclick="' + planningCardAction("deriveNodesFromReflectionCard(" + JSON.stringify(node.id) + ",event)") + '">\u{1F331} \u6D3E\u751F\u540E\u7EED\u89C4\u5212</button>';
     } else if (type === "custom") {
       const names = { text: "\u6587\u5B57", number: "\u6570\u5B57", boolean: "\u662F / \u5426", date: "\u65E5\u671F" }, list = p.customFieldsSchema.map((field) => '<div class="node-custom-field"><span>' + escapeIslandText(field.label) + '</span><span class="node-field-kind">' + escapeIslandText(names[field.type] || field.type) + (field.required ? " \xB7 \u5FC5\u586B" : " \xB7 \u9009\u586B") + "</span></div>").join("");
       body += planningCardSection("\u{1F4CB} \u81EA\u5B9A\u4E49\u5B57\u6BB5", list || '<p class="node-card-empty">\u6DFB\u52A0\u9700\u8981\u586B\u62A5\u7684\u9879\u76EE\u4E0E\u5B57\u6BB5\u7C7B\u578B\u3002</p>', planningCardListButton(node, "customFieldsSchema", "\u7EF4\u62A4\u5B57\u6BB5"));
       footer = '<span>\u6267\u884C\u65F6\u586B\u5199\u5B9E\u9645\u7ED3\u679C</span><span class="node-footer-chip">' + p.customFieldsSchema.length + " \u4E2A\u5B57\u6BB5</span>";
     } else {
       body += '<div class="node-text-paper">' + planningCardArea(node, "textContent", p.textContent, "\u5199\u4E0B\u60F3\u6CD5\u3001\u8D44\u6599\u6216 Markdown \u6B63\u6587\u2026") + "</div>";
-      footer = '<span>\u7EAF\u8BB0\u5F55 \xB7 \u4E0D\u8BA1\u5165\u5C65\u7EA6</span><button type="button" class="node-secondary-action" onclick="' + planningCardAction("acknowledgeDomainText(" + JSON.stringify(node.id) + ")") + '">\u{1F441} \u9605\u8BFB\u7559\u75D5</button>';
+      footer = '<span>\u8D44\u6599\u4E0E\u60F3\u6CD5 \xB7 \u4E0D\u8BA1\u5165\u5C65\u7EA6</span><span class="node-footer-chip">\u89C4\u5212\u4FBF\u7B7E</span>';
     }
     body += planningCardSettings(node);
     return '<article class="a-my-island-work-node-card tertiary-card tertiary-' + legacy + '-card domain-node-card" id="' + escapeIslandText(node.id) + '" data-domain-node="true" data-node-type="' + type + '" data-label="' + escapeIslandText(node.title) + '" data-group-id="' + escapeIslandText(node.groupId || "") + '" data-group-root="' + escapeIslandText(node.groupRoot || "") + '" style="position:absolute;left:' + Number(node.canvasPosition.x) + "px;top:" + Number(node.canvasPosition.y) + 'px;width:340px;"><header class="work-node-card-header" ondblclick="' + planningCardAction("toggleTertiaryCardMinimize(" + JSON.stringify(node.id) + ",event)") + '" title="\u62D6\u52A8\u6807\u9898\u680F\u79FB\u52A8\uFF1B\u53CC\u51FB\u6298\u53E0\u6216\u5C55\u5F00"><div class="node-card-kicker"><span class="work-node-badge">' + meta[0] + " " + meta[1] + '</span><span class="node-card-status" id="status-text-' + escapeIslandText(node.id) + '">' + status + '</span><button type="button" class="node-card-collapse-toggle" aria-label="\u6298\u53E0\u6216\u5C55\u5F00\u8282\u70B9" onclick="' + planningCardAction("toggleTertiaryCardMinimize(" + JSON.stringify(node.id) + ",event)") + '">\u2303</button></div><div class="node-card-title-row"><span class="work-node-title">' + escapeIslandText(node.title) + '</span><button type="button" class="node-title-edit" aria-label="\u7F16\u8F91\u8282\u70B9\u540D\u79F0" onclick="' + planningCardAction("editPlanningCardTitle(" + JSON.stringify(node.id) + ",event)") + '">\u270E</button></div><p class="node-card-subtitle">' + meta[2] + '</p></header><div class="work-node-body domain-planning-body">' + body + '</div><footer class="node-card-footer">' + footer + '</footer><button type="button" class="work-card-connect-handle" data-card-id="' + escapeIslandText(node.id) + '" aria-label="\u4ECE\u6B64\u8282\u70B9\u8FDE\u63A5\u8DEF\u7EBF" title="\u62D6\u5411\u76EE\u6807\u8282\u70B9\uFF0C\u6216\u70B9\u51FB\u9009\u62E9\u8FDE\u7EBF\u8D77\u70B9" onclick="startOrFinishConnecting(this.dataset.cardId,event)">\u{1F517}</button></article>';
@@ -17777,6 +17628,367 @@ function bootPrototypeRuntime() {
     }
     if (event.key === "Tab") {
       const controls = Array.from(modal.querySelectorAll("button,input,textarea,select,[tabindex]")).filter((e) => !e.disabled && e.tabIndex >= 0 && e.getClientRects().length), first = controls[0], last = controls.at(-1);
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
+    }
+  }
+  function freezeExecutionPlanning(node, saved) {
+    if (!node)
+      return null;
+    const snapshot = saved?.sourceSnapshot;
+    return JSON.parse(JSON.stringify(snapshot ? { ...node, ...snapshot, cardPayload: snapshot.cardPayload } : node));
+  }
+  function planningWriteAllowed() {
+    if (!evidenceSession)
+      return true;
+    showIslandToast("\u8BF7\u5148\u8FD4\u56DE\u89C4\u5212\u89C6\u56FE\uFF0C\u518D\u4FEE\u6539\u9879\u76EE\u89C4\u5212\u3002");
+    return false;
+  }
+  function executionPlanningHtml(node, bounty) {
+    const p = node?.cardPayload || {}, items = [];
+    if (p.metrics?.length)
+      items.push("<p>\u76EE\u6807\u6307\u6807</p><ul>" + p.metrics.map((m) => "<li>" + escapeIslandText(m.name) + "\uFF1A" + escapeIslandText(m.targetValue) + "</li>").join("") + "</ul>");
+    if (p.acceptanceCriteria)
+      items.push("<p>\u9A8C\u6536\u6807\u51C6\uFF1A" + escapeIslandText(p.acceptanceCriteria) + "</p>");
+    if (p.checklist?.length)
+      items.push("<p>\u89C4\u5212\u6E05\u5355</p><ul>" + p.checklist.map((c) => "<li>" + escapeIslandText(c.title) + (c.required !== false ? "\uFF08\u5FC5\u9700\uFF09" : "") + "</li>").join("") + "</ul>");
+    if (p.improvementList?.length)
+      items.push("<p>\u89C4\u5212\u63D0\u5347\u884C\u52A8</p><ul>" + p.improvementList.map((c) => "<li>" + escapeIslandText(c.actionItem) + "</li>").join("") + "</ul>");
+    if (p.customFieldsSchema?.length)
+      items.push("<p>\u89C4\u5212\u5B57\u6BB5\uFF1A" + p.customFieldsSchema.map((f) => escapeIslandText(f.label) + (f.required ? "\uFF08\u5FC5\u586B\uFF09" : "")).join("\u3001") + "</p>");
+    return '<section id="island-execution-standard"><h4>\u89C4\u5212\u6807\u51C6 \xB7 \u53EA\u8BFB</h4><p>' + escapeIslandText(p.description || bounty?.criteria || "") + "</p>" + items.join("") + "<p>\u8BA1\u5212\u4E13\u6CE8\uFF1A" + Number(p.plannedMinutes || 0) + " \u5206\u949F \xB7 " + escapeIslandText(bounty ? "\u7167\u7247\u6216\u89C6\u9891\u539F\u4EF6" : domainEvidenceLabel(p.evidenceType || "none")) + "</p></section>";
+  }
+  const boundaryUpdateNode = updateDomainNode, boundaryUpdateDependencies = updateDomainDependencies, boundaryEditList = editDomainList, boundaryCreateNode = createTertiaryCustomPlanningCard;
+  updateDomainNode = function(...args) {
+    if (planningWriteAllowed())
+      return boundaryUpdateNode(...args);
+    return false;
+  };
+  updateDomainDependencies = function(...args) {
+    if (planningWriteAllowed())
+      return boundaryUpdateDependencies(...args);
+    return false;
+  };
+  editDomainList = function(...args) {
+    if (planningWriteAllowed())
+      return boundaryEditList(...args);
+    return false;
+  };
+  createTertiaryCustomPlanningCard = function(...args) {
+    if (planningWriteAllowed())
+      return boundaryCreateNode(...args);
+    return null;
+  };
+  const boundaryDerive = deriveNodesFromReflectionCard;
+  deriveNodesFromReflectionCard = function(id, event) {
+    if (!planningWriteAllowed())
+      return false;
+    const source = getDomainNode(id), state = getDomainState(), record = [...state.records].reverse().find((r) => r.nodeId === id && r.validated && r.improvementList?.length);
+    if (!source || !record)
+      return boundaryDerive(id, event);
+    event?.stopPropagation();
+    const project = state.projects.find((p) => p.id === source.projectId), nodes = state.nodesByProject[project.id];
+    let count = 0;
+    recordDomainHistory();
+    source.groupId = source.groupId || domainId("group");
+    source.groupRoot = id;
+    for (const action of record.improvementList.filter((i) => i.isChecked !== false && i.actionItem?.trim())) {
+      if (nodes.some((n) => n.cardPayload.derivedFrom?.recordId === record.id && n.cardPayload.derivedFrom?.actionId === action.id))
+        continue;
+      const date = domainDefaultNodeDate(project), child = domainNode({ title: action.actionItem.slice(0, 30), nodeType: "drill", plannedDate: date, groupId: source.groupId, groupRoot: id, cardPayload: { description: action.actionItem, plannedMinutes: 20, evidenceType: "photo", derivedFrom: { nodeId: id, recordId: record.id, actionId: action.id } } }, project);
+      child.canvasPosition = { x: source.canvasPosition.x + 400, y: source.canvasPosition.y + count * 400 };
+      nodes.push(child);
+      window2.PROJECT_CANVAS_STORE[project.id].edges.push({ id: domainId("edge"), sourceId: id, targetId: child.id, type: "\u6D3E\u751F", label: "\u590D\u76D8\u540E\u7EED\u89C4\u5212" });
+      count++;
+    }
+    renderDomainCanvas(project.id);
+    saveCurrentProjectCanvasSnapshot();
+    refreshDomainProjections();
+    if (count)
+      domainEvent("review.derived", id, "\u57FA\u4E8E\u5DF2\u4FDD\u5B58\u590D\u76D8\u521B\u5EFA " + count + " \u9879\u540E\u7EED\u89C4\u5212", { projectId: project.id, recordId: record.id });
+    else
+      showIslandToast("\u8BE5\u590D\u76D8\u884C\u52A8\u5DF2\u521B\u5EFA\u540E\u7EED\u89C4\u5212");
+    return count;
+  };
+  const boundaryEnterPlanning = enterTertiaryWorkspace, boundarySwitchHome = switchHomeGlobalView;
+  enterTertiaryWorkspace = function(...args) {
+    if (evidenceSession)
+      closeExecCardPopupView();
+    return boundaryEnterPlanning(...args);
+  };
+  switchHomeGlobalView = function(view) {
+    if (["plan", "planning"].includes(view) && evidenceSession)
+      closeExecCardPopupView();
+    return boundarySwitchHome(view);
+  };
+  const mediaJobs = /* @__PURE__ */ new Set();
+  const mediaPromises = /* @__PURE__ */ new Set();
+  let mediaClosing = false;
+  function handleNativeMediaFiles(input) {
+    if (mediaClosing)
+      return Promise.resolve(false);
+    const job = processNativeMediaFiles(input);
+    mediaPromises.add(job);
+    job.then(() => mediaPromises.delete(job), () => mediaPromises.delete(job));
+    return job;
+  }
+  async function flushMediaBeforeClose() {
+    mediaClosing = true;
+    await Promise.allSettled(Array.from(mediaPromises));
+  }
+  function mediaOwner(context) {
+    if (context === "execution")
+      return evidenceSession?.taskId || "";
+    if (context === "bounty")
+      return window2.BOUNTY_STATE?.id || "";
+    if (context === "journal")
+      return window2.NOTE_STATE.dateKey || domainDate();
+    if (context === "achievement")
+      return window2.__accidentalUploadToken || "";
+    if (context === "resource")
+      return window2.currentTertiaryProjId || "";
+    return context;
+  }
+  function mediaPickerControls(context, accept = "image/*,video/*", disabled = false) {
+    const owner = mediaOwner(context), busy = mediaJobs.has(context + ":" + owner), off = disabled || busy || mediaClosing;
+    const input = (source, label, types, capture = "") => '<label class="island-media-source" aria-disabled="' + off + '">' + label + '<input class="island-native-media-input" type="file" accept="' + types + '" ' + (capture ? 'capture="environment"' : "multiple") + ' data-media-context="' + context + '" data-media-owner="' + escapeIslandText(owner) + '" data-media-source="' + source + '" aria-label="' + label + '" onchange="handleNativeMediaFiles(this)"' + (off ? " disabled" : "") + "></label>";
+    return '<div class="island-media-picker" data-picker-context="' + context + '" aria-busy="' + busy + '">' + input("gallery", "\u{1F5BC} \u9009\u62E9\u7167\u7247/\u89C6\u9891", accept) + input("photo", "\u{1F4F7} \u62CD\u6444\u7167\u7247", "image/*", "environment") + input("video", "\u{1F3A5} \u62CD\u6444\u89C6\u9891", "video/*", "environment") + (context === "execution" ? input("audio", "\u{1F399} \u9009\u62E9\u5F55\u97F3", "audio/*") : "") + '<span class="island-media-status" role="status">' + (busy ? "\u6B63\u5728\u4FDD\u5B58\u539F\u4EF6\u2026" : "\u539F\u4EF6\u4FDD\u5B58\u5230\u5F53\u524D\u77E5\u8BC6\u5E93") + "</span></div>";
+  }
+  function mediaFileWithType(file) {
+    if (file.type)
+      return file;
+    const extension = file.name.split(".").pop().toLowerCase(), mime = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", gif: "image/gif", heic: "image/heic", heif: "image/heif", mp4: "video/mp4", mov: "video/quicktime", webm: "video/webm", m4v: "video/mp4", "3gp": "video/3gpp", mp3: "audio/mpeg", m4a: "audio/mp4", wav: "audio/wav", ogg: "audio/ogg" }[extension];
+    return mime ? new File([file], file.name, { type: mime, lastModified: file.lastModified }) : file;
+  }
+  function refreshMediaBusy(context, owner) {
+    const busy = mediaJobs.has(context + ":" + owner);
+    document.querySelectorAll(".island-native-media-input").forEach((input) => {
+      if (input.dataset.mediaContext === context && input.dataset.mediaOwner === owner) {
+        input.disabled = busy || context === "execution" && !!evidenceSession?.saved;
+        input.parentElement.setAttribute("aria-disabled", String(input.disabled));
+        input.closest(".island-media-picker").setAttribute("aria-busy", String(busy));
+        input.closest(".island-media-picker").querySelector(".island-media-status").textContent = busy ? "\u6B63\u5728\u4FDD\u5B58\u539F\u4EF6\u2026" : "\u539F\u4EF6\u4FDD\u5B58\u5230\u5F53\u524D\u77E5\u8BC6\u5E93";
+      }
+    });
+    if (context === "execution" && evidenceSession?.taskId === owner) {
+      const button = document.getElementById("island-real-submit");
+      if (button)
+        button.disabled = busy || evidenceSession.saved;
+    }
+    if (context === "bounty" && window2.BOUNTY_STATE?.id === owner) {
+      const button = document.getElementById("bounty-action-redeem-btn");
+      if (button)
+        button.disabled = busy || window2.BOUNTY_STATE.status !== "accepted";
+    }
+  }
+  async function processNativeMediaFiles(input) {
+    const files = Array.from(input.files || []), context = input.dataset.mediaContext, owner = input.dataset.mediaOwner, key = context + ":" + owner;
+    if (!files.length || mediaJobs.has(key))
+      return false;
+    const session = context === "execution" ? evidenceSession : null, bounty = context === "bounty" ? getDomainState().bounties.find((b) => b.id === owner) : null;
+    if (context === "execution" && (!session || session.taskId !== owner || session.saved))
+      return false;
+    if (context === "bounty" && bounty?.status !== "accepted")
+      return false;
+    if (context === "resource" && window2.currentTertiaryProjId !== owner)
+      return false;
+    if (context === "achievement" && window2.__accidentalUploadToken !== owner)
+      return false;
+    mediaJobs.add(key);
+    refreshMediaBusy(context, owner);
+    try {
+      for (const original of files) {
+        const file = mediaFileWithType(original), accept = input.accept.split(",");
+        if (!accept.some((a) => a.endsWith("/*") ? file.type.startsWith(a.slice(0, -1)) : file.type === a))
+          throw new Error("\u8BF7\u9009\u62E9\u6B64\u5165\u53E3\u652F\u6301\u7684\u7167\u7247\u3001\u89C6\u9891\u6216\u5F55\u97F3");
+        const media = await persistDomainMedia(file);
+        if (context === "execution") {
+          const active = evidenceSession?.taskId === owner && !evidenceSession.saved ? evidenceSession : session;
+          active.media.push(media);
+          if (active === evidenceSession) {
+            renderDomainEvidence();
+            saveExecutionDraft();
+          } else
+            getDomainState().drafts[owner] = { ...getDomainState().drafts[owner] || {}, media: [...active.media] };
+        } else if (context === "bounty") {
+          bounty.evidence = [...bounty.evidence || [], media];
+          bounty.evidencePath = media.path;
+          bounty.evidenceName = media.name;
+          bounty.evidenceUploaded = true;
+          invalidateBountyVerification(owner);
+          if (window2.BOUNTY_STATE?.id === owner)
+            renderBountyModalAndBillboard();
+        } else if (context === "journal") {
+          ensureBusinessDate();
+          const note = window2.NOTE_STATE, entry = note.dateKey === owner ? null : note.historyEntries.find((e) => e.date === owner);
+          if (note.dateKey === owner)
+            note.mediaList.unshift(media);
+          else if (entry)
+            entry.media = [...entry.media || [], media];
+          if (note.dateKey === owner)
+            refreshNoteMediaGallery();
+        } else if (context === "achievement") {
+          if (window2.__accidentalUploadToken !== owner)
+            throw new Error("\u8BE5\u9AD8\u5149\u8BB0\u5F55\u5DF2\u5173\u95ED\uFF0C\u8BF7\u91CD\u65B0\u9009\u62E9\u9644\u4EF6");
+          window2.__accidentalDomainMedia = media;
+          const preview = document.getElementById("achieve-acc-image-preview");
+          if (preview) {
+            preview.textContent = "\u5DF2\u4FDD\u5B58\u539F\u4EF6\uFF1A" + media.name;
+            preview.style.display = "block";
+          }
+        } else if (context === "resource") {
+          if (window2.currentTertiaryProjId !== owner)
+            throw new Error("\u9879\u76EE\u5DF2\u5207\u6362\uFF0C\u8BF7\u5728\u76EE\u6807\u9879\u76EE\u91CD\u65B0\u9009\u62E9\u8D44\u6599");
+          if (!planningWriteAllowed())
+            throw new Error("\u8BF7\u8FD4\u56DE\u89C4\u5212\u89C6\u56FE\u63D2\u5165\u8D44\u6599");
+          createTertiaryCustomPlanningCard({ nodeType: "text", title: "\u8D44\u6599 \xB7 " + media.name.slice(0, 23), content: "![[" + media.path + "]]" });
+        }
+        notifyIslandStateChanged();
+      }
+      return true;
+    } catch (error) {
+      showIslandToast("\u9644\u4EF6\u4FDD\u5B58\u5931\u8D25\uFF1A" + error.message);
+      return false;
+    } finally {
+      input.value = "";
+      mediaJobs.delete(key);
+      refreshMediaBusy(context, owner);
+    }
+  }
+  function openMediaSourceDialog(context) {
+    document.getElementById("island-media-source-dialog")?.remove();
+    const dialog = document.createElement("div");
+    dialog.id = "island-media-source-dialog";
+    dialog.className = "domain-modal";
+    dialog.innerHTML = '<div class="note-card-box"><h3>\u6DFB\u52A0\u7167\u7247\u6216\u89C6\u9891</h3>' + mediaPickerControls(context) + `<button type="button" onclick="document.getElementById('island-media-source-dialog').remove()">\u5B8C\u6210 / \u5173\u95ED</button></div>`;
+    (document.querySelector(".youth-island-plugin-root") || document.body).append(dialog);
+  }
+  uploadBountyEvidence = function() {
+    const input = document.querySelector('#bounty-media-controls [data-media-source="gallery"]');
+    if (input && !input.disabled)
+      input.click();
+  };
+  createImageEvidencePrompt = function() {
+    if (planningWriteAllowed())
+      openMediaSourceDialog("resource");
+  };
+  const nativeMediaNoteRenderer = renderNoteSpecializedWorkspace;
+  renderNoteSpecializedWorkspace = function() {
+    const holder = document.createElement("div");
+    holder.innerHTML = nativeMediaNoteRenderer();
+    const input = holder.querySelector("#note-photo-file-input");
+    if (input)
+      input.parentElement.innerHTML = mediaPickerControls("journal");
+    return holder.innerHTML;
+  };
+  renderNoteMediaGalleryHtml = function() {
+    return window2.NOTE_STATE.mediaList.map((m) => '<div class="note-history-card"><button class="ui-btn" onclick="openDomainMedia(' + escapeIslandText(JSON.stringify(m.id)) + ')">' + escapeIslandText(m.name) + "</button><span>" + escapeIslandText(m.type === "image" ? "\u7167\u7247\u539F\u4EF6" : m.duration == null ? "\u89C6\u9891 / \u5F55\u97F3\u539F\u4EF6" : Math.round(m.duration) + "\u79D2") + '</span><button class="ui-btn" onclick="removeNoteMedia(' + escapeIslandText(JSON.stringify(m.id)) + ')">\u79FB\u9664</button></div>').join("");
+  };
+  const nativeMediaAchievementOpen = openRegisterAccidentalAchievementModal;
+  openRegisterAccidentalAchievementModal = function() {
+    nativeMediaAchievementOpen();
+    window2.__accidentalUploadToken = domainId("highlight");
+    window2.__accidentalDomainMedia = null;
+    const input = document.getElementById("accidental-image-file");
+    if (input) {
+      const container = input.parentElement;
+      container.innerHTML = mediaPickerControls("achievement");
+      container.parentElement.querySelector("label").textContent = "\u7167\u7247\u6216\u89C6\u9891\u7269\u8BC1";
+    } else {
+      const controls = document.querySelector("#register-accidental-achievement-modal .island-media-picker");
+      if (controls)
+        controls.outerHTML = mediaPickerControls("achievement");
+    }
+  };
+  const mediaSubmitExecution = submitRealExecution;
+  submitRealExecution = function() {
+    if (evidenceSession && mediaJobs.has("execution:" + evidenceSession.taskId)) {
+      showIslandToast("\u8BF7\u7B49\u5F85\u539F\u4EF6\u4FDD\u5B58\u5B8C\u6210");
+      return false;
+    }
+    return mediaSubmitExecution();
+  };
+  const mediaRedeemBounty = completeBountyDemo;
+  completeBountyDemo = function() {
+    if (mediaJobs.has("bounty:" + window2.BOUNTY_STATE?.id)) {
+      showIslandToast("\u8BF7\u7B49\u5F85\u539F\u4EF6\u4FDD\u5B58\u5B8C\u6210");
+      return false;
+    }
+    return mediaRedeemBounty();
+  };
+  const bountyDialogRender = renderBountyModalAndBillboard;
+  let bountyDialogLastId = null, bountyDialogFocus = null;
+  const bountyGuardianDrafts = /* @__PURE__ */ new Map();
+  function invalidateBountyVerification(id) {
+    const draft = bountyGuardianDrafts.get(id);
+    if (draft)
+      draft.confirmed = false;
+    if (window2.BOUNTY_STATE?.id === id) {
+      const confirmation = document.getElementById("domain-parent-confirm");
+      if (confirmation)
+        confirmation.checked = false;
+    }
+  }
+  renderBountyModalAndBillboard = function() {
+    const current = window2.BOUNTY_STATE, id = current?.id || null, comment = document.getElementById("bounty-parent-comment-input"), confirmation = document.getElementById("domain-parent-confirm");
+    if (bountyDialogLastId && bountyDialogLastId !== id)
+      bountyGuardianDrafts.set(bountyDialogLastId, { comment: comment?.value || "", confirmed: confirmation?.checked || false });
+    bountyDialogRender();
+    const b = window2.BOUNTY_STATE, modal = document.getElementById("bounty-modal-backdrop");
+    if (!modal)
+      return;
+    modal.querySelector(".bounty-current").hidden = !b;
+    modal.querySelector(".bounty-delivery").hidden = !b || b.status === "published";
+    modal.querySelector(".bounty-verification").hidden = !b || b.status === "published";
+    if (b) {
+      document.getElementById("bounty-modal-criteria").textContent = b.criteria;
+      document.getElementById("bounty-modal-contract-no").textContent = "\u7ACB\u7EA6 " + b.createdDate + " \xB7 \u5230\u671F " + b.endDate;
+      document.getElementById("bounty-stage2-desc").textContent = b.status === "published" ? "\u63ED\u699C\u540E\u5F00\u59CB\u6311\u6218\uFF1B\u5B8C\u6210\u540E\u63D0\u4EA4\u771F\u5B9E\u7269\u8BC1\u3002" : b.status === "accepted" ? "\u6309\u7EA6\u5B9A\u5B8C\u6210\u6311\u6218\u5E76\u63D0\u4EA4\u7167\u7247\u6216\u89C6\u9891\uFF0C\u7B49\u5F85\u5171\u540C\u9A8C\u6536\u3002" : "\u539F\u59CB\u7269\u8BC1\u548C\u9A8C\u6536\u8BB0\u5F55\u5DF2\u5F52\u6863\u3002";
+      document.getElementById("bounty-media-controls").innerHTML = mediaPickerControls("bounty", "image/*,video/*", b.status !== "accepted");
+      document.getElementById("bounty-media-list").innerHTML = (b.evidence || []).map((m) => '<button type="button" class="bounty-media-item" onclick="openDomainMedia(' + escapeIslandText(JSON.stringify(m.id)) + ')">' + (m.type === "video" ? "\u{1F3A5}" : "\u{1F4F7}") + " " + escapeIslandText(m.name) + "</button>").join("") || '<p class="bounty-muted">\u8FD8\u6CA1\u6709\u63D0\u4EA4\u7269\u8BC1</p>';
+      if (bountyDialogLastId !== id) {
+        const draft = bountyGuardianDrafts.get(id);
+        comment.value = b.parentComment || draft?.comment || "";
+        confirmation.checked = !!draft?.confirmed;
+      }
+      comment.disabled = b.status === "redeemed";
+      confirmation.disabled = b.status === "redeemed";
+      if (b.status === "redeemed") {
+        comment.value = b.parentComment;
+        confirmation.checked = true;
+        document.getElementById("bounty-action-redeem-btn").disabled = true;
+      }
+    }
+    const names = { published: "\u5F85\u63ED\u699C", accepted: "\u8FDB\u884C\u4E2D", redeemed: "\u5DF2\u5151\u73B0" };
+    document.getElementById("domain-bounty-history").innerHTML = "<h3>\u5951\u7EA6\u8BB0\u5F55</h3>" + getDomainState().bounties.map((item) => '<button type="button" class="bounty-history-item" aria-pressed="' + (item.id === id) + '" onclick="selectDomainBounty(' + escapeIslandText(JSON.stringify(item.id)) + ')"><span>' + escapeIslandText(item.title) + "</span><small>" + escapeIslandText(names[item.status] || item.status) + "</small></button>").join("");
+    bountyDialogLastId = id;
+  };
+  const bountyDialogOpen = openBountyModal, bountyDialogClose = closeBountyModal;
+  openBountyModal = function() {
+    bountyDialogFocus = document.activeElement;
+    bountyDialogOpen();
+    document.querySelector("#bounty-modal-backdrop .bounty-close")?.focus();
+  };
+  closeBountyModal = function() {
+    bountyDialogClose();
+    if (bountyDialogFocus?.isConnected)
+      bountyDialogFocus.focus({ preventScroll: true });
+    bountyDialogFocus = null;
+  };
+  function handleBountyDialogKeydown(event) {
+    event.stopPropagation();
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeBountyModal();
+      return;
+    }
+    if (event.key === "Tab") {
+      const list = Array.from(document.querySelectorAll("#bounty-modal-backdrop button,#bounty-modal-backdrop input,#bounty-modal-backdrop textarea,#bounty-modal-backdrop select")).filter((e) => !e.disabled && e.getClientRects().length), first = list[0], last = list.at(-1);
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
         last?.focus();
@@ -19989,6 +20201,32 @@ function bootPrototypeRuntime() {
     window2.submitNodeCreator = submitNodeCreator;
   if (typeof handleNodeCreatorKeydown === "function")
     window2.handleNodeCreatorKeydown = handleNodeCreatorKeydown;
+  if (typeof freezeExecutionPlanning === "function")
+    window2.freezeExecutionPlanning = freezeExecutionPlanning;
+  if (typeof planningWriteAllowed === "function")
+    window2.planningWriteAllowed = planningWriteAllowed;
+  if (typeof executionPlanningHtml === "function")
+    window2.executionPlanningHtml = executionPlanningHtml;
+  if (typeof handleNativeMediaFiles === "function")
+    window2.handleNativeMediaFiles = handleNativeMediaFiles;
+  if (typeof flushMediaBeforeClose === "function")
+    window2.flushMediaBeforeClose = flushMediaBeforeClose;
+  if (typeof mediaOwner === "function")
+    window2.mediaOwner = mediaOwner;
+  if (typeof mediaPickerControls === "function")
+    window2.mediaPickerControls = mediaPickerControls;
+  if (typeof mediaFileWithType === "function")
+    window2.mediaFileWithType = mediaFileWithType;
+  if (typeof refreshMediaBusy === "function")
+    window2.refreshMediaBusy = refreshMediaBusy;
+  if (typeof processNativeMediaFiles === "function")
+    window2.processNativeMediaFiles = processNativeMediaFiles;
+  if (typeof openMediaSourceDialog === "function")
+    window2.openMediaSourceDialog = openMediaSourceDialog;
+  if (typeof invalidateBountyVerification === "function")
+    window2.invalidateBountyVerification = invalidateBountyVerification;
+  if (typeof handleBountyDialogKeydown === "function")
+    window2.handleBountyDialogKeydown = handleBountyDialogKeydown;
   if (typeof canvasLocalPoint === "function")
     window2.canvasLocalPoint = canvasLocalPoint;
   if (typeof readPlanViewport === "function")
@@ -20396,6 +20634,7 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
       this.stateChangeHandler = null;
     }
     try {
+      await window.flushMediaBeforeClose?.();
       window.saveExecutionDraft?.();
       await this.plugin.vaultStorage.syncRuntimeToVault();
     } catch (error) {
@@ -20654,6 +20893,7 @@ var YouthGrowthIslandPlugin = class extends import_obsidian4.Plugin {
   }
   async onunload() {
     try {
+      await window.flushMediaBeforeClose?.();
       await this.vaultStorage.syncRuntimeToVault();
     } catch (error) {
       console.error("[YouthIsland] \u5173\u95ED\u524D\u4FDD\u5B58\u672A\u5B8C\u6210", error);
