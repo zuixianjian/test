@@ -1,0 +1,28 @@
+#tertiary-edge-popover { display:flex; flex-direction:column; gap:0; width:352px; max-width:calc(100% - 16px); max-height:calc(100% - 16px); min-width:0; padding:0; overflow:hidden; border:1px solid #ddceb0; border-radius:15px; background:#fffdf6; color:#614b30; box-sizing:border-box; box-shadow:0 12px 35px #38271133; }
+#tertiary-edge-popover.is-hidden { display:none!important; }
+#tertiary-edge-popover * { box-sizing:border-box; }
+.route-settings-header { display:flex; flex:none; align-items:center; justify-content:space-between; gap:12px; padding:12px 15px; border-bottom:1px solid #e8ddc8; background:#faf3e2; }
+#tertiary-edge-popover .a-my-island-work-edge-popover-title { padding:0; margin:0; border:0; font-size:14px; text-align:left; }
+.route-settings-body { min-height:0; overflow:auto; padding:14px; display:flex; flex-direction:column; gap:14px; overscroll-behavior:contain; touch-action:pan-y; }
+.route-settings-section { margin:0; padding:0; border:0; min-inline-size:0; }
+.route-settings-section legend, .route-settings-name { display:block; margin:0 0 7px; padding:0; font-size:12px; font-weight:750; color:#796044; }
+.route-settings-hint { margin:0 0 8px; font-size:11px; line-height:1.55; color:#a18b6f; }
+#tertiary-edge-popover button { min-width:0; max-width:100%; min-height:36px; height:auto; margin:0; padding:7px 9px; border:1px solid #d9cdb7; border-radius:8px; background:#fffdf8; color:#725b3b; font:inherit; font-size:12px; line-height:1.5; white-space:normal; overflow-wrap:anywhere; text-overflow:clip; box-shadow:none; cursor:pointer; }
+#tertiary-edge-popover .route-settings-close { flex:none; width:32px; min-height:32px; height:32px; padding:0; }
+#tertiary-edge-popover .a-my-island-work-edge-hierarchy-actions { display:grid; grid-template-columns:minmax(0,1fr); gap:7px; }
+#tertiary-edge-popover .a-my-island-work-edge-hierarchy-actions button { text-align:left; }
+.route-settings-choice-row { display:flex; gap:7px; }
+.route-settings-choice-row > button { flex:1; }
+#tertiary-edge-popover .route-settings-reverse { width:100%; margin-top:7px; }
+#tertiary-edge-popover button.is-active { background:#e9f4e4; border-color:#9abb8d; color:#42693b; box-shadow:0 0 0 1px #9abb8d44; }
+#tertiary-edge-popover .a-my-island-work-edge-width-field { margin-top:10px; padding:0; display:flex; flex-direction:column; gap:5px; }
+.a-my-island-work-edge-width-header { margin:0; min-width:0; }
+#tertiary-edge-popover #edge-width-slider { width:100%; min-width:0; height:26px; min-height:26px; margin:0; padding:0; accent-color:#85a46e; }
+#tertiary-edge-popover .a-my-island-work-edge-colors { display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px; padding:8px 0 0; }
+#tertiary-edge-popover .a-my-island-work-edge-color { width:100%; min-height:30px; height:30px; padding:0; border:2px solid #ded4c0; border-radius:7px; background:var(--a-my-island-edge-color)!important; transform:none; }
+#tertiary-edge-popover .a-my-island-work-edge-color.is-active { border-color:#865527; outline:2px solid #b88a5944; box-shadow:none; }
+.route-settings-name { display:flex; flex-direction:column; gap:7px; margin:0; }
+#tertiary-edge-popover #edge-custom-label-input { width:100%; min-width:0; min-height:38px; height:38px; margin:0; padding:8px 10px; border:1px solid #d9cdb7; border-radius:8px; font:inherit; font-size:12px; background:#fffefb; color:#614b30; box-shadow:none; }
+.route-settings-footer { flex:none; padding:10px 14px; border-top:1px solid #e8ddc8; background:#fffdf6; }
+#tertiary-edge-popover .a-my-island-work-edge-popover-delete { width:100%; color:#ad4940; border-color:#eac2bd; background:#fff5f3; }
+#tertiary-edge-popover :focus-visible { outline:2px solid #b69761; outline-offset:2px; }

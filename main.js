@@ -829,7 +829,7 @@ ${executions || "\u5C1A\u65E0\u6267\u884C\u8BB0\u5F55"}
 var import_obsidian2 = require("obsidian");
 
 // src/ui/template.ts
-var ISLAND_UI_HTML = `<div class="global-header product-contract-banner" data-product-contract="3">1.2.3 \u95ED\u73AF\u4EA4\u4E92\u9884\u89C8 \xB7 \u6309\u9879\u76EE/\u8282\u70B9/\u6BCF\u65E5\u4EFB\u52A1\u5B9E\u4F8B\u5173\u8054 \xB7 \u672C\u9884\u89C8\u6570\u636E\u4FDD\u5B58\u5728\u5F53\u524D\u6D4F\u89C8\u5668\uFF0C\u7EC4\u4EF6\u753B\u677F\u6837\u4F8B\u4E0D\u8BA1\u4E3A\u5B9E\u9645\u6267\u884C</div>
+var ISLAND_UI_HTML = `<div class="global-header product-contract-banner" data-product-contract="3">1.2.4 \u95ED\u73AF\u4EA4\u4E92\u9884\u89C8 \xB7 \u6309\u9879\u76EE/\u8282\u70B9/\u6BCF\u65E5\u4EFB\u52A1\u5B9E\u4F8B\u5173\u8054 \xB7 \u672C\u9884\u89C8\u6570\u636E\u4FDD\u5B58\u5728\u5F53\u524D\u6D4F\u89C8\u5668\uFF0C\u7EC4\u4EF6\u753B\u677F\u6837\u4F8B\u4E0D\u8BA1\u4E3A\u5B9E\u9645\u6267\u884C</div>
   <!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5907\u63A7\u5236\u4E0E\u4E3B\u6A21\u6001\u5207\u6362) -->
   <header class="global-header">
     <div class="system-title-group">
@@ -2461,60 +2461,17 @@ var ISLAND_UI_HTML = `<div class="global-header product-contract-banner" data-pr
       </div>
 
       <!-- 3. \u539F\u7248 1:1 \u7EC8\u8EAB\u5C9B\u6C11\u3010\u8DEF\u7EBF\u8BBE\u7F6E\u3011\u5F39\u51FA\u7A97 (.a-my-island-work-edge-popover) -->
-      <div class="a-my-island-work-edge-popover is-hidden" id="tertiary-edge-popover" onclick="event.stopPropagation()">
-        <div class="a-my-island-work-edge-popover-title">\u8DEF\u7EBF\u8BBE\u7F6E</div>
-
-        <!-- \u4E0A\u4E0B\u7EA7\u5173\u7CFB\u4E0E\u7BAD\u5934\u6307\u5411 -->
-        <div class="a-my-island-work-edge-hierarchy">
-          <div class="a-my-island-work-edge-hierarchy-title">\u8BBE\u4E3A\u4E0A\u4E0B\u7EA7 \xB7 \u7BAD\u5934\u6307\u5411\u5B50\u7EA7</div>
-          <div class="a-my-island-work-edge-hierarchy-actions">
-            <button type="button" id="btn-edge-hier-forward" onclick="handleEdgeHierarchy(false)">\u8282\u70B9A \u2192 \u8282\u70B9B</button>
-            <button type="button" id="btn-edge-hier-backward" onclick="handleEdgeHierarchy(true)">\u8282\u70B9B \u2192 \u8282\u70B9A</button>
-          </div>
-        </div>
-
-        <!-- \u8DEF\u7EBF\u65B9\u5411\u4E0E\u865A\u5B9E\u7EBF\u63A7\u5236 -->
-        <div class="a-my-island-work-edge-popover-actions">
-          <button type="button" onclick="reverseEdgeDirection()">\u53CD\u8F6C</button>
-          <button type="button" class="btn-arrow-mode is-active" data-mode="single" onclick="setEdgeArrowMode(&apos;single&apos;)">\u5355\u5411</button>
-          <button type="button" class="btn-arrow-mode" data-mode="double" onclick="setEdgeArrowMode(&apos;double&apos;)">\u53CC\u5411</button>
-          <button type="button" class="btn-arrow-mode" data-mode="none" onclick="setEdgeArrowMode(&apos;none&apos;)">\u65E0\u5411</button>
-          <button type="button" class="btn-line-style is-active" data-style="solid" onclick="setEdgeLineStyle(&apos;solid&apos;)">\u5B9E\u7EBF</button>
-          <button type="button" class="btn-line-style" data-style="dashed" onclick="setEdgeLineStyle(&apos;dashed&apos;)">\u865A\u7EBF</button>
-        </div>
-
-        <!-- \u7EBF\u6761\u7C97\u7EC6 (1~6 \u6863\u6ED1\u5757) -->
-        <div class="a-my-island-work-edge-width-field">
-          <div class="a-my-island-work-edge-width-header">
-            <span>\u7EBF\u6761\u7C97\u7EC6</span>
-            <span class="a-my-island-work-edge-width-value" id="edge-width-display">3\u6863</span>
-          </div>
-          <input type="range" class="a-my-island-work-edge-width-slider" id="edge-width-slider" min="1" max="6" step="1" value="3" oninput="handleEdgeWidthInput(this.value)">
-        </div>
-
-        <!-- \u539F\u7248 8 \u79CD\u7EBF\u8DEF\u8C03\u8272\u677F -->
-        <div class="a-my-island-work-edge-colors" id="edge-color-swatches">
-          <!-- \u52A8\u6001\u6CE8\u5165 8 \u8272\u6309\u94AE -->
-        </div>
-
-        <!-- \u81EA\u5B9A\u4E49\u5173\u7CFB\u540D\u79F0 -->
-        <input type="text" class="a-my-island-work-edge-name" id="edge-custom-label-input" placeholder="\u81EA\u5B9A\u4E49\u5173\u7CFB\u540D\u79F0" oninput="handleEdgeLabelChange(this.value)">
-
-        <!-- \u5173\u7CFB\u7C7B\u522B\u4E0B\u62C9\u9009\u62E9\u5668 -->
-        <select class="a-my-island-work-edge-popover-select" id="edge-type-select" onchange="handleEdgeTypeSelect(this.value)">
-          <option value="\u5305\u542B">\u5305\u542B</option>
-          <option value="\u524D\u7F6E">\u524D\u7F6E</option>
-          <option value="\u5173\u8054" selected>\u5173\u8054</option>
-          <option value="\u963B\u585E">\u963B\u585E</option>
-          <option value="\u901A\u5F80">\u901A\u5F80</option>
-          <option value="\u4F9D\u8D56">\u4F9D\u8D56</option>
-          <option value="none">\u65E0</option>
-          <option value="\u6D3E\u751F">\u6D3E\u751F</option>
-        </select>
-
-        <!-- \u5220\u9664\u8DEF\u7EBF\u6309\u94AE -->
-        <button type="button" class="a-my-island-work-edge-popover-delete" onclick="handleDeleteActiveEdge()">\u5220\u9664\u8DEF\u7EBF</button>
-      </div>
+      <div class="a-my-island-work-edge-popover is-hidden" id="tertiary-edge-popover" role="dialog" aria-label="\u8DEF\u7EBF\u8BBE\u7F6E" onclick="event.stopPropagation()">
+  <header class="route-settings-header"><div class="a-my-island-work-edge-popover-title">\u8DEF\u7EBF\u8BBE\u7F6E</div><button type="button" class="route-settings-close" aria-label="\u5173\u95ED\u8DEF\u7EBF\u8BBE\u7F6E" onclick="closeRouteSettings()">\u2715</button></header>
+  <div class="route-settings-body">
+    <fieldset class="route-settings-section"><legend>\u4E0A\u4E0B\u7EA7\u5173\u7CFB</legend><p class="route-settings-hint">\u9009\u62E9\u7236\u8282\u70B9\u5230\u5B50\u8282\u70B9\u7684\u65B9\u5411\uFF0C\u4E0B\u7EA7\u53EF\u968F\u7236\u8282\u70B9\u79FB\u52A8\u3002</p><div class="a-my-island-work-edge-hierarchy-actions"><button type="button" id="btn-edge-hier-forward" onclick="handleEdgeHierarchy(false)">\u8282\u70B9A \u2192 \u8282\u70B9B</button><button type="button" id="btn-edge-hier-backward" onclick="handleEdgeHierarchy(true)">\u8282\u70B9B \u2192 \u8282\u70B9A</button></div></fieldset>
+    <fieldset class="route-settings-section"><legend>\u5173\u7CFB\u7C7B\u522B</legend><select class="a-my-island-work-edge-popover-select" id="edge-type-select" aria-label="\u5173\u7CFB\u7C7B\u522B" onchange="handleEdgeTypeSelect(this.value)"><option value="\u5305\u542B">\u5305\u542B</option><option value="\u524D\u7F6E">\u524D\u7F6E</option><option value="\u5173\u8054" selected>\u5173\u8054</option><option value="\u963B\u585E">\u963B\u585E</option><option value="\u901A\u5F80">\u901A\u5F80</option><option value="\u4F9D\u8D56">\u4F9D\u8D56</option><option value="none">\u65E0</option><option value="\u6D3E\u751F">\u6D3E\u751F</option></select></fieldset>
+    <fieldset class="route-settings-section"><legend>\u7BAD\u5934\u4E0E\u65B9\u5411</legend><div class="route-settings-choice-row"><button type="button" class="btn-arrow-mode" data-mode="single" onclick="setEdgeArrowMode('single')">\u5355\u5411</button><button type="button" class="btn-arrow-mode" data-mode="double" onclick="setEdgeArrowMode('double')">\u53CC\u5411</button><button type="button" class="btn-arrow-mode" data-mode="none" onclick="setEdgeArrowMode('none')">\u65E0\u5411</button></div><button type="button" class="route-settings-reverse" onclick="reverseEdgeDirection()">\u21C4 \u4EC5\u53CD\u8F6C\u7EBF\u8DEF\u65B9\u5411</button></fieldset>
+    <fieldset class="route-settings-section"><legend>\u7EBF\u6761\u6837\u5F0F</legend><div class="route-settings-choice-row"><button type="button" class="btn-line-style" data-style="solid" onclick="setEdgeLineStyle('solid')">\u5B9E\u7EBF</button><button type="button" class="btn-line-style" data-style="dashed" onclick="setEdgeLineStyle('dashed')">\u865A\u7EBF</button></div><div class="a-my-island-work-edge-width-field"><label class="a-my-island-work-edge-width-header" for="edge-width-slider"><span>\u7EBF\u6761\u7C97\u7EC6</span><span id="edge-width-display">3\u6863</span></label><input type="range" id="edge-width-slider" min="1" max="6" step="1" value="3" aria-label="\u7EBF\u6761\u7C97\u7EC6" oninput="handleEdgeWidthInput(this.value)"></div><div class="a-my-island-work-edge-colors" id="edge-color-swatches" aria-label="\u7EBF\u8DEF\u989C\u8272"></div></fieldset>
+    <label class="route-settings-name">\u5173\u7CFB\u540D\u79F0<input type="text" class="a-my-island-work-edge-name" id="edge-custom-label-input" placeholder="\u8F93\u5165\u5173\u7CFB\u540D\u79F0" oninput="handleEdgeLabelChange(this.value)"></label>
+  </div>
+  <footer class="route-settings-footer"><button type="button" class="a-my-island-work-edge-popover-delete" onclick="handleDeleteActiveEdge()">\u5220\u9664\u8DEF\u7EBF</button></footer>
+</div>
 
     </div>
 
@@ -18651,6 +18608,28 @@ function bootPrototypeRuntime() {
     }
     return result;
   };
+  function syncChildrenFollowControls() {
+    document.querySelectorAll("#btn-ws-children-follow,#btn-tertiary-children-follow").forEach((button) => {
+      button.classList.toggle("is-active", childrenFollowEnabled);
+      button.classList.toggle("active", childrenFollowEnabled);
+      button.setAttribute("aria-pressed", String(childrenFollowEnabled));
+      button.title = childrenFollowEnabled ? "\u5B50\u7EA7\u8DDF\u968F\u5DF2\u5F00\u542F\uFF1A\u62D6\u52A8\u7236\u8282\u70B9\u65F6\uFF0C\u5305\u542B\u548C\u6D3E\u751F\u7684\u4E0B\u7EA7\u4E00\u8D77\u79FB\u52A8" : "\u5B50\u7EA7\u8DDF\u968F\u5DF2\u5173\u95ED\uFF1A\u53EA\u79FB\u52A8\u5F53\u524D\u8282\u70B9";
+    });
+    document.querySelectorAll('input[onchange*="toggleChildrenFollowSetting"]').forEach((input) => input.checked = childrenFollowEnabled);
+  }
+  function setCanvasChildrenFollow(enabled) {
+    childrenFollowEnabled = !!enabled;
+    getDomainState().navigation.followChildren = childrenFollowEnabled;
+    syncChildrenFollowControls();
+    notifyIslandStateChanged();
+    return childrenFollowEnabled;
+  }
+  toggleChildrenFollowToolbar = function() {
+    const value = setCanvasChildrenFollow(!childrenFollowEnabled);
+    showIslandToast(value ? "\u5B50\u7EA7\u8DDF\u968F\u5DF2\u5F00\u542F\uFF1A\u5305\u542B\u548C\u6D3E\u751F\u7684\u4E0B\u7EA7\u5C06\u4E00\u8D77\u79FB\u52A8" : "\u5B50\u7EA7\u8DDF\u968F\u5DF2\u5173\u95ED");
+    return value;
+  };
+  toggleChildrenFollowSetting = setCanvasChildrenFollow;
   initTertiaryCanvasPanZoom = function() {
     const stage = document.getElementById("tertiary-canvas-stage");
     applyTertiaryTransform();
@@ -18982,11 +18961,14 @@ function bootPrototypeRuntime() {
       return false;
     if (!canvasEdgeDirectionAnchor || canvasEdgeDirectionAnchor.id !== edge.id)
       openEdgePopover(edge.id);
-    const anchor = canvasEdgeDirectionAnchor, type = ["\u5173\u8054", "none", void 0].includes(edge.type) ? "\u5305\u542B" : edge.type, label = edge.label === edge.type ? type : edge.label;
+    const anchor = canvasEdgeDirectionAnchor, type = "\u5305\u542B", label = !edge.label || edge.label === edge.type || edge.label === "\u524D\u7F6E\u5B8C\u6210" ? type : edge.label;
     const result = changeCanvasEdge({ type, label, sourceId: reverse ? anchor.b : anchor.a, targetId: reverse ? anchor.a : anchor.b });
     openEdgePopover(edge.id);
     return result;
   };
+  function closeRouteSettings() {
+    document.getElementById("tertiary-edge-popover")?.classList.add("is-hidden");
+  }
   setEdgeArrowMode = function(mode) {
     if (!["none", "single", "double"].includes(mode))
       return false;
@@ -19162,6 +19144,12 @@ function bootPrototypeRuntime() {
       restoringCanvasViewport = false;
     }
     bindCanvasConnectionDrag();
+  };
+  const canvasFollowRestore = restoreBusinessViews;
+  restoreBusinessViews = function(...args) {
+    const result = canvasFollowRestore(...args);
+    syncChildrenFollowControls();
+    return result;
   };
   function placeCanvasNodeInFreeSpace(card) {
     const others = Array.from(document.querySelectorAll("#tertiary-canvas-world .tertiary-card")).filter((c) => c !== card).map(canvasNodeRect), size = canvasNodeRect(card), position = canvasFreePosition(others, size.width, size.height);
@@ -19609,6 +19597,344 @@ function bootPrototypeRuntime() {
     else
       hint.textContent = "\u672A\u5355\u72EC\u8BBE\u7F6E\u65F6\u6CBF\u7528\u5168\u5C40\u80CC\u666F\uFF1B\u5168\u5C40\u4E5F\u672A\u8BBE\u7F6E\u65F6\u663E\u793A\u7F51\u683C\u7EBF\u3002";
   };
+  const islandSelectEntries = /* @__PURE__ */ new WeakMap();
+  let islandSelectSequence = 0, openIslandSelect = null;
+  function syncIslandSelect(entry) {
+    const select = entry.select, selected = Array.from(select.selectedOptions).map((option) => option.label);
+    const label = select.multiple ? selected.length ? selected.join("\u3001") : "\u9009\u62E9\u9879\u76EE" : selected[0] || "\u8BF7\u9009\u62E9";
+    if (entry.caption.textContent !== label)
+      entry.caption.textContent = label;
+    entry.button.disabled = select.matches(":disabled");
+    entry.button.title = label;
+    if (entry.button.disabled && openIslandSelect?.entry === entry)
+      closeIslandSelect();
+    entry.wrapper.hidden = select.hidden || select.style.display === "none" || select.classList.contains("is-hidden");
+  }
+  function closeIslandSelect(restoreFocus = false) {
+    const open = openIslandSelect;
+    if (!open)
+      return;
+    openIslandSelect = null;
+    open.entry.button.setAttribute("aria-expanded", "false");
+    open.entry.button.removeAttribute("aria-activedescendant");
+    open.entry.button.classList.remove("is-open", "opens-up");
+    open.menu.remove();
+    if (restoreFocus && open.entry.button.isConnected && !open.entry.button.disabled)
+      open.entry.button.focus({ preventScroll: true });
+  }
+  function positionIslandSelect() {
+    const open = openIslandSelect;
+    if (!open)
+      return;
+    const { entry, root, menu } = open, anchor = entry.button.getBoundingClientRect(), r = root.getBoundingClientRect();
+    if (!entry.select.isConnected || !entry.button.getClientRects().length) {
+      closeIslandSelect();
+      return;
+    }
+    const sx = r.width / (root.offsetWidth || r.width || 1), sy = r.height / (root.offsetHeight || r.height || 1);
+    const viewport = window2.visualViewport, vx = viewport?.offsetLeft || 0, vy = viewport?.offsetTop || 0;
+    const left = Math.max(vx, r.left) + 8, right = Math.min(vx + (viewport?.width || innerWidth), r.right) - 8, top = Math.max(vy, r.top) + 8, bottom = Math.min(vy + (viewport?.height || innerHeight), r.bottom) - 8;
+    const width = Math.min(Math.max(anchor.width, 230), Math.max(0, right - left)), below = bottom - anchor.bottom - 5, above = anchor.top - top - 5;
+    const upward = below < Math.min(280, menu.scrollHeight * sy) && above > below, space = Math.max(0, upward ? above : below);
+    const setStyle = (name, value) => {
+      const normalized = Math.round(parseFloat(value) * 1e3) / 1e3 + "px";
+      if (menu.style[name] !== normalized)
+        menu.style[name] = normalized;
+    };
+    setStyle("width", width / sx + "px");
+    setStyle("maxHeight", Math.min(360, space / sy) + "px");
+    const height = menu.getBoundingClientRect().height, x = Math.max(left, Math.min(anchor.left, right - width)), y = upward ? anchor.top - height - 5 : anchor.bottom + 5;
+    setStyle("left", (x - r.left) / sx + "px");
+    setStyle("top", (Math.max(top, Math.min(y, bottom - height)) - r.top) / sy + "px");
+    if (entry.button.classList.contains("opens-up") !== upward)
+      entry.button.classList.toggle("opens-up", upward);
+    menu.dataset.direction = upward ? "up" : "down";
+  }
+  function highlightIslandSelect(index) {
+    const open = openIslandSelect;
+    if (!open)
+      return;
+    const choices = open.choices.filter((choice) => !choice.disabled);
+    if (!choices.length)
+      return;
+    const clamped = Math.max(0, Math.min(index, choices.length - 1));
+    open.active = clamped;
+    for (const choice of open.choices)
+      choice.classList.toggle("is-highlighted", choice === choices[clamped]);
+    open.entry.button.setAttribute("aria-activedescendant", choices[clamped].id);
+    choices[clamped].scrollIntoView({ block: "nearest", inline: "nearest" });
+  }
+  function commitIslandSelect(indices) {
+    const open = openIslandSelect;
+    if (!open)
+      return;
+    const select = open.entry.select, entry = open.entry, before = Array.from(select.options).map((option) => option.selected).join(",");
+    closeIslandSelect(true);
+    Array.from(select.options).forEach((option, index) => option.selected = indices.has(index));
+    syncIslandSelect(entry);
+    if (before !== Array.from(select.options).map((option) => option.selected).join(",")) {
+      select.dispatchEvent(new Event("input", { bubbles: true }));
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+  }
+  function chooseIslandSelect(index) {
+    const open = openIslandSelect;
+    if (!open)
+      return;
+    if (!open.entry.select.multiple) {
+      commitIslandSelect(/* @__PURE__ */ new Set([index]));
+      return;
+    }
+    if (open.draft.has(index))
+      open.draft.delete(index);
+    else
+      open.draft.add(index);
+    for (const choice of open.choices) {
+      const selected = open.draft.has(Number(choice.dataset.optionIndex));
+      choice.setAttribute("aria-selected", String(selected));
+      choice.querySelector(".island-select-check").textContent = selected ? "\u2713" : "";
+    }
+    open.count.textContent = "\u5DF2\u9009 " + open.draft.size + " \u9879";
+  }
+  function handleIslandSelectKey(event, entry) {
+    if (event.isComposing || entry.button.disabled)
+      return;
+    const open = openIslandSelect?.entry === entry ? openIslandSelect : null;
+    if (!open && ["ArrowDown", "ArrowUp", "Enter", " "].includes(event.key)) {
+      event.preventDefault();
+      event.stopPropagation();
+      openIslandSelectMenu(entry);
+      return;
+    }
+    if (!open)
+      return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      closeIslandSelect(true);
+      return;
+    }
+    if (event.key === "Tab") {
+      closeIslandSelect(true);
+      return;
+    }
+    const choices = open.choices.filter((choice) => !choice.disabled);
+    if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
+      event.preventDefault();
+      event.stopPropagation();
+      highlightIslandSelect(event.key === "Home" ? 0 : event.key === "End" ? choices.length - 1 : open.active + (event.key === "ArrowDown" ? 1 : -1));
+    } else if (["Enter", " "].includes(event.key)) {
+      event.preventDefault();
+      event.stopPropagation();
+      const choice = choices[open.active];
+      if (choice)
+        chooseIslandSelect(Number(choice.dataset.optionIndex));
+    } else if (event.key.length === 1) {
+      const now = Date.now();
+      open.search = now - open.typedAt < 700 ? open.search + event.key : event.key;
+      open.typedAt = now;
+      const index = choices.findIndex((choice) => choice.textContent.trim().toLocaleLowerCase().startsWith(open.search.toLocaleLowerCase()));
+      if (index >= 0)
+        highlightIslandSelect(index);
+    }
+  }
+  function openIslandSelectMenu(entry) {
+    if (entry.button.disabled)
+      return;
+    if (openIslandSelect?.entry === entry) {
+      closeIslandSelect(true);
+      return;
+    }
+    closeIslandSelect();
+    syncIslandSelect(entry);
+    const root = entry.select.closest(".youth-island-plugin-root") || document.querySelector(".youth-island-plugin-root") || document.body, menu = document.createElement("div"), list = document.createElement("div");
+    menu.className = "island-select-popup";
+    menu.id = "island-select-popup";
+    list.className = "island-select-options";
+    list.setAttribute("role", "listbox");
+    list.id = menu.id + "-list";
+    list.setAttribute("aria-label", entry.button.getAttribute("aria-label"));
+    list.setAttribute("aria-multiselectable", String(entry.select.multiple));
+    menu.append(list);
+    root.append(menu);
+    const open = { entry, root, menu, list, choices: [], draft: /* @__PURE__ */ new Set(), active: 0, search: "", typedAt: 0, count: null };
+    openIslandSelect = open;
+    let group = null;
+    Array.from(entry.select.options).forEach((option, index) => {
+      if (option.hidden)
+        return;
+      const parent = option.parentElement, isGroup = parent.tagName === "OPTGROUP";
+      if (isGroup && group !== parent) {
+        group = parent;
+        const heading = document.createElement("div");
+        heading.className = "island-select-group";
+        heading.textContent = parent.label;
+        list.append(heading);
+      }
+      const choice = document.createElement("button"), text = document.createElement("span"), mark = document.createElement("span");
+      choice.type = "button";
+      choice.className = "island-select-option";
+      choice.id = menu.id + "-option-" + index;
+      choice.dataset.optionIndex = index;
+      choice.tabIndex = -1;
+      choice.setAttribute("role", "option");
+      choice.disabled = option.disabled || isGroup && parent.disabled;
+      choice.setAttribute("aria-selected", String(option.selected));
+      text.className = "island-select-option-label";
+      text.textContent = option.label;
+      mark.className = "island-select-check";
+      mark.setAttribute("aria-hidden", "true");
+      mark.textContent = option.selected ? "\u2713" : "";
+      choice.append(text, mark);
+      choice.onclick = () => chooseIslandSelect(index);
+      list.append(choice);
+      open.choices.push(choice);
+      if (option.selected)
+        open.draft.add(index);
+    });
+    if (!open.choices.length) {
+      const empty = document.createElement("p");
+      empty.className = "island-select-empty";
+      empty.textContent = "\u6682\u65E0\u53EF\u9009\u9879\u76EE";
+      list.append(empty);
+    }
+    if (entry.select.multiple) {
+      const footer = document.createElement("div"), count = document.createElement("span"), actions = document.createElement("div");
+      footer.className = "island-select-footer";
+      count.textContent = "\u5DF2\u9009 " + open.draft.size + " \u9879";
+      open.count = count;
+      for (const [label, action] of [["\u53D6\u6D88", () => closeIslandSelect(true)], ["\u5E94\u7528", () => commitIslandSelect(open.draft)]]) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = label;
+        button.className = "island-select-footer-button";
+        button.onclick = action;
+        actions.append(button);
+      }
+      footer.append(count, actions);
+      menu.append(footer);
+    }
+    menu.addEventListener("keydown", (event) => handleIslandSelectKey(event, entry));
+    menu.addEventListener("pointerdown", (event) => event.stopPropagation());
+    menu.addEventListener("click", (event) => event.stopPropagation());
+    entry.button.setAttribute("aria-expanded", "true");
+    entry.button.setAttribute("aria-controls", list.id);
+    entry.button.classList.add("is-open");
+    positionIslandSelect();
+    const enabled = open.choices.filter((choice) => !choice.disabled), selected = enabled.findIndex((choice) => choice.getAttribute("aria-selected") === "true");
+    highlightIslandSelect(Math.max(0, selected));
+  }
+  function enhanceIslandSelect(select) {
+    let entry = islandSelectEntries.get(select);
+    if (entry) {
+      syncIslandSelect(entry);
+      return;
+    }
+    const stale = select.parentElement;
+    if (stale?.classList.contains("island-select-control")) {
+      stale.before(select);
+      stale.remove();
+    }
+    const wrapper = document.createElement("span"), button = document.createElement("button"), caption = document.createElement("span"), arrow = document.createElement("span");
+    const label = select.getAttribute("aria-label") || Array.from(select.labels || []).map((label2) => Array.from(label2.childNodes).filter((node) => node.nodeType === Node.TEXT_NODE || node.nodeType === Node.ELEMENT_NODE && node.tagName === "SPAN").map((node) => node.textContent).join(" ").trim()).join(" ") || select.title || "\u9009\u62E9\u9879\u76EE";
+    wrapper.className = "island-select-control";
+    wrapper.dataset.selectId = select.id || "select-" + ++islandSelectSequence;
+    if (select.style.width)
+      wrapper.style.width = select.style.width;
+    button.type = "button";
+    button.className = "island-select-trigger";
+    button.setAttribute("role", "combobox");
+    button.setAttribute("aria-label", label);
+    button.setAttribute("aria-haspopup", "listbox");
+    button.setAttribute("aria-expanded", "false");
+    caption.className = "island-select-caption";
+    arrow.className = "island-select-chevron";
+    arrow.setAttribute("aria-hidden", "true");
+    button.append(caption, arrow);
+    select.before(wrapper);
+    wrapper.append(select, button);
+    select.classList.add("island-select-native");
+    select.setAttribute("aria-hidden", "true");
+    select.tabIndex = -1;
+    entry = { select, wrapper, button, caption };
+    islandSelectEntries.set(select, entry);
+    button.onclick = () => openIslandSelectMenu(entry);
+    button.onkeydown = (event) => handleIslandSelectKey(event, entry);
+    select.addEventListener("change", () => syncIslandSelect(entry));
+    for (const property of ["value", "selectedIndex"]) {
+      const descriptor = Object.getOwnPropertyDescriptor(window2.HTMLSelectElement.prototype, property);
+      if (descriptor?.get && descriptor?.set)
+        try {
+          Object.defineProperty(select, property, { configurable: true, get() {
+            return descriptor.get.call(this);
+          }, set(value) {
+            descriptor.set.call(this, value);
+            if (openIslandSelect?.entry === entry)
+              closeIslandSelect();
+            syncIslandSelect(entry);
+          } });
+        } catch {
+        }
+    }
+    select.focus = (options) => button.focus(options);
+    syncIslandSelect(entry);
+  }
+  function enhanceIslandSelects(scope = document.querySelector(".youth-island-plugin-root") || document.body) {
+    if (scope.matches?.("select"))
+      enhanceIslandSelect(scope);
+    scope.querySelectorAll?.("select").forEach(enhanceIslandSelect);
+  }
+  function installIslandSelects() {
+    const root = document.querySelector(".youth-island-plugin-root") || document.body;
+    enhanceIslandSelects(root);
+    const observer = new window2.MutationObserver((records) => {
+      let reposition = false;
+      for (const record of records) {
+        if (openIslandSelect?.menu.contains(record.target))
+          continue;
+        if (record.type === "childList") {
+          for (const node of record.addedNodes)
+            if (node.nodeType === Node.ELEMENT_NODE && (node.matches("select") || node.querySelector("select")))
+              enhanceIslandSelects(node);
+          if (record.target.matches?.("select,optgroup")) {
+            const select = record.target.closest("select"), entry = islandSelectEntries.get(select);
+            if (entry)
+              syncIslandSelect(entry);
+          }
+        } else if (record.target.matches?.("select,option,optgroup")) {
+          const select = record.target.closest("select"), entry = islandSelectEntries.get(select);
+          if (entry)
+            syncIslandSelect(entry);
+        } else if (record.target.matches?.("fieldset"))
+          enhanceIslandSelects(record.target);
+        if (openIslandSelect) {
+          const select = openIslandSelect.entry.select;
+          if (record.target.closest?.("select") === select && (record.type === "childList" || record.attributeName === "disabled"))
+            closeIslandSelect();
+          else if (record.target === select || record.target.contains?.(select))
+            reposition = true;
+        }
+      }
+      if (openIslandSelect && (!openIslandSelect.entry.select.isConnected || reposition))
+        positionIslandSelect();
+    });
+    observer.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ["disabled", "selected", "multiple", "hidden", "class", "style"] });
+    window2.addEventListener("pointerdown", (event) => {
+      const open = openIslandSelect;
+      if (open && !open.menu.contains(event.target) && !open.entry.wrapper.contains(event.target))
+        closeIslandSelect();
+    }, true);
+    window2.addEventListener("wheel", (event) => {
+      if (openIslandSelect && !openIslandSelect.menu.contains(event.target))
+        closeIslandSelect();
+    }, { capture: true, passive: true });
+    window2.addEventListener("resize", positionIslandSelect);
+    window2.addEventListener("scroll", (event) => {
+      if (openIslandSelect && !openIslandSelect.menu.contains(event.target))
+        positionIslandSelect();
+    }, { capture: true, passive: true });
+  }
+  installIslandSelects();
   if (typeof applyIslandTransform === "function")
     window2.applyIslandTransform = applyIslandTransform;
   if (typeof zoomIslandCanvas === "function")
@@ -20681,6 +21007,10 @@ function bootPrototypeRuntime() {
     window2.canvasNodeRect = canvasNodeRect;
   if (typeof bindCanvasViewport === "function")
     window2.bindCanvasViewport = bindCanvasViewport;
+  if (typeof syncChildrenFollowControls === "function")
+    window2.syncChildrenFollowControls = syncChildrenFollowControls;
+  if (typeof setCanvasChildrenFollow === "function")
+    window2.setCanvasChildrenFollow = setCanvasChildrenFollow;
   if (typeof positionCanvasEdgeLabels === "function")
     window2.positionCanvasEdgeLabels = positionCanvasEdgeLabels;
   if (typeof bindCanvasEdgeActivation === "function")
@@ -20693,6 +21023,8 @@ function bootPrototypeRuntime() {
     window2.positionCanvasEdgePopover = positionCanvasEdgePopover;
   if (typeof changeCanvasEdge === "function")
     window2.changeCanvasEdge = changeCanvasEdge;
+  if (typeof closeRouteSettings === "function")
+    window2.closeRouteSettings = closeRouteSettings;
   if (typeof cancelCanvasConnection === "function")
     window2.cancelCanvasConnection = cancelCanvasConnection;
   if (typeof bindCanvasConnectionDrag === "function")
@@ -20727,6 +21059,28 @@ function bootPrototypeRuntime() {
     window2.applyExecutionWallpaper = applyExecutionWallpaper;
   if (typeof applyMindmapWallpaper === "function")
     window2.applyMindmapWallpaper = applyMindmapWallpaper;
+  if (typeof syncIslandSelect === "function")
+    window2.syncIslandSelect = syncIslandSelect;
+  if (typeof closeIslandSelect === "function")
+    window2.closeIslandSelect = closeIslandSelect;
+  if (typeof positionIslandSelect === "function")
+    window2.positionIslandSelect = positionIslandSelect;
+  if (typeof highlightIslandSelect === "function")
+    window2.highlightIslandSelect = highlightIslandSelect;
+  if (typeof commitIslandSelect === "function")
+    window2.commitIslandSelect = commitIslandSelect;
+  if (typeof chooseIslandSelect === "function")
+    window2.chooseIslandSelect = chooseIslandSelect;
+  if (typeof handleIslandSelectKey === "function")
+    window2.handleIslandSelectKey = handleIslandSelectKey;
+  if (typeof openIslandSelectMenu === "function")
+    window2.openIslandSelectMenu = openIslandSelectMenu;
+  if (typeof enhanceIslandSelect === "function")
+    window2.enhanceIslandSelect = enhanceIslandSelect;
+  if (typeof enhanceIslandSelects === "function")
+    window2.enhanceIslandSelects = enhanceIslandSelects;
+  if (typeof installIslandSelects === "function")
+    window2.installIslandSelects = installIslandSelects;
   if (typeof USER_PROFILE_STATE !== "undefined")
     window2.USER_PROFILE_STATE = USER_PROFILE_STATE;
   if (typeof GANTT_PROJECTS !== "undefined")

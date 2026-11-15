@@ -1,0 +1,60 @@
+{
+  "version": "1.2.4",
+  "suite": "execution",
+  "checks": [
+    "today task produces a visible hit-testable carousel card",
+    "new task in an ongoing project still defaults to today",
+    "today queue excludes both overdue and past blocked occurrences",
+    "today blocked task stays visible with its actual prerequisite explanation",
+    "future tasks, information-only nodes and notes stay out of today",
+    "today counts exclude backlog and do not rewrite historical planned dates",
+    "today blocked card opens source planning without bypassing prerequisites",
+    "past task remains available from the original planned date in week and month data",
+    "week task detail opens the real past occurrence for execution",
+    "past delivery retains real dates and unlocks only the relevant today card",
+    "completed card reflects real recorded checklist results",
+    "returning to home rebuilds only today cards and keeps an active card",
+    "actual ItemView restart restores strict today filtering from Vault",
+    "stale HTML cannot replace cards or erase the empty state",
+    "midnight dispatches the new day without carrying old pending or completed cards",
+    "future and ended projects retain valid dates without adding non-today cards",
+    "future contract cards and counts obey the same strict planned-date rule",
+    "making up yesterday does not complete or hide the recurring task today",
+    "two planned occurrences retain distinct real execution records",
+    "future-only state explains the next planned date",
+    "overdue-only state has an empty today deck while retaining its history",
+    "five today card types use the original distinct badge and panel palettes",
+    "goal restores its actual metric table, acceptance standard and deadline layout",
+    "drill restores planned focus time and the blue delivery panel",
+    "habit, review and custom restore their type-specific checklist, actions and fields",
+    "standards remain read-only and footer actions retain compact design buttons",
+    "type 0 footer opens its own actual occurrence and execution form",
+    "type 1 footer opens its own actual occurrence and execution form",
+    "type 2 footer opens its own actual occurrence and execution form",
+    "type 3 footer opens its own actual occurrence and execution form",
+    "type 4 footer opens its own actual occurrence and execution form",
+    "blue delivery panel opens real evidence submission with the planned requirement",
+    "native tablet scrolling moves long card content without switching the task",
+    "portrait card keeps type content and footer inside its original coverflow frame"
+  ],
+  "screenshot": true,
+  "portrait": true,
+  "capturePages": [
+    {
+      "name": "today-goal-plugin",
+      "code": "window.goToDayCard(0);new Promise(r=>setTimeout(r,500))"
+    },
+    {
+      "name": "today-habit-plugin",
+      "code": "window.goToDayCard(2);new Promise(r=>setTimeout(r,500))"
+    },
+    {
+      "name": "today-review-plugin",
+      "code": "window.goToDayCard(3);new Promise(r=>setTimeout(r,500))"
+    },
+    {
+      "name": "today-custom-plugin",
+      "code": "window.goToDayCard(4);new Promise(r=>setTimeout(r,500))"
+    }
+  ]
+}

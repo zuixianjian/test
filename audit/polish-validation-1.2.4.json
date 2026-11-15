@@ -1,0 +1,40 @@
+{
+  "version": "1.2.4",
+  "suite": "polish",
+  "checks": [
+    "setting hierarchy converts an old prerequisite into containment and updates only its own dependency",
+    "long node names wrap inside their buttons and route fields/header/footer do not overlap",
+    "real mouse drag moves parent, child and nested derived child by the same world delta at 60 percent zoom",
+    "prerequisites and ordinary associations are not treated as hierarchical children",
+    "turning follow off clears both visual active classes and persists the actual switch",
+    "follow-off drag moves only the selected parent",
+    "one undo restores the whole actual drag transaction",
+    "redo restores the same parent-only movement",
+    "native touch drag also moves all hierarchical descendants by the same scaled delta",
+    "layout and follow operations do not fabricate execution records",
+    "native relation select keeps its data interface behind the shared styled control",
+    "shared relation menu shows the actual options and current selection",
+    "styled option click emits the native change transaction and saves the real dependency",
+    "keyboard selection changes the actual relation and releases its prerequisite",
+    "Escape closes only the list and restores focus to its trigger",
+    "multi-select keeps choices as a draft until explicit application",
+    "cancelling the multi-select leaves planning unchanged",
+    "applying a multi-select commits exactly the chosen native options",
+    "styled dependency choices reach the newly created canonical planning node",
+    "the same menu styles and native values work in the bounty modal",
+    "route settings stay inside a narrow viewport with an independently scrolling body",
+    "dropdown or drop-up menu remains within the narrow viewport",
+    "bottom-edge controls open upward and long option text wraps inside its row",
+    "disabled native options remain unavailable in the shared list",
+    "a disabled parent fieldset also disables the styled select",
+    "follow switch and moved descendant positions survive actual Vault hydration"
+  ],
+  "screenshot": true,
+  "portrait": true,
+  "capturePages": [
+    {
+      "name": "styled-select-plugin",
+      "code": "document.querySelector('[data-select-id=\"edge-type-select\"] .island-select-trigger').click()"
+    }
+  ]
+}

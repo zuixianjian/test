@@ -1,0 +1,21 @@
+{
+  "version": "1.2.4",
+  "suite": "closure",
+  "checks": [
+    "list editors preserve optional checklist and unselected review planning flags",
+    "list editors retain metric units and stable schema keys",
+    "node collapse survives redraw and navigation-map toggles",
+    "cycling planning layouts returns to original free positions",
+    "empty goal targets cannot overwrite an existing usable standard",
+    "legacy custom module entry opens the canonical structured creator",
+    "project range edit cannot silently remove scheduled nodes from execution",
+    "required actual text and numeric fields reject whitespace-only input",
+    "all five executable node types create validated source-linked records",
+    "actual review actions never overwrite original planning lists",
+    "deriving an actual review after project end extends the project and dispatches the new plan today",
+    "custom pavilions have independent stable IDs/categories and display the persisted subtitle",
+    "page inventory captures live controls across pages, six creators, editors, modules and dialogs"
+  ],
+  "screenshot": true,
+  "portrait": true
+}

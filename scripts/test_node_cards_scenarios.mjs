@@ -51,5 +51,5 @@ export default async function({evaluate,send,designMode}){
   // Restore the pristine fixture for a six-card gallery after the transaction assertions.
   await evaluate(`(()=>{const nodes=window.__cardGallery;window.getDomainState().nodesByProject['card-design']=nodes;window.PROJECT_CANVAS_STORE['card-design']={nodes,edges:[]};window.renderDomainCanvas('card-design');window.writeMindmapViewport({x:20,y:30,zoom:1});})()`);
   check(await evaluate(`Array.from(document.querySelectorAll('.domain-node-card .domain-planning-body')).every(e=>e.scrollWidth<=e.clientWidth+1)`),'titles and section content fit within the card body without horizontal scrolling');
-  return {version:'1.2.3',suite:'cards',checks,screenshot:true,capturePages:[{name:designMode?'cards-second-design':'cards-second-plugin',code:`window.writeMindmapViewport({x:20,y:-620,zoom:1})`},{name:designMode?'cards-overview-design':'cards-overview-plugin',code:`window.fitCanvasView()`}]};
+  return {version:'1.2.4',suite:'cards',checks,screenshot:true,capturePages:[{name:designMode?'cards-second-design':'cards-second-plugin',code:`window.writeMindmapViewport({x:20,y:-620,zoom:1})`},{name:designMode?'cards-overview-design':'cards-overview-plugin',code:`window.fitCanvasView()`}]};
 }

@@ -1,0 +1,45 @@
+{
+  "version": "1.2.4",
+  "suite": "background",
+  "checks": [
+    "unset day execution page uses the default line grid",
+    "unset week execution page uses the default line grid",
+    "unset month execution page uses the default line grid",
+    "unset planning page uses the default line grid",
+    "unset study workspace falls back to the same grid",
+    "unset dojo workspace falls back to the same grid",
+    "unset cognition workspace falls back to the same grid",
+    "unset cultivation workspace falls back to the same grid",
+    "unset treasury workspace falls back to the same grid",
+    "unset tree workspace falls back to the same grid",
+    "unset note workspace falls back to the same grid",
+    "unset achieve workspace falls back to the same grid",
+    "unset custom-background workspace falls back to the same grid",
+    "mindmap background is a line grid instead of the old dotted scene",
+    "task execution and associated project views use the same default grid",
+    "component reference page also has a default grid",
+    "explicit global wallpaper replaces the fallback on all page types",
+    "mindmap uses the actual project pavilion wallpaper",
+    "execution uses the actual source pavilion wallpaper",
+    "unconfigured pavilion retains an explicitly configured global fallback",
+    "resetting an independent wallpaper retains the configured global setting",
+    "resetting the last configured wallpaper restores the default grid",
+    "saved wallpaper is applied after actual Vault or IndexedDB hydration",
+    "saved reset still restores a grid after reopening",
+    "unrecognized legacy wallpaper cannot reveal an implicit scene image",
+    "legacy settings without a wallpaper map also fall back to a grid",
+    "background settings explain the real default grid behavior"
+  ],
+  "screenshot": true,
+  "portrait": true,
+  "capturePages": [
+    {
+      "name": "grid-mindmap-design",
+      "code": "window.enterTertiaryWorkspace('background-project');window.fitCanvasView()"
+    },
+    {
+      "name": "grid-journal-design",
+      "code": "window.enterSecondaryWorkspace('note','specialized')"
+    }
+  ]
+}

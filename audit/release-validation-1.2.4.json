@@ -1,0 +1,48 @@
+{
+  "version": "1.2.4",
+  "coreFilesMatch": true,
+  "assetsMatch": true,
+  "sha256": {
+    "manifest.json": "476f82189942275de9aa8d0ed9590993679fad2ec8b5ecb21f75ef12fcd5586c",
+    "main.js": "7e8382f748993ee8e30b470a1cfeff056ef3f108c8651488660f63c18d943148",
+    "styles.css": "2e03c99b5dfd405be230b719419c161be4ef4fb7e15ccbcfdfa867acfc924c59",
+    "versions.json": "19c0bb06fb3d7513821c921897aa5513cc51acb1ef92308e463c4dac9af771e0"
+  },
+  "zipSha256": "42688fbf1702e06c718ce338afaaa267102a19dc5dbd2214335e58bede56cd24",
+  "checks": {
+    "background-design": 27,
+    "background": 28,
+    "canvas-design": 43,
+    "canvas": 44,
+    "cards-design": 23,
+    "cards": 24,
+    "closure-design": 13,
+    "closure": 30,
+    "creator-design": 32,
+    "creator": 31,
+    "design": 10,
+    "execution-design": 32,
+    "execution": 34,
+    "mobile": 31,
+    "navigation-design": 42,
+    "navigation": 41,
+    "phase-media-design": 34,
+    "phase-media": 37,
+    "polish-design": 25,
+    "polish": 26,
+    "business": 85
+  },
+  "screenshots": 74,
+  "hostContract": {
+    "installedSourceVersion": "1.14.5",
+    "appJsSha256": "95b9fd3944625c3b88116878b03d655147fed8cdfe6ddf931f2064ead78ccd5b",
+    "renameRejectsExistingDestination": true,
+    "swipeExclusionAttribute": "data-ignore-swipe",
+    "testAdapter": "strict; actual ItemView methods with simulated Obsidian API and Chrome native touch"
+  },
+  "limitations": [
+    "Not run on the user Android tablet; host contracts and browser touch simulation are not a device acceptance.",
+    "Native file inputs request gallery, rear photo and rear video capture; actual chooser/camera support and permissions depend on the Android Obsidian host.",
+    "Video fixtures verify input and original-file persistence, not physical capture or codec playback."
+  ]
+}

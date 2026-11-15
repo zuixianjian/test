@@ -111,5 +111,5 @@
     ...['treasury','tree','note','achieve'].map(name=>({name,code:"window.enterSecondaryWorkspace('"+name+"','specialized');"})),
     {name:'family',code:'window.openFamilyPactModal();'}
   ];
-  return {version:'1.2.3',checks,screenshot:true,capturePages};
+  return {version:'1.2.4',checks,screenshot:true,capturePages};
 })()

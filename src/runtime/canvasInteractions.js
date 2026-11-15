@@ -93,6 +93,17 @@ initCanvasPanZoomAndDrag=function(){
   bindPavilionNodesClickGuards();
 };
 getDownstreamChildCardIds=function(rootId){const seen=new Set([rootId]),queue=[rootId],result=[];while(queue.length){const source=queue.shift();for(const edge of window.TERTIARY_EDGES||[])if(edge.sourceId===source&&['包含','派生'].includes(edge.type)&&!seen.has(edge.targetId)){seen.add(edge.targetId);queue.push(edge.targetId);result.push(edge.targetId);}}return result;};
+function syncChildrenFollowControls(){
+  document.querySelectorAll('#btn-ws-children-follow,#btn-tertiary-children-follow').forEach(button=>{
+    button.classList.toggle('is-active',childrenFollowEnabled);button.classList.toggle('active',childrenFollowEnabled);
+    button.setAttribute('aria-pressed',String(childrenFollowEnabled));
+    button.title=childrenFollowEnabled?'子级跟随已开启：拖动父节点时，包含和派生的下级一起移动':'子级跟随已关闭：只移动当前节点';
+  });
+  document.querySelectorAll('input[onchange*="toggleChildrenFollowSetting"]').forEach(input=>input.checked=childrenFollowEnabled);
+}
+function setCanvasChildrenFollow(enabled){childrenFollowEnabled=!!enabled;getDomainState().navigation.followChildren=childrenFollowEnabled;syncChildrenFollowControls();notifyIslandStateChanged();return childrenFollowEnabled;}
+toggleChildrenFollowToolbar=function(){const value=setCanvasChildrenFollow(!childrenFollowEnabled);showIslandToast(value?'子级跟随已开启：包含和派生的下级将一起移动':'子级跟随已关闭');return value;};
+toggleChildrenFollowSetting=setCanvasChildrenFollow;
 initTertiaryCanvasPanZoom=function(){
   const stage=document.getElementById('tertiary-canvas-stage');applyTertiaryTransform();
   bindCanvasViewport({stage,read:readMindmapViewport,write:writeMindmapViewport,active:()=>stage.getBoundingClientRect().width>0,nodes:'.tertiary-card',canDrag:()=>true,dragClass:'is-card-dragging',start:recordDomainHistory,
@@ -186,7 +197,8 @@ function changeCanvasEdge(patch,remove=false){
 }
 handleEdgeTypeSelect=function(type){const edge=window.TERTIARY_EDGES?.find(e=>e.id===currentActiveEdgeId);if(!edge)return false;const label=!edge.label||edge.label===edge.type||edge.label==='前置完成'?(type==='none'?'':type):edge.label;const result=changeCanvasEdge({type,label});openEdgePopover(edge.id);return result;};
 reverseEdgeDirection=function(){const edge=window.TERTIARY_EDGES?.find(e=>e.id===currentActiveEdgeId);if(!edge)return false;const result=changeCanvasEdge({sourceId:edge.targetId,targetId:edge.sourceId});openEdgePopover(edge.id);return result;};
-handleEdgeHierarchy=function(reverse){const edge=window.TERTIARY_EDGES?.find(e=>e.id===currentActiveEdgeId);if(!edge)return false;if(!canvasEdgeDirectionAnchor||canvasEdgeDirectionAnchor.id!==edge.id)openEdgePopover(edge.id);const anchor=canvasEdgeDirectionAnchor,type=['关联','none',undefined].includes(edge.type)?'包含':edge.type,label=edge.label===edge.type?type:edge.label;const result=changeCanvasEdge({type,label,sourceId:reverse?anchor.b:anchor.a,targetId:reverse?anchor.a:anchor.b});openEdgePopover(edge.id);return result;};
+handleEdgeHierarchy=function(reverse){const edge=window.TERTIARY_EDGES?.find(e=>e.id===currentActiveEdgeId);if(!edge)return false;if(!canvasEdgeDirectionAnchor||canvasEdgeDirectionAnchor.id!==edge.id)openEdgePopover(edge.id);const anchor=canvasEdgeDirectionAnchor,type='包含',label=!edge.label||edge.label===edge.type||edge.label==='前置完成'?type:edge.label;const result=changeCanvasEdge({type,label,sourceId:reverse?anchor.b:anchor.a,targetId:reverse?anchor.a:anchor.b});openEdgePopover(edge.id);return result;};
+function closeRouteSettings(){document.getElementById('tertiary-edge-popover')?.classList.add('is-hidden');}
 setEdgeArrowMode=function(mode){if(!['none','single','double'].includes(mode))return false;const result=changeCanvasEdge({arrowMode:mode});if(result)openEdgePopover(currentActiveEdgeId);return result;};
 setEdgeLineStyle=function(style){if(!['solid','dashed'].includes(style))return false;const result=changeCanvasEdge({lineStyle:style});if(result)openEdgePopover(currentActiveEdgeId);return result;};
 handleEdgeColorSelect=function(color){if(!/^#[\da-f]{3,8}$/i.test(color))return false;const result=changeCanvasEdge({color});if(result)openEdgePopover(currentActiveEdgeId);return result;};
@@ -232,6 +244,8 @@ renderDomainCanvas=function(id){
   const saved=canvasViewportStore().projects[id];restoringCanvasViewport=true;try{canvasOriginalRender(id);writeMindmapViewport(canvasValidViewport(saved)?saved:{x:60,y:40,zoom:1});}finally{restoringCanvasViewport=false;}
   bindCanvasConnectionDrag();
 };
+const canvasFollowRestore=restoreBusinessViews;
+restoreBusinessViews=function(...args){const result=canvasFollowRestore(...args);syncChildrenFollowControls();return result;};
 function placeCanvasNodeInFreeSpace(card){
   const others=Array.from(document.querySelectorAll('#tertiary-canvas-world .tertiary-card')).filter(c=>c!==card).map(canvasNodeRect),size=canvasNodeRect(card),position=canvasFreePosition(others,size.width,size.height);
   card.style.left=position.x+'px';card.style.top=position.y+'px';getDomainNode(card.id).canvasPosition=position;

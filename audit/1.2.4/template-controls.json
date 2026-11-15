@@ -1,0 +1,7043 @@
+[
+  {
+    "tag": "BUTTON",
+    "id": "btn-main-island",
+    "type": "submit",
+    "text": "🏝️海岛全景",
+    "events": {
+      "onclick": "switchMainSection('island')"
+    },
+    "scopes": []
+  },
+  {
+    "tag": "BUTTON",
+    "id": "btn-main-ws",
+    "type": "submit",
+    "text": "🏫二级项目甘特",
+    "events": {
+      "onclick": "enterSecondaryWorkspace('study', 'gantt')"
+    },
+    "scopes": []
+  },
+  {
+    "tag": "BUTTON",
+    "id": "btn-main-tertiary",
+    "type": "submit",
+    "text": "🔮三级脑图画布",
+    "events": {
+      "onclick": "switchMainSection('tertiary')"
+    },
+    "scopes": []
+  },
+  {
+    "tag": "BUTTON",
+    "id": "btn-main-checkin",
+    "type": "submit",
+    "text": "✅打卡页面全览",
+    "events": {
+      "onclick": "switchMainSection('checkin')"
+    },
+    "scopes": []
+  },
+  {
+    "tag": "BUTTON",
+    "id": "btn-toggle-frame",
+    "type": "submit",
+    "text": "📱 iPad 11寸平板框",
+    "events": {
+      "onclick": "toggleTabletFrameMode()"
+    },
+    "scopes": []
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "📜 置顶悬赏令",
+    "events": {
+      "onclick": "openBountyModal()"
+    },
+    "scopes": []
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "🌿 沉浸专注模式运行中\n      点击退出 (或按 E c)",
+    "events": {
+      "onclick": "toggleImmersiveMode()"
+    },
+    "scopes": [
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "打开左侧栏",
+    "events": {
+      "onclick": "toggleObsidianSplit('left')"
+    },
+    "scopes": [
+      "home-unified-topbar",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "👦",
+    "events": {
+      "onclick": "openOriginalSettingsPanel('char')"
+    },
+    "scopes": [
+      "home-unified-topbar",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "📈\n                履约 100%",
+    "events": {
+      "onclick": "openFamilyPactModal(true)"
+    },
+    "scopes": [
+      "home-unified-topbar",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "btn-exec-day",
+    "type": "submit",
+    "text": "今日待办",
+    "events": {
+      "onclick": "switchExecSubView('day')"
+    },
+    "scopes": [
+      "unified-exec-subview-switcher",
+      "home-unified-topbar",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "btn-exec-week",
+    "type": "submit",
+    "text": "周看板",
+    "events": {
+      "onclick": "switchExecSubView('week')"
+    },
+    "scopes": [
+      "unified-exec-subview-switcher",
+      "home-unified-topbar",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "btn-exec-month",
+    "type": "submit",
+    "text": "月日历",
+    "events": {
+      "onclick": "switchExecSubView('month')"
+    },
+    "scopes": [
+      "unified-exec-subview-switcher",
+      "home-unified-topbar",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "btn-home-layout",
+    "type": "submit",
+    "text": "▦\n            自由布局",
+    "events": {
+      "onclick": "cycleHomeLayout()"
+    },
+    "scopes": [
+      "home-top-graph-toolbar",
+      "home-unified-topbar",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "➕\n            新增模块",
+    "events": {
+      "onclick": "openAddModuleModal()"
+    },
+    "scopes": [
+      "home-top-graph-toolbar",
+      "home-unified-topbar",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "⛶\n            适应画布",
+    "events": {
+      "onclick": "fitHomeCanvasView()"
+    },
+    "scopes": [
+      "home-top-graph-toolbar",
+      "home-unified-topbar",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "🎯\n            聚焦节点",
+    "events": {
+      "onclick": "focusHomeActiveNode()"
+    },
+    "scopes": [
+      "home-top-graph-toolbar",
+      "home-unified-topbar",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "⊙\n            居中节点",
+    "events": {
+      "onclick": "centerHomeActiveNode()"
+    },
+    "scopes": [
+      "home-top-graph-toolbar",
+      "home-unified-topbar",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "➕\n            放大",
+    "events": {
+      "onclick": "zoomIslandCanvas(1.18)"
+    },
+    "scopes": [
+      "home-top-graph-toolbar",
+      "home-unified-topbar",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "➖\n            缩小",
+    "events": {
+      "onclick": "zoomIslandCanvas(0.85)"
+    },
+    "scopes": [
+      "home-top-graph-toolbar",
+      "home-unified-topbar",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "100%\n            还原",
+    "events": {
+      "onclick": "resetIslandCanvasZoom()"
+    },
+    "scopes": [
+      "home-top-graph-toolbar",
+      "home-unified-topbar",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "home-bounty-billboard",
+    "type": "",
+    "text": "📜\n          \n            \n              置顶悬赏\n              暂无进行中的悬赏契约\n              ⏱️ 等待张榜\n            \n            \n              🎁 点击可发布新契约\n     ",
+    "events": {
+      "onclick": "openBountyModal()"
+    },
+    "scopes": [
+      "home-unified-topbar",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "打开右侧栏",
+    "events": {
+      "onclick": "toggleObsidianSplit('right')"
+    },
+    "scopes": [
+      "home-unified-topbar",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "➕ 立即立项",
+    "events": {
+      "onclick": "switchMainSection('ws'); openAddProjectModal();"
+    },
+    "scopes": [
+      "island-goal-cards-list",
+      "island-goal-cards-dock",
+      "island-execution-center",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "⟨",
+    "events": {
+      "onclick": "prevDayCard()"
+    },
+    "scopes": [
+      "exec-subview-day",
+      "island-execution-center",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "⟩",
+    "events": {
+      "onclick": "nextDayCard()"
+    },
+    "scopes": [
+      "exec-subview-day",
+      "island-execution-center",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🧭 前往规划新课题",
+    "events": {
+      "onclick": "switchHomeGlobalView('plan')"
+    },
+    "scopes": [
+      "day-deck-empty-placeholder",
+      "day-card-deck",
+      "exec-carousel-stage",
+      "exec-subview-day",
+      "island-execution-center",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "🎯 目标分解",
+    "events": {
+      "onclick": "goToDayCard(0)"
+    },
+    "scopes": [
+      "exec-carousel-dots",
+      "exec-subview-day",
+      "island-execution-center",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "⚡ 攻坚实训",
+    "events": {
+      "onclick": "goToDayCard(1)"
+    },
+    "scopes": [
+      "exec-carousel-dots",
+      "exec-subview-day",
+      "island-execution-center",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "🌿 习惯践行",
+    "events": {
+      "onclick": "goToDayCard(2)"
+    },
+    "scopes": [
+      "exec-carousel-dots",
+      "exec-subview-day",
+      "island-execution-center",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "📝 评估复盘",
+    "events": {
+      "onclick": "goToDayCard(3)"
+    },
+    "scopes": [
+      "exec-carousel-dots",
+      "exec-subview-day",
+      "island-execution-center",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "⚙️ 自定义配置",
+    "events": {
+      "onclick": "goToDayCard(4)"
+    },
+    "scopes": [
+      "exec-carousel-dots",
+      "exec-subview-day",
+      "island-execution-center",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "◀ 上一周",
+    "events": {
+      "onclick": "changeWeek(-1)"
+    },
+    "scopes": [
+      "exec-subview-week",
+      "island-execution-center",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "下一周 ▶",
+    "events": {
+      "onclick": "changeWeek(1)"
+    },
+    "scopes": [
+      "exec-subview-week",
+      "island-execution-center",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "回到本周",
+    "events": {
+      "onclick": "resetToCurrentWeek()"
+    },
+    "scopes": [
+      "exec-subview-week",
+      "island-execution-center",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "🌟 全部事项 (25)",
+    "events": {
+      "onclick": "filterWeekTasks('all')"
+    },
+    "scopes": [
+      "exec-subview-week",
+      "island-execution-center",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "🟡 待办事项 (5)",
+    "events": {
+      "onclick": "filterWeekTasks('pending')"
+    },
+    "scopes": [
+      "exec-subview-week",
+      "island-execution-center",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "🟢 已办完成 (18)",
+    "events": {
+      "onclick": "filterWeekTasks('done')"
+    },
+    "scopes": [
+      "exec-subview-week",
+      "island-execution-center",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "🔴 未办/超期 (2)",
+    "events": {
+      "onclick": "filterWeekTasks('overdue')"
+    },
+    "scopes": [
+      "exec-subview-week",
+      "island-execution-center",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "◀ 上个月",
+    "events": {
+      "onclick": "changeMonth(-1)"
+    },
+    "scopes": [
+      "exec-subview-month",
+      "island-execution-center",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "下个月 ▶",
+    "events": {
+      "onclick": "changeMonth(1)"
+    },
+    "scopes": [
+      "exec-subview-month",
+      "island-execution-center",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "回到今日",
+    "events": {
+      "onclick": "resetToCurrentMonth()"
+    },
+    "scopes": [
+      "exec-subview-month",
+      "island-execution-center",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "day-inspector-modal",
+    "type": "",
+    "text": "📅\n          \n            \n            \n          \n        \n        ✕\n      \n\n      \n      \n        \n        \n          \n            🟢 已办事项\n         ",
+    "events": {
+      "onclick": "closeDayInspectorOnBackdrop(event)"
+    },
+    "scopes": [
+      "island-execution-center",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "✕",
+    "events": {
+      "onclick": "closeDayInspector()"
+    },
+    "scopes": [
+      "day-inspector-modal",
+      "island-execution-center",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "📷 查看当日物证相册",
+    "events": {
+      "onclick": "openEvidenceGalleryForDay()"
+    },
+    "scopes": [
+      "day-inspector-modal",
+      "island-execution-center",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "我知道了",
+    "events": {
+      "onclick": "closeDayInspector()"
+    },
+    "scopes": [
+      "day-inspector-modal",
+      "island-execution-center",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "◀️\n          返回待办",
+    "events": {
+      "onclick": "closeExecCardPopupView()"
+    },
+    "scopes": [
+      "exec-task-workspace",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "btn-exec-popup-toggle-project",
+    "type": "button",
+    "text": "👁️\n          查看项目",
+    "events": {
+      "onclick": "toggleExecPopupProjectNodesView()"
+    },
+    "scopes": [
+      "exec-task-workspace",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "🎯 关联规划项目：\n              《全息成长规划课题》\n              [点击展开节点图谱]",
+    "events": {
+      "onclick": "toggleExecPopupProjectNodesView()"
+    },
+    "scopes": [
+      "exec-popup-task-view",
+      "exec-task-workspace",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "exec-task-evidence-preview",
+    "type": "",
+    "text": "📄\n                口算手稿与红笔订正拍照件 (点击查看)",
+    "events": {
+      "onclick": "viewNodeImage()"
+    },
+    "scopes": [
+      "exec-popup-task-view",
+      "exec-task-workspace",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "📷 上传草稿照片",
+    "events": {
+      "onclick": "uploadTaskEvidence()"
+    },
+    "scopes": [
+      "exec-popup-task-view",
+      "exec-task-workspace",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🔍 查看原卷",
+    "events": {
+      "onclick": "viewNodeImage()"
+    },
+    "scopes": [
+      "exec-popup-task-view",
+      "exec-task-workspace",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "btn-exec-timer-start",
+    "type": "button",
+    "text": "▶️ 启动专注",
+    "events": {
+      "onclick": "toggleExecPopupTimer()"
+    },
+    "scopes": [
+      "exec-popup-task-view",
+      "exec-task-workspace",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🔄 重置",
+    "events": {
+      "onclick": "resetExecPopupTimer()"
+    },
+    "scopes": [
+      "exec-popup-task-view",
+      "exec-task-workspace",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "TEXTAREA",
+    "id": "exec-popup-note-textarea",
+    "type": "textarea",
+    "text": "易错归因：退位减法个位不够减需向十位借1当10；已掌握破十法口诀，30道题卡全对！",
+    "events": {},
+    "scopes": [
+      "exec-popup-task-view",
+      "exec-task-workspace",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "💾 暂存便签",
+    "events": {
+      "onclick": "showIslandToast('📝 心得便签已自动保存')"
+    },
+    "scopes": [
+      "exec-popup-task-view",
+      "exec-task-workspace",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "btn-exec-popup-main-checkin",
+    "type": "button",
+    "text": "🌟 立即完成今日打卡",
+    "events": {
+      "onclick": "handleExecPopupMainCheckin()"
+    },
+    "scopes": [
+      "exec-popup-task-view",
+      "exec-task-workspace",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "⚡ 返回任务打卡界面",
+    "events": {
+      "onclick": "toggleExecPopupProjectNodesView()"
+    },
+    "scopes": [
+      "exec-popup-project-view",
+      "exec-task-workspace",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "node-study",
+    "type": "",
+    "text": "🏫\n          \n          校史馆\n          学业甘特规划",
+    "events": {
+      "onclick": "handlePavilionClick('study')"
+    },
+    "scopes": [
+      "island-pavilion-grid",
+      "island-world-canvas",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "node-dojo",
+    "type": "",
+    "text": "🤺\n          \n          武道馆/兴趣屋\n          特长备赛规划",
+    "events": {
+      "onclick": "handlePavilionClick('dojo')"
+    },
+    "scopes": [
+      "island-pavilion-grid",
+      "island-world-canvas",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "node-cultivation",
+    "type": "",
+    "text": "🏛️\n          \n          修身阁\n          经典知行规划",
+    "events": {
+      "onclick": "handlePavilionClick('cultivation')"
+    },
+    "scopes": [
+      "island-pavilion-grid",
+      "island-world-canvas",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "node-cognition",
+    "type": "",
+    "text": "🧠\n          \n          思辨馆/认知台\n          思辨成长规划",
+    "events": {
+      "onclick": "handlePavilionClick('cognition')"
+    },
+    "scopes": [
+      "island-pavilion-grid",
+      "island-world-canvas",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "导航地图\n          \n          −",
+    "events": {
+      "onclick": "toggleIslandMinimapDock()"
+    },
+    "scopes": [
+      "island-minimap-dock",
+      "island-navigation-dock",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "island-minimap-close-btn",
+    "type": "button",
+    "text": "−",
+    "events": {
+      "onclick": "event.stopPropagation(); toggleIslandMinimapDock();"
+    },
+    "scopes": [
+      "island-minimap-dock",
+      "island-navigation-dock",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "island-minimap-toggle-btn",
+    "type": "button",
+    "text": "展开导航地图",
+    "events": {
+      "onclick": "toggleIslandMinimapDock()"
+    },
+    "scopes": [
+      "island-navigation-dock",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "launcher-view-exec",
+    "type": "submit",
+    "text": "⚡\n      执行视图",
+    "events": {
+      "onclick": "switchHomeGlobalView('exec')"
+    },
+    "scopes": [
+      "home-island-launcher",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "launcher-view-plan",
+    "type": "submit",
+    "text": "🧭\n      规划视图",
+    "events": {
+      "onclick": "switchHomeGlobalView('plan')"
+    },
+    "scopes": [
+      "home-island-launcher",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "launcher-btn-treasury",
+    "type": "submit",
+    "text": "💰\n      藏金屋",
+    "events": {
+      "onclick": "enterSecondaryWorkspace('treasury', 'specialized')"
+    },
+    "scopes": [
+      "home-island-launcher",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "launcher-btn-tree",
+    "type": "submit",
+    "text": "📜\n      行为规范",
+    "events": {
+      "onclick": "enterSecondaryWorkspace('tree', 'specialized')"
+    },
+    "scopes": [
+      "home-island-launcher",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "launcher-btn-note",
+    "type": "submit",
+    "text": "📝\n      每日随记",
+    "events": {
+      "onclick": "enterSecondaryWorkspace('note', 'specialized')"
+    },
+    "scopes": [
+      "home-island-launcher",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "launcher-btn-achieve",
+    "type": "submit",
+    "text": "🏆\n      成就馆",
+    "events": {
+      "onclick": "enterSecondaryWorkspace('achieve', 'specialized')"
+    },
+    "scopes": [
+      "home-island-launcher",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "launcher-btn-inquiry",
+    "type": "submit",
+    "text": "❓\n      古籍问道",
+    "events": {
+      "onclick": "openInquiryModal()"
+    },
+    "scopes": [
+      "home-island-launcher",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "launcher-btn-pomo",
+    "type": "submit",
+    "text": "⏱️\n      专注秒表",
+    "events": {
+      "onclick": "launchQuickFocusTimer()"
+    },
+    "scopes": [
+      "home-island-launcher",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "launcher-btn-bounty",
+    "type": "submit",
+    "text": "📜\n      悬赏契约",
+    "events": {
+      "onclick": "openBountyModal()"
+    },
+    "scopes": [
+      "home-island-launcher",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "launcher-btn-settings",
+    "type": "submit",
+    "text": "小岛设置",
+    "events": {
+      "onclick": "toggleIslandControlsGroup()"
+    },
+    "scopes": [
+      "home-island-launcher",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "launcher-btn-bg",
+    "type": "submit",
+    "text": "背景设置",
+    "events": {
+      "onclick": "openOriginalSettingsPanel('bg')"
+    },
+    "scopes": [
+      "home-island-launcher",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "launcher-btn-char",
+    "type": "submit",
+    "text": "角色设置",
+    "events": {
+      "onclick": "openOriginalSettingsPanel('char')"
+    },
+    "scopes": [
+      "home-island-launcher",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "launcher-btn-env",
+    "type": "submit",
+    "text": "🍃\n      环境微粒",
+    "events": {
+      "onclick": "openOriginalSettingsPanel('env')"
+    },
+    "scopes": [
+      "home-island-launcher",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "launcher-btn-immersive",
+    "type": "submit",
+    "text": "沉浸模式",
+    "events": {
+      "onclick": "openOriginalSettingsPanel('immersive')"
+    },
+    "scopes": [
+      "home-island-launcher",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "×",
+    "events": {
+      "onclick": "closeOriginalSettingsPanel()"
+    },
+    "scopes": [
+      "modal-bg-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "🏝️全局小岛全局",
+    "events": {
+      "onclick": "selectBgTarget('all')"
+    },
+    "scopes": [
+      "modal-bg-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "🏫校史馆",
+    "events": {
+      "onclick": "selectBgTarget('study')"
+    },
+    "scopes": [
+      "modal-bg-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "🥋武道馆",
+    "events": {
+      "onclick": "selectBgTarget('dojo')"
+    },
+    "scopes": [
+      "modal-bg-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "🧠思辨馆",
+    "events": {
+      "onclick": "selectBgTarget('cognition')"
+    },
+    "scopes": [
+      "modal-bg-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "🏛️修身阁",
+    "events": {
+      "onclick": "selectBgTarget('cultivation')"
+    },
+    "scopes": [
+      "modal-bg-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "💰藏金屋",
+    "events": {
+      "onclick": "selectBgTarget('treasury')"
+    },
+    "scopes": [
+      "modal-bg-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "📜行为规范",
+    "events": {
+      "onclick": "selectBgTarget('tree')"
+    },
+    "scopes": [
+      "modal-bg-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "📝每日随记",
+    "events": {
+      "onclick": "selectBgTarget('note')"
+    },
+    "scopes": [
+      "modal-bg-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "🏆成就馆",
+    "events": {
+      "onclick": "selectBgTarget('achieve')"
+    },
+    "scopes": [
+      "modal-bg-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "chk-global-bg",
+    "type": "checkbox",
+    "text": "开启全局背景（所有场馆统一使用「全局小岛」壁纸）",
+    "events": {
+      "onchange": "toggleGlobalBg(this.checked)"
+    },
+    "scopes": [
+      "modal-bg-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "🏝️ 阳光广场中心",
+    "events": {
+      "onclick": "applyWallpaper('plaza')"
+    },
+    "scopes": [
+      "modal-bg-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "💼 深度原木工坊",
+    "events": {
+      "onclick": "applyWallpaper('desk')"
+    },
+    "scopes": [
+      "modal-bg-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "📋 契约告示石坪",
+    "events": {
+      "onclick": "applyWallpaper('board')"
+    },
+    "scopes": [
+      "modal-bg-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "🌌 幽蓝星夜林地",
+    "events": {
+      "onclick": "applyWallpaper('star')"
+    },
+    "scopes": [
+      "modal-bg-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "纯白",
+    "events": {
+      "onclick": "applyWallpaper('white')"
+    },
+    "scopes": [
+      "modal-bg-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "纯黑",
+    "events": {
+      "onclick": "applyWallpaper('black')"
+    },
+    "scopes": [
+      "modal-bg-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "网格纸",
+    "events": {
+      "onclick": "applyWallpaper('grid')"
+    },
+    "scopes": [
+      "modal-bg-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "恢复默认",
+    "events": {
+      "onclick": "applyWallpaper('reset')"
+    },
+    "scopes": [
+      "modal-bg-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "✕",
+    "events": {
+      "onclick": "closeOriginalSettingsPanel()"
+    },
+    "scopes": [
+      "modal-char-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "char-nickname-input",
+    "type": "text",
+    "text": "输入岛民昵称（最多 12 字）",
+    "events": {},
+    "scopes": [
+      "char-content-main",
+      "modal-char-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "保存",
+    "events": {
+      "onclick": "saveNickname()"
+    },
+    "scopes": [
+      "char-content-main",
+      "modal-char-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "👦\n          晨曦少年\n          坚毅敏捷型",
+    "events": {
+      "onclick": "selectPlayerAvatar('👦')"
+    },
+    "scopes": [
+      "char-content-main",
+      "modal-char-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "👧\n          智慧少女\n          格物致知型",
+    "events": {
+      "onclick": "selectPlayerAvatar('👧')"
+    },
+    "scopes": [
+      "char-content-main",
+      "modal-char-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "🧑‍🎓\n          敏捷学士\n          专注慎独型",
+    "events": {
+      "onclick": "selectPlayerAvatar('🧑‍🎓')"
+    },
+    "scopes": [
+      "char-content-main",
+      "modal-char-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "🛡️\n          坚毅守卫\n          笃行守正型",
+    "events": {
+      "onclick": "selectPlayerAvatar('🛡️')"
+    },
+    "scopes": [
+      "char-content-main",
+      "modal-char-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "关闭",
+    "events": {
+      "onclick": "closeOriginalSettingsPanel()"
+    },
+    "scopes": [
+      "modal-char-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "✕",
+    "events": {
+      "onclick": "closeOriginalSettingsPanel()"
+    },
+    "scopes": [
+      "modal-env-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "btn-env-leaves",
+    "type": "submit",
+    "text": "已关闭",
+    "events": {
+      "onclick": "toggleEnvEffect('leaves')"
+    },
+    "scopes": [
+      "modal-env-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "btn-env-petals",
+    "type": "submit",
+    "text": "已关闭",
+    "events": {
+      "onclick": "toggleEnvEffect('petals')"
+    },
+    "scopes": [
+      "modal-env-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "btn-env-gold",
+    "type": "submit",
+    "text": "开启中",
+    "events": {
+      "onclick": "toggleEnvEffect('gold')"
+    },
+    "scopes": [
+      "modal-env-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "btn-env-rain",
+    "type": "submit",
+    "text": "已关闭",
+    "events": {
+      "onclick": "toggleEnvEffect('rain')"
+    },
+    "scopes": [
+      "modal-env-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "关闭",
+    "events": {
+      "onclick": "closeOriginalSettingsPanel()"
+    },
+    "scopes": [
+      "modal-env-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "✕",
+    "events": {
+      "onclick": "closeOriginalSettingsPanel()"
+    },
+    "scopes": [
+      "modal-immersive-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "chk-imm-left",
+    "type": "checkbox",
+    "text": "左边信息栏\n          隐藏玩家头像、成长数据与置顶悬赏",
+    "events": {
+      "onchange": "saveImmersivePref()"
+    },
+    "scopes": [
+      "modal-immersive-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "chk-imm-top",
+    "type": "checkbox",
+    "text": "上方主导航栏\n          隐藏模式控制与真机设备画框顶栏",
+    "events": {
+      "onchange": "saveImmersivePref()"
+    },
+    "scopes": [
+      "modal-immersive-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "chk-imm-bottom",
+    "type": "checkbox",
+    "text": "下方发射器工具栏\n          隐藏底栏小岛发射器按钮",
+    "events": {
+      "onchange": "saveImmersivePref()"
+    },
+    "scopes": [
+      "modal-immersive-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "chk-imm-nodes",
+    "type": "checkbox",
+    "text": "主界面功能馆节点\n          仅保留纯粹自然海岛微粒与环境音，专注闭目修身",
+    "events": {
+      "onchange": "saveImmersivePref()"
+    },
+    "scopes": [
+      "modal-immersive-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "chk-imm-dbl",
+    "type": "checkbox",
+    "text": "双击空白进入／退出\n          双击画布空白处快速自由切换沉浸状态",
+    "events": {
+      "onchange": "saveImmersivePref()"
+    },
+    "scopes": [
+      "modal-immersive-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "🌿 立即进入沉浸专注模式",
+    "events": {
+      "onclick": "enterImmersiveModeNow()"
+    },
+    "scopes": [
+      "modal-immersive-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "🖥️ 切换 Ob idian 顶栏/全屏显示 (返回设置与插件管理)",
+    "events": {
+      "onclick": "toggleObsidianTabletFullscreen()"
+    },
+    "scopes": [
+      "modal-immersive-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "关闭",
+    "events": {
+      "onclick": "closeOriginalSettingsPanel()"
+    },
+    "scopes": [
+      "modal-immersive-settings",
+      "island-canvas-stage",
+      "island-stage-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "打开左侧栏",
+    "events": {
+      "onclick": "toggleObsidianSplit('left')"
+    },
+    "scopes": [
+      "ws-unified-topbar",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "◀️\n        返回大厅",
+    "events": {
+      "onclick": "exitSecondaryWorkspace()"
+    },
+    "scopes": [
+      "ws-unified-topbar",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "👦",
+    "events": {
+      "onclick": "openOriginalSettingsPanel('char')"
+    },
+    "scopes": [
+      "ws-unified-topbar",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "📈\n              履约 98%",
+    "events": {
+      "onclick": "openFamilyPactModal(true)"
+    },
+    "scopes": [
+      "ws-unified-topbar",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "ws-top-action-btn",
+    "type": "submit",
+    "text": "➕\n          新增项目",
+    "events": {
+      "onclick": "openAddProjectModal()"
+    },
+    "scopes": [
+      "ws-center-tools-group",
+      "ws-unified-topbar",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "ws-top-today-btn",
+    "type": "submit",
+    "text": "🎯\n          定位今日",
+    "events": {
+      "onclick": "scrollGanttToToday()"
+    },
+    "scopes": [
+      "ws-center-tools-group",
+      "ws-unified-topbar",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "打开右侧栏",
+    "events": {
+      "onclick": "toggleObsidianSplit('right')"
+    },
+    "scopes": [
+      "ws-unified-topbar",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "全部分类",
+    "events": {
+      "onclick": "filterGanttCategory('all')"
+    },
+    "scopes": [
+      "gantt-category-filters",
+      "ws-gantt-main-container",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "📘 学业攻坚",
+    "events": {
+      "onclick": "filterGanttCategory('学业攻坚')"
+    },
+    "scopes": [
+      "gantt-category-filters",
+      "ws-gantt-main-container",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "🧘‍♂️ 修身立宪",
+    "events": {
+      "onclick": "filterGanttCategory('修身立宪')"
+    },
+    "scopes": [
+      "gantt-category-filters",
+      "ws-gantt-main-container",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "🏸 兴趣特长",
+    "events": {
+      "onclick": "filterGanttCategory('兴趣特长')"
+    },
+    "scopes": [
+      "gantt-category-filters",
+      "ws-gantt-main-container",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "🧠 认知思辨",
+    "events": {
+      "onclick": "filterGanttCategory('认知思辨')"
+    },
+    "scopes": [
+      "gantt-category-filters",
+      "ws-gantt-main-container",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "🚀 实践探索",
+    "events": {
+      "onclick": "filterGanttCategory('实践探索')"
+    },
+    "scopes": [
+      "gantt-category-filters",
+      "ws-gantt-main-container",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "全部 (6)",
+    "events": {
+      "onclick": "filterGanttStatus('all')"
+    },
+    "scopes": [
+      "gantt-status-filters",
+      "ws-gantt-main-container",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "待规划 (1)",
+    "events": {
+      "onclick": "filterGanttStatus('待规划')"
+    },
+    "scopes": [
+      "gantt-status-filters",
+      "ws-gantt-main-container",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "待执行 (1)",
+    "events": {
+      "onclick": "filterGanttStatus('待执行')"
+    },
+    "scopes": [
+      "gantt-status-filters",
+      "ws-gantt-main-container",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "进行中 (2)",
+    "events": {
+      "onclick": "filterGanttStatus('进行中')"
+    },
+    "scopes": [
+      "gantt-status-filters",
+      "ws-gantt-main-container",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "已完成 (1)",
+    "events": {
+      "onclick": "filterGanttStatus('已完成')"
+    },
+    "scopes": [
+      "gantt-status-filters",
+      "ws-gantt-main-container",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "已归档 (1)",
+    "events": {
+      "onclick": "filterGanttStatus('已归档')"
+    },
+    "scopes": [
+      "gantt-status-filters",
+      "ws-gantt-main-container",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "❓ 问道池选惑立项",
+    "events": {
+      "onclick": "openInquiryModal()"
+    },
+    "scopes": [
+      "ws-gantt-main-container",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "📍 回到今日 (10/27)",
+    "events": {
+      "onclick": "scrollGanttToToday()"
+    },
+    "scopes": [
+      "ws-gantt-main-container",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "add-project-modal",
+    "type": "",
+    "text": "📝\n          \n            新增成长规划项目\n            设定起止周期与攻坚策略 · 系统自动判定状态并排入小方格甘特图\n          \n        \n        ✕\n      \n\n      \n        \n\n        \n       ",
+    "events": {
+      "onclick": "handleAddProjectBackdropClick(event)"
+    },
+    "scopes": [
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "✕",
+    "events": {
+      "onclick": "closeAddProjectModal()"
+    },
+    "scopes": [
+      "add-project-modal",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "input-proj-edit-id",
+    "type": "hidden",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "add-project-modal",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "📘 学业攻坚",
+    "events": {
+      "onclick": "selectProjCategory(this, '学业攻坚')"
+    },
+    "scopes": [
+      "proj-category-picker",
+      "add-project-modal",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🧘‍♂️ 修身立宪",
+    "events": {
+      "onclick": "selectProjCategory(this, '修身立宪')"
+    },
+    "scopes": [
+      "proj-category-picker",
+      "add-project-modal",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🏸 兴趣特长",
+    "events": {
+      "onclick": "selectProjCategory(this, '兴趣特长')"
+    },
+    "scopes": [
+      "proj-category-picker",
+      "add-project-modal",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🧠 认知思辨",
+    "events": {
+      "onclick": "selectProjCategory(this, '认知思辨')"
+    },
+    "scopes": [
+      "proj-category-picker",
+      "add-project-modal",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🚀 实践探索",
+    "events": {
+      "onclick": "selectProjCategory(this, '实践探索')"
+    },
+    "scopes": [
+      "proj-category-picker",
+      "add-project-modal",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "input-proj-title",
+    "type": "text",
+    "text": "如：小学数学口算达标与思维训练 / 少儿单摇跳绳连跳突破",
+    "events": {},
+    "scopes": [
+      "add-project-modal",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "TEXTAREA",
+    "id": "input-proj-desc",
+    "type": "textarea",
+    "text": "如：每日早晨练习20道进退位口算卡，按审题、破十、验算三步订正错题，周日与家长进行口算通关挑战...",
+    "events": {},
+    "scopes": [
+      "add-project-modal",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "input-proj-start",
+    "type": "date",
+    "text": "",
+    "events": {
+      "onchange": "handleProjDateChange()"
+    },
+    "scopes": [
+      "add-project-modal",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "input-proj-end",
+    "type": "date",
+    "text": "",
+    "events": {
+      "onchange": "handleProjDateChange()"
+    },
+    "scopes": [
+      "add-project-modal",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "7天突破",
+    "events": {
+      "onclick": "setProjDatePreset(7)"
+    },
+    "scopes": [
+      "add-project-modal",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "双周攻坚 (14天)",
+    "events": {
+      "onclick": "setProjDatePreset(14)"
+    },
+    "scopes": [
+      "add-project-modal",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "月度长周 (30天)",
+    "events": {
+      "onclick": "setProjDatePreset(30)"
+    },
+    "scopes": [
+      "add-project-modal",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "学期周期 (60天)",
+    "events": {
+      "onclick": "setProjDatePreset(60)"
+    },
+    "scopes": [
+      "add-project-modal",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "取消",
+    "events": {
+      "onclick": "closeAddProjectModal()"
+    },
+    "scopes": [
+      "add-project-modal",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "btn-submit-proj-modal",
+    "type": "button",
+    "text": "✓ 保存并排入甘特图",
+    "events": {
+      "onclick": "confirmAddNewProject()"
+    },
+    "scopes": [
+      "add-project-modal",
+      "secondary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "打开左侧栏",
+    "events": {
+      "onclick": "toggleObsidianSplit('left')"
+    },
+    "scopes": [
+      "tertiary-unified-topbar",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "◀️\n        返回甘特",
+    "events": {
+      "onclick": "exitTertiaryWorkspace()"
+    },
+    "scopes": [
+      "tertiary-unified-topbar",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "👦",
+    "events": {
+      "onclick": "openOriginalSettingsPanel('char')"
+    },
+    "scopes": [
+      "tertiary-unified-topbar",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "📈\n              履约 98%",
+    "events": {
+      "onclick": "openFamilyPactModal(true)"
+    },
+    "scopes": [
+      "tertiary-unified-topbar",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "➕\n          新增节点",
+    "events": {
+      "onclick": "openTertiaryAddNodeModal()"
+    },
+    "scopes": [
+      "tertiary-unified-topbar",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "🖼️\n          插入图片",
+    "events": {
+      "onclick": "createImageEvidencePrompt()"
+    },
+    "scopes": [
+      "tertiary-unified-topbar",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "➕\n          放大",
+    "events": {
+      "onclick": "zoomTertiaryCanvas(1.18)"
+    },
+    "scopes": [
+      "tertiary-unified-topbar",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "➖\n          缩小",
+    "events": {
+      "onclick": "zoomTertiaryCanvas(0.85)"
+    },
+    "scopes": [
+      "tertiary-unified-topbar",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "100%\n          还原",
+    "events": {
+      "onclick": "resetTertiaryCanvasZoom()"
+    },
+    "scopes": [
+      "tertiary-unified-topbar",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "⛶\n          适应画布",
+    "events": {
+      "onclick": "fitCanvasView()"
+    },
+    "scopes": [
+      "tertiary-unified-topbar",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "btn-tertiary-children-follow",
+    "type": "submit",
+    "text": "🧲\n          子级跟随",
+    "events": {
+      "onclick": "toggleChildrenFollowToolbar()"
+    },
+    "scopes": [
+      "tertiary-unified-topbar",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "↩️\n          撤销",
+    "events": {
+      "onclick": "handleTertiaryUndo()"
+    },
+    "scopes": [
+      "tertiary-unified-topbar",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "↪️\n          重做",
+    "events": {
+      "onclick": "handleTertiaryRedo()"
+    },
+    "scopes": [
+      "tertiary-unified-topbar",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "🗑️\n          删除节点",
+    "events": {
+      "onclick": "handleTertiaryDeleteNode()"
+    },
+    "scopes": [
+      "tertiary-unified-topbar",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "🔍\n          搜索节点",
+    "events": {
+      "onclick": "openNodeSearchModal()"
+    },
+    "scopes": [
+      "tertiary-unified-topbar",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "▦\n          网格排布",
+    "events": {
+      "onclick": "cycleGridMode()"
+    },
+    "scopes": [
+      "tertiary-unified-topbar",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "btn-tool-minimize-all",
+    "type": "submit",
+    "text": "🗜️\n          全部折叠",
+    "events": {
+      "onclick": "toggleAllTertiaryCardsMinimize()"
+    },
+    "scopes": [
+      "tertiary-unified-topbar",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "打开右侧栏",
+    "events": {
+      "onclick": "toggleObsidianSplit('right')"
+    },
+    "scopes": [
+      "tertiary-unified-topbar",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "tertiary-canvas-stage",
+    "type": "",
+    "text": "🎯 目标分解\n          口算达标与思维通关目标\n          阶段里程碑\n          🔼\n        \n        \n          \n          \n            \n              🎯 量化通关指标 (指标名 / 指标数据)\n ",
+    "events": {
+      "onclick": "handleTertiaryStageClick(event)"
+    },
+    "scopes": [
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🔼",
+    "events": {
+      "onclick": "toggleTertiaryCardMinimize('tcard-1', event)"
+    },
+    "scopes": [
+      "tcard-1",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "🎯 量化通关指标 (指标名 / 指标数据)\n              ➕ 新增指标\n            \n            \n              指标名\n              指标数据\n              \n            \n            \n  ",
+    "events": {
+      "onclick": "event.stopPropagation()"
+    },
+    "scopes": [
+      "tcard-1",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "➕ 新增指标",
+    "events": {
+      "onclick": "addCardGoalMetricItem('tcard-1-metrics', event)"
+    },
+    "scopes": [
+      "tcard-1",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "指标名",
+    "events": {},
+    "scopes": [
+      "tcard-1-metrics",
+      "tcard-1",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "指标数据",
+    "events": {},
+    "scopes": [
+      "tcard-1-metrics",
+      "tcard-1",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "removeCardGoalMetricItem(this, event)"
+    },
+    "scopes": [
+      "tcard-1-metrics",
+      "tcard-1",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "指标名",
+    "events": {},
+    "scopes": [
+      "tcard-1-metrics",
+      "tcard-1",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "指标数据",
+    "events": {},
+    "scopes": [
+      "tcard-1-metrics",
+      "tcard-1",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "removeCardGoalMetricItem(this, event)"
+    },
+    "scopes": [
+      "tcard-1-metrics",
+      "tcard-1",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "📅 期望完成截止时间:",
+    "events": {
+      "onclick": "event.stopPropagation()"
+    },
+    "scopes": [
+      "tcard-1",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "goal-deadline-tcard-1",
+    "type": "datetime-local",
+    "text": "",
+    "events": {
+      "onclick": "if(this.showPicker) this.showPicker();",
+      "onchange": "showIslandToast('📅 已更新期望完成截止时间：' + this.value.replace('T', ' '))"
+    },
+    "scopes": [
+      "tcard-1",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "📦 交付物提交:\n              \n                📷 拍照提交\n                🎥 视频提交\n                ✍️ 文字记录提交\n              \n            \n            \n          ",
+    "events": {
+      "onclick": "event.stopPropagation()"
+    },
+    "scopes": [
+      "tcard-1",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "SELECT",
+    "id": "goal-deliverable-type-tcard-1",
+    "type": "select-one",
+    "text": "📷 拍照提交\n                🎥 视频提交\n                ✍️ 文字记录提交",
+    "events": {
+      "onchange": "switchGoalDeliverableMode('tcard-1', this.value)"
+    },
+    "scopes": [
+      "tcard-1",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "goal-media-box-tcard-1",
+    "type": "",
+    "text": "📷 点击拍照或上传交付物照片",
+    "events": {
+      "onclick": "triggerGoalDeliverableUpload('tcard-1', event)"
+    },
+    "scopes": [
+      "tcard-1",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "TEXTAREA",
+    "id": "goal-deliverable-text-tcard-1",
+    "type": "textarea",
+    "text": "已完成30道进退位混合口算满分通关，附红笔自查满分卷。",
+    "events": {},
+    "scopes": [
+      "tcard-1",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "支持图文交付归档\n            🏆 记录到成就馆",
+    "events": {
+      "onclick": "event.stopPropagation()"
+    },
+    "scopes": [
+      "tcard-1",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "btn-deposit-tcard-1",
+    "type": "button",
+    "text": "🏆 记录到成就馆",
+    "events": {
+      "onclick": "depositGoalToAchievement('tcard-1', event)"
+    },
+    "scopes": [
+      "tcard-1",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "🔗",
+    "events": {
+      "onclick": "startOrFinishConnecting('tcard-1', event)"
+    },
+    "scopes": [
+      "tcard-1",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🔼",
+    "events": {
+      "onclick": "toggleTertiaryCardMinimize('tcard-2', event)"
+    },
+    "scopes": [
+      "tcard-2",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "⏱️ 计划专注时长:\n            \n              5 分钟 (微习惯快练)\n              10 分钟 (轻量专攻)\n              15 分钟 (日常快练)\n              20 分钟 (标准实训)\n              25 分",
+    "events": {
+      "onclick": "event.stopPropagation()"
+    },
+    "scopes": [
+      "tcard-2",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "SELECT",
+    "id": "drill-duration-select-tcard-2",
+    "type": "select-one",
+    "text": "5 分钟 (微习惯快练)\n              10 分钟 (轻量专攻)\n              15 分钟 (日常快练)\n              20 分钟 (标准实训)\n              25 分钟 (深度番茄)\n              30 分钟 (强化攻坚)\n  ",
+    "events": {
+      "onchange": "updateDrillCardDuration('tcard-2', this.value)"
+    },
+    "scopes": [
+      "tcard-2",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "🎬 图片视频说明\n            \n              📷 / 🎥 点击上传图片或视频 (进退位口算题卡.png)",
+    "events": {
+      "onclick": "event.stopPropagation()"
+    },
+    "scopes": [
+      "tcard-2",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "drill-img-box-tcard-2",
+    "type": "",
+    "text": "📷 / 🎥 点击上传图片或视频 (进退位口算题卡.png)",
+    "events": {
+      "onclick": "triggerDrillCardImage('tcard-2', event)"
+    },
+    "scopes": [
+      "tcard-2",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "drill-img-desc-tcard-2",
+    "type": "text",
+    "text": "✍️ 输入图片或视频说明...",
+    "events": {},
+    "scopes": [
+      "tcard-2",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🌟 立即打卡",
+    "events": {
+      "onclick": "handleNodeCheckin(this, 'tcard-2', 'timer'); event.stopPropagation();"
+    },
+    "scopes": [
+      "tcard-2",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "🔗",
+    "events": {
+      "onclick": "startOrFinishConnecting('tcard-2', event)"
+    },
+    "scopes": [
+      "tcard-2",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🔼",
+    "events": {
+      "onclick": "toggleTertiaryCardMinimize('tcard-3', event)"
+    },
+    "scopes": [
+      "tcard-3",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "🛡️ 践行防守清单 (可增删多项)\n              ➕ 新增清单项\n            \n            \n              \n                \n                \n                ✕\n              \n ",
+    "events": {
+      "onclick": "event.stopPropagation()"
+    },
+    "scopes": [
+      "tcard-3",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "➕ 新增清单项",
+    "events": {
+      "onclick": "addCardHabitChecklistItem('tcard-3-checklist', event)"
+    },
+    "scopes": [
+      "tcard-3",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "checkbox",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "tcard-3-checklist",
+      "tcard-3",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "输入践行防守清单项...",
+    "events": {},
+    "scopes": [
+      "tcard-3-checklist",
+      "tcard-3",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "removeCardHabitChecklistItem(this, event)"
+    },
+    "scopes": [
+      "tcard-3-checklist",
+      "tcard-3",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "checkbox",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "tcard-3-checklist",
+      "tcard-3",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "输入践行防守清单项...",
+    "events": {},
+    "scopes": [
+      "tcard-3-checklist",
+      "tcard-3",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "removeCardHabitChecklistItem(this, event)"
+    },
+    "scopes": [
+      "tcard-3-checklist",
+      "tcard-3",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "checkbox",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "tcard-3-checklist",
+      "tcard-3",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "输入践行防守清单项...",
+    "events": {},
+    "scopes": [
+      "tcard-3-checklist",
+      "tcard-3",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "removeCardHabitChecklistItem(this, event)"
+    },
+    "scopes": [
+      "tcard-3-checklist",
+      "tcard-3",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🌿 知行打卡",
+    "events": {
+      "onclick": "handleNodeCheckin(this, 'tcard-3', 'habit'); event.stopPropagation();"
+    },
+    "scopes": [
+      "tcard-3",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "🔗",
+    "events": {
+      "onclick": "startOrFinishConnecting('tcard-3', event)"
+    },
+    "scopes": [
+      "tcard-3",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🔼",
+    "events": {
+      "onclick": "toggleTertiaryCardMinimize('tcard-4', event)"
+    },
+    "scopes": [
+      "tcard-4",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "📝 复盘说明 (错因卡点分析与反思心得合并区)\n              个位数 3 - 8 不够减忘记标退位借位点；运算模型化速度大幅提升，审题需先圈出运算符！",
+    "events": {
+      "onclick": "event.stopPropagation()"
+    },
+    "scopes": [
+      "tcard-4",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "TEXTAREA",
+    "id": "",
+    "type": "textarea",
+    "text": "个位数 3 - 8 不够减忘记标退位借位点；运算模型化速度大幅提升，审题需先圈出运算符！",
+    "events": {},
+    "scopes": [
+      "tcard-4",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "🚀 提升清单 (可增删提升项)\n              ➕ 新增提升项\n            \n            \n              \n                \n                \n                ✕\n              \n   ",
+    "events": {
+      "onclick": "event.stopPropagation()"
+    },
+    "scopes": [
+      "tcard-4",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "➕ 新增提升项",
+    "events": {
+      "onclick": "addCardReflectionImprovementItem('tcard-4-improvements', event)"
+    },
+    "scopes": [
+      "tcard-4",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "checkbox",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "tcard-4-improvements",
+      "tcard-4",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "输入提升项...",
+    "events": {},
+    "scopes": [
+      "tcard-4-improvements",
+      "tcard-4",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "removeCardReflectionImprovementItem(this, event)"
+    },
+    "scopes": [
+      "tcard-4-improvements",
+      "tcard-4",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "checkbox",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "tcard-4-improvements",
+      "tcard-4",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "输入提升项...",
+    "events": {},
+    "scopes": [
+      "tcard-4-improvements",
+      "tcard-4",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "removeCardReflectionImprovementItem(this, event)"
+    },
+    "scopes": [
+      "tcard-4-improvements",
+      "tcard-4",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🌱 派生实训节点",
+    "events": {
+      "onclick": "deriveNodesFromReflectionCard('tcard-4', event)"
+    },
+    "scopes": [
+      "tcard-4",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "🔗",
+    "events": {
+      "onclick": "startOrFinishConnecting('tcard-4', event)"
+    },
+    "scopes": [
+      "tcard-4",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🔼",
+    "events": {
+      "onclick": "toggleTertiaryCardMinimize('tcard-5', event)"
+    },
+    "scopes": [
+      "tcard-5",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "📋 自定义动态业务字段 (可增删)\n              ➕ 新增字段\n            \n            \n          \n            \n              ⏱️ 打卡需求:\n              \n                ✅ 需要打卡",
+    "events": {
+      "onclick": "event.stopPropagation()"
+    },
+    "scopes": [
+      "tcard-5",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "➕ 新增字段",
+    "events": {
+      "onclick": "addCustomDynamicFieldRow('tcard-5-fields')"
+    },
+    "scopes": [
+      "tcard-5",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "⏱️ 打卡需求:\n              \n                ✅ 需要打卡\n                ⏸️ 仅作记录\n              \n            \n            \n              📦 物证类型:\n              \n",
+    "events": {
+      "onclick": "event.stopPropagation()"
+    },
+    "scopes": [
+      "tcard-5",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "SELECT",
+    "id": "custom-need-checkin-tcard-5",
+    "type": "select-one",
+    "text": "✅ 需要打卡\n                ⏸️ 仅作记录",
+    "events": {},
+    "scopes": [
+      "tcard-5",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "SELECT",
+    "id": "custom-evidence-type-tcard-5",
+    "type": "select-one",
+    "text": "📷 拍照物证\n                🎥 视频记录\n                ✍️ 文本说明\n                🚫 无需物证",
+    "events": {},
+    "scopes": [
+      "tcard-5",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "tcard-5-fields",
+      "tcard-5",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "tcard-5-fields",
+      "tcard-5",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "removePickerCustomDynamicField(this)"
+    },
+    "scopes": [
+      "tcard-5-fields",
+      "tcard-5",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "tcard-5-fields",
+      "tcard-5",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "tcard-5-fields",
+      "tcard-5",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "removePickerCustomDynamicField(this)"
+    },
+    "scopes": [
+      "tcard-5-fields",
+      "tcard-5",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "tcard-5-fields",
+      "tcard-5",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "tcard-5-fields",
+      "tcard-5",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "removePickerCustomDynamicField(this)"
+    },
+    "scopes": [
+      "tcard-5-fields",
+      "tcard-5",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🌟 立即打卡",
+    "events": {
+      "onclick": "handleNodeCheckin(this, 'tcard-5', 'custom'); event.stopPropagation();"
+    },
+    "scopes": [
+      "tcard-5",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "🔗",
+    "events": {
+      "onclick": "startOrFinishConnecting('tcard-5', event)"
+    },
+    "scopes": [
+      "tcard-5",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "tertiary-edge-popover",
+    "type": "",
+    "text": "路线设置",
+    "events": {
+      "onclick": "event.stopPropagation()"
+    },
+    "scopes": [
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "关闭路线设置",
+    "events": {
+      "onclick": "closeRouteSettings()"
+    },
+    "scopes": [
+      "tertiary-edge-popover",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "btn-edge-hier-forward",
+    "type": "button",
+    "text": "节点A → 节点B",
+    "events": {
+      "onclick": "handleEdgeHierarchy(false)"
+    },
+    "scopes": [
+      "tertiary-edge-popover",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "btn-edge-hier-backward",
+    "type": "button",
+    "text": "节点B → 节点A",
+    "events": {
+      "onclick": "handleEdgeHierarchy(true)"
+    },
+    "scopes": [
+      "tertiary-edge-popover",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "SELECT",
+    "id": "edge-type-select",
+    "type": "select-one",
+    "text": "关系类别",
+    "events": {
+      "onchange": "handleEdgeTypeSelect(this.value)"
+    },
+    "scopes": [
+      "tertiary-edge-popover",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "单向",
+    "events": {
+      "onclick": "setEdgeArrowMode('single')"
+    },
+    "scopes": [
+      "tertiary-edge-popover",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "双向",
+    "events": {
+      "onclick": "setEdgeArrowMode('double')"
+    },
+    "scopes": [
+      "tertiary-edge-popover",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "无向",
+    "events": {
+      "onclick": "setEdgeArrowMode('none')"
+    },
+    "scopes": [
+      "tertiary-edge-popover",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "⇄ 仅反转线路方向",
+    "events": {
+      "onclick": "reverseEdgeDirection()"
+    },
+    "scopes": [
+      "tertiary-edge-popover",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "实线",
+    "events": {
+      "onclick": "setEdgeLineStyle('solid')"
+    },
+    "scopes": [
+      "tertiary-edge-popover",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "虚线",
+    "events": {
+      "onclick": "setEdgeLineStyle('dashed')"
+    },
+    "scopes": [
+      "tertiary-edge-popover",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "edge-width-slider",
+    "type": "range",
+    "text": "线条粗细",
+    "events": {
+      "oninput": "handleEdgeWidthInput(this.value)"
+    },
+    "scopes": [
+      "tertiary-edge-popover",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "edge-custom-label-input",
+    "type": "text",
+    "text": "关系名称",
+    "events": {
+      "oninput": "handleEdgeLabelChange(this.value)"
+    },
+    "scopes": [
+      "tertiary-edge-popover",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "删除路线",
+    "events": {
+      "onclick": "handleDeleteActiveEdge()"
+    },
+    "scopes": [
+      "tertiary-edge-popover",
+      "tertiary-canvas-world",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "脑图导航\n          \n          −",
+    "events": {
+      "onclick": "toggleTertiaryMinimapDock()"
+    },
+    "scopes": [
+      "tertiary-minimap-dock",
+      "tertiary-navigation-dock",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "tertiary-minimap-close-btn",
+    "type": "button",
+    "text": "−",
+    "events": {
+      "onclick": "event.stopPropagation(); toggleTertiaryMinimapDock();"
+    },
+    "scopes": [
+      "tertiary-minimap-dock",
+      "tertiary-navigation-dock",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "tertiary-minimap-toggle-btn",
+    "type": "button",
+    "text": "收起脑图导航",
+    "events": {
+      "onclick": "toggleTertiaryMinimapDock()"
+    },
+    "scopes": [
+      "tertiary-navigation-dock",
+      "tertiary-canvas-stage",
+      "tertiary-workspace-view",
+      "ipad-screen",
+      "ipad-wrapper",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "◀️\n        返回脑图",
+    "events": {
+      "onclick": "switchMainSection('tertiary')"
+    },
+    "scopes": [
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "🌟\n          全部卡片",
+    "events": {
+      "onclick": "filterGallery('all')"
+    },
+    "scopes": [
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "🎯\n          目标分解",
+    "events": {
+      "onclick": "filterGallery('goal')"
+    },
+    "scopes": [
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "⚡\n          攻坚实训",
+    "events": {
+      "onclick": "filterGallery('drill')"
+    },
+    "scopes": [
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "🌿\n          习惯践行",
+    "events": {
+      "onclick": "filterGallery('habit')"
+    },
+    "scopes": [
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "📝\n          评估复盘",
+    "events": {
+      "onclick": "filterGallery('reflection')"
+    },
+    "scopes": [
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "⚙️\n          自定配置",
+    "events": {
+      "onclick": "filterGallery('custom')"
+    },
+    "scopes": [
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "📄\n          简单文本",
+    "events": {
+      "onclick": "filterGallery('text')"
+    },
+    "scopes": [
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "➕ 新增指标",
+    "events": {
+      "onclick": "addCheckinPageGoalMetric()"
+    },
+    "scopes": [
+      "checkin-frame-goal",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "checkin-page-goal-metrics-list",
+      "checkin-frame-goal",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "checkin-page-goal-metrics-list",
+      "checkin-frame-goal",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "removeGoalMetricModalRow(this)"
+    },
+    "scopes": [
+      "checkin-page-goal-metrics-list",
+      "checkin-frame-goal",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "checkin-page-goal-metrics-list",
+      "checkin-frame-goal",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "checkin-page-goal-metrics-list",
+      "checkin-frame-goal",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "removeGoalMetricModalRow(this)"
+    },
+    "scopes": [
+      "checkin-page-goal-metrics-list",
+      "checkin-frame-goal",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "checkin-page-goal-metrics-list",
+      "checkin-frame-goal",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "checkin-page-goal-metrics-list",
+      "checkin-frame-goal",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "removeGoalMetricModalRow(this)"
+    },
+    "scopes": [
+      "checkin-page-goal-metrics-list",
+      "checkin-frame-goal",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "datetime-local",
+    "text": "",
+    "events": {
+      "onclick": "if(this.showPicker) this.showPicker();",
+      "onchange": "showIslandToast('📅 已更新期望完成截止时间：' + this.value.replace('T', ' '))"
+    },
+    "scopes": [
+      "checkin-frame-goal",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "SELECT",
+    "id": "checkin-page-goal-deliv-select",
+    "type": "select-one",
+    "text": "📷 拍照提交 (上传成果照片)\n                      🎥 视频提交 (上传成果视频)\n                      ✍️ 文字记录提交 (编写成果总结)",
+    "events": {
+      "onchange": "switchCheckinPageGoalDeliverable(this.value)"
+    },
+    "scopes": [
+      "checkin-frame-goal",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "checkin-page-goal-file-input",
+    "type": "file",
+    "text": "📷\n                    点击拍照或上传阶段目标交付物照片存证\n                    支持本地上传高清手稿照片或成果视频",
+    "events": {
+      "onchange": "handleCheckinPageGoalFile(this)"
+    },
+    "scopes": [
+      "checkin-page-goal-media-box",
+      "checkin-frame-goal",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "TEXTAREA",
+    "id": "checkin-page-goal-text-box",
+    "type": "textarea",
+    "text": "已完成阶段目标全部量化通关指标，30道进退位口算题卡满分通关，错因全部归档清零！",
+    "events": {},
+    "scopes": [
+      "checkin-frame-goal",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "btn-checkin-page-goal-deposit",
+    "type": "button",
+    "text": "🏆 记录到成就馆",
+    "events": {
+      "onclick": "handleCheckinPageGoalDeposit(this)"
+    },
+    "scopes": [
+      "checkin-frame-goal",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "file",
+    "text": "📷 / 🎥\n                    拍照或上传本次实际做题草稿物证",
+    "events": {
+      "onchange": "handleCheckinPageDrillMedia(this)"
+    },
+    "scopes": [
+      "checkin-frame-drill",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "✍️ 输入本次作业物证文字说明...",
+    "events": {},
+    "scopes": [
+      "checkin-frame-drill",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "SELECT",
+    "id": "checkin-page-drill-dur-select",
+    "type": "select-one",
+    "text": "⏱️ 5 分钟 (微习惯快练)\n                      ⏱️ 10 分钟 (轻量专攻)\n                      ⏱️ 15 分钟 (日常快练)\n                      ⏱️ 20 分钟 (标准实训)\n                    ",
+    "events": {
+      "onchange": "changeCheckinPageDrillDuration(this.value)"
+    },
+    "scopes": [
+      "checkin-frame-drill",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "btn-checkin-drill-timer",
+    "type": "button",
+    "text": "▶️ 启动专注",
+    "events": {
+      "onclick": "toggleCheckinPageDrillTimer()"
+    },
+    "scopes": [
+      "checkin-frame-drill",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🔄 重置",
+    "events": {
+      "onclick": "resetCheckinPageDrillTimer()"
+    },
+    "scopes": [
+      "checkin-frame-drill",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "SELECT",
+    "id": "",
+    "type": "select-one",
+    "text": "📷 拍照物证留痕 (手稿拍照)\n                      🎥 动作视频录制留痕\n                      ⏱️ 纯心流计时打卡",
+    "events": {},
+    "scopes": [
+      "checkin-frame-drill",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🌟 完成攻坚实训打卡",
+    "events": {
+      "onclick": "completeCheckinPageCard('drill', this, '圆满践行')"
+    },
+    "scopes": [
+      "checkin-frame-drill",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "➕ 新增清单项",
+    "events": {
+      "onclick": "addCheckinPageHabitItem()"
+    },
+    "scopes": [
+      "checkin-frame-habit",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "checkbox",
+    "text": "",
+    "events": {
+      "onchange": "updateCheckinPageHabitProgress()"
+    },
+    "scopes": [
+      "checkin-page-habit-list",
+      "checkin-frame-habit",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "checkin-page-habit-list",
+      "checkin-frame-habit",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "removeCheckinPageHabitItem(this)"
+    },
+    "scopes": [
+      "checkin-page-habit-list",
+      "checkin-frame-habit",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "checkbox",
+    "text": "",
+    "events": {
+      "onchange": "updateCheckinPageHabitProgress()"
+    },
+    "scopes": [
+      "checkin-page-habit-list",
+      "checkin-frame-habit",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "checkin-page-habit-list",
+      "checkin-frame-habit",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "removeCheckinPageHabitItem(this)"
+    },
+    "scopes": [
+      "checkin-page-habit-list",
+      "checkin-frame-habit",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "checkbox",
+    "text": "",
+    "events": {
+      "onchange": "updateCheckinPageHabitProgress()"
+    },
+    "scopes": [
+      "checkin-page-habit-list",
+      "checkin-frame-habit",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "checkin-page-habit-list",
+      "checkin-frame-habit",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "removeCheckinPageHabitItem(this)"
+    },
+    "scopes": [
+      "checkin-page-habit-list",
+      "checkin-frame-habit",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "SELECT",
+    "id": "",
+    "type": "select-one",
+    "text": "🎙️ 晨读录音封存 (60秒原声)\n                      📷 生活自律拍照存证\n                      🛡️ 纯自律防守清单打卡",
+    "events": {},
+    "scopes": [
+      "checkin-frame-habit",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "🎙️\n                    点击录制 60 秒晨读原声 / 上传自律生活照片\n                    已就绪 · 预计践行用时 ⏱️ 15 分钟",
+    "events": {
+      "onclick": "showIslandToast('🎙️ 正在录制 60 秒晨读/自律原声存证...')"
+    },
+    "scopes": [
+      "checkin-frame-habit",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🌿 完成知行合一打卡",
+    "events": {
+      "onclick": "completeCheckinPageCard('habit', this, '知行合一')"
+    },
+    "scopes": [
+      "checkin-frame-habit",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "TEXTAREA",
+    "id": "",
+    "type": "textarea",
+    "text": "个位数不够减忘记从十位借 1 当 10，混淆减法借位原则；通过破十法专项拆解后运算模型化速度大幅提升，后续审题需先用红笔看清加减运算符再标出退位点。",
+    "events": {},
+    "scopes": [
+      "checkin-frame-reflection",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "💾 暂存复盘说明",
+    "events": {
+      "onclick": "showIslandToast('💾 复盘说明已保存')"
+    },
+    "scopes": [
+      "checkin-frame-reflection",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "➕ 新增提升项",
+    "events": {
+      "onclick": "addCheckinPageReflectionItem()"
+    },
+    "scopes": [
+      "checkin-frame-reflection",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "checkbox",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "checkin-page-reflection-list",
+      "checkin-frame-reflection",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "checkin-page-reflection-list",
+      "checkin-frame-reflection",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "removeCheckinPageReflectionItem(this)"
+    },
+    "scopes": [
+      "checkin-page-reflection-list",
+      "checkin-frame-reflection",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "checkbox",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "checkin-page-reflection-list",
+      "checkin-frame-reflection",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "checkin-page-reflection-list",
+      "checkin-frame-reflection",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "removeCheckinPageReflectionItem(this)"
+    },
+    "scopes": [
+      "checkin-page-reflection-list",
+      "checkin-frame-reflection",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "checkbox",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "checkin-page-reflection-list",
+      "checkin-frame-reflection",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "checkin-page-reflection-list",
+      "checkin-frame-reflection",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "removeCheckinPageReflectionItem(this)"
+    },
+    "scopes": [
+      "checkin-page-reflection-list",
+      "checkin-frame-reflection",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✍️ 完成笃行复盘打卡",
+    "events": {
+      "onclick": "completeCheckinPageCard('reflection', this, '笃行复盘')"
+    },
+    "scopes": [
+      "checkin-frame-reflection",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "➕ 新增字段",
+    "events": {
+      "onclick": "addCheckinPageCustomField()"
+    },
+    "scopes": [
+      "checkin-frame-custom",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "checkin-page-custom-fields-list",
+      "checkin-frame-custom",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "checkin-page-custom-fields-list",
+      "checkin-frame-custom",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "removePickerCustomDynamicField(this)"
+    },
+    "scopes": [
+      "checkin-page-custom-fields-list",
+      "checkin-frame-custom",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "checkin-page-custom-fields-list",
+      "checkin-frame-custom",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "checkin-page-custom-fields-list",
+      "checkin-frame-custom",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "removePickerCustomDynamicField(this)"
+    },
+    "scopes": [
+      "checkin-page-custom-fields-list",
+      "checkin-frame-custom",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "checkin-page-custom-fields-list",
+      "checkin-frame-custom",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "checkin-page-custom-fields-list",
+      "checkin-frame-custom",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "removePickerCustomDynamicField(this)"
+    },
+    "scopes": [
+      "checkin-page-custom-fields-list",
+      "checkin-frame-custom",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "SELECT",
+    "id": "",
+    "type": "select-one",
+    "text": "🌟 需要打卡执行\n                        📄 仅作为知识沉淀",
+    "events": {},
+    "scopes": [
+      "checkin-frame-custom",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "SELECT",
+    "id": "",
+    "type": "select-one",
+    "text": "📷 拍照物证\n                        ⏱️ 专注计时\n                        ✍️ 心得便签\n                        🎙️ 原声录音\n                        🎥 动作视频\n             ",
+    "events": {
+      "onchange": "showIslandToast('📸 已切换自定义卡物证交付类型为：' + this.options[this.selectedIndex].text)"
+    },
+    "scopes": [
+      "checkin-frame-custom",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "📷\n                    点击上传自定义任务交付物证 (照片/视频/笔记)",
+    "events": {
+      "onclick": "createImageEvidencePrompt()"
+    },
+    "scopes": [
+      "checkin-frame-custom",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🌟 完成自定义任务打卡",
+    "events": {
+      "onclick": "completeCheckinPageCard('custom', this, '完成打卡')"
+    },
+    "scopes": [
+      "checkin-frame-custom",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "",
+    "type": "text",
+    "text": "输入标题...",
+    "events": {},
+    "scopes": [
+      "checkin-frame-text",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "TEXTAREA",
+    "id": "",
+    "type": "textarea",
+    "text": "长征系列运载火箭是中国航天的主力运载工具，已完成500+次发射：\n1. 长征二号F（CZ-2F）：神舟载人飞船专属火箭，素有“神箭”美誉；\n2. 长征五号（CZ-5）：中国现役运力最强大型低温液体火箭，支撑嫦娥探月与天宫空间站核心舱发射。\n（本简单文本节点只需输入标题和内容，仅供阅读查阅，无需任何打",
+    "events": {},
+    "scopes": [
+      "checkin-frame-text",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "📋 已查阅确认",
+    "events": {
+      "onclick": "showIslandToast('📖 已完成简单文本节点查阅！')"
+    },
+    "scopes": [
+      "checkin-frame-text",
+      "gallery-grid-container",
+      "gallery-stage-view",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "add-module-modal",
+    "type": "",
+    "text": "🧩\n        \n          新增海岛规划模块\n          自定义专属成长场馆 · 自由拖拽布局\n        \n      \n      ✕\n    \n\n    \n      \n      \n        \n          模块名称 （必填，如：创客工坊、古琴雅室、自",
+    "events": {
+      "onclick": "handleAddModuleBackdropClick(event)"
+    },
+    "scopes": [
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "✕",
+    "events": {
+      "onclick": "closeAddModuleModal()"
+    },
+    "scopes": [
+      "add-module-modal",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "input-module-name",
+    "type": "text",
+    "text": "请输入场馆名称（2～30字）",
+    "events": {},
+    "scopes": [
+      "add-module-modal",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🎨",
+    "events": {
+      "onclick": "pickModulePresetIcon(this, '🎨')"
+    },
+    "scopes": [
+      "module-icon-preset-grid",
+      "add-module-modal",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🔬",
+    "events": {
+      "onclick": "pickModulePresetIcon(this, '🔬')"
+    },
+    "scopes": [
+      "module-icon-preset-grid",
+      "add-module-modal",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "♟️",
+    "events": {
+      "onclick": "pickModulePresetIcon(this, '♟️')"
+    },
+    "scopes": [
+      "module-icon-preset-grid",
+      "add-module-modal",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🚀",
+    "events": {
+      "onclick": "pickModulePresetIcon(this, '🚀')"
+    },
+    "scopes": [
+      "module-icon-preset-grid",
+      "add-module-modal",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🎹",
+    "events": {
+      "onclick": "pickModulePresetIcon(this, '🎹')"
+    },
+    "scopes": [
+      "module-icon-preset-grid",
+      "add-module-modal",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🥋",
+    "events": {
+      "onclick": "pickModulePresetIcon(this, '🥋')"
+    },
+    "scopes": [
+      "module-icon-preset-grid",
+      "add-module-modal",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "📚",
+    "events": {
+      "onclick": "pickModulePresetIcon(this, '📚')"
+    },
+    "scopes": [
+      "module-icon-preset-grid",
+      "add-module-modal",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🤖",
+    "events": {
+      "onclick": "pickModulePresetIcon(this, '🤖')"
+    },
+    "scopes": [
+      "module-icon-preset-grid",
+      "add-module-modal",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🧗",
+    "events": {
+      "onclick": "pickModulePresetIcon(this, '🧗')"
+    },
+    "scopes": [
+      "module-icon-preset-grid",
+      "add-module-modal",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🌿",
+    "events": {
+      "onclick": "pickModulePresetIcon(this, '🌿')"
+    },
+    "scopes": [
+      "module-icon-preset-grid",
+      "add-module-modal",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🔭",
+    "events": {
+      "onclick": "pickModulePresetIcon(this, '🔭')"
+    },
+    "scopes": [
+      "module-icon-preset-grid",
+      "add-module-modal",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🏹",
+    "events": {
+      "onclick": "pickModulePresetIcon(this, '🏹')"
+    },
+    "scopes": [
+      "module-icon-preset-grid",
+      "add-module-modal",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🏕️",
+    "events": {
+      "onclick": "pickModulePresetIcon(this, '🏕️')"
+    },
+    "scopes": [
+      "module-icon-preset-grid",
+      "add-module-modal",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🏊",
+    "events": {
+      "onclick": "pickModulePresetIcon(this, '🏊')"
+    },
+    "scopes": [
+      "module-icon-preset-grid",
+      "add-module-modal",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕ 移除",
+    "events": {
+      "onclick": "removeTertiaryModuleUploadedFile()"
+    },
+    "scopes": [
+      "tertiary-module-upload-preview-container",
+      "add-module-modal",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "📁 从设备上传图片",
+    "events": {
+      "onclick": "document.getElementById('input-tertiary-module-file').click()"
+    },
+    "scopes": [
+      "add-module-modal",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "input-tertiary-module-file",
+    "type": "file",
+    "text": "",
+    "events": {
+      "onchange": "handleTertiaryModuleFileUpload(this)"
+    },
+    "scopes": [
+      "add-module-modal",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "input-custom-module-icon",
+    "type": "text",
+    "text": "",
+    "events": {
+      "oninput": "handleCustomModuleIconInput(this.value)"
+    },
+    "scopes": [
+      "add-module-modal",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "input-module-badge",
+    "type": "text",
+    "text": "如：规划筹备中 / 自由探索 / 兴趣拓展",
+    "events": {},
+    "scopes": [
+      "add-module-modal",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "取消",
+    "events": {
+      "onclick": "closeAddModuleModal()"
+    },
+    "scopes": [
+      "add-module-modal",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✨ 确定添加至沙盘",
+    "events": {
+      "onclick": "confirmAddNewModule()"
+    },
+    "scopes": [
+      "add-module-modal",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "modal-tertiary-create-module",
+    "type": "",
+    "text": "📑\n        \n          新建三级攻坚模块\n          自定义攻坚课题名称 · 专属图标与图片 · 课题目标说明\n        \n      \n      ✕\n    \n\n    \n      \n      \n        \n          模块名称 （必填，如：口",
+    "events": {
+      "onclick": "handleTertiaryCreateModuleBackdropClick(event)"
+    },
+    "scopes": [
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "📑\n        \n          新建三级攻坚模块\n          自定义攻坚课题名称 · 专属图标与图片 · 课题目标说明\n        \n      \n      ✕\n    \n\n    \n      \n      \n        \n          模块名称 （必填，如：口",
+    "events": {
+      "onclick": "event.stopPropagation()"
+    },
+    "scopes": [
+      "modal-tertiary-create-module",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "✕",
+    "events": {
+      "onclick": "closeTertiaryCreateModuleModal()"
+    },
+    "scopes": [
+      "modal-tertiary-create-module",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "input-tertiary-module-name",
+    "type": "text",
+    "text": "请输入模块名称...",
+    "events": {},
+    "scopes": [
+      "modal-tertiary-create-module",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "⚡",
+    "events": {
+      "onclick": "pickTertiaryModulePresetIcon(this, '⚡')"
+    },
+    "scopes": [
+      "tertiary-module-icon-preset-grid",
+      "modal-tertiary-create-module",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "📐",
+    "events": {
+      "onclick": "pickTertiaryModulePresetIcon(this, '📐')"
+    },
+    "scopes": [
+      "tertiary-module-icon-preset-grid",
+      "modal-tertiary-create-module",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "📘",
+    "events": {
+      "onclick": "pickTertiaryModulePresetIcon(this, '📘')"
+    },
+    "scopes": [
+      "tertiary-module-icon-preset-grid",
+      "modal-tertiary-create-module",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🎯",
+    "events": {
+      "onclick": "pickTertiaryModulePresetIcon(this, '🎯')"
+    },
+    "scopes": [
+      "tertiary-module-icon-preset-grid",
+      "modal-tertiary-create-module",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🧠",
+    "events": {
+      "onclick": "pickTertiaryModulePresetIcon(this, '🧠')"
+    },
+    "scopes": [
+      "tertiary-module-icon-preset-grid",
+      "modal-tertiary-create-module",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🏛️",
+    "events": {
+      "onclick": "pickTertiaryModulePresetIcon(this, '🏛️')"
+    },
+    "scopes": [
+      "tertiary-module-icon-preset-grid",
+      "modal-tertiary-create-module",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🔬",
+    "events": {
+      "onclick": "pickTertiaryModulePresetIcon(this, '🔬')"
+    },
+    "scopes": [
+      "tertiary-module-icon-preset-grid",
+      "modal-tertiary-create-module",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🎨",
+    "events": {
+      "onclick": "pickTertiaryModulePresetIcon(this, '🎨')"
+    },
+    "scopes": [
+      "tertiary-module-icon-preset-grid",
+      "modal-tertiary-create-module",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "💡",
+    "events": {
+      "onclick": "pickTertiaryModulePresetIcon(this, '💡')"
+    },
+    "scopes": [
+      "tertiary-module-icon-preset-grid",
+      "modal-tertiary-create-module",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🏆",
+    "events": {
+      "onclick": "pickTertiaryModulePresetIcon(this, '🏆')"
+    },
+    "scopes": [
+      "tertiary-module-icon-preset-grid",
+      "modal-tertiary-create-module",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🚀",
+    "events": {
+      "onclick": "pickTertiaryModulePresetIcon(this, '🚀')"
+    },
+    "scopes": [
+      "tertiary-module-icon-preset-grid",
+      "modal-tertiary-create-module",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "📖",
+    "events": {
+      "onclick": "pickTertiaryModulePresetIcon(this, '📖')"
+    },
+    "scopes": [
+      "tertiary-module-icon-preset-grid",
+      "modal-tertiary-create-module",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "input-tertiary-module-icon",
+    "type": "text",
+    "text": "",
+    "events": {
+      "oninput": "handleTertiaryModuleIconInput(this.value)"
+    },
+    "scopes": [
+      "modal-tertiary-create-module",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "TEXTAREA",
+    "id": "input-tertiary-module-desc",
+    "type": "textarea",
+    "text": "掌握联立消元判别式前提、齐次化通解及弦长公式，沉淀解题模型库并在校史馆完成艾宾浩斯强化盲刷。",
+    "events": {},
+    "scopes": [
+      "modal-tertiary-create-module",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "取消",
+    "events": {
+      "onclick": "closeTertiaryCreateModuleModal()"
+    },
+    "scopes": [
+      "modal-tertiary-create-module",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✨ 确定创建模块",
+    "events": {
+      "onclick": "handleConfirmTertiaryCreateModule()"
+    },
+    "scopes": [
+      "modal-tertiary-create-module",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "modal-tertiary-add-node",
+    "type": "",
+    "text": "新增节点先选择卡片类型，再填写节点内容\n      ✕\n    \n    \n      🎯 目标分解\n      ⚡ 攻坚实训\n      🌿 习惯践行\n      📝 评估复盘\n      ⚙️ 自定义\n      📄 文本便签\n    \n    \n    \n      填写规划标准，执行",
+    "events": {
+      "onkeydown": "handleNodeCreatorKeydown(event)",
+      "onclick": "handleTertiaryAddNodeBackdropClick(event)"
+    },
+    "scopes": [
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "新增节点先选择卡片类型，再填写节点内容\n      ✕\n    \n    \n      🎯 目标分解\n      ⚡ 攻坚实训\n      🌿 习惯践行\n      📝 评估复盘\n      ⚙️ 自定义\n      📄 文本便签\n    \n    \n    \n      填写规划标准，执行",
+    "events": {
+      "onclick": "event.stopPropagation()"
+    },
+    "scopes": [
+      "modal-tertiary-add-node",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "关闭新增节点",
+    "events": {
+      "onclick": "closeTertiaryAddNodeModal()"
+    },
+    "scopes": [
+      "modal-tertiary-add-node",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "node-creator-tab-goal",
+    "type": "button",
+    "text": "🎯 目标分解",
+    "events": {
+      "onclick": "selectNodeCreatorType('goal')"
+    },
+    "scopes": [
+      "modal-tertiary-add-node",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "node-creator-tab-drill",
+    "type": "button",
+    "text": "⚡ 攻坚实训",
+    "events": {
+      "onclick": "selectNodeCreatorType('drill')"
+    },
+    "scopes": [
+      "modal-tertiary-add-node",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "node-creator-tab-habit",
+    "type": "button",
+    "text": "🌿 习惯践行",
+    "events": {
+      "onclick": "selectNodeCreatorType('habit')"
+    },
+    "scopes": [
+      "modal-tertiary-add-node",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "node-creator-tab-review",
+    "type": "button",
+    "text": "📝 评估复盘",
+    "events": {
+      "onclick": "selectNodeCreatorType('review')"
+    },
+    "scopes": [
+      "modal-tertiary-add-node",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "node-creator-tab-custom",
+    "type": "button",
+    "text": "⚙️ 自定义",
+    "events": {
+      "onclick": "selectNodeCreatorType('custom')"
+    },
+    "scopes": [
+      "modal-tertiary-add-node",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "node-creator-tab-text",
+    "type": "button",
+    "text": "📄 文本便签",
+    "events": {
+      "onclick": "selectNodeCreatorType('text')"
+    },
+    "scopes": [
+      "modal-tertiary-add-node",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "取消",
+    "events": {
+      "onclick": "closeTertiaryAddNodeModal()"
+    },
+    "scopes": [
+      "modal-tertiary-add-node",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "node-creator-submit",
+    "type": "button",
+    "text": "添加到画布",
+    "events": {
+      "onclick": "submitNodeCreator()"
+    },
+    "scopes": [
+      "modal-tertiary-add-node",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "✕",
+    "events": {
+      "onclick": "closeNoteMediaPreviewModal()"
+    },
+    "scopes": [
+      "note-media-preview-modal",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "关闭预览",
+    "events": {
+      "onclick": "closeNoteMediaPreviewModal()"
+    },
+    "scopes": [
+      "note-media-preview-modal",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "bounty-modal-backdrop",
+    "type": "",
+    "text": "🏅 亲子悬赏契约一起约定挑战，用真实过程见证成长✕\n    待立约＋ 发布新契约\n    \n      约定一个新挑战挑战主题成长场馆校史馆 · 学业攻坚武道馆 · 兴趣成长思辨馆 · 思考探索修身阁 · 知行合一挑战期限（天）共同约定的体验心愿验收标准发布契约\n      🎁 约定心愿📋 验",
+    "events": {
+      "onclick": "handleBountyBackdropClick(event)",
+      "onkeydown": "handleBountyDialogKeydown(event)"
+    },
+    "scopes": [
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "DIV",
+    "id": "",
+    "type": "",
+    "text": "🏅 亲子悬赏契约一起约定挑战，用真实过程见证成长✕\n    待立约＋ 发布新契约\n    \n      约定一个新挑战挑战主题成长场馆校史馆 · 学业攻坚武道馆 · 兴趣成长思辨馆 · 思考探索修身阁 · 知行合一挑战期限（天）共同约定的体验心愿验收标准发布契约\n      🎁 约定心愿📋 验",
+    "events": {
+      "onclick": "event.stopPropagation()"
+    },
+    "scopes": [
+      "bounty-modal-backdrop",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "关闭悬赏契约",
+    "events": {
+      "onclick": "closeBountyModal()"
+    },
+    "scopes": [
+      "bounty-modal-backdrop",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "＋ 发布新契约",
+    "events": {
+      "onclick": "toggleBountyPublishForm()"
+    },
+    "scopes": [
+      "bounty-modal-backdrop",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "bounty-new-title",
+    "type": "text",
+    "text": "挑战主题",
+    "events": {},
+    "scopes": [
+      "bounty-publish-form-box",
+      "bounty-modal-body",
+      "bounty-modal-backdrop",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "SELECT",
+    "id": "bounty-new-pavilion",
+    "type": "select-one",
+    "text": "成长场馆校史馆 · 学业攻坚武道馆 · 兴趣成长思辨馆 · 思考探索修身阁 · 知行合一",
+    "events": {},
+    "scopes": [
+      "bounty-publish-form-box",
+      "bounty-modal-body",
+      "bounty-modal-backdrop",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "bounty-new-days",
+    "type": "number",
+    "text": "挑战期限（天）",
+    "events": {},
+    "scopes": [
+      "bounty-publish-form-box",
+      "bounty-modal-body",
+      "bounty-modal-backdrop",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "bounty-new-reward",
+    "type": "text",
+    "text": "共同约定的体验心愿",
+    "events": {},
+    "scopes": [
+      "bounty-publish-form-box",
+      "bounty-modal-body",
+      "bounty-modal-backdrop",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "TEXTAREA",
+    "id": "bounty-new-criteria",
+    "type": "textarea",
+    "text": "验收标准",
+    "events": {},
+    "scopes": [
+      "bounty-publish-form-box",
+      "bounty-modal-body",
+      "bounty-modal-backdrop",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "发布契约",
+    "events": {
+      "onclick": "submitNewParentBounty()"
+    },
+    "scopes": [
+      "bounty-publish-form-box",
+      "bounty-modal-body",
+      "bounty-modal-backdrop",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "TEXTAREA",
+    "id": "bounty-parent-comment-input",
+    "type": "textarea",
+    "text": "家长验收寄语",
+    "events": {},
+    "scopes": [
+      "bounty-modal-body",
+      "bounty-modal-backdrop",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "domain-parent-confirm",
+    "type": "checkbox",
+    "text": "已共同核验原件和验收标准",
+    "events": {},
+    "scopes": [
+      "bounty-modal-body",
+      "bounty-modal-backdrop",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "关闭",
+    "events": {
+      "onclick": "closeBountyModal()"
+    },
+    "scopes": [
+      "bounty-modal-backdrop",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "bounty-action-accept-btn",
+    "type": "button",
+    "text": "揭榜应战",
+    "events": {
+      "onclick": "acceptParentBounty()"
+    },
+    "scopes": [
+      "bounty-modal-backdrop",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "bounty-action-redeem-btn",
+    "type": "button",
+    "text": "核验通过并兑现",
+    "events": {
+      "onclick": "completeBountyDemo()"
+    },
+    "scopes": [
+      "bounty-modal-backdrop",
+      "main-viewport"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "✕",
+    "events": {
+      "onclick": "closeTaskDetailModal()"
+    },
+    "scopes": [
+      "task-detail-inspector-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "关闭窗口",
+    "events": {
+      "onclick": "closeTaskDetailModal()"
+    },
+    "scopes": [
+      "task-detail-inspector-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "✕",
+    "events": {
+      "onclick": "closeInquiryModal()"
+    },
+    "scopes": [
+      "inquiry-pool-modal"
+    ]
+  },
+  {
+    "tag": "TEXTAREA",
+    "id": "inquiry-new-text",
+    "type": "textarea",
+    "text": "写下你的真实疑问，例如：输掉比赛时总忍不住想发脾气，怎么调整好胜心与平和心态？",
+    "events": {},
+    "scopes": [
+      "inquiry-pool-modal"
+    ]
+  },
+  {
+    "tag": "SELECT",
+    "id": "inquiry-new-cat",
+    "type": "select-one",
+    "text": "🧘 情绪自控与心态平和\n            🤝 同伴交往与原则界限\n            📖 学业面对挫折与毅力\n            🛡️ 手机玩乐与自律防守",
+    "events": {},
+    "scopes": [
+      "inquiry-pool-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "存入问道池",
+    "events": {
+      "onclick": "submitNewInquiry()"
+    },
+    "scopes": [
+      "inquiry-pool-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "📥 选取并生成修身规划",
+    "events": {
+      "onclick": "convertInquiryToPlan('同桌经常嘲笑别人，怎样坚持原则又不伤害友谊？', '《论语·卫灵公》“躬自厚而薄责于人”')"
+    },
+    "scopes": [
+      "inquiry-items-list",
+      "inquiry-pool-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "📥 选取并生成修身规划",
+    "events": {
+      "onclick": "convertInquiryToPlan('做数学题很难想放弃，怎样克服懒惰和急躁？', '《传习录》“志不立，天下无可成之事”')"
+    },
+    "scopes": [
+      "inquiry-items-list",
+      "inquiry-pool-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "📥 选取并生成修身规划",
+    "events": {
+      "onclick": "convertInquiryToPlan('羽毛球输掉积分赛特别生气，怎样平和面对输赢？', '《大学》“知止而后有定，定而后能静”')"
+    },
+    "scopes": [
+      "inquiry-items-list",
+      "inquiry-pool-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "submit",
+    "text": "关闭",
+    "events": {
+      "onclick": "closeInquiryModal()"
+    },
+    "scopes": [
+      "inquiry-pool-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "closeRegisterAccidentalAchievementModal()"
+    },
+    "scopes": [
+      "register-accidental-achievement-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🍳 独立做番茄炒蛋",
+    "events": {
+      "onclick": "fillAccidentalSample('cook')"
+    },
+    "scopes": [
+      "register-accidental-achievement-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🔭 制作望远镜看月坑",
+    "events": {
+      "onclick": "fillAccidentalSample('astro')"
+    },
+    "scopes": [
+      "register-accidental-achievement-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🎨 水墨画创作获奖",
+    "events": {
+      "onclick": "fillAccidentalSample('art')"
+    },
+    "scopes": [
+      "register-accidental-achievement-modal"
+    ]
+  },
+  {
+    "tag": "SELECT",
+    "id": "achieve-acc-category",
+    "type": "select-one",
+    "text": "🍳 生活自立 (独立做饭/整理家务/生活自理)\n            🎨 艺术才华 (书画创作/乐器考级/手作才艺)\n            🔭 科学探索 (自然观察/创客小发明/科学实验)\n            🤝 善意关怀 (尊老助人/社区志愿/包容友爱)\n            \ud83c",
+    "events": {},
+    "scopes": [
+      "register-accidental-achievement-modal"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "achieve-acc-date",
+    "type": "date",
+    "text": "",
+    "events": {},
+    "scopes": [
+      "register-accidental-achievement-modal"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "achieve-acc-title",
+    "type": "text",
+    "text": "如：第一次独立为全家人做番茄炒蛋晚餐 / 独立动手制作折射望远镜",
+    "events": {},
+    "scopes": [
+      "register-accidental-achievement-modal"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "accidental-image-file",
+    "type": "file",
+    "text": "",
+    "events": {
+      "onchange": "handleAccidentalImageUpload(this)"
+    },
+    "scopes": [
+      "register-accidental-achievement-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "📷 拍照 / 上传图片",
+    "events": {
+      "onclick": "document.getElementById('accidental-image-file').click()"
+    },
+    "scopes": [
+      "register-accidental-achievement-modal"
+    ]
+  },
+  {
+    "tag": "TEXTAREA",
+    "id": "achieve-acc-desc",
+    "type": "textarea",
+    "text": "详细叙述当时的情境：遇到了什么困难？你是如何独立解决的？内心有什么自豪感或反思体会？",
+    "events": {},
+    "scopes": [
+      "register-accidental-achievement-modal"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "achieve-acc-issuer",
+    "type": "text",
+    "text": "如：爸爸妈妈见证 · 家里厨房 / 社区志愿者服务站",
+    "events": {},
+    "scopes": [
+      "register-accidental-achievement-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "取消",
+    "events": {
+      "onclick": "closeRegisterAccidentalAchievementModal()"
+    },
+    "scopes": [
+      "register-accidental-achievement-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🌟 镌刻入馆 · 保存偶然成就",
+    "events": {
+      "onclick": "submitRegisterAccidentalAchievement()"
+    },
+    "scopes": [
+      "register-accidental-achievement-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "closeFamilyPactModal()"
+    },
+    "scopes": [
+      "family-pact-modal"
+    ]
+  },
+  {
+    "tag": "SELECT",
+    "id": "pact-violation-clause",
+    "type": "select-one",
+    "text": "1. 诚意慎独（测验/作业不诚实或敷衍）\n                2. 屏幕守度（超时使用电子娱乐屏幕）\n                3. 作息如钟（熬夜拖延熄灯或赖床失约）\n                4. 孝亲自立（言行失礼顶撞或逃避家务）",
+    "events": {},
+    "scopes": [
+      "pact-violation-console",
+      "pact-violation-section",
+      "family-pact-modal"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "pact-violation-reason",
+    "type": "text",
+    "text": "如：周末玩平板超时25分钟未按约定放入封存盒",
+    "events": {},
+    "scopes": [
+      "pact-violation-console",
+      "pact-violation-section",
+      "family-pact-modal"
+    ]
+  },
+  {
+    "tag": "INPUT",
+    "id": "pact-violation-confirm-chk",
+    "type": "checkbox",
+    "text": "家长与孩子双方已心平气和核实事实，同意依约扣减 5% 履约分并派发修身复盘",
+    "events": {},
+    "scopes": [
+      "pact-violation-console",
+      "pact-violation-section",
+      "family-pact-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "⚖️ 确认登记违约 (-5%) · 派发修身复盘卡",
+    "events": {
+      "onclick": "submitPactViolationAdjudication()"
+    },
+    "scopes": [
+      "pact-violation-console",
+      "pact-violation-section",
+      "family-pact-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🖨️ 导出公约长卷",
+    "events": {
+      "onclick": "printFamilyPact()"
+    },
+    "scopes": [
+      "family-pact-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕ 卷起公约 · 谨记笃行",
+    "events": {
+      "onclick": "closeFamilyPactModal()"
+    },
+    "scopes": [
+      "family-pact-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "closeDaxuePhilosophyModal()"
+    },
+    "scopes": [
+      "daxue-philosophy-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🌿 查看八目条款 ➔",
+    "events": {
+      "onclick": "locateDaxueItemFromModal('gewu')"
+    },
+    "scopes": [
+      "daxue-philosophy-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕ 领悟铭记 · 卷起长卷",
+    "events": {
+      "onclick": "closeDaxuePhilosophyModal()"
+    },
+    "scopes": [
+      "daxue-philosophy-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "closeDaxueItemDetailModal()"
+    },
+    "scopes": [
+      "daxue-item-detail-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕ 卷起法典 · 谨记笃行",
+    "events": {
+      "onclick": "closeDaxueItemDetailModal()"
+    },
+    "scopes": [
+      "daxue-item-detail-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕",
+    "events": {
+      "onclick": "closeAchievementDetailModal()"
+    },
+    "scopes": [
+      "achievement-detail-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "📊 调阅年度生命复盘全书 ➔",
+    "events": {
+      "onclick": "jumpFromAchieveToProjectWorkspace('review', '四维体检与复盘')"
+    },
+    "scopes": [
+      "achievement-detail-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "📝 查看当日时序心流随记 ➔",
+    "events": {
+      "onclick": "jumpFromAchieveToProjectWorkspace('note', '每日随记')"
+    },
+    "scopes": [
+      "achievement-detail-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "🖨️ 导出荣誉证书",
+    "events": {
+      "onclick": "showIslandToast('🖨️ 成就结业荣誉证书已生成打印长卷！')"
+    },
+    "scopes": [
+      "achievement-detail-modal"
+    ]
+  },
+  {
+    "tag": "BUTTON",
+    "id": "",
+    "type": "button",
+    "text": "✕ 收入荣誉勋章册",
+    "events": {
+      "onclick": "closeAchievementDetailModal()"
+    },
+    "scopes": [
+      "achievement-detail-modal"
+    ]
+  }
+]

@@ -12561,11 +12561,64 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 }
 [data-island-wallpaper="default-grid"], [data-island-wallpaper="grid"] { box-shadow:none!important; }
 
+#tertiary-edge-popover { display:flex; flex-direction:column; gap:0; width:352px; max-width:calc(100% - 16px); max-height:calc(100% - 16px); min-width:0; padding:0; overflow:hidden; border:1px solid #ddceb0; border-radius:15px; background:#fffdf6; color:#614b30; box-sizing:border-box; box-shadow:0 12px 35px #38271133; }
+#tertiary-edge-popover.is-hidden { display:none!important; }
+#tertiary-edge-popover * { box-sizing:border-box; }
+.route-settings-header { display:flex; flex:none; align-items:center; justify-content:space-between; gap:12px; padding:12px 15px; border-bottom:1px solid #e8ddc8; background:#faf3e2; }
+#tertiary-edge-popover .a-my-island-work-edge-popover-title { padding:0; margin:0; border:0; font-size:14px; text-align:left; }
+.route-settings-body { min-height:0; overflow:auto; padding:14px; display:flex; flex-direction:column; gap:14px; overscroll-behavior:contain; touch-action:pan-y; }
+.route-settings-section { margin:0; padding:0; border:0; min-inline-size:0; }
+.route-settings-section legend, .route-settings-name { display:block; margin:0 0 7px; padding:0; font-size:12px; font-weight:750; color:#796044; }
+.route-settings-hint { margin:0 0 8px; font-size:11px; line-height:1.55; color:#a18b6f; }
+#tertiary-edge-popover button { min-width:0; max-width:100%; min-height:36px; height:auto; margin:0; padding:7px 9px; border:1px solid #d9cdb7; border-radius:8px; background:#fffdf8; color:#725b3b; font:inherit; font-size:12px; line-height:1.5; white-space:normal; overflow-wrap:anywhere; text-overflow:clip; box-shadow:none; cursor:pointer; }
+#tertiary-edge-popover .route-settings-close { flex:none; width:32px; min-height:32px; height:32px; padding:0; }
+#tertiary-edge-popover .a-my-island-work-edge-hierarchy-actions { display:grid; grid-template-columns:minmax(0,1fr); gap:7px; }
+#tertiary-edge-popover .a-my-island-work-edge-hierarchy-actions button { text-align:left; }
+.route-settings-choice-row { display:flex; gap:7px; }
+.route-settings-choice-row > button { flex:1; }
+#tertiary-edge-popover .route-settings-reverse { width:100%; margin-top:7px; }
+#tertiary-edge-popover button.is-active { background:#e9f4e4; border-color:#9abb8d; color:#42693b; box-shadow:0 0 0 1px #9abb8d44; }
+#tertiary-edge-popover .a-my-island-work-edge-width-field { margin-top:10px; padding:0; display:flex; flex-direction:column; gap:5px; }
+.a-my-island-work-edge-width-header { margin:0; min-width:0; }
+#tertiary-edge-popover #edge-width-slider { width:100%; min-width:0; height:26px; min-height:26px; margin:0; padding:0; accent-color:#85a46e; }
+#tertiary-edge-popover .a-my-island-work-edge-colors { display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px; padding:8px 0 0; }
+#tertiary-edge-popover .a-my-island-work-edge-color { width:100%; min-height:30px; height:30px; padding:0; border:2px solid #ded4c0; border-radius:7px; background:var(--a-my-island-edge-color)!important; transform:none; }
+#tertiary-edge-popover .a-my-island-work-edge-color.is-active { border-color:#865527; outline:2px solid #b88a5944; box-shadow:none; }
+.route-settings-name { display:flex; flex-direction:column; gap:7px; margin:0; }
+#tertiary-edge-popover #edge-custom-label-input { width:100%; min-width:0; min-height:38px; height:38px; margin:0; padding:8px 10px; border:1px solid #d9cdb7; border-radius:8px; font:inherit; font-size:12px; background:#fffefb; color:#614b30; box-shadow:none; }
+.route-settings-footer { flex:none; padding:10px 14px; border-top:1px solid #e8ddc8; background:#fffdf6; }
+#tertiary-edge-popover .a-my-island-work-edge-popover-delete { width:100%; color:#ad4940; border-color:#eac2bd; background:#fff5f3; }
+#tertiary-edge-popover :focus-visible { outline:2px solid #b69761; outline-offset:2px; }
+
+.island-select-control { display:inline-flex; position:relative; vertical-align:middle; width:100%; min-width:0; max-width:100%; color:#624f35; }
+.island-select-control[hidden] { display:none!important; }
+select.island-select-native { display:none!important; }
+.island-select-control > button.island-select-trigger { display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; min-width:0; max-width:100%; min-height:38px; height:auto; margin:0; padding:8px 11px; border:1px solid #d9cdb7; border-radius:8px; color:#624f35; background:#fffdf8; box-shadow:0 1px 2px #66502708; font:inherit; font-size:12px; line-height:1.5; text-align:left; cursor:pointer; }
+.island-select-caption { display:block; flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.island-select-chevron { flex:none; width:7px; height:7px; margin:-3px 2px 0; border-right:1.5px solid #a38b65; border-bottom:1.5px solid #a38b65; transform:rotate(45deg); }
+.island-select-trigger.is-open .island-select-chevron { transform:rotate(225deg); margin:3px 2px 0; }
+.island-select-trigger.opens-up .island-select-chevron { transform:rotate(225deg); }
+.island-select-control > button.island-select-trigger:focus-visible, .island-select-control > button.island-select-trigger.is-open { outline:2px solid #ddc99d80; outline-offset:1px; border-color:#ba9b62; }
+.island-select-trigger:disabled { opacity:.55; cursor:default; }
+.island-select-popup { position:absolute; z-index:1000000; display:flex; flex-direction:column; padding:5px; border:1px solid #d9c9ac; border-radius:11px; background:#fffdf7; color:#624f35; box-shadow:0 10px 30px #3f2b1829; box-sizing:border-box; overflow:hidden; min-height:0; }
+.island-select-options { flex:1; min-height:0; overflow:auto; overscroll-behavior:contain; touch-action:pan-y; padding:2px; }
+.island-select-popup button.island-select-option { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; width:100%; min-width:0; min-height:38px; height:auto; margin:0 0 2px; padding:9px 10px; border:0; border-radius:7px; background:transparent; color:#624f35; box-shadow:none; font:inherit; font-size:12px; line-height:1.6; text-align:left; white-space:normal; cursor:pointer; }
+.island-select-option-label { flex:1; min-width:0; overflow-wrap:anywhere; white-space:normal; }
+.island-select-check { flex:none; width:16px; color:#9c7536; font-weight:800; }
+.island-select-popup .island-select-option[aria-selected="true"] { background:#fff1d7; color:#82602a; }
+.island-select-popup .island-select-option.is-highlighted:not(:disabled), .island-select-popup .island-select-option:hover:not(:disabled) { background:#f5ecd9; outline:1px solid #e7d9ba; outline-offset:-1px; }
+.island-select-option:disabled { opacity:.45; cursor:default; }
+.island-select-group, .island-select-empty { margin:0; padding:7px 10px; color:#ad9674; font-size:11px; }
+.island-select-footer { flex:none; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; padding:8px 5px 3px; border-top:1px solid #eee2ca; font-size:11px; color:#a38b65; }
+.island-select-footer > div { display:flex; gap:6px; }
+.island-select-footer button.island-select-footer-button { width:auto; min-height:32px; height:auto; margin:0; padding:5px 10px; border:1px solid #dfcfad; border-radius:6px; font:inherit; font-size:11px; color:#806335; background:#fff9ec; box-shadow:none; cursor:pointer; }
+@media(prefers-reduced-motion:reduce){.island-select-trigger,.island-select-chevron{transition:none!important}}
+
 /* PRODUCT_CSS_END */
 </style>
 </head>
 <body>
-<div class="global-header product-contract-banner" data-product-contract="3">1.2.3 闭环交互预览 · 按项目/节点/每日任务实例关联 · 本预览数据保存在当前浏览器，组件画板样例不计为实际执行</div>
+<div class="global-header product-contract-banner" data-product-contract="3">1.2.4 闭环交互预览 · 按项目/节点/每日任务实例关联 · 本预览数据保存在当前浏览器，组件画板样例不计为实际执行</div>
   <!-- 顶部主控导航栏 (设备控制与主模态切换) -->
   <header class="global-header">
     <div class="system-title-group">
@@ -14197,60 +14250,17 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
       </div>
 
       <!-- 3. 原版 1:1 终身岛民【路线设置】弹出窗 (.a-my-island-work-edge-popover) -->
-      <div class="a-my-island-work-edge-popover is-hidden" id="tertiary-edge-popover" onclick="event.stopPropagation()">
-        <div class="a-my-island-work-edge-popover-title">路线设置</div>
-
-        <!-- 上下级关系与箭头指向 -->
-        <div class="a-my-island-work-edge-hierarchy">
-          <div class="a-my-island-work-edge-hierarchy-title">设为上下级 · 箭头指向子级</div>
-          <div class="a-my-island-work-edge-hierarchy-actions">
-            <button type="button" id="btn-edge-hier-forward" onclick="handleEdgeHierarchy(false)">节点A → 节点B</button>
-            <button type="button" id="btn-edge-hier-backward" onclick="handleEdgeHierarchy(true)">节点B → 节点A</button>
-          </div>
-        </div>
-
-        <!-- 路线方向与虚实线控制 -->
-        <div class="a-my-island-work-edge-popover-actions">
-          <button type="button" onclick="reverseEdgeDirection()">反转</button>
-          <button type="button" class="btn-arrow-mode is-active" data-mode="single" onclick="setEdgeArrowMode(&apos;single&apos;)">单向</button>
-          <button type="button" class="btn-arrow-mode" data-mode="double" onclick="setEdgeArrowMode(&apos;double&apos;)">双向</button>
-          <button type="button" class="btn-arrow-mode" data-mode="none" onclick="setEdgeArrowMode(&apos;none&apos;)">无向</button>
-          <button type="button" class="btn-line-style is-active" data-style="solid" onclick="setEdgeLineStyle(&apos;solid&apos;)">实线</button>
-          <button type="button" class="btn-line-style" data-style="dashed" onclick="setEdgeLineStyle(&apos;dashed&apos;)">虚线</button>
-        </div>
-
-        <!-- 线条粗细 (1~6 档滑块) -->
-        <div class="a-my-island-work-edge-width-field">
-          <div class="a-my-island-work-edge-width-header">
-            <span>线条粗细</span>
-            <span class="a-my-island-work-edge-width-value" id="edge-width-display">3档</span>
-          </div>
-          <input type="range" class="a-my-island-work-edge-width-slider" id="edge-width-slider" min="1" max="6" step="1" value="3" oninput="handleEdgeWidthInput(this.value)">
-        </div>
-
-        <!-- 原版 8 种线路调色板 -->
-        <div class="a-my-island-work-edge-colors" id="edge-color-swatches">
-          <!-- 动态注入 8 色按钮 -->
-        </div>
-
-        <!-- 自定义关系名称 -->
-        <input type="text" class="a-my-island-work-edge-name" id="edge-custom-label-input" placeholder="自定义关系名称" oninput="handleEdgeLabelChange(this.value)">
-
-        <!-- 关系类别下拉选择器 -->
-        <select class="a-my-island-work-edge-popover-select" id="edge-type-select" onchange="handleEdgeTypeSelect(this.value)">
-          <option value="包含">包含</option>
-          <option value="前置">前置</option>
-          <option value="关联" selected>关联</option>
-          <option value="阻塞">阻塞</option>
-          <option value="通往">通往</option>
-          <option value="依赖">依赖</option>
-          <option value="none">无</option>
-          <option value="派生">派生</option>
-        </select>
-
-        <!-- 删除路线按钮 -->
-        <button type="button" class="a-my-island-work-edge-popover-delete" onclick="handleDeleteActiveEdge()">删除路线</button>
-      </div>
+      <div class="a-my-island-work-edge-popover is-hidden" id="tertiary-edge-popover" role="dialog" aria-label="路线设置" onclick="event.stopPropagation()">
+  <header class="route-settings-header"><div class="a-my-island-work-edge-popover-title">路线设置</div><button type="button" class="route-settings-close" aria-label="关闭路线设置" onclick="closeRouteSettings()">✕</button></header>
+  <div class="route-settings-body">
+    <fieldset class="route-settings-section"><legend>上下级关系</legend><p class="route-settings-hint">选择父节点到子节点的方向，下级可随父节点移动。</p><div class="a-my-island-work-edge-hierarchy-actions"><button type="button" id="btn-edge-hier-forward" onclick="handleEdgeHierarchy(false)">节点A → 节点B</button><button type="button" id="btn-edge-hier-backward" onclick="handleEdgeHierarchy(true)">节点B → 节点A</button></div></fieldset>
+    <fieldset class="route-settings-section"><legend>关系类别</legend><select class="a-my-island-work-edge-popover-select" id="edge-type-select" aria-label="关系类别" onchange="handleEdgeTypeSelect(this.value)"><option value="包含">包含</option><option value="前置">前置</option><option value="关联" selected>关联</option><option value="阻塞">阻塞</option><option value="通往">通往</option><option value="依赖">依赖</option><option value="none">无</option><option value="派生">派生</option></select></fieldset>
+    <fieldset class="route-settings-section"><legend>箭头与方向</legend><div class="route-settings-choice-row"><button type="button" class="btn-arrow-mode" data-mode="single" onclick="setEdgeArrowMode('single')">单向</button><button type="button" class="btn-arrow-mode" data-mode="double" onclick="setEdgeArrowMode('double')">双向</button><button type="button" class="btn-arrow-mode" data-mode="none" onclick="setEdgeArrowMode('none')">无向</button></div><button type="button" class="route-settings-reverse" onclick="reverseEdgeDirection()">⇄ 仅反转线路方向</button></fieldset>
+    <fieldset class="route-settings-section"><legend>线条样式</legend><div class="route-settings-choice-row"><button type="button" class="btn-line-style" data-style="solid" onclick="setEdgeLineStyle('solid')">实线</button><button type="button" class="btn-line-style" data-style="dashed" onclick="setEdgeLineStyle('dashed')">虚线</button></div><div class="a-my-island-work-edge-width-field"><label class="a-my-island-work-edge-width-header" for="edge-width-slider"><span>线条粗细</span><span id="edge-width-display">3档</span></label><input type="range" id="edge-width-slider" min="1" max="6" step="1" value="3" aria-label="线条粗细" oninput="handleEdgeWidthInput(this.value)"></div><div class="a-my-island-work-edge-colors" id="edge-color-swatches" aria-label="线路颜色"></div></fieldset>
+    <label class="route-settings-name">关系名称<input type="text" class="a-my-island-work-edge-name" id="edge-custom-label-input" placeholder="输入关系名称" oninput="handleEdgeLabelChange(this.value)"></label>
+  </div>
+  <footer class="route-settings-footer"><button type="button" class="a-my-island-work-edge-popover-delete" onclick="handleDeleteActiveEdge()">删除路线</button></footer>
+</div>
 
     </div>
 
@@ -28927,6 +28937,17 @@ initCanvasPanZoomAndDrag=function(){
   bindPavilionNodesClickGuards();
 };
 getDownstreamChildCardIds=function(rootId){const seen=new Set([rootId]),queue=[rootId],result=[];while(queue.length){const source=queue.shift();for(const edge of window.TERTIARY_EDGES||[])if(edge.sourceId===source&&['包含','派生'].includes(edge.type)&&!seen.has(edge.targetId)){seen.add(edge.targetId);queue.push(edge.targetId);result.push(edge.targetId);}}return result;};
+function syncChildrenFollowControls(){
+  document.querySelectorAll('#btn-ws-children-follow,#btn-tertiary-children-follow').forEach(button=>{
+    button.classList.toggle('is-active',childrenFollowEnabled);button.classList.toggle('active',childrenFollowEnabled);
+    button.setAttribute('aria-pressed',String(childrenFollowEnabled));
+    button.title=childrenFollowEnabled?'子级跟随已开启：拖动父节点时，包含和派生的下级一起移动':'子级跟随已关闭：只移动当前节点';
+  });
+  document.querySelectorAll('input[onchange*="toggleChildrenFollowSetting"]').forEach(input=>input.checked=childrenFollowEnabled);
+}
+function setCanvasChildrenFollow(enabled){childrenFollowEnabled=!!enabled;getDomainState().navigation.followChildren=childrenFollowEnabled;syncChildrenFollowControls();notifyIslandStateChanged();return childrenFollowEnabled;}
+toggleChildrenFollowToolbar=function(){const value=setCanvasChildrenFollow(!childrenFollowEnabled);showIslandToast(value?'子级跟随已开启：包含和派生的下级将一起移动':'子级跟随已关闭');return value;};
+toggleChildrenFollowSetting=setCanvasChildrenFollow;
 initTertiaryCanvasPanZoom=function(){
   const stage=document.getElementById('tertiary-canvas-stage');applyTertiaryTransform();
   bindCanvasViewport({stage,read:readMindmapViewport,write:writeMindmapViewport,active:()=>stage.getBoundingClientRect().width>0,nodes:'.tertiary-card',canDrag:()=>true,dragClass:'is-card-dragging',start:recordDomainHistory,
@@ -29020,7 +29041,8 @@ function changeCanvasEdge(patch,remove=false){
 }
 handleEdgeTypeSelect=function(type){const edge=window.TERTIARY_EDGES?.find(e=>e.id===currentActiveEdgeId);if(!edge)return false;const label=!edge.label||edge.label===edge.type||edge.label==='前置完成'?(type==='none'?'':type):edge.label;const result=changeCanvasEdge({type,label});openEdgePopover(edge.id);return result;};
 reverseEdgeDirection=function(){const edge=window.TERTIARY_EDGES?.find(e=>e.id===currentActiveEdgeId);if(!edge)return false;const result=changeCanvasEdge({sourceId:edge.targetId,targetId:edge.sourceId});openEdgePopover(edge.id);return result;};
-handleEdgeHierarchy=function(reverse){const edge=window.TERTIARY_EDGES?.find(e=>e.id===currentActiveEdgeId);if(!edge)return false;if(!canvasEdgeDirectionAnchor||canvasEdgeDirectionAnchor.id!==edge.id)openEdgePopover(edge.id);const anchor=canvasEdgeDirectionAnchor,type=['关联','none',undefined].includes(edge.type)?'包含':edge.type,label=edge.label===edge.type?type:edge.label;const result=changeCanvasEdge({type,label,sourceId:reverse?anchor.b:anchor.a,targetId:reverse?anchor.a:anchor.b});openEdgePopover(edge.id);return result;};
+handleEdgeHierarchy=function(reverse){const edge=window.TERTIARY_EDGES?.find(e=>e.id===currentActiveEdgeId);if(!edge)return false;if(!canvasEdgeDirectionAnchor||canvasEdgeDirectionAnchor.id!==edge.id)openEdgePopover(edge.id);const anchor=canvasEdgeDirectionAnchor,type='包含',label=!edge.label||edge.label===edge.type||edge.label==='前置完成'?type:edge.label;const result=changeCanvasEdge({type,label,sourceId:reverse?anchor.b:anchor.a,targetId:reverse?anchor.a:anchor.b});openEdgePopover(edge.id);return result;};
+function closeRouteSettings(){document.getElementById('tertiary-edge-popover')?.classList.add('is-hidden');}
 setEdgeArrowMode=function(mode){if(!['none','single','double'].includes(mode))return false;const result=changeCanvasEdge({arrowMode:mode});if(result)openEdgePopover(currentActiveEdgeId);return result;};
 setEdgeLineStyle=function(style){if(!['solid','dashed'].includes(style))return false;const result=changeCanvasEdge({lineStyle:style});if(result)openEdgePopover(currentActiveEdgeId);return result;};
 handleEdgeColorSelect=function(color){if(!/^#[\da-f]{3,8}$/i.test(color))return false;const result=changeCanvasEdge({color});if(result)openEdgePopover(currentActiveEdgeId);return result;};
@@ -29066,6 +29088,8 @@ renderDomainCanvas=function(id){
   const saved=canvasViewportStore().projects[id];restoringCanvasViewport=true;try{canvasOriginalRender(id);writeMindmapViewport(canvasValidViewport(saved)?saved:{x:60,y:40,zoom:1});}finally{restoringCanvasViewport=false;}
   bindCanvasConnectionDrag();
 };
+const canvasFollowRestore=restoreBusinessViews;
+restoreBusinessViews=function(...args){const result=canvasFollowRestore(...args);syncChildrenFollowControls();return result;};
 function placeCanvasNodeInFreeSpace(card){
   const others=Array.from(document.querySelectorAll('#tertiary-canvas-world .tertiary-card')).filter(c=>c!==card).map(canvasNodeRect),size=canvasNodeRect(card),position=canvasFreePosition(others,size.width,size.height);
   card.style.left=position.x+'px';card.style.top=position.y+'px';getDomainNode(card.id).canvasPosition=position;
@@ -29229,6 +29253,149 @@ syncBgEditor=function(){
   else if(selectedBgTarget==='all')hint.textContent='未设置全局背景时默认显示网格线；开启全局背景可统一所有页面。';
   else hint.textContent='未单独设置时沿用全局背景；全局也未设置时显示网格线。';
 };
+
+// Keep native select values/events as the business interface; render one shared menu.
+const islandSelectEntries=new WeakMap();
+let islandSelectSequence=0,openIslandSelect=null;
+function syncIslandSelect(entry){
+  const select=entry.select,selected=Array.from(select.selectedOptions).map(option=>option.label);
+  const label=select.multiple?(selected.length?selected.join('、'):'选择项目'):selected[0]||'请选择';
+  if(entry.caption.textContent!==label)entry.caption.textContent=label;
+  entry.button.disabled=select.matches(':disabled');entry.button.title=label;
+  if(entry.button.disabled&&openIslandSelect?.entry===entry)closeIslandSelect();
+  entry.wrapper.hidden=select.hidden||select.style.display==='none'||select.classList.contains('is-hidden');
+}
+function closeIslandSelect(restoreFocus=false){
+  const open=openIslandSelect;if(!open)return;
+  openIslandSelect=null;open.entry.button.setAttribute('aria-expanded','false');open.entry.button.removeAttribute('aria-activedescendant');
+  open.entry.button.classList.remove('is-open','opens-up');open.menu.remove();
+  if(restoreFocus&&open.entry.button.isConnected&&!open.entry.button.disabled)open.entry.button.focus({preventScroll:true});
+}
+function positionIslandSelect(){
+  const open=openIslandSelect;if(!open)return;
+  const {entry,root,menu}=open,anchor=entry.button.getBoundingClientRect(),r=root.getBoundingClientRect();
+  if(!entry.select.isConnected||!entry.button.getClientRects().length){closeIslandSelect();return;}
+  const sx=r.width/(root.offsetWidth||r.width||1),sy=r.height/(root.offsetHeight||r.height||1);
+  const viewport=window.visualViewport,vx=viewport?.offsetLeft||0,vy=viewport?.offsetTop||0;
+  const left=Math.max(vx,r.left)+8,right=Math.min(vx+(viewport?.width||innerWidth),r.right)-8,top=Math.max(vy,r.top)+8,bottom=Math.min(vy+(viewport?.height||innerHeight),r.bottom)-8;
+  const width=Math.min(Math.max(anchor.width,230),Math.max(0,right-left)),below=bottom-anchor.bottom-5,above=anchor.top-top-5;
+  const upward=below<Math.min(280,menu.scrollHeight*sy)&&above>below,space=Math.max(0,upward?above:below);
+  const setStyle=(name,value)=>{const normalized=Math.round(parseFloat(value)*1000)/1000+'px';if(menu.style[name]!==normalized)menu.style[name]=normalized;};
+  setStyle('width',width/sx+'px');setStyle('maxHeight',Math.min(360,space/sy)+'px');
+  const height=menu.getBoundingClientRect().height,x=Math.max(left,Math.min(anchor.left,right-width)),y=upward?anchor.top-height-5:anchor.bottom+5;
+  setStyle('left',(x-r.left)/sx+'px');setStyle('top',(Math.max(top,Math.min(y,bottom-height))-r.top)/sy+'px');
+  if(entry.button.classList.contains('opens-up')!==upward)entry.button.classList.toggle('opens-up',upward);menu.dataset.direction=upward?'up':'down';
+}
+function highlightIslandSelect(index){
+  const open=openIslandSelect;if(!open)return;
+  const choices=open.choices.filter(choice=>!choice.disabled);if(!choices.length)return;
+  const clamped=Math.max(0,Math.min(index,choices.length-1));open.active=clamped;
+  for(const choice of open.choices)choice.classList.toggle('is-highlighted',choice===choices[clamped]);
+  open.entry.button.setAttribute('aria-activedescendant',choices[clamped].id);
+  choices[clamped].scrollIntoView({block:'nearest',inline:'nearest'});
+}
+function commitIslandSelect(indices){
+  const open=openIslandSelect;if(!open)return;
+  const select=open.entry.select,entry=open.entry,before=Array.from(select.options).map(option=>option.selected).join(',');
+  closeIslandSelect(true);
+  Array.from(select.options).forEach((option,index)=>option.selected=indices.has(index));
+  syncIslandSelect(entry);
+  if(before!==Array.from(select.options).map(option=>option.selected).join(',')){
+    select.dispatchEvent(new Event('input',{bubbles:true}));select.dispatchEvent(new Event('change',{bubbles:true}));
+  }
+}
+function chooseIslandSelect(index){
+  const open=openIslandSelect;if(!open)return;
+  if(!open.entry.select.multiple){commitIslandSelect(new Set([index]));return;}
+  if(open.draft.has(index))open.draft.delete(index);else open.draft.add(index);
+  for(const choice of open.choices){const selected=open.draft.has(Number(choice.dataset.optionIndex));choice.setAttribute('aria-selected',String(selected));choice.querySelector('.island-select-check').textContent=selected?'✓':'';}
+  open.count.textContent='已选 '+open.draft.size+' 项';
+}
+function handleIslandSelectKey(event,entry){
+  if(event.isComposing||entry.button.disabled)return;
+  const open=openIslandSelect?.entry===entry?openIslandSelect:null;
+  if(!open&&['ArrowDown','ArrowUp','Enter',' '].includes(event.key)){event.preventDefault();event.stopPropagation();openIslandSelectMenu(entry);return;}
+  if(!open)return;
+  if(event.key==='Escape'){event.preventDefault();event.stopPropagation();closeIslandSelect(true);return;}
+  if(event.key==='Tab'){closeIslandSelect(true);return;}
+  const choices=open.choices.filter(choice=>!choice.disabled);
+  if(['ArrowDown','ArrowUp','Home','End'].includes(event.key)){
+    event.preventDefault();event.stopPropagation();highlightIslandSelect(event.key==='Home'?0:event.key==='End'?choices.length-1:open.active+(event.key==='ArrowDown'?1:-1));
+  }else if(['Enter',' '].includes(event.key)){
+    event.preventDefault();event.stopPropagation();const choice=choices[open.active];if(choice)chooseIslandSelect(Number(choice.dataset.optionIndex));
+  }else if(event.key.length===1){
+    const now=Date.now();open.search=now-open.typedAt<700?open.search+event.key:event.key;open.typedAt=now;
+    const index=choices.findIndex(choice=>choice.textContent.trim().toLocaleLowerCase().startsWith(open.search.toLocaleLowerCase()));if(index>=0)highlightIslandSelect(index);
+  }
+}
+function openIslandSelectMenu(entry){
+  if(entry.button.disabled)return;
+  if(openIslandSelect?.entry===entry){closeIslandSelect(true);return;}
+  closeIslandSelect();syncIslandSelect(entry);
+  const root=entry.select.closest('.youth-island-plugin-root')||document.querySelector('.youth-island-plugin-root')||document.body,menu=document.createElement('div'),list=document.createElement('div');
+  menu.className='island-select-popup';menu.id='island-select-popup';list.className='island-select-options';list.setAttribute('role','listbox');list.id=menu.id+'-list';list.setAttribute('aria-label',entry.button.getAttribute('aria-label'));list.setAttribute('aria-multiselectable',String(entry.select.multiple));menu.append(list);root.append(menu);
+  const open={entry,root,menu,list,choices:[],draft:new Set(),active:0,search:'',typedAt:0,count:null};openIslandSelect=open;
+  let group=null;
+  Array.from(entry.select.options).forEach((option,index)=>{
+    if(option.hidden)return;
+    const parent=option.parentElement,isGroup=parent.tagName==='OPTGROUP';
+    if(isGroup&&group!==parent){group=parent;const heading=document.createElement('div');heading.className='island-select-group';heading.textContent=parent.label;list.append(heading);}
+    const choice=document.createElement('button'),text=document.createElement('span'),mark=document.createElement('span');choice.type='button';choice.className='island-select-option';choice.id=menu.id+'-option-'+index;choice.dataset.optionIndex=index;choice.tabIndex=-1;choice.setAttribute('role','option');choice.disabled=option.disabled||isGroup&&parent.disabled;choice.setAttribute('aria-selected',String(option.selected));
+    text.className='island-select-option-label';text.textContent=option.label;mark.className='island-select-check';mark.setAttribute('aria-hidden','true');mark.textContent=option.selected?'✓':'';choice.append(text,mark);choice.onclick=()=>chooseIslandSelect(index);list.append(choice);open.choices.push(choice);if(option.selected)open.draft.add(index);
+  });
+  if(!open.choices.length){const empty=document.createElement('p');empty.className='island-select-empty';empty.textContent='暂无可选项目';list.append(empty);}
+  if(entry.select.multiple){
+    const footer=document.createElement('div'),count=document.createElement('span'),actions=document.createElement('div');footer.className='island-select-footer';count.textContent='已选 '+open.draft.size+' 项';open.count=count;
+    for(const [label,action]of [['取消',()=>closeIslandSelect(true)],['应用',()=>commitIslandSelect(open.draft)]]){const button=document.createElement('button');button.type='button';button.textContent=label;button.className='island-select-footer-button';button.onclick=action;actions.append(button);}footer.append(count,actions);menu.append(footer);
+  }
+  menu.addEventListener('keydown',event=>handleIslandSelectKey(event,entry));menu.addEventListener('pointerdown',event=>event.stopPropagation());menu.addEventListener('click',event=>event.stopPropagation());
+  entry.button.setAttribute('aria-expanded','true');entry.button.setAttribute('aria-controls',list.id);entry.button.classList.add('is-open');
+  positionIslandSelect();const enabled=open.choices.filter(choice=>!choice.disabled),selected=enabled.findIndex(choice=>choice.getAttribute('aria-selected')==='true');highlightIslandSelect(Math.max(0,selected));
+}
+function enhanceIslandSelect(select){
+  let entry=islandSelectEntries.get(select);if(entry){syncIslandSelect(entry);return;}
+  const stale=select.parentElement;if(stale?.classList.contains('island-select-control')){stale.before(select);stale.remove();}
+  const wrapper=document.createElement('span'),button=document.createElement('button'),caption=document.createElement('span'),arrow=document.createElement('span');
+  const label=select.getAttribute('aria-label')||Array.from(select.labels||[]).map(label=>Array.from(label.childNodes).filter(node=>node.nodeType===Node.TEXT_NODE||node.nodeType===Node.ELEMENT_NODE&&node.tagName==='SPAN').map(node=>node.textContent).join(' ').trim()).join(' ')||select.title||'选择项目';
+  wrapper.className='island-select-control';wrapper.dataset.selectId=select.id||'select-'+(++islandSelectSequence);if(select.style.width)wrapper.style.width=select.style.width;
+  button.type='button';button.className='island-select-trigger';button.setAttribute('role','combobox');button.setAttribute('aria-label',label);button.setAttribute('aria-haspopup','listbox');button.setAttribute('aria-expanded','false');
+  caption.className='island-select-caption';arrow.className='island-select-chevron';arrow.setAttribute('aria-hidden','true');button.append(caption,arrow);
+  select.before(wrapper);wrapper.append(select,button);select.classList.add('island-select-native');select.setAttribute('aria-hidden','true');select.tabIndex=-1;
+  entry={select,wrapper,button,caption};islandSelectEntries.set(select,entry);button.onclick=()=>openIslandSelectMenu(entry);button.onkeydown=event=>handleIslandSelectKey(event,entry);select.addEventListener('change',()=>syncIslandSelect(entry));
+  for(const property of ['value','selectedIndex']){
+    const descriptor=Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype,property);
+    if(descriptor?.get&&descriptor?.set)try{Object.defineProperty(select,property,{configurable:true,get(){return descriptor.get.call(this);},set(value){descriptor.set.call(this,value);if(openIslandSelect?.entry===entry)closeIslandSelect();syncIslandSelect(entry);}});}catch{}
+  }
+  select.focus=options=>button.focus(options);syncIslandSelect(entry);
+}
+function enhanceIslandSelects(scope=document.querySelector('.youth-island-plugin-root')||document.body){
+  if(scope.matches?.('select'))enhanceIslandSelect(scope);scope.querySelectorAll?.('select').forEach(enhanceIslandSelect);
+}
+function installIslandSelects(){
+  const root=document.querySelector('.youth-island-plugin-root')||document.body;enhanceIslandSelects(root);
+  const observer=new window.MutationObserver(records=>{
+    let reposition=false;
+    for(const record of records){
+      if(openIslandSelect?.menu.contains(record.target))continue;
+      if(record.type==='childList'){
+        for(const node of record.addedNodes)if(node.nodeType===Node.ELEMENT_NODE&&(node.matches('select')||node.querySelector('select')))enhanceIslandSelects(node);
+        if(record.target.matches?.('select,optgroup')){const select=record.target.closest('select'),entry=islandSelectEntries.get(select);if(entry)syncIslandSelect(entry);}
+      }else if(record.target.matches?.('select,option,optgroup')){const select=record.target.closest('select'),entry=islandSelectEntries.get(select);if(entry)syncIslandSelect(entry);}
+      else if(record.target.matches?.('fieldset'))enhanceIslandSelects(record.target);
+      if(openIslandSelect){
+        const select=openIslandSelect.entry.select;
+        if(record.target.closest?.('select')===select&&(record.type==='childList'||record.attributeName==='disabled'))closeIslandSelect();
+        else if(record.target===select||record.target.contains?.(select))reposition=true;
+      }
+    }
+    if(openIslandSelect&&(!openIslandSelect.entry.select.isConnected||reposition))positionIslandSelect();
+  });
+  observer.observe(root,{childList:true,subtree:true,attributes:true,attributeFilter:['disabled','selected','multiple','hidden','class','style']});
+  window.addEventListener('pointerdown',event=>{const open=openIslandSelect;if(open&&!open.menu.contains(event.target)&&!open.entry.wrapper.contains(event.target))closeIslandSelect();},true);
+  window.addEventListener('wheel',event=>{if(openIslandSelect&&!openIslandSelect.menu.contains(event.target))closeIslandSelect();},{capture:true,passive:true});
+  window.addEventListener('resize',positionIslandSelect);window.addEventListener('scroll',event=>{if(openIslandSelect&&!openIslandSelect.menu.contains(event.target))positionIslandSelect();},{capture:true,passive:true});
+}
+installIslandSelects();
 
 // PRODUCT_RULES_END
 </script>

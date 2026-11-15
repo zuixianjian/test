@@ -1,0 +1,3205 @@
+{
+  "schemaVersion": 3,
+  "revision": 13,
+  "storageRevision": 1794733389028,
+  "projects": [
+    {
+      "id": "closure-project",
+      "pavilion": "study",
+      "category": "学业攻坚",
+      "title": "闭环字段审查",
+      "desc": "完整标准及来源",
+      "startDate": "2026-11-15",
+      "endDate": "2026-11-15",
+      "completedDays": [
+        "2026-11-15"
+      ],
+      "isArchived": false,
+      "progressPercent": 83,
+      "completedNodesCount": 5,
+      "totalNodesCount": 6
+    }
+  ],
+  "nodesByProject": {
+    "closure-project": [
+      {
+        "id": "closure-goal",
+        "projectId": "closure-project",
+        "pavilionId": "study",
+        "title": "目标验收",
+        "nodeType": "goal",
+        "isCheckinNode": true,
+        "status": "completed",
+        "weight": 1,
+        "plannedDate": "2026-11-15",
+        "frequency": "once",
+        "dependencies": [],
+        "canvasPosition": {
+          "x": 80,
+          "y": 80
+        },
+        "groupId": null,
+        "groupRoot": null,
+        "createdAt": "2026-11-15T09:03:05.853Z",
+        "updatedAt": "2026-11-15T09:03:07.906Z",
+        "cardPayload": {
+          "description": "",
+          "plannedMinutes": 0,
+          "evidenceType": "text",
+          "metrics": [
+            {
+              "id": "metric-accuracy",
+              "name": "正确率",
+              "targetValue": "≥90%",
+              "unit": "%"
+            }
+          ],
+          "checklist": [],
+          "improvementList": [],
+          "customFieldsSchema": [],
+          "textContent": "",
+          "acceptanceCriteria": "对照实际指标验收",
+          "targetDeadline": null
+        },
+        "executionRecords": [
+          "record-d5846f8d-3b02-4e1e-851d-4c1e23e8681d"
+        ],
+        "readCount": 0,
+        "lastReadTime": null,
+        "achievementId": null
+      },
+      {
+        "id": "closure-drill",
+        "projectId": "closure-project",
+        "pavilionId": "study",
+        "title": "实训要领",
+        "nodeType": "drill",
+        "isCheckinNode": true,
+        "status": "completed",
+        "weight": 1,
+        "plannedDate": "2026-11-15",
+        "frequency": "once",
+        "dependencies": [],
+        "canvasPosition": {
+          "x": 480,
+          "y": 80
+        },
+        "groupId": null,
+        "groupRoot": null,
+        "createdAt": "2026-11-15T09:03:05.854Z",
+        "updatedAt": "2026-11-15T09:03:07.842Z",
+        "cardPayload": {
+          "description": "",
+          "plannedMinutes": 1,
+          "evidenceType": "none",
+          "metrics": [],
+          "checklist": [],
+          "improvementList": [],
+          "customFieldsSchema": [],
+          "textContent": "",
+          "acceptanceCriteria": "",
+          "targetDeadline": null
+        },
+        "executionRecords": [
+          "record-64725bf6-6dbe-4bac-a79a-a6c118ac86e6"
+        ],
+        "readCount": 0,
+        "lastReadTime": null,
+        "achievementId": null
+      },
+      {
+        "id": "closure-habit",
+        "projectId": "closure-project",
+        "pavilionId": "study",
+        "title": "防守清单",
+        "nodeType": "habit",
+        "isCheckinNode": true,
+        "status": "completed",
+        "weight": 1,
+        "plannedDate": "2026-11-15",
+        "frequency": "once",
+        "dependencies": [],
+        "canvasPosition": {
+          "x": 880,
+          "y": 80
+        },
+        "groupId": null,
+        "groupRoot": null,
+        "createdAt": "2026-11-15T09:03:05.854Z",
+        "updatedAt": "2026-11-15T09:03:07.863Z",
+        "cardPayload": {
+          "checklist": [
+            {
+              "id": "must",
+              "title": "必需行动",
+              "required": true
+            },
+            {
+              "id": "optional",
+              "title": "选填行动",
+              "required": false
+            }
+          ],
+          "description": "",
+          "plannedMinutes": 0,
+          "evidenceType": "none",
+          "metrics": [],
+          "improvementList": [],
+          "customFieldsSchema": [],
+          "textContent": "",
+          "acceptanceCriteria": "",
+          "targetDeadline": null
+        },
+        "executionRecords": [
+          "record-9520b8c5-3c0a-41b8-ad8c-b8f7a14bde2f"
+        ],
+        "readCount": 0,
+        "lastReadTime": null,
+        "achievementId": null
+      },
+      {
+        "id": "closure-review",
+        "projectId": "closure-project",
+        "pavilionId": "study",
+        "title": "行动复盘",
+        "nodeType": "review",
+        "isCheckinNode": true,
+        "status": "completed",
+        "weight": 1,
+        "plannedDate": "2026-11-15",
+        "frequency": "once",
+        "dependencies": [],
+        "canvasPosition": {
+          "x": 1280,
+          "y": 80
+        },
+        "groupId": "group-3749dc57-8306-4522-bdec-0ce4f78c5caf",
+        "groupRoot": "closure-review",
+        "createdAt": "2026-11-15T09:03:05.854Z",
+        "updatedAt": "2026-11-15T09:03:07.877Z",
+        "cardPayload": {
+          "improvementList": [
+            {
+              "id": "selected",
+              "actionItem": "参与后续派生",
+              "isChecked": true
+            },
+            {
+              "id": "not-selected",
+              "actionItem": "保留但不派生",
+              "isChecked": false
+            }
+          ],
+          "description": "",
+          "plannedMinutes": 0,
+          "evidenceType": "text",
+          "metrics": [],
+          "checklist": [],
+          "customFieldsSchema": [],
+          "textContent": "",
+          "acceptanceCriteria": "",
+          "targetDeadline": null
+        },
+        "executionRecords": [
+          "record-a8b87fe9-73fd-40e6-98d4-e8f9a5a5fdc1"
+        ],
+        "readCount": 0,
+        "lastReadTime": null,
+        "achievementId": null
+      },
+      {
+        "id": "closure-custom",
+        "projectId": "closure-project",
+        "pavilionId": "study",
+        "title": "实际字段",
+        "nodeType": "custom",
+        "isCheckinNode": true,
+        "status": "completed",
+        "weight": 1,
+        "plannedDate": "2026-11-15",
+        "frequency": "once",
+        "dependencies": [],
+        "canvasPosition": {
+          "x": 1680,
+          "y": 80
+        },
+        "groupId": null,
+        "groupRoot": null,
+        "createdAt": "2026-11-15T09:03:05.854Z",
+        "updatedAt": "2026-11-15T09:03:07.893Z",
+        "cardPayload": {
+          "description": "",
+          "plannedMinutes": 0,
+          "evidenceType": "none",
+          "metrics": [],
+          "checklist": [],
+          "improvementList": [],
+          "customFieldsSchema": [
+            {
+              "key": "text",
+              "label": "实际观察",
+              "type": "text",
+              "required": true,
+              "placeholder": "",
+              "defaultValue": ""
+            },
+            {
+              "key": "number",
+              "label": "完成次数",
+              "type": "number",
+              "required": true,
+              "placeholder": "",
+              "defaultValue": ""
+            },
+            {
+              "key": "boolean",
+              "label": "是否尝试",
+              "type": "boolean",
+              "required": true,
+              "placeholder": "",
+              "defaultValue": ""
+            },
+            {
+              "key": "date",
+              "label": "观察日期",
+              "type": "date",
+              "required": true,
+              "placeholder": "",
+              "defaultValue": ""
+            }
+          ],
+          "textContent": "",
+          "acceptanceCriteria": "",
+          "targetDeadline": null
+        },
+        "executionRecords": [
+          "record-af76c09d-847d-4cca-bb8e-ed0f895401a8"
+        ],
+        "readCount": 0,
+        "lastReadTime": null,
+        "achievementId": null
+      },
+      {
+        "id": "closure-text",
+        "projectId": "closure-project",
+        "pavilionId": "study",
+        "title": "资料便签",
+        "nodeType": "text",
+        "isCheckinNode": false,
+        "status": "pending",
+        "weight": 1,
+        "plannedDate": "2026-11-15",
+        "frequency": "once",
+        "dependencies": [],
+        "canvasPosition": {
+          "x": 2080,
+          "y": 80
+        },
+        "groupId": null,
+        "groupRoot": null,
+        "createdAt": "2026-11-15T09:03:05.854Z",
+        "updatedAt": "2026-11-15T09:03:05.854Z",
+        "cardPayload": {
+          "description": "仅规划记录，不计为实际执行。",
+          "plannedMinutes": 0,
+          "evidenceType": "none",
+          "metrics": [],
+          "checklist": [],
+          "improvementList": [],
+          "customFieldsSchema": [],
+          "textContent": "仅规划记录，不计为实际执行。",
+          "acceptanceCriteria": "",
+          "targetDeadline": null
+        },
+        "executionRecords": [],
+        "readCount": 0,
+        "lastReadTime": null,
+        "achievementId": null
+      },
+      {
+        "id": "node-f2fabe8d-824b-4309-af76-a7c8a4bb0f49",
+        "projectId": "closure-project",
+        "pavilionId": "study",
+        "title": "本次实际产生的后续行动",
+        "nodeType": "drill",
+        "isCheckinNode": true,
+        "status": "pending",
+        "weight": 1,
+        "plannedDate": "2026-11-15",
+        "frequency": "once",
+        "dependencies": [],
+        "canvasPosition": {
+          "x": 880,
+          "y": 598
+        },
+        "groupId": "group-3749dc57-8306-4522-bdec-0ce4f78c5caf",
+        "groupRoot": "closure-review",
+        "createdAt": "2026-11-15T09:03:08.027Z",
+        "updatedAt": "2026-11-15T09:03:08.027Z",
+        "cardPayload": {
+          "description": "本次实际产生的后续行动",
+          "plannedMinutes": 20,
+          "evidenceType": "photo",
+          "derivedFrom": {
+            "nodeId": "closure-review",
+            "recordId": "record-a8b87fe9-73fd-40e6-98d4-e8f9a5a5fdc1",
+            "actionId": "actual-action"
+          },
+          "metrics": [],
+          "checklist": [],
+          "improvementList": [],
+          "customFieldsSchema": [],
+          "textContent": "",
+          "acceptanceCriteria": "",
+          "targetDeadline": null
+        },
+        "executionRecords": [],
+        "readCount": 0,
+        "lastReadTime": null,
+        "achievementId": null
+      }
+    ]
+  },
+  "records": [
+    {
+      "taskInstanceId": "closure-drill@2026-11-15",
+      "focusSeconds": 60,
+      "media": [],
+      "reflection": "按规划完成真实练习。",
+      "id": "record-64725bf6-6dbe-4bac-a79a-a6c118ac86e6",
+      "taskId": "closure-drill@2026-11-15",
+      "nodeId": "closure-drill",
+      "projectId": "closure-project",
+      "pavilionId": "study",
+      "title": "实训要领",
+      "sourceSnapshot": {
+        "title": "实训要领",
+        "nodeType": "drill",
+        "projectId": "closure-project",
+        "cardPayload": {
+          "description": "",
+          "plannedMinutes": 1,
+          "evidenceType": "none",
+          "metrics": [],
+          "checklist": [],
+          "improvementList": [],
+          "customFieldsSchema": [],
+          "textContent": "",
+          "acceptanceCriteria": "",
+          "targetDeadline": null
+        }
+      },
+      "date": "2026-11-15",
+      "scheduledDate": "2026-11-15",
+      "completedAt": "2026-11-15T09:03:07.842Z",
+      "validated": true,
+      "metrics": []
+    },
+    {
+      "taskInstanceId": "closure-habit@2026-11-15",
+      "focusSeconds": 0,
+      "media": [],
+      "checklistResults": {
+        "must": true,
+        "optional": false
+      },
+      "reflection": "必需行动已履行，选填项本次没有执行。",
+      "id": "record-9520b8c5-3c0a-41b8-ad8c-b8f7a14bde2f",
+      "taskId": "closure-habit@2026-11-15",
+      "nodeId": "closure-habit",
+      "projectId": "closure-project",
+      "pavilionId": "study",
+      "title": "防守清单",
+      "sourceSnapshot": {
+        "title": "防守清单",
+        "nodeType": "habit",
+        "projectId": "closure-project",
+        "cardPayload": {
+          "checklist": [
+            {
+              "id": "must",
+              "title": "必需行动",
+              "required": true
+            },
+            {
+              "id": "optional",
+              "title": "选填行动",
+              "required": false
+            }
+          ],
+          "description": "",
+          "plannedMinutes": 0,
+          "evidenceType": "none",
+          "metrics": [],
+          "improvementList": [],
+          "customFieldsSchema": [],
+          "textContent": "",
+          "acceptanceCriteria": "",
+          "targetDeadline": null
+        }
+      },
+      "date": "2026-11-15",
+      "scheduledDate": "2026-11-15",
+      "completedAt": "2026-11-15T09:03:07.863Z",
+      "validated": true,
+      "metrics": []
+    },
+    {
+      "taskInstanceId": "closure-review@2026-11-15",
+      "focusSeconds": 0,
+      "media": [],
+      "reflection": "对照本次实际过程总结具体问题，安排下一步可落实的行动。",
+      "improvementList": [
+        {
+          "id": "actual-action",
+          "actionItem": "本次实际产生的后续行动",
+          "isChecked": true
+        }
+      ],
+      "id": "record-a8b87fe9-73fd-40e6-98d4-e8f9a5a5fdc1",
+      "taskId": "closure-review@2026-11-15",
+      "nodeId": "closure-review",
+      "projectId": "closure-project",
+      "pavilionId": "study",
+      "title": "行动复盘",
+      "sourceSnapshot": {
+        "title": "行动复盘",
+        "nodeType": "review",
+        "projectId": "closure-project",
+        "cardPayload": {
+          "improvementList": [
+            {
+              "id": "selected",
+              "actionItem": "参与后续派生",
+              "isChecked": true
+            },
+            {
+              "id": "not-selected",
+              "actionItem": "保留但不派生",
+              "isChecked": false
+            }
+          ],
+          "description": "",
+          "plannedMinutes": 0,
+          "evidenceType": "text",
+          "metrics": [],
+          "checklist": [],
+          "customFieldsSchema": [],
+          "textContent": "",
+          "acceptanceCriteria": "",
+          "targetDeadline": null
+        }
+      },
+      "date": "2026-11-15",
+      "scheduledDate": "2026-11-15",
+      "completedAt": "2026-11-15T09:03:07.877Z",
+      "validated": true,
+      "metrics": []
+    },
+    {
+      "taskInstanceId": "closure-custom@2026-11-15",
+      "focusSeconds": 0,
+      "media": [],
+      "customFieldValues": {
+        "text": "真实观察",
+        "number": 0,
+        "boolean": false,
+        "date": "2026-11-15"
+      },
+      "id": "record-af76c09d-847d-4cca-bb8e-ed0f895401a8",
+      "taskId": "closure-custom@2026-11-15",
+      "nodeId": "closure-custom",
+      "projectId": "closure-project",
+      "pavilionId": "study",
+      "title": "实际字段",
+      "sourceSnapshot": {
+        "title": "实际字段",
+        "nodeType": "custom",
+        "projectId": "closure-project",
+        "cardPayload": {
+          "description": "",
+          "plannedMinutes": 0,
+          "evidenceType": "none",
+          "metrics": [],
+          "checklist": [],
+          "improvementList": [],
+          "customFieldsSchema": [
+            {
+              "key": "text",
+              "label": "实际观察",
+              "type": "text",
+              "required": true
+            },
+            {
+              "key": "number",
+              "label": "完成次数",
+              "type": "number",
+              "required": true
+            },
+            {
+              "key": "boolean",
+              "label": "是否尝试",
+              "type": "boolean",
+              "required": true
+            },
+            {
+              "key": "date",
+              "label": "观察日期",
+              "type": "date",
+              "required": true
+            }
+          ],
+          "textContent": "",
+          "acceptanceCriteria": "",
+          "targetDeadline": null
+        }
+      },
+      "date": "2026-11-15",
+      "scheduledDate": "2026-11-15",
+      "completedAt": "2026-11-15T09:03:07.893Z",
+      "validated": true,
+      "metrics": []
+    },
+    {
+      "taskInstanceId": "closure-goal@2026-11-15",
+      "focusSeconds": 0,
+      "media": [],
+      "metricValues": {
+        "metric-accuracy": "95%"
+      },
+      "reflection": "已对照原始指标检查本次实测结果，满足规划标准。",
+      "id": "record-d5846f8d-3b02-4e1e-851d-4c1e23e8681d",
+      "taskId": "closure-goal@2026-11-15",
+      "nodeId": "closure-goal",
+      "projectId": "closure-project",
+      "pavilionId": "study",
+      "title": "目标验收",
+      "sourceSnapshot": {
+        "title": "目标验收",
+        "nodeType": "goal",
+        "projectId": "closure-project",
+        "cardPayload": {
+          "description": "",
+          "plannedMinutes": 0,
+          "evidenceType": "text",
+          "metrics": [
+            {
+              "id": "metric-accuracy",
+              "name": "正确率",
+              "targetValue": "≥90%",
+              "unit": "%"
+            }
+          ],
+          "checklist": [],
+          "improvementList": [],
+          "customFieldsSchema": [],
+          "textContent": "",
+          "acceptanceCriteria": "对照实际指标验收",
+          "targetDeadline": null
+        }
+      },
+      "date": "2026-11-15",
+      "scheduledDate": "2026-11-15",
+      "completedAt": "2026-11-15T09:03:07.906Z",
+      "validated": true,
+      "metrics": [
+        {
+          "id": "metric-accuracy",
+          "name": "正确率",
+          "targetValue": "≥90%",
+          "unit": "%",
+          "passed": true,
+          "actual": "95%",
+          "manual": false
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "id": "event-5798c703-59a0-4bad-b92e-972bd1395f0a",
+      "kind": "checkin.completed",
+      "sourceId": "record-64725bf6-6dbe-4bac-a79a-a6c118ac86e6",
+      "date": "2026-11-15",
+      "timestamp": "2026-11-15T09:03:07.843Z",
+      "text": "完成《实训要领》：实际专注 1 分钟，物证 0 项",
+      "projectId": "closure-project",
+      "nodeId": "closure-drill",
+      "recordId": "record-64725bf6-6dbe-4bac-a79a-a6c118ac86e6"
+    },
+    {
+      "id": "event-2f91fb34-28da-4323-bfd5-6404fd106799",
+      "kind": "checkin.completed",
+      "sourceId": "record-9520b8c5-3c0a-41b8-ad8c-b8f7a14bde2f",
+      "date": "2026-11-15",
+      "timestamp": "2026-11-15T09:03:07.863Z",
+      "text": "完成《防守清单》：实际专注 0 分钟，物证 0 项",
+      "projectId": "closure-project",
+      "nodeId": "closure-habit",
+      "recordId": "record-9520b8c5-3c0a-41b8-ad8c-b8f7a14bde2f"
+    },
+    {
+      "id": "event-088195b0-4ca0-4858-9459-225073bb8816",
+      "kind": "checkin.completed",
+      "sourceId": "record-a8b87fe9-73fd-40e6-98d4-e8f9a5a5fdc1",
+      "date": "2026-11-15",
+      "timestamp": "2026-11-15T09:03:07.877Z",
+      "text": "完成《行动复盘》：实际专注 0 分钟，物证 0 项",
+      "projectId": "closure-project",
+      "nodeId": "closure-review",
+      "recordId": "record-a8b87fe9-73fd-40e6-98d4-e8f9a5a5fdc1"
+    },
+    {
+      "id": "event-cb0a3f09-9415-4365-8746-2404504969f9",
+      "kind": "checkin.completed",
+      "sourceId": "record-af76c09d-847d-4cca-bb8e-ed0f895401a8",
+      "date": "2026-11-15",
+      "timestamp": "2026-11-15T09:03:07.893Z",
+      "text": "完成《实际字段》：实际专注 0 分钟，物证 0 项",
+      "projectId": "closure-project",
+      "nodeId": "closure-custom",
+      "recordId": "record-af76c09d-847d-4cca-bb8e-ed0f895401a8"
+    },
+    {
+      "id": "event-52b0e5a3-9d89-49ea-b7e4-bae7fa9a9145",
+      "kind": "checkin.completed",
+      "sourceId": "record-d5846f8d-3b02-4e1e-851d-4c1e23e8681d",
+      "date": "2026-11-15",
+      "timestamp": "2026-11-15T09:03:07.906Z",
+      "text": "完成《目标验收》：实际专注 0 分钟，物证 0 项",
+      "projectId": "closure-project",
+      "nodeId": "closure-goal",
+      "recordId": "record-d5846f8d-3b02-4e1e-851d-4c1e23e8681d"
+    },
+    {
+      "id": "event-d7dc0643-b947-4e38-9230-3d608d1d6a58",
+      "kind": "achievement.created",
+      "sourceId": "achievement-9564427b-d8d9-48c9-943f-c3b376398a69",
+      "date": "2026-11-15",
+      "timestamp": "2026-11-15T09:03:07.922Z",
+      "text": "解锁真实里程碑《闭环字段审查 · 项目结业》",
+      "projectId": "closure-project",
+      "recordId": "record-d5846f8d-3b02-4e1e-851d-4c1e23e8681d"
+    },
+    {
+      "id": "event-0aec172a-8306-4c0a-85cd-57e8c8975802",
+      "kind": "review.derived",
+      "sourceId": "closure-review",
+      "date": "2026-11-15",
+      "timestamp": "2026-11-15T09:03:08.063Z",
+      "text": "基于已保存复盘创建 1 项后续规划",
+      "projectId": "closure-project",
+      "recordId": "record-a8b87fe9-73fd-40e6-98d4-e8f9a5a5fdc1"
+    },
+    {
+      "id": "event-2daeb487-b9d7-4f2c-bd5d-946ff8ce3bc2",
+      "kind": "pavilion.created",
+      "sourceId": "custom-ac4b6298-ae79-43de-bd9d-b83e5f4130e3",
+      "date": "2026-11-15",
+      "timestamp": "2026-11-15T09:03:08.164Z",
+      "text": "新增规划场馆《审查场馆》"
+    },
+    {
+      "id": "event-e07ecac7-4ff8-4f78-82c6-f5fbd2bb0708",
+      "kind": "pavilion.created",
+      "sourceId": "custom-3687a2b4-1041-4107-9dd1-66de6d64704c",
+      "date": "2026-11-15",
+      "timestamp": "2026-11-15T09:03:08.196Z",
+      "text": "新增规划场馆《审查场馆》"
+    },
+    {
+      "id": "event-080d8784-8ff1-44a6-a11f-b9a671ab1818",
+      "kind": "family.signed",
+      "sourceId": "1",
+      "date": "2026-11-15",
+      "timestamp": "2026-11-15T09:03:08.260Z",
+      "text": "亲子共同签署公约版本 1"
+    },
+    {
+      "id": "event-77dcb587-6a91-411d-9bb5-5345ca05f885",
+      "kind": "journal.sealed",
+      "sourceId": "entry-2026-11-15",
+      "date": "2026-11-15",
+      "timestamp": "2026-11-15T09:03:08.290Z",
+      "text": "封存 2026-11-15 的心流随记"
+    },
+    {
+      "id": "event-930a7dd1-43e3-4d17-8525-3f497a6caeb3",
+      "kind": "bounty.published",
+      "sourceId": "bounty-04ab0ab7-6efb-42aa-bf61-69fff99901c3",
+      "date": "2026-11-15",
+      "timestamp": "2026-11-15T09:03:08.839Z",
+      "text": "发布亲子挑战《逐页悬赏来源》"
+    },
+    {
+      "id": "event-44f3e2ca-db75-4660-95ba-f635693c2454",
+      "kind": "bounty.accepted",
+      "sourceId": "bounty-04ab0ab7-6efb-42aa-bf61-69fff99901c3",
+      "date": "2026-11-15",
+      "timestamp": "2026-11-15T09:03:08.882Z",
+      "text": "揭榜应战《逐页悬赏来源》"
+    }
+  ],
+  "bounties": [
+    {
+      "id": "bounty-04ab0ab7-6efb-42aa-bf61-69fff99901c3",
+      "title": "逐页悬赏来源",
+      "reward": "共同户外观察",
+      "criteria": "保留实际过程与原件",
+      "days": 7,
+      "pavilionId": "study",
+      "pavilionLabel": "校史馆 · 学业攻坚",
+      "createdDate": "2026-11-15",
+      "createdAt": "2026-11-15T09:03:08.838Z",
+      "endDate": "2026-11-21",
+      "status": "accepted",
+      "parentComment": "",
+      "evidence": [],
+      "acceptedDate": "2026-11-15",
+      "acceptedAt": "2026-11-15T09:03:08.870Z"
+    }
+  ],
+  "family": {
+    "childName": "审查孩子",
+    "guardianNames": "共同核验人",
+    "version": 1,
+    "signedAt": "2026-11-15T09:03:08.259Z",
+    "clauses": [
+      {
+        "id": "clause-21648c7f-7075-40b7-8208-ca5e9bc78eb3",
+        "text": "每天按约定整理真实资料"
+      }
+    ],
+    "versions": []
+  },
+  "historyByProject": {
+    "closure-project": {
+      "undo": [
+        {
+          "nodes": [
+            {
+              "id": "closure-goal",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "目标验收",
+              "nodeType": "goal",
+              "isCheckinNode": true,
+              "status": "pending",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 80,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.853Z",
+              "updatedAt": "2026-11-15T09:03:05.853Z",
+              "cardPayload": {
+                "description": "",
+                "plannedMinutes": 0,
+                "evidenceType": "text",
+                "metrics": [
+                  {
+                    "id": "metric-accuracy",
+                    "name": "正确率",
+                    "targetValue": "≥90%",
+                    "unit": "%"
+                  }
+                ],
+                "checklist": [],
+                "improvementList": [],
+                "customFieldsSchema": [],
+                "textContent": "",
+                "acceptanceCriteria": "对照实际指标验收",
+                "targetDeadline": null
+              },
+              "executionRecords": [],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            },
+            {
+              "id": "closure-drill",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "实训要领",
+              "nodeType": "drill",
+              "isCheckinNode": true,
+              "status": "pending",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 480,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.854Z",
+              "updatedAt": "2026-11-15T09:03:05.854Z",
+              "cardPayload": {
+                "description": "",
+                "plannedMinutes": 1,
+                "evidenceType": "none",
+                "metrics": [],
+                "checklist": [],
+                "improvementList": [],
+                "customFieldsSchema": [],
+                "textContent": "",
+                "acceptanceCriteria": "",
+                "targetDeadline": null
+              },
+              "executionRecords": [],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            },
+            {
+              "id": "closure-habit",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "防守清单",
+              "nodeType": "habit",
+              "isCheckinNode": true,
+              "status": "pending",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 880,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.854Z",
+              "updatedAt": "2026-11-15T09:03:05.854Z",
+              "cardPayload": {
+                "checklist": [
+                  {
+                    "id": "must",
+                    "title": "必需行动",
+                    "required": true
+                  },
+                  {
+                    "id": "optional",
+                    "title": "选填行动",
+                    "required": false
+                  }
+                ],
+                "description": "",
+                "plannedMinutes": 0,
+                "evidenceType": "none",
+                "metrics": [],
+                "improvementList": [],
+                "customFieldsSchema": [],
+                "textContent": "",
+                "acceptanceCriteria": "",
+                "targetDeadline": null
+              },
+              "executionRecords": [],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            },
+            {
+              "id": "closure-review",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "行动复盘",
+              "nodeType": "review",
+              "isCheckinNode": true,
+              "status": "pending",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 1280,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.854Z",
+              "updatedAt": "2026-11-15T09:03:05.854Z",
+              "cardPayload": {
+                "improvementList": [
+                  {
+                    "id": "selected",
+                    "actionItem": "参与后续派生",
+                    "isChecked": true
+                  },
+                  {
+                    "id": "not-selected",
+                    "actionItem": "保留但不派生",
+                    "isChecked": false
+                  }
+                ],
+                "description": "",
+                "plannedMinutes": 0,
+                "evidenceType": "text",
+                "metrics": [],
+                "checklist": [],
+                "customFieldsSchema": [],
+                "textContent": "",
+                "acceptanceCriteria": "",
+                "targetDeadline": null
+              },
+              "executionRecords": [],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            },
+            {
+              "id": "closure-custom",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "实际字段",
+              "nodeType": "custom",
+              "isCheckinNode": true,
+              "status": "pending",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 1680,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.854Z",
+              "updatedAt": "2026-11-15T09:03:05.854Z",
+              "cardPayload": {
+                "description": "",
+                "plannedMinutes": 0,
+                "evidenceType": "none",
+                "metrics": [],
+                "checklist": [],
+                "improvementList": [],
+                "customFieldsSchema": [
+                  {
+                    "key": "text",
+                    "label": "实际观察",
+                    "type": "text",
+                    "required": true,
+                    "placeholder": "",
+                    "defaultValue": ""
+                  },
+                  {
+                    "key": "number",
+                    "label": "完成次数",
+                    "type": "number",
+                    "required": true,
+                    "placeholder": "",
+                    "defaultValue": ""
+                  },
+                  {
+                    "key": "boolean",
+                    "label": "是否尝试",
+                    "type": "boolean",
+                    "required": true,
+                    "placeholder": "",
+                    "defaultValue": ""
+                  },
+                  {
+                    "key": "date",
+                    "label": "观察日期",
+                    "type": "date",
+                    "required": true,
+                    "placeholder": "",
+                    "defaultValue": ""
+                  }
+                ],
+                "textContent": "",
+                "acceptanceCriteria": "",
+                "targetDeadline": null
+              },
+              "executionRecords": [],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            },
+            {
+              "id": "closure-text",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "资料便签",
+              "nodeType": "text",
+              "isCheckinNode": false,
+              "status": "pending",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 2080,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.854Z",
+              "updatedAt": "2026-11-15T09:03:05.854Z",
+              "cardPayload": {
+                "description": "仅规划记录，不计为实际执行。",
+                "plannedMinutes": 0,
+                "evidenceType": "none",
+                "metrics": [],
+                "checklist": [],
+                "improvementList": [],
+                "customFieldsSchema": [],
+                "textContent": "仅规划记录，不计为实际执行。",
+                "acceptanceCriteria": "",
+                "targetDeadline": null
+              },
+              "executionRecords": [],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            }
+          ],
+          "edges": [
+            {
+              "id": "relation",
+              "sourceId": "closure-goal",
+              "targetId": "closure-drill",
+              "type": "关联",
+              "label": "目标到练习",
+              "color": "#6fa99b",
+              "lineWidth": 3,
+              "lineStyle": "solid",
+              "arrowMode": "single",
+              "sourceLabel": "目标验收",
+              "targetLabel": "实训要领"
+            }
+          ]
+        },
+        {
+          "nodes": [
+            {
+              "id": "closure-goal",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "目标验收",
+              "nodeType": "goal",
+              "isCheckinNode": true,
+              "status": "pending",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 80,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.853Z",
+              "updatedAt": "2026-11-15T09:03:05.853Z",
+              "cardPayload": {
+                "description": "",
+                "plannedMinutes": 0,
+                "evidenceType": "text",
+                "metrics": [
+                  {
+                    "id": "metric-accuracy",
+                    "name": "正确率",
+                    "targetValue": "≥90%",
+                    "unit": "%"
+                  }
+                ],
+                "checklist": [],
+                "improvementList": [],
+                "customFieldsSchema": [],
+                "textContent": "",
+                "acceptanceCriteria": "对照实际指标验收",
+                "targetDeadline": null
+              },
+              "executionRecords": [],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            },
+            {
+              "id": "closure-drill",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "实训要领",
+              "nodeType": "drill",
+              "isCheckinNode": true,
+              "status": "pending",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 480,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.854Z",
+              "updatedAt": "2026-11-15T09:03:05.854Z",
+              "cardPayload": {
+                "description": "",
+                "plannedMinutes": 1,
+                "evidenceType": "none",
+                "metrics": [],
+                "checklist": [],
+                "improvementList": [],
+                "customFieldsSchema": [],
+                "textContent": "",
+                "acceptanceCriteria": "",
+                "targetDeadline": null
+              },
+              "executionRecords": [],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            },
+            {
+              "id": "closure-habit",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "防守清单",
+              "nodeType": "habit",
+              "isCheckinNode": true,
+              "status": "pending",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 880,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.854Z",
+              "updatedAt": "2026-11-15T09:03:05.854Z",
+              "cardPayload": {
+                "checklist": [
+                  {
+                    "id": "must",
+                    "title": "必需行动",
+                    "required": true
+                  },
+                  {
+                    "id": "optional",
+                    "title": "选填行动",
+                    "required": false
+                  }
+                ],
+                "description": "",
+                "plannedMinutes": 0,
+                "evidenceType": "none",
+                "metrics": [],
+                "improvementList": [],
+                "customFieldsSchema": [],
+                "textContent": "",
+                "acceptanceCriteria": "",
+                "targetDeadline": null
+              },
+              "executionRecords": [],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            },
+            {
+              "id": "closure-review",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "行动复盘",
+              "nodeType": "review",
+              "isCheckinNode": true,
+              "status": "pending",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 1280,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.854Z",
+              "updatedAt": "2026-11-15T09:03:05.854Z",
+              "cardPayload": {
+                "improvementList": [
+                  {
+                    "id": "selected",
+                    "actionItem": "参与后续派生",
+                    "isChecked": true
+                  },
+                  {
+                    "id": "not-selected",
+                    "actionItem": "保留但不派生",
+                    "isChecked": false
+                  }
+                ],
+                "description": "",
+                "plannedMinutes": 0,
+                "evidenceType": "text",
+                "metrics": [],
+                "checklist": [],
+                "customFieldsSchema": [],
+                "textContent": "",
+                "acceptanceCriteria": "",
+                "targetDeadline": null
+              },
+              "executionRecords": [],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            },
+            {
+              "id": "closure-custom",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "实际字段",
+              "nodeType": "custom",
+              "isCheckinNode": true,
+              "status": "pending",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 1680,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.854Z",
+              "updatedAt": "2026-11-15T09:03:05.854Z",
+              "cardPayload": {
+                "description": "",
+                "plannedMinutes": 0,
+                "evidenceType": "none",
+                "metrics": [],
+                "checklist": [],
+                "improvementList": [],
+                "customFieldsSchema": [
+                  {
+                    "key": "text",
+                    "label": "实际观察",
+                    "type": "text",
+                    "required": true,
+                    "placeholder": "",
+                    "defaultValue": ""
+                  },
+                  {
+                    "key": "number",
+                    "label": "完成次数",
+                    "type": "number",
+                    "required": true,
+                    "placeholder": "",
+                    "defaultValue": ""
+                  },
+                  {
+                    "key": "boolean",
+                    "label": "是否尝试",
+                    "type": "boolean",
+                    "required": true,
+                    "placeholder": "",
+                    "defaultValue": ""
+                  },
+                  {
+                    "key": "date",
+                    "label": "观察日期",
+                    "type": "date",
+                    "required": true,
+                    "placeholder": "",
+                    "defaultValue": ""
+                  }
+                ],
+                "textContent": "",
+                "acceptanceCriteria": "",
+                "targetDeadline": null
+              },
+              "executionRecords": [],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            },
+            {
+              "id": "closure-text",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "资料便签",
+              "nodeType": "text",
+              "isCheckinNode": false,
+              "status": "pending",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 2080,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.854Z",
+              "updatedAt": "2026-11-15T09:03:05.854Z",
+              "cardPayload": {
+                "description": "仅规划记录，不计为实际执行。",
+                "plannedMinutes": 0,
+                "evidenceType": "none",
+                "metrics": [],
+                "checklist": [],
+                "improvementList": [],
+                "customFieldsSchema": [],
+                "textContent": "仅规划记录，不计为实际执行。",
+                "acceptanceCriteria": "",
+                "targetDeadline": null
+              },
+              "executionRecords": [],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            }
+          ],
+          "edges": [
+            {
+              "id": "relation",
+              "sourceId": "closure-goal",
+              "targetId": "closure-drill",
+              "type": "关联",
+              "label": "目标到练习",
+              "color": "#6fa99b",
+              "lineWidth": 3,
+              "lineStyle": "solid",
+              "arrowMode": "single",
+              "sourceLabel": "目标验收",
+              "targetLabel": "实训要领"
+            }
+          ]
+        },
+        {
+          "nodes": [
+            {
+              "id": "closure-goal",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "目标验收",
+              "nodeType": "goal",
+              "isCheckinNode": true,
+              "status": "pending",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 80,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.853Z",
+              "updatedAt": "2026-11-15T09:03:05.853Z",
+              "cardPayload": {
+                "description": "",
+                "plannedMinutes": 0,
+                "evidenceType": "text",
+                "metrics": [
+                  {
+                    "id": "metric-accuracy",
+                    "name": "正确率",
+                    "targetValue": "≥90%",
+                    "unit": "%"
+                  }
+                ],
+                "checklist": [],
+                "improvementList": [],
+                "customFieldsSchema": [],
+                "textContent": "",
+                "acceptanceCriteria": "对照实际指标验收",
+                "targetDeadline": null
+              },
+              "executionRecords": [],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            },
+            {
+              "id": "closure-drill",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "实训要领",
+              "nodeType": "drill",
+              "isCheckinNode": true,
+              "status": "pending",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 480,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.854Z",
+              "updatedAt": "2026-11-15T09:03:05.854Z",
+              "cardPayload": {
+                "description": "",
+                "plannedMinutes": 1,
+                "evidenceType": "none",
+                "metrics": [],
+                "checklist": [],
+                "improvementList": [],
+                "customFieldsSchema": [],
+                "textContent": "",
+                "acceptanceCriteria": "",
+                "targetDeadline": null
+              },
+              "executionRecords": [],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            },
+            {
+              "id": "closure-habit",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "防守清单",
+              "nodeType": "habit",
+              "isCheckinNode": true,
+              "status": "pending",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 880,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.854Z",
+              "updatedAt": "2026-11-15T09:03:05.854Z",
+              "cardPayload": {
+                "checklist": [
+                  {
+                    "id": "must",
+                    "title": "必需行动",
+                    "required": true
+                  },
+                  {
+                    "id": "optional",
+                    "title": "选填行动",
+                    "required": false
+                  }
+                ],
+                "description": "",
+                "plannedMinutes": 0,
+                "evidenceType": "none",
+                "metrics": [],
+                "improvementList": [],
+                "customFieldsSchema": [],
+                "textContent": "",
+                "acceptanceCriteria": "",
+                "targetDeadline": null
+              },
+              "executionRecords": [],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            },
+            {
+              "id": "closure-review",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "行动复盘",
+              "nodeType": "review",
+              "isCheckinNode": true,
+              "status": "pending",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 1280,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.854Z",
+              "updatedAt": "2026-11-15T09:03:05.854Z",
+              "cardPayload": {
+                "improvementList": [
+                  {
+                    "id": "selected",
+                    "actionItem": "参与后续派生",
+                    "isChecked": true
+                  },
+                  {
+                    "id": "not-selected",
+                    "actionItem": "保留但不派生",
+                    "isChecked": false
+                  }
+                ],
+                "description": "",
+                "plannedMinutes": 0,
+                "evidenceType": "text",
+                "metrics": [],
+                "checklist": [],
+                "customFieldsSchema": [],
+                "textContent": "",
+                "acceptanceCriteria": "",
+                "targetDeadline": null
+              },
+              "executionRecords": [],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            },
+            {
+              "id": "closure-custom",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "实际字段",
+              "nodeType": "custom",
+              "isCheckinNode": true,
+              "status": "pending",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 1680,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.854Z",
+              "updatedAt": "2026-11-15T09:03:05.854Z",
+              "cardPayload": {
+                "description": "",
+                "plannedMinutes": 0,
+                "evidenceType": "none",
+                "metrics": [],
+                "checklist": [],
+                "improvementList": [],
+                "customFieldsSchema": [
+                  {
+                    "key": "text",
+                    "label": "实际观察",
+                    "type": "text",
+                    "required": true,
+                    "placeholder": "",
+                    "defaultValue": ""
+                  },
+                  {
+                    "key": "number",
+                    "label": "完成次数",
+                    "type": "number",
+                    "required": true,
+                    "placeholder": "",
+                    "defaultValue": ""
+                  },
+                  {
+                    "key": "boolean",
+                    "label": "是否尝试",
+                    "type": "boolean",
+                    "required": true,
+                    "placeholder": "",
+                    "defaultValue": ""
+                  },
+                  {
+                    "key": "date",
+                    "label": "观察日期",
+                    "type": "date",
+                    "required": true,
+                    "placeholder": "",
+                    "defaultValue": ""
+                  }
+                ],
+                "textContent": "",
+                "acceptanceCriteria": "",
+                "targetDeadline": null
+              },
+              "executionRecords": [],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            },
+            {
+              "id": "closure-text",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "资料便签",
+              "nodeType": "text",
+              "isCheckinNode": false,
+              "status": "pending",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 2080,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.854Z",
+              "updatedAt": "2026-11-15T09:03:05.854Z",
+              "cardPayload": {
+                "description": "仅规划记录，不计为实际执行。",
+                "plannedMinutes": 0,
+                "evidenceType": "none",
+                "metrics": [],
+                "checklist": [],
+                "improvementList": [],
+                "customFieldsSchema": [],
+                "textContent": "仅规划记录，不计为实际执行。",
+                "acceptanceCriteria": "",
+                "targetDeadline": null
+              },
+              "executionRecords": [],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            }
+          ],
+          "edges": [
+            {
+              "id": "relation",
+              "sourceId": "closure-goal",
+              "targetId": "closure-drill",
+              "type": "关联",
+              "label": "目标到练习",
+              "color": "#6fa99b",
+              "lineWidth": 3,
+              "lineStyle": "solid",
+              "arrowMode": "single",
+              "sourceLabel": "目标验收",
+              "targetLabel": "实训要领"
+            }
+          ]
+        },
+        {
+          "nodes": [
+            {
+              "id": "closure-goal",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "目标验收",
+              "nodeType": "goal",
+              "isCheckinNode": true,
+              "status": "pending",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 80,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.853Z",
+              "updatedAt": "2026-11-15T09:03:05.853Z",
+              "cardPayload": {
+                "description": "",
+                "plannedMinutes": 0,
+                "evidenceType": "text",
+                "metrics": [
+                  {
+                    "id": "metric-accuracy",
+                    "name": "正确率",
+                    "targetValue": "≥90%",
+                    "unit": "%"
+                  }
+                ],
+                "checklist": [],
+                "improvementList": [],
+                "customFieldsSchema": [],
+                "textContent": "",
+                "acceptanceCriteria": "对照实际指标验收",
+                "targetDeadline": null
+              },
+              "executionRecords": [],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            },
+            {
+              "id": "closure-drill",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "实训要领",
+              "nodeType": "drill",
+              "isCheckinNode": true,
+              "status": "pending",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 480,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.854Z",
+              "updatedAt": "2026-11-15T09:03:05.854Z",
+              "cardPayload": {
+                "description": "",
+                "plannedMinutes": 1,
+                "evidenceType": "none",
+                "metrics": [],
+                "checklist": [],
+                "improvementList": [],
+                "customFieldsSchema": [],
+                "textContent": "",
+                "acceptanceCriteria": "",
+                "targetDeadline": null
+              },
+              "executionRecords": [],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            },
+            {
+              "id": "closure-habit",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "防守清单",
+              "nodeType": "habit",
+              "isCheckinNode": true,
+              "status": "pending",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 880,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.854Z",
+              "updatedAt": "2026-11-15T09:03:05.854Z",
+              "cardPayload": {
+                "checklist": [
+                  {
+                    "id": "must",
+                    "title": "必需行动",
+                    "required": true
+                  },
+                  {
+                    "id": "optional",
+                    "title": "选填行动",
+                    "required": false
+                  }
+                ],
+                "description": "",
+                "plannedMinutes": 0,
+                "evidenceType": "none",
+                "metrics": [],
+                "improvementList": [],
+                "customFieldsSchema": [],
+                "textContent": "",
+                "acceptanceCriteria": "",
+                "targetDeadline": null
+              },
+              "executionRecords": [],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            },
+            {
+              "id": "closure-review",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "行动复盘",
+              "nodeType": "review",
+              "isCheckinNode": true,
+              "status": "pending",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 1280,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.854Z",
+              "updatedAt": "2026-11-15T09:03:05.854Z",
+              "cardPayload": {
+                "improvementList": [
+                  {
+                    "id": "selected",
+                    "actionItem": "参与后续派生",
+                    "isChecked": true
+                  },
+                  {
+                    "id": "not-selected",
+                    "actionItem": "保留但不派生",
+                    "isChecked": false
+                  }
+                ],
+                "description": "",
+                "plannedMinutes": 0,
+                "evidenceType": "text",
+                "metrics": [],
+                "checklist": [],
+                "customFieldsSchema": [],
+                "textContent": "",
+                "acceptanceCriteria": "",
+                "targetDeadline": null
+              },
+              "executionRecords": [],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            },
+            {
+              "id": "closure-custom",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "实际字段",
+              "nodeType": "custom",
+              "isCheckinNode": true,
+              "status": "pending",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 1680,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.854Z",
+              "updatedAt": "2026-11-15T09:03:05.854Z",
+              "cardPayload": {
+                "description": "",
+                "plannedMinutes": 0,
+                "evidenceType": "none",
+                "metrics": [],
+                "checklist": [],
+                "improvementList": [],
+                "customFieldsSchema": [
+                  {
+                    "key": "text",
+                    "label": "实际观察",
+                    "type": "text",
+                    "required": true,
+                    "placeholder": "",
+                    "defaultValue": ""
+                  },
+                  {
+                    "key": "number",
+                    "label": "完成次数",
+                    "type": "number",
+                    "required": true,
+                    "placeholder": "",
+                    "defaultValue": ""
+                  },
+                  {
+                    "key": "boolean",
+                    "label": "是否尝试",
+                    "type": "boolean",
+                    "required": true,
+                    "placeholder": "",
+                    "defaultValue": ""
+                  },
+                  {
+                    "key": "date",
+                    "label": "观察日期",
+                    "type": "date",
+                    "required": true,
+                    "placeholder": "",
+                    "defaultValue": ""
+                  }
+                ],
+                "textContent": "",
+                "acceptanceCriteria": "",
+                "targetDeadline": null
+              },
+              "executionRecords": [],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            },
+            {
+              "id": "closure-text",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "资料便签",
+              "nodeType": "text",
+              "isCheckinNode": false,
+              "status": "pending",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 2080,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.854Z",
+              "updatedAt": "2026-11-15T09:03:05.854Z",
+              "cardPayload": {
+                "description": "仅规划记录，不计为实际执行。",
+                "plannedMinutes": 0,
+                "evidenceType": "none",
+                "metrics": [],
+                "checklist": [],
+                "improvementList": [],
+                "customFieldsSchema": [],
+                "textContent": "仅规划记录，不计为实际执行。",
+                "acceptanceCriteria": "",
+                "targetDeadline": null
+              },
+              "executionRecords": [],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            }
+          ],
+          "edges": [
+            {
+              "id": "relation",
+              "sourceId": "closure-goal",
+              "targetId": "closure-drill",
+              "type": "关联",
+              "label": "目标到练习",
+              "color": "#6fa99b",
+              "lineWidth": 3,
+              "lineStyle": "solid",
+              "arrowMode": "single",
+              "sourceLabel": "目标验收",
+              "targetLabel": "实训要领"
+            }
+          ]
+        },
+        {
+          "nodes": [
+            {
+              "id": "closure-goal",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "目标验收",
+              "nodeType": "goal",
+              "isCheckinNode": true,
+              "status": "completed",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 80,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.853Z",
+              "updatedAt": "2026-11-15T09:03:07.906Z",
+              "cardPayload": {
+                "description": "",
+                "plannedMinutes": 0,
+                "evidenceType": "text",
+                "metrics": [
+                  {
+                    "id": "metric-accuracy",
+                    "name": "正确率",
+                    "targetValue": "≥90%",
+                    "unit": "%"
+                  }
+                ],
+                "checklist": [],
+                "improvementList": [],
+                "customFieldsSchema": [],
+                "textContent": "",
+                "acceptanceCriteria": "对照实际指标验收",
+                "targetDeadline": null
+              },
+              "executionRecords": [
+                "record-d5846f8d-3b02-4e1e-851d-4c1e23e8681d"
+              ],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            },
+            {
+              "id": "closure-drill",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "实训要领",
+              "nodeType": "drill",
+              "isCheckinNode": true,
+              "status": "completed",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 480,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.854Z",
+              "updatedAt": "2026-11-15T09:03:07.842Z",
+              "cardPayload": {
+                "description": "",
+                "plannedMinutes": 1,
+                "evidenceType": "none",
+                "metrics": [],
+                "checklist": [],
+                "improvementList": [],
+                "customFieldsSchema": [],
+                "textContent": "",
+                "acceptanceCriteria": "",
+                "targetDeadline": null
+              },
+              "executionRecords": [
+                "record-64725bf6-6dbe-4bac-a79a-a6c118ac86e6"
+              ],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            },
+            {
+              "id": "closure-habit",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "防守清单",
+              "nodeType": "habit",
+              "isCheckinNode": true,
+              "status": "completed",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 880,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.854Z",
+              "updatedAt": "2026-11-15T09:03:07.863Z",
+              "cardPayload": {
+                "checklist": [
+                  {
+                    "id": "must",
+                    "title": "必需行动",
+                    "required": true
+                  },
+                  {
+                    "id": "optional",
+                    "title": "选填行动",
+                    "required": false
+                  }
+                ],
+                "description": "",
+                "plannedMinutes": 0,
+                "evidenceType": "none",
+                "metrics": [],
+                "improvementList": [],
+                "customFieldsSchema": [],
+                "textContent": "",
+                "acceptanceCriteria": "",
+                "targetDeadline": null
+              },
+              "executionRecords": [
+                "record-9520b8c5-3c0a-41b8-ad8c-b8f7a14bde2f"
+              ],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            },
+            {
+              "id": "closure-review",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "行动复盘",
+              "nodeType": "review",
+              "isCheckinNode": true,
+              "status": "completed",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 1280,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.854Z",
+              "updatedAt": "2026-11-15T09:03:07.877Z",
+              "cardPayload": {
+                "improvementList": [
+                  {
+                    "id": "selected",
+                    "actionItem": "参与后续派生",
+                    "isChecked": true
+                  },
+                  {
+                    "id": "not-selected",
+                    "actionItem": "保留但不派生",
+                    "isChecked": false
+                  }
+                ],
+                "description": "",
+                "plannedMinutes": 0,
+                "evidenceType": "text",
+                "metrics": [],
+                "checklist": [],
+                "customFieldsSchema": [],
+                "textContent": "",
+                "acceptanceCriteria": "",
+                "targetDeadline": null
+              },
+              "executionRecords": [
+                "record-a8b87fe9-73fd-40e6-98d4-e8f9a5a5fdc1"
+              ],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            },
+            {
+              "id": "closure-custom",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "实际字段",
+              "nodeType": "custom",
+              "isCheckinNode": true,
+              "status": "completed",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 1680,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.854Z",
+              "updatedAt": "2026-11-15T09:03:07.893Z",
+              "cardPayload": {
+                "description": "",
+                "plannedMinutes": 0,
+                "evidenceType": "none",
+                "metrics": [],
+                "checklist": [],
+                "improvementList": [],
+                "customFieldsSchema": [
+                  {
+                    "key": "text",
+                    "label": "实际观察",
+                    "type": "text",
+                    "required": true
+                  },
+                  {
+                    "key": "number",
+                    "label": "完成次数",
+                    "type": "number",
+                    "required": true
+                  },
+                  {
+                    "key": "boolean",
+                    "label": "是否尝试",
+                    "type": "boolean",
+                    "required": true
+                  },
+                  {
+                    "key": "date",
+                    "label": "观察日期",
+                    "type": "date",
+                    "required": true
+                  }
+                ],
+                "textContent": "",
+                "acceptanceCriteria": "",
+                "targetDeadline": null
+              },
+              "executionRecords": [
+                "record-af76c09d-847d-4cca-bb8e-ed0f895401a8"
+              ],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            },
+            {
+              "id": "closure-text",
+              "projectId": "closure-project",
+              "pavilionId": "study",
+              "title": "资料便签",
+              "nodeType": "text",
+              "isCheckinNode": false,
+              "status": "pending",
+              "weight": 1,
+              "plannedDate": "2026-11-15",
+              "frequency": "once",
+              "dependencies": [],
+              "canvasPosition": {
+                "x": 2080,
+                "y": 80
+              },
+              "groupId": null,
+              "groupRoot": null,
+              "createdAt": "2026-11-15T09:03:05.854Z",
+              "updatedAt": "2026-11-15T09:03:05.854Z",
+              "cardPayload": {
+                "description": "仅规划记录，不计为实际执行。",
+                "plannedMinutes": 0,
+                "evidenceType": "none",
+                "metrics": [],
+                "checklist": [],
+                "improvementList": [],
+                "customFieldsSchema": [],
+                "textContent": "仅规划记录，不计为实际执行。",
+                "acceptanceCriteria": "",
+                "targetDeadline": null
+              },
+              "executionRecords": [],
+              "readCount": 0,
+              "lastReadTime": null,
+              "achievementId": null
+            }
+          ],
+          "edges": [
+            {
+              "id": "relation",
+              "sourceId": "closure-goal",
+              "targetId": "closure-drill",
+              "type": "关联",
+              "label": "目标到练习",
+              "color": "#6fa99b",
+              "lineWidth": 3,
+              "lineStyle": "solid",
+              "arrowMode": "single",
+              "sourceLabel": "目标验收",
+              "targetLabel": "实训要领"
+            }
+          ]
+        }
+      ],
+      "redo": []
+    }
+  },
+  "viewports": {
+    "planning": null,
+    "projects": {
+      "closure-project": {
+        "x": 60,
+        "y": 40,
+        "zoom": 1
+      }
+    }
+  },
+  "navigation": {
+    "planning": {
+      "collapsed": true,
+      "freeLayout": {
+        "node-study": {
+          "left": "28%",
+          "top": "26%"
+        },
+        "node-dojo": {
+          "left": "72%",
+          "top": "26%"
+        },
+        "node-cultivation": {
+          "left": "28%",
+          "top": "64%"
+        },
+        "node-cognition": {
+          "left": "72%",
+          "top": "64%"
+        }
+      },
+      "layoutIndex": 0
+    },
+    "projects": {
+      "closure-project": {
+        "collapsed": true,
+        "collapsedNodeIds": []
+      }
+    }
+  },
+  "drafts": {},
+  "taskAliases": {},
+  "inquiries": [],
+  "instances": [
+    {
+      "id": "closure-goal@2026-11-15",
+      "nodeId": "closure-goal",
+      "projectId": "closure-project",
+      "pavilionId": "study",
+      "title": "目标验收",
+      "date": "2026-11-15",
+      "nodeType": "goal",
+      "status": "completed",
+      "recordId": "record-d5846f8d-3b02-4e1e-851d-4c1e23e8681d",
+      "contract": false
+    },
+    {
+      "id": "closure-drill@2026-11-15",
+      "nodeId": "closure-drill",
+      "projectId": "closure-project",
+      "pavilionId": "study",
+      "title": "实训要领",
+      "date": "2026-11-15",
+      "nodeType": "drill",
+      "status": "completed",
+      "recordId": "record-64725bf6-6dbe-4bac-a79a-a6c118ac86e6",
+      "contract": false
+    },
+    {
+      "id": "closure-habit@2026-11-15",
+      "nodeId": "closure-habit",
+      "projectId": "closure-project",
+      "pavilionId": "study",
+      "title": "防守清单",
+      "date": "2026-11-15",
+      "nodeType": "habit",
+      "status": "completed",
+      "recordId": "record-9520b8c5-3c0a-41b8-ad8c-b8f7a14bde2f",
+      "contract": false
+    },
+    {
+      "id": "closure-review@2026-11-15",
+      "nodeId": "closure-review",
+      "projectId": "closure-project",
+      "pavilionId": "study",
+      "title": "行动复盘",
+      "date": "2026-11-15",
+      "nodeType": "review",
+      "status": "completed",
+      "recordId": "record-a8b87fe9-73fd-40e6-98d4-e8f9a5a5fdc1",
+      "contract": false
+    },
+    {
+      "id": "closure-custom@2026-11-15",
+      "nodeId": "closure-custom",
+      "projectId": "closure-project",
+      "pavilionId": "study",
+      "title": "实际字段",
+      "date": "2026-11-15",
+      "nodeType": "custom",
+      "status": "completed",
+      "recordId": "record-af76c09d-847d-4cca-bb8e-ed0f895401a8",
+      "contract": false
+    },
+    {
+      "id": "node-f2fabe8d-824b-4309-af76-a7c8a4bb0f49@2026-11-15",
+      "nodeId": "node-f2fabe8d-824b-4309-af76-a7c8a4bb0f49",
+      "projectId": "closure-project",
+      "pavilionId": "study",
+      "title": "本次实际产生的后续行动",
+      "date": "2026-11-15",
+      "nodeType": "drill",
+      "status": "ready",
+      "recordId": null,
+      "contract": false
+    },
+    {
+      "id": "bounty-bounty-04ab0ab7-6efb-42aa-bf61-69fff99901c3@2026-11-15",
+      "nodeId": null,
+      "projectId": null,
+      "bountyId": "bounty-04ab0ab7-6efb-42aa-bf61-69fff99901c3",
+      "pavilionId": "study",
+      "title": "逐页悬赏来源",
+      "date": "2026-11-21",
+      "nodeType": "bounty",
+      "contract": true,
+      "recordId": null,
+      "status": "ready"
+    }
+  ],
+  "edgesByProject": {
+    "closure-project": [
+      {
+        "id": "relation",
+        "sourceId": "closure-goal",
+        "targetId": "closure-drill",
+        "type": "关联",
+        "label": "目标到练习",
+        "color": "#6fa99b",
+        "lineWidth": 3,
+        "lineStyle": "solid",
+        "arrowMode": "single",
+        "sourceLabel": "目标验收",
+        "targetLabel": "实训要领"
+      },
+      {
+        "id": "edge-f4b2ccfb-0365-4936-b2f0-7822093ccc9c",
+        "sourceId": "closure-review",
+        "targetId": "node-f2fabe8d-824b-4309-af76-a7c8a4bb0f49",
+        "type": "派生",
+        "label": "复盘后续规划",
+        "color": "#6fa99b",
+        "lineWidth": 3,
+        "lineStyle": "solid",
+        "arrowMode": "single",
+        "sourceLabel": "行动复盘",
+        "targetLabel": "本次实际产生的后续行动"
+      }
+    ]
+  },
+  "stores": {
+    "USER_PROFILE_STATE": {
+      "streakDays": 1,
+      "streakIncrementedToday": false,
+      "completedTodayCount": 5,
+      "totalTodayCount": 6,
+      "baseFulfillmentRate": 100,
+      "violationCount": 0,
+      "violationRecords": [],
+      "checkedTaskKeys": {},
+      "settings": {
+        "avatarEmoji": "👦",
+        "nickname": "晨曦岛民 · 齐天",
+        "particle": "gold",
+        "bgGlobal": true,
+        "wallpapers": {},
+        "immersive": {
+          "left": true,
+          "top": true,
+          "bottom": true,
+          "nodes": false,
+          "dbl": true
+        }
+      },
+      "checkinRecords": [
+        {
+          "taskInstanceId": "closure-drill@2026-11-15",
+          "focusSeconds": 60,
+          "media": [],
+          "reflection": "按规划完成真实练习。",
+          "id": "record-64725bf6-6dbe-4bac-a79a-a6c118ac86e6",
+          "taskId": "closure-drill@2026-11-15",
+          "nodeId": "closure-drill",
+          "projectId": "closure-project",
+          "pavilionId": "study",
+          "title": "实训要领",
+          "sourceSnapshot": {
+            "title": "实训要领",
+            "nodeType": "drill",
+            "projectId": "closure-project",
+            "cardPayload": {
+              "description": "",
+              "plannedMinutes": 1,
+              "evidenceType": "none",
+              "metrics": [],
+              "checklist": [],
+              "improvementList": [],
+              "customFieldsSchema": [],
+              "textContent": "",
+              "acceptanceCriteria": "",
+              "targetDeadline": null
+            }
+          },
+          "date": "2026-11-15",
+          "scheduledDate": "2026-11-15",
+          "completedAt": "2026-11-15T09:03:07.842Z",
+          "validated": true,
+          "metrics": []
+        },
+        {
+          "taskInstanceId": "closure-habit@2026-11-15",
+          "focusSeconds": 0,
+          "media": [],
+          "checklistResults": {
+            "must": true,
+            "optional": false
+          },
+          "reflection": "必需行动已履行，选填项本次没有执行。",
+          "id": "record-9520b8c5-3c0a-41b8-ad8c-b8f7a14bde2f",
+          "taskId": "closure-habit@2026-11-15",
+          "nodeId": "closure-habit",
+          "projectId": "closure-project",
+          "pavilionId": "study",
+          "title": "防守清单",
+          "sourceSnapshot": {
+            "title": "防守清单",
+            "nodeType": "habit",
+            "projectId": "closure-project",
+            "cardPayload": {
+              "checklist": [
+                {
+                  "id": "must",
+                  "title": "必需行动",
+                  "required": true
+                },
+                {
+                  "id": "optional",
+                  "title": "选填行动",
+                  "required": false
+                }
+              ],
+              "description": "",
+              "plannedMinutes": 0,
+              "evidenceType": "none",
+              "metrics": [],
+              "improvementList": [],
+              "customFieldsSchema": [],
+              "textContent": "",
+              "acceptanceCriteria": "",
+              "targetDeadline": null
+            }
+          },
+          "date": "2026-11-15",
+          "scheduledDate": "2026-11-15",
+          "completedAt": "2026-11-15T09:03:07.863Z",
+          "validated": true,
+          "metrics": []
+        },
+        {
+          "taskInstanceId": "closure-review@2026-11-15",
+          "focusSeconds": 0,
+          "media": [],
+          "reflection": "对照本次实际过程总结具体问题，安排下一步可落实的行动。",
+          "improvementList": [
+            {
+              "id": "actual-action",
+              "actionItem": "本次实际产生的后续行动",
+              "isChecked": true
+            }
+          ],
+          "id": "record-a8b87fe9-73fd-40e6-98d4-e8f9a5a5fdc1",
+          "taskId": "closure-review@2026-11-15",
+          "nodeId": "closure-review",
+          "projectId": "closure-project",
+          "pavilionId": "study",
+          "title": "行动复盘",
+          "sourceSnapshot": {
+            "title": "行动复盘",
+            "nodeType": "review",
+            "projectId": "closure-project",
+            "cardPayload": {
+              "improvementList": [
+                {
+                  "id": "selected",
+                  "actionItem": "参与后续派生",
+                  "isChecked": true
+                },
+                {
+                  "id": "not-selected",
+                  "actionItem": "保留但不派生",
+                  "isChecked": false
+                }
+              ],
+              "description": "",
+              "plannedMinutes": 0,
+              "evidenceType": "text",
+              "metrics": [],
+              "checklist": [],
+              "customFieldsSchema": [],
+              "textContent": "",
+              "acceptanceCriteria": "",
+              "targetDeadline": null
+            }
+          },
+          "date": "2026-11-15",
+          "scheduledDate": "2026-11-15",
+          "completedAt": "2026-11-15T09:03:07.877Z",
+          "validated": true,
+          "metrics": []
+        },
+        {
+          "taskInstanceId": "closure-custom@2026-11-15",
+          "focusSeconds": 0,
+          "media": [],
+          "customFieldValues": {
+            "text": "真实观察",
+            "number": 0,
+            "boolean": false,
+            "date": "2026-11-15"
+          },
+          "id": "record-af76c09d-847d-4cca-bb8e-ed0f895401a8",
+          "taskId": "closure-custom@2026-11-15",
+          "nodeId": "closure-custom",
+          "projectId": "closure-project",
+          "pavilionId": "study",
+          "title": "实际字段",
+          "sourceSnapshot": {
+            "title": "实际字段",
+            "nodeType": "custom",
+            "projectId": "closure-project",
+            "cardPayload": {
+              "description": "",
+              "plannedMinutes": 0,
+              "evidenceType": "none",
+              "metrics": [],
+              "checklist": [],
+              "improvementList": [],
+              "customFieldsSchema": [
+                {
+                  "key": "text",
+                  "label": "实际观察",
+                  "type": "text",
+                  "required": true
+                },
+                {
+                  "key": "number",
+                  "label": "完成次数",
+                  "type": "number",
+                  "required": true
+                },
+                {
+                  "key": "boolean",
+                  "label": "是否尝试",
+                  "type": "boolean",
+                  "required": true
+                },
+                {
+                  "key": "date",
+                  "label": "观察日期",
+                  "type": "date",
+                  "required": true
+                }
+              ],
+              "textContent": "",
+              "acceptanceCriteria": "",
+              "targetDeadline": null
+            }
+          },
+          "date": "2026-11-15",
+          "scheduledDate": "2026-11-15",
+          "completedAt": "2026-11-15T09:03:07.893Z",
+          "validated": true,
+          "metrics": []
+        },
+        {
+          "taskInstanceId": "closure-goal@2026-11-15",
+          "focusSeconds": 0,
+          "media": [],
+          "metricValues": {
+            "metric-accuracy": "95%"
+          },
+          "reflection": "已对照原始指标检查本次实测结果，满足规划标准。",
+          "id": "record-d5846f8d-3b02-4e1e-851d-4c1e23e8681d",
+          "taskId": "closure-goal@2026-11-15",
+          "nodeId": "closure-goal",
+          "projectId": "closure-project",
+          "pavilionId": "study",
+          "title": "目标验收",
+          "sourceSnapshot": {
+            "title": "目标验收",
+            "nodeType": "goal",
+            "projectId": "closure-project",
+            "cardPayload": {
+              "description": "",
+              "plannedMinutes": 0,
+              "evidenceType": "text",
+              "metrics": [
+                {
+                  "id": "metric-accuracy",
+                  "name": "正确率",
+                  "targetValue": "≥90%",
+                  "unit": "%"
+                }
+              ],
+              "checklist": [],
+              "improvementList": [],
+              "customFieldsSchema": [],
+              "textContent": "",
+              "acceptanceCriteria": "对照实际指标验收",
+              "targetDeadline": null
+            }
+          },
+          "date": "2026-11-15",
+          "scheduledDate": "2026-11-15",
+          "completedAt": "2026-11-15T09:03:07.906Z",
+          "validated": true,
+          "metrics": [
+            {
+              "id": "metric-accuracy",
+              "name": "正确率",
+              "targetValue": "≥90%",
+              "unit": "%",
+              "passed": true,
+              "actual": "95%",
+              "manual": false
+            }
+          ]
+        }
+      ],
+      "statsDate": "2026-11-15",
+      "continuousDays": 1,
+      "maxContinuousDays": 1,
+      "fulfillmentRate": 90,
+      "totalFocusMinutes": 1,
+      "streakFreezeAllowance": 2,
+      "streakFreezeUsed": 0
+    },
+    "PAVILION_META": {
+      "study": {
+        "name": "校史馆",
+        "icon": "🏫",
+        "cat": "学业攻坚",
+        "specializedTitle": "学科作战双栏台",
+        "hasGantt": true,
+        "hasTertiary": true,
+        "position": {
+          "left": "28%",
+          "top": "26%"
+        }
+      },
+      "dojo": {
+        "name": "武道馆/兴趣屋",
+        "icon": "🥋",
+        "cat": "兴趣特长",
+        "specializedTitle": "运动竞技战备舱",
+        "hasGantt": true,
+        "hasTertiary": true,
+        "position": {
+          "left": "72%",
+          "top": "26%"
+        }
+      },
+      "cognition": {
+        "name": "思辨馆/认知台",
+        "icon": "🧠",
+        "cat": "认知思辨",
+        "specializedTitle": "哲思工坊与罗盘",
+        "hasGantt": true,
+        "hasTertiary": true,
+        "position": {
+          "left": "72%",
+          "top": "64%"
+        }
+      },
+      "cultivation": {
+        "name": "修身阁",
+        "icon": "📜",
+        "cat": "修身立宪",
+        "specializedTitle": "三阶垂向修身古卷",
+        "hasGantt": true,
+        "hasTertiary": true,
+        "position": {
+          "left": "28%",
+          "top": "64%"
+        }
+      },
+      "treasury": {
+        "name": "藏金屋",
+        "icon": "💰",
+        "cat": "财商实践",
+        "specializedTitle": "财商分流与资产工坊",
+        "hasGantt": false,
+        "hasTertiary": false,
+        "noPlanning": true
+      },
+      "tree": {
+        "name": "个人行为规范",
+        "icon": "📜",
+        "cat": "修身立宪",
+        "specializedTitle": "古籍风骨线装法典长卷",
+        "hasGantt": false,
+        "hasTertiary": false,
+        "recordOnly": true
+      },
+      "achieve": {
+        "name": "成就馆",
+        "icon": "🏆",
+        "cat": "成长荣誉",
+        "specializedTitle": "荣誉殿堂与成就登记",
+        "hasGantt": false,
+        "hasTertiary": false,
+        "recordOnly": true,
+        "desc": "全域成果自动沉淀与自主独立登记成就"
+      },
+      "note": {
+        "name": "每日随记",
+        "icon": "📝",
+        "cat": "日常记录",
+        "specializedTitle": "时序心流双轨日记",
+        "hasGantt": false,
+        "hasTertiary": false,
+        "noPlanning": true
+      },
+      "custom-ac4b6298-ae79-43de-bd9d-b83e5f4130e3": {
+        "name": "审查场馆",
+        "icon": "🎨",
+        "description": "真实副标题",
+        "cat": "custom-ac4b6298-ae79-43de-bd9d-b83e5f4130e3",
+        "specializedTitle": "审查场馆规划空间",
+        "hasGantt": true,
+        "hasTertiary": true,
+        "position": {
+          "left": "50%",
+          "top": "50%"
+        }
+      },
+      "custom-3687a2b4-1041-4107-9dd1-66de6d64704c": {
+        "name": "审查场馆",
+        "icon": "🎨",
+        "description": "真实副标题",
+        "cat": "custom-3687a2b4-1041-4107-9dd1-66de6d64704c",
+        "specializedTitle": "审查场馆规划空间",
+        "hasGantt": true,
+        "hasTertiary": true,
+        "position": {
+          "left": "50%",
+          "top": "50%"
+        }
+      }
+    },
+    "TREASURY_STATE": {
+      "totalBalance": 0,
+      "totalIncome": 0,
+      "totalExpense": 0,
+      "currentRecordType": "income",
+      "ledger": []
+    },
+    "ACHIEVEMENT_STATE": {
+      "currentTab": "cultivation",
+      "cultivationItems": [
+        {
+          "id": "achievement-9564427b-d8d9-48c9-943f-c3b376398a69",
+          "milestoneKey": "project-complete:closure-project",
+          "date": "2026-11-15",
+          "sourceProjectId": "closure-project",
+          "sourceNodeId": "closure-goal",
+          "sourceRecordId": "record-d5846f8d-3b02-4e1e-851d-4c1e23e8681d",
+          "sourceRecordIds": [
+            "record-64725bf6-6dbe-4bac-a79a-a6c118ac86e6",
+            "record-9520b8c5-3c0a-41b8-ad8c-b8f7a14bde2f",
+            "record-a8b87fe9-73fd-40e6-98d4-e8f9a5a5fdc1",
+            "record-af76c09d-847d-4cca-bb8e-ed0f895401a8",
+            "record-d5846f8d-3b02-4e1e-851d-4c1e23e8681d"
+          ],
+          "projectType": "study",
+          "projectName": "闭环字段审查",
+          "icon": "🏆",
+          "media": [],
+          "proof": "来源执行记录：record-64725bf6-6dbe-4bac-a79a-a6c118ac86e6、record-9520b8c5-3c0a-41b8-ad8c-b8f7a14bde2f、record-a8b87fe9-73fd-40e6-98d4-e8f9a5a5fdc1、record-af76c09d-847d-4cca-bb8e-ed0f895401a8、record-d5846f8d-3b02-4e1e-851d-4c1e23e8681d",
+          "title": "闭环字段审查 · 项目结业",
+          "metrics": [
+            {
+              "name": "执行节点验收",
+              "target": "5个",
+              "actual": "5个"
+            }
+          ],
+          "desc": "结业时全部计划执行节点已通过；后续调整规划不改写本次达成事实。"
+        }
+      ],
+      "accidentalItems": []
+    },
+    "NOTE_STATE": {
+      "currentMood": "happy",
+      "currentEnergy": 3,
+      "todayFocusMinutes": 1,
+      "journalText": "记录这次闭环审查中的真实观察与发现，保留执行来源和规划要求，方便后续回看完整过程。",
+      "todayAutoLogs": [
+        {
+          "id": "event-44f3e2ca-db75-4660-95ba-f635693c2454",
+          "time": "17:03",
+          "text": "揭榜应战《逐页悬赏来源》",
+          "sourceId": "bounty-04ab0ab7-6efb-42aa-bf61-69fff99901c3",
+          "kind": "bounty.accepted",
+          "projectId": null,
+          "nodeId": null,
+          "recordId": null
+        },
+        {
+          "id": "event-930a7dd1-43e3-4d17-8525-3f497a6caeb3",
+          "time": "17:03",
+          "text": "发布亲子挑战《逐页悬赏来源》",
+          "sourceId": "bounty-04ab0ab7-6efb-42aa-bf61-69fff99901c3",
+          "kind": "bounty.published",
+          "projectId": null,
+          "nodeId": null,
+          "recordId": null
+        },
+        {
+          "id": "event-77dcb587-6a91-411d-9bb5-5345ca05f885",
+          "time": "17:03",
+          "text": "封存 2026-11-15 的心流随记",
+          "sourceId": "entry-2026-11-15",
+          "kind": "journal.sealed",
+          "projectId": null,
+          "nodeId": null,
+          "recordId": null
+        },
+        {
+          "id": "event-080d8784-8ff1-44a6-a11f-b9a671ab1818",
+          "time": "17:03",
+          "text": "亲子共同签署公约版本 1",
+          "sourceId": "1",
+          "kind": "family.signed",
+          "projectId": null,
+          "nodeId": null,
+          "recordId": null
+        },
+        {
+          "id": "event-e07ecac7-4ff8-4f78-82c6-f5fbd2bb0708",
+          "time": "17:03",
+          "text": "新增规划场馆《审查场馆》",
+          "sourceId": "custom-3687a2b4-1041-4107-9dd1-66de6d64704c",
+          "kind": "pavilion.created",
+          "projectId": null,
+          "nodeId": null,
+          "recordId": null
+        },
+        {
+          "id": "event-2daeb487-b9d7-4f2c-bd5d-946ff8ce3bc2",
+          "time": "17:03",
+          "text": "新增规划场馆《审查场馆》",
+          "sourceId": "custom-ac4b6298-ae79-43de-bd9d-b83e5f4130e3",
+          "kind": "pavilion.created",
+          "projectId": null,
+          "nodeId": null,
+          "recordId": null
+        },
+        {
+          "id": "event-0aec172a-8306-4c0a-85cd-57e8c8975802",
+          "time": "17:03",
+          "text": "基于已保存复盘创建 1 项后续规划",
+          "sourceId": "closure-review",
+          "kind": "review.derived",
+          "projectId": "closure-project",
+          "nodeId": null,
+          "recordId": "record-a8b87fe9-73fd-40e6-98d4-e8f9a5a5fdc1"
+        },
+        {
+          "id": "event-d7dc0643-b947-4e38-9230-3d608d1d6a58",
+          "time": "17:03",
+          "text": "解锁真实里程碑《闭环字段审查 · 项目结业》",
+          "sourceId": "achievement-9564427b-d8d9-48c9-943f-c3b376398a69",
+          "kind": "achievement.created",
+          "projectId": "closure-project",
+          "nodeId": null,
+          "recordId": "record-d5846f8d-3b02-4e1e-851d-4c1e23e8681d"
+        },
+        {
+          "id": "event-52b0e5a3-9d89-49ea-b7e4-bae7fa9a9145",
+          "time": "17:03",
+          "text": "完成《目标验收》：实际专注 0 分钟，物证 0 项",
+          "sourceId": "record-d5846f8d-3b02-4e1e-851d-4c1e23e8681d",
+          "kind": "checkin.completed",
+          "projectId": "closure-project",
+          "nodeId": "closure-goal",
+          "recordId": "record-d5846f8d-3b02-4e1e-851d-4c1e23e8681d"
+        },
+        {
+          "id": "event-cb0a3f09-9415-4365-8746-2404504969f9",
+          "time": "17:03",
+          "text": "完成《实际字段》：实际专注 0 分钟，物证 0 项",
+          "sourceId": "record-af76c09d-847d-4cca-bb8e-ed0f895401a8",
+          "kind": "checkin.completed",
+          "projectId": "closure-project",
+          "nodeId": "closure-custom",
+          "recordId": "record-af76c09d-847d-4cca-bb8e-ed0f895401a8"
+        },
+        {
+          "id": "event-088195b0-4ca0-4858-9459-225073bb8816",
+          "time": "17:03",
+          "text": "完成《行动复盘》：实际专注 0 分钟，物证 0 项",
+          "sourceId": "record-a8b87fe9-73fd-40e6-98d4-e8f9a5a5fdc1",
+          "kind": "checkin.completed",
+          "projectId": "closure-project",
+          "nodeId": "closure-review",
+          "recordId": "record-a8b87fe9-73fd-40e6-98d4-e8f9a5a5fdc1"
+        },
+        {
+          "id": "event-2f91fb34-28da-4323-bfd5-6404fd106799",
+          "time": "17:03",
+          "text": "完成《防守清单》：实际专注 0 分钟，物证 0 项",
+          "sourceId": "record-9520b8c5-3c0a-41b8-ad8c-b8f7a14bde2f",
+          "kind": "checkin.completed",
+          "projectId": "closure-project",
+          "nodeId": "closure-habit",
+          "recordId": "record-9520b8c5-3c0a-41b8-ad8c-b8f7a14bde2f"
+        },
+        {
+          "id": "event-5798c703-59a0-4bad-b92e-972bd1395f0a",
+          "time": "17:03",
+          "text": "完成《实训要领》：实际专注 1 分钟，物证 0 项",
+          "sourceId": "record-64725bf6-6dbe-4bac-a79a-a6c118ac86e6",
+          "kind": "checkin.completed",
+          "projectId": "closure-project",
+          "nodeId": "closure-drill",
+          "recordId": "record-64725bf6-6dbe-4bac-a79a-a6c118ac86e6"
+        }
+      ],
+      "mediaList": [],
+      "historyEntries": [
+        {
+          "id": "entry-2026-11-15",
+          "date": "2026-11-15",
+          "text": "记录这次闭环审查中的真实观察与发现，保留执行来源和规划要求，方便后续回看完整过程。",
+          "mood": "happy",
+          "energy": 3,
+          "autoLogs": [
+            {
+              "id": "event-44f3e2ca-db75-4660-95ba-f635693c2454",
+              "time": "17:03",
+              "text": "揭榜应战《逐页悬赏来源》",
+              "sourceId": "bounty-04ab0ab7-6efb-42aa-bf61-69fff99901c3",
+              "kind": "bounty.accepted",
+              "projectId": null,
+              "nodeId": null,
+              "recordId": null
+            },
+            {
+              "id": "event-930a7dd1-43e3-4d17-8525-3f497a6caeb3",
+              "time": "17:03",
+              "text": "发布亲子挑战《逐页悬赏来源》",
+              "sourceId": "bounty-04ab0ab7-6efb-42aa-bf61-69fff99901c3",
+              "kind": "bounty.published",
+              "projectId": null,
+              "nodeId": null,
+              "recordId": null
+            },
+            {
+              "id": "event-77dcb587-6a91-411d-9bb5-5345ca05f885",
+              "time": "17:03",
+              "text": "封存 2026-11-15 的心流随记",
+              "sourceId": "entry-2026-11-15",
+              "kind": "journal.sealed",
+              "projectId": null,
+              "nodeId": null,
+              "recordId": null
+            },
+            {
+              "id": "event-080d8784-8ff1-44a6-a11f-b9a671ab1818",
+              "time": "17:03",
+              "text": "亲子共同签署公约版本 1",
+              "sourceId": "1",
+              "kind": "family.signed",
+              "projectId": null,
+              "nodeId": null,
+              "recordId": null
+            },
+            {
+              "id": "event-e07ecac7-4ff8-4f78-82c6-f5fbd2bb0708",
+              "time": "17:03",
+              "text": "新增规划场馆《审查场馆》",
+              "sourceId": "custom-3687a2b4-1041-4107-9dd1-66de6d64704c",
+              "kind": "pavilion.created",
+              "projectId": null,
+              "nodeId": null,
+              "recordId": null
+            },
+            {
+              "id": "event-2daeb487-b9d7-4f2c-bd5d-946ff8ce3bc2",
+              "time": "17:03",
+              "text": "新增规划场馆《审查场馆》",
+              "sourceId": "custom-ac4b6298-ae79-43de-bd9d-b83e5f4130e3",
+              "kind": "pavilion.created",
+              "projectId": null,
+              "nodeId": null,
+              "recordId": null
+            },
+            {
+              "id": "event-0aec172a-8306-4c0a-85cd-57e8c8975802",
+              "time": "17:03",
+              "text": "基于已保存复盘创建 1 项后续规划",
+              "sourceId": "closure-review",
+              "kind": "review.derived",
+              "projectId": "closure-project",
+              "nodeId": null,
+              "recordId": "record-a8b87fe9-73fd-40e6-98d4-e8f9a5a5fdc1"
+            },
+            {
+              "id": "event-d7dc0643-b947-4e38-9230-3d608d1d6a58",
+              "time": "17:03",
+              "text": "解锁真实里程碑《闭环字段审查 · 项目结业》",
+              "sourceId": "achievement-9564427b-d8d9-48c9-943f-c3b376398a69",
+              "kind": "achievement.created",
+              "projectId": "closure-project",
+              "nodeId": null,
+              "recordId": "record-d5846f8d-3b02-4e1e-851d-4c1e23e8681d"
+            },
+            {
+              "id": "event-52b0e5a3-9d89-49ea-b7e4-bae7fa9a9145",
+              "time": "17:03",
+              "text": "完成《目标验收》：实际专注 0 分钟，物证 0 项",
+              "sourceId": "record-d5846f8d-3b02-4e1e-851d-4c1e23e8681d",
+              "kind": "checkin.completed",
+              "projectId": "closure-project",
+              "nodeId": "closure-goal",
+              "recordId": "record-d5846f8d-3b02-4e1e-851d-4c1e23e8681d"
+            },
+            {
+              "id": "event-cb0a3f09-9415-4365-8746-2404504969f9",
+              "time": "17:03",
+              "text": "完成《实际字段》：实际专注 0 分钟，物证 0 项",
+              "sourceId": "record-af76c09d-847d-4cca-bb8e-ed0f895401a8",
+              "kind": "checkin.completed",
+              "projectId": "closure-project",
+              "nodeId": "closure-custom",
+              "recordId": "record-af76c09d-847d-4cca-bb8e-ed0f895401a8"
+            },
+            {
+              "id": "event-088195b0-4ca0-4858-9459-225073bb8816",
+              "time": "17:03",
+              "text": "完成《行动复盘》：实际专注 0 分钟，物证 0 项",
+              "sourceId": "record-a8b87fe9-73fd-40e6-98d4-e8f9a5a5fdc1",
+              "kind": "checkin.completed",
+              "projectId": "closure-project",
+              "nodeId": "closure-review",
+              "recordId": "record-a8b87fe9-73fd-40e6-98d4-e8f9a5a5fdc1"
+            },
+            {
+              "id": "event-2f91fb34-28da-4323-bfd5-6404fd106799",
+              "time": "17:03",
+              "text": "完成《防守清单》：实际专注 0 分钟，物证 0 项",
+              "sourceId": "record-9520b8c5-3c0a-41b8-ad8c-b8f7a14bde2f",
+              "kind": "checkin.completed",
+              "projectId": "closure-project",
+              "nodeId": "closure-habit",
+              "recordId": "record-9520b8c5-3c0a-41b8-ad8c-b8f7a14bde2f"
+            },
+            {
+              "id": "event-5798c703-59a0-4bad-b92e-972bd1395f0a",
+              "time": "17:03",
+              "text": "完成《实训要领》：实际专注 1 分钟，物证 0 项",
+              "sourceId": "record-64725bf6-6dbe-4bac-a79a-a6c118ac86e6",
+              "kind": "checkin.completed",
+              "projectId": "closure-project",
+              "nodeId": "closure-drill",
+              "recordId": "record-64725bf6-6dbe-4bac-a79a-a6c118ac86e6"
+            }
+          ],
+          "media": [],
+          "draft": false,
+          "updatedAt": "2026-11-15T09:03:08.290Z",
+          "versions": []
+        }
+      ],
+      "dateKey": "2026-11-15"
+    },
+    "BOUNTY_STATE": {
+      "id": "bounty-04ab0ab7-6efb-42aa-bf61-69fff99901c3",
+      "title": "逐页悬赏来源",
+      "reward": "共同户外观察",
+      "criteria": "保留实际过程与原件",
+      "days": 7,
+      "pavilionId": "study",
+      "pavilionLabel": "校史馆 · 学业攻坚",
+      "createdDate": "2026-11-15",
+      "createdAt": "2026-11-15T09:03:08.838Z",
+      "endDate": "2026-11-21",
+      "status": "accepted",
+      "parentComment": "",
+      "evidence": [],
+      "acceptedDate": "2026-11-15",
+      "acceptedAt": "2026-11-15T09:03:08.870Z"
+    },
+    "INQUIRY_POOL_STATE": []
+  }
+}
