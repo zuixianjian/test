@@ -829,7 +829,7 @@ ${executions || "\u5C1A\u65E0\u6267\u884C\u8BB0\u5F55"}
 var import_obsidian2 = require("obsidian");
 
 // src/ui/template.ts
-var ISLAND_UI_HTML = `<div class="global-header product-contract-banner" data-product-contract="3">1.2.2 \u95ED\u73AF\u4EA4\u4E92\u9884\u89C8 \xB7 \u6309\u9879\u76EE/\u8282\u70B9/\u6BCF\u65E5\u4EFB\u52A1\u5B9E\u4F8B\u5173\u8054 \xB7 \u672C\u9884\u89C8\u6570\u636E\u4FDD\u5B58\u5728\u5F53\u524D\u6D4F\u89C8\u5668\uFF0C\u7EC4\u4EF6\u753B\u677F\u6837\u4F8B\u4E0D\u8BA1\u4E3A\u5B9E\u9645\u6267\u884C</div>
+var ISLAND_UI_HTML = `<div class="global-header product-contract-banner" data-product-contract="3">1.2.3 \u95ED\u73AF\u4EA4\u4E92\u9884\u89C8 \xB7 \u6309\u9879\u76EE/\u8282\u70B9/\u6BCF\u65E5\u4EFB\u52A1\u5B9E\u4F8B\u5173\u8054 \xB7 \u672C\u9884\u89C8\u6570\u636E\u4FDD\u5B58\u5728\u5F53\u524D\u6D4F\u89C8\u5668\uFF0C\u7EC4\u4EF6\u753B\u677F\u6837\u4F8B\u4E0D\u8BA1\u4E3A\u5B9E\u9645\u6267\u884C</div>
   <!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5907\u63A7\u5236\u4E0E\u4E3B\u6A21\u6001\u5207\u6362) -->
   <header class="global-header">
     <div class="system-title-group">
@@ -19541,6 +19541,74 @@ function bootPrototypeRuntime() {
     queueCanvasNavigation("planning");
     queueCanvasNavigation("project");
   });
+  const pageBackgroundSettings = getIslandSettings;
+  getIslandSettings = function() {
+    const settings = pageBackgroundSettings();
+    if (!settings.wallpapers || typeof settings.wallpapers !== "object" || Array.isArray(settings.wallpapers))
+      settings.wallpapers = {};
+    return settings;
+  };
+  function setPageWallpaper(ids, target) {
+    const key = resolveWallpaperFor(target), configured = typeof WALLPAPER_PRESETS[key] === "string", css = configured ? WALLPAPER_PRESETS[key] : WALLPAPER_PRESETS.grid;
+    for (const id of ids) {
+      const page = document.getElementById(id);
+      if (!page)
+        continue;
+      page.style.setProperty("background", css, "important");
+      page.dataset.islandWallpaper = configured ? key : "default-grid";
+    }
+  }
+  function applyExecutionWallpaper() {
+    const target = evidenceSession?.pavilionId || "all";
+    setPageWallpaper(["exec-task-workspace", "exec-popup-task-view", "exec-popup-project-view"], target);
+  }
+  function applyMindmapWallpaper() {
+    const project = getDomainState().projects.find((p) => p.id === window2.currentTertiaryProjId);
+    setPageWallpaper(["tertiary-workspace-view", "tertiary-canvas-stage"], project?.pavilion || "all");
+  }
+  applyPavilionWallpaper = function() {
+    setPageWallpaper(["secondary-workspace-view", "ws-specialized-container"], currentWsPavilion || "study");
+  };
+  applyIslandWallpaper = function() {
+    setPageWallpaper(["island-canvas-stage", "gallery-stage-view"], "all");
+    applyPavilionWallpaper();
+    applyMindmapWallpaper();
+    applyExecutionWallpaper();
+  };
+  const pageBackgroundRestore = restoreBusinessViews, pageBackgroundSection = switchMainSection, pageBackgroundHome = switchHomeGlobalView, pageBackgroundExecution = renderDomainExecution, pageBackgroundEditor = syncBgEditor;
+  restoreBusinessViews = function(...args) {
+    const result = pageBackgroundRestore(...args);
+    applyIslandWallpaper();
+    return result;
+  };
+  switchMainSection = function(...args) {
+    const result = pageBackgroundSection(...args);
+    applyIslandWallpaper();
+    return result;
+  };
+  switchHomeGlobalView = function(...args) {
+    const result = pageBackgroundHome(...args);
+    applyIslandWallpaper();
+    return result;
+  };
+  renderDomainExecution = function(...args) {
+    const result = pageBackgroundExecution(...args);
+    applyExecutionWallpaper();
+    return result;
+  };
+  syncBgEditor = function() {
+    pageBackgroundEditor();
+    const hint = document.getElementById("bg-editor-hint");
+    if (!hint)
+      return;
+    const s = getIslandSettings();
+    if (selectedBgTarget !== "all" && s.bgGlobal)
+      hint.textContent = "\u5168\u5C40\u80CC\u666F\u5DF2\u5F00\u542F\uFF1B\u6240\u6709\u9875\u9762\u4F7F\u7528\u5168\u5C40\u8BBE\u7F6E\uFF0C\u672A\u8BBE\u7F6E\u5168\u5C40\u80CC\u666F\u65F6\u663E\u793A\u7F51\u683C\u7EBF\u3002";
+    else if (selectedBgTarget === "all")
+      hint.textContent = "\u672A\u8BBE\u7F6E\u5168\u5C40\u80CC\u666F\u65F6\u9ED8\u8BA4\u663E\u793A\u7F51\u683C\u7EBF\uFF1B\u5F00\u542F\u5168\u5C40\u80CC\u666F\u53EF\u7EDF\u4E00\u6240\u6709\u9875\u9762\u3002";
+    else
+      hint.textContent = "\u672A\u5355\u72EC\u8BBE\u7F6E\u65F6\u6CBF\u7528\u5168\u5C40\u80CC\u666F\uFF1B\u5168\u5C40\u4E5F\u672A\u8BBE\u7F6E\u65F6\u663E\u793A\u7F51\u683C\u7EBF\u3002";
+  };
   if (typeof applyIslandTransform === "function")
     window2.applyIslandTransform = applyIslandTransform;
   if (typeof zoomIslandCanvas === "function")
@@ -20653,6 +20721,12 @@ function bootPrototypeRuntime() {
     window2.bindCanvasNavigation = bindCanvasNavigation;
   if (typeof toggleCanvasNavigation === "function")
     window2.toggleCanvasNavigation = toggleCanvasNavigation;
+  if (typeof setPageWallpaper === "function")
+    window2.setPageWallpaper = setPageWallpaper;
+  if (typeof applyExecutionWallpaper === "function")
+    window2.applyExecutionWallpaper = applyExecutionWallpaper;
+  if (typeof applyMindmapWallpaper === "function")
+    window2.applyMindmapWallpaper = applyMindmapWallpaper;
   if (typeof USER_PROFILE_STATE !== "undefined")
     window2.USER_PROFILE_STATE = USER_PROFILE_STATE;
   if (typeof GANTT_PROJECTS !== "undefined")

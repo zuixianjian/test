@@ -1,0 +1,28 @@
+{
+  "version": "1.2.3",
+  "coreFilesMatch": true,
+  "assetsMatch": true,
+  "sha256": {
+    "manifest.json": "3870ce3b1250f744b004dafdc342f25c75e9e1ccdfdbc411456daea65c627c10",
+    "main.js": "40493fd524f9732e8971883315d0189f0232eeff57d6f51a71847297796cef27",
+    "styles.css": "adff5e89f50ec724fb2d32b14a4f9fa372f5371efca6dcf6ab86671ad847a1ad",
+    "versions.json": "fcfc7b80890c60dcd8c1dde1fdc443d5401bcbd0fbe6ee67eb03523636de9240"
+  },
+  "zipSha256": "e0851f8b26487e42ea16295cac1ae8b836764e9c01a1bfc9b4fea824e14ae229",
+  "checks": {
+    "background-design": 27,
+    "background": 28,
+    "business": 85
+  },
+  "screenshots": 18,
+  "hostContract": {
+    "installedSourceVersion": "1.14.5",
+    "appJsSha256": "95b9fd3944625c3b88116878b03d655147fed8cdfe6ddf931f2064ead78ccd5b",
+    "renameRejectsExistingDestination": true,
+    "swipeExclusionAttribute": "data-ignore-swipe",
+    "testAdapter": "strict; actual ItemView methods with simulated Obsidian API and Chrome native touch"
+  },
+  "limitations": [
+    "Not run on the user Android tablet; tests use the actual ItemView/StorageAdapter with simulated Obsidian APIs and standalone IndexedDB."
+  ]
+}

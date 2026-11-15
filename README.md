@@ -1,6 +1,6 @@
 # 终身岛民 · Obsidian 成长工作台
 
-当前版本 **1.2.2**。按PRD完成页面、控件、字段与笔记的闭环复查，补齐规划编辑标志、旧新增入口、项目周期约束、完整笔记与来源索引、项目改名链接、公约镜像、目录切换及命令状态。审查清单区分运行采集、源码追踪与实际业务验收，不把原型模板当作已完成功能。
+当前版本 **1.2.3**。所有页面未设置有效壁纸时统一显示暖白网格线背景，覆盖首页、规划、场馆、脑图和执行工位。已配置的全局/场馆壁纸继续生效，重置及重启恢复使用同一规则。保留1.2.2的闭环修复。
 
 产品契约见 [PRD](PRD_Youth_Holistic_Growth_System.md)，交互设计见 [高保真设计预览](high_fidelity_ui_preview.html)，修复与验收范围见 [1.1.0 交付记录](PLUGIN_REVIEW_1.1.0.md)。原始问题证据保留在 [审查报告](audit/PRD_DESIGN_PLUGIN_CLOSED_LOOP_AUDIT.md)。
 
@@ -28,6 +28,8 @@
 
 1.2.2复查与修复见[逐项审查报告](audit/1.2.2/REVIEW.md)，[按钮清单](audit/1.2.2/CONTROLS.md)、[字段清单](audit/1.2.2/FIELDS.md)与[文件矩阵](audit/1.2.2/FILES.md)。完整规划和原始执行标准导出到笔记；同名场馆使用独立分类，折叠/跟随/布局偏好可恢复。数据目录需关闭工作台后显式应用，不把当前数据自动写入其他目录。
 
+1.2.3统一默认网格线，覆盖原有自动场景图、脑图点阵和执行白底。共享背景规则同时应用于设计图和插件，并在实际档案恢复后重新应用。验证及截图见[默认背景交付记录](PLUGIN_REVIEW_1.2.3.md)。
+
 执行中心的日/周/月从同一调度结果读取任务。规划场馆使用项目甘特与结构化脑图；实训、习惯、复盘、目标及自定义表单按各自标准校验。验收记录连接源节点、真实附件、项目进度、随记和成果。悬赏需要家长寄语及核验，生活高光保存照片或视频原件，亲子公约保存真实姓名、条款与签署版本。
 
 藏金屋只记录独立收支。经典指引来自本地参考语料。组件画板是设计样例；没有采集的能力评分、运动热量和智能识别结果不作为用户事实展示。
@@ -54,6 +56,8 @@ npm.cmd run test:creator
 npm.cmd run test:creator:design
 npm.cmd run test:phase-media
 npm.cmd run test:phase-media:design
+npm.cmd run test:background
+npm.cmd run test:background:design
 npm.cmd run test:closure
 npm.cmd run test:closure:design
 npm.cmd run audit:closure
@@ -76,6 +80,7 @@ npm.cmd run package-android
 | `src/runtime/nodeCreator.js` / `src/ui/nodeCreator.html` / `src/ui/nodeCreator.css` | 单卡片新增弹窗、类型草稿、校验和真实新增事务 |
 | `src/runtime/planningBoundary.js` | 执行标准快照、规划编辑边界、实际复盘后续规划 |
 | `src/runtime/closedLoopIntegrity.js` | 跨模块边界、项目周期、统一新增入口、场馆与呈现偏好、完整成果导出 |
+| `src/runtime/pageBackground.js` / `src/ui/pageBackground.css` | 页面背景统一回退、配置继承、实际项目/任务场馆及重载恢复 |
 | `src/runtime/mediaPicker.js` | 系统选择/拍摄入口、原件写入、来源绑定与关闭等待 |
 | `src/runtime/bountyDialog.js` / `src/ui/bountyDialog.html` / `src/ui/phaseMedia.css` | 悬赏分阶段弹窗、状态与响应式媒体入口 |
 | `src/runtime/closedLoopRuntime.js` | 领域状态、规划编辑、同源任务与统计投影 |
@@ -93,9 +98,9 @@ npm.cmd run package-android
 
 ## 安装
 
-解压 `release/youth-holistic-growth-island-1.2.2.zip`，将其中整个 `youth-holistic-growth-island` 文件夹复制到知识库的 `.obsidian/plugins/`。安装文件包括 `manifest.json`、`versions.json`、`main.js`、`styles.css`和ASCII命名的场景/头像资源。已有仓库升级前保留一份备份，然后重启或重载插件。
+解压 `release/youth-holistic-growth-island-1.2.3.zip`，将其中整个 `youth-holistic-growth-island` 文件夹复制到知识库的 `.obsidian/plugins/`。安装文件包括 `manifest.json`、`versions.json`、`main.js`、`styles.css`和ASCII命名的场景/头像资源。已有仓库升级前保留一份备份，然后重启或重载插件。
 
-BRAT用户需选择正式Release版本1.2.2或Latest，执行更新后**完全关闭并重新打开Obsidian**。旧版本在保存失败时可能未清理旧运行时，仅切换页面不能保证加载新代码；到插件设置确认当前版本v1.2.2和保存状态。发布需推送与manifest一致的数字标签，单独推送master不会产生BRAT更新；工作流发布前执行构建、类型检查和纯规则测试。
+BRAT用户需选择正式Release版本1.2.3或Latest，执行更新后**完全关闭并重新打开Obsidian**。旧版本在保存失败时可能未清理旧运行时，仅切换页面不能保证加载新代码；到插件设置确认当前版本v1.2.3和保存状态。发布需推送与manifest一致的数字标签，单独推送master不会产生BRAT更新；工作流发布前执行构建、类型检查和纯规则测试。
 
 通过侧栏指南针或命令打开。设置中可指定数据子目录、默认执行/规划视图以及是否随Obsidian启动。
 

@@ -12547,11 +12547,25 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 .bounty-dialog button:disabled { opacity:.55; cursor:default; }
 @media(max-width:600px){.bounty-dialog-header,.bounty-dialog-toolbar,.bounty-dialog-footer{padding:13px 15px}.bounty-dialog-body{padding:13px 15px}.bounty-form-grid{grid-template-columns:1fr}.bounty-dialog-footer{flex-wrap:wrap}.bounty-dialog-footer>div{margin-left:auto}.island-media-source{flex:1;min-width:105px}.bounty-steps{gap:4px}.bounty-steps li{font-size:9.5px}}
 
+/* Page surfaces only. Cards, forms, dialog sheets and data tables keep their own styles. */
+#island-canvas-stage,
+#secondary-workspace-view,
+#ws-specialized-container,
+#tertiary-workspace-view,
+#tertiary-canvas-stage,
+#exec-task-workspace,
+#exec-popup-task-view,
+#exec-popup-project-view,
+#gallery-stage-view {
+  background:linear-gradient(#c8c4b8 1px,transparent 1px) 0 0 / 16px 16px,linear-gradient(90deg,#c8c4b8 1px,transparent 1px) 0 0 / 16px 16px,#f7f3e8!important;
+}
+[data-island-wallpaper="default-grid"], [data-island-wallpaper="grid"] { box-shadow:none!important; }
+
 /* PRODUCT_CSS_END */
 </style>
 </head>
 <body>
-<div class="global-header product-contract-banner" data-product-contract="3">1.2.2 闭环交互预览 · 按项目/节点/每日任务实例关联 · 本预览数据保存在当前浏览器，组件画板样例不计为实际执行</div>
+<div class="global-header product-contract-banner" data-product-contract="3">1.2.3 闭环交互预览 · 按项目/节点/每日任务实例关联 · 本预览数据保存在当前浏览器，组件画板样例不计为实际执行</div>
   <!-- 顶部主控导航栏 (设备控制与主模态切换) -->
   <header class="global-header">
     <div class="system-title-group">
@@ -29172,6 +29186,49 @@ renderDomainCanvas=function(id){const nav=canvasNavigators.get('project');if(nav
 switchMainSection=function(section){for(const nav of canvasNavigators.values())cancelCanvasNavigationDrag(nav);navigationSwitchMain(section);queueCanvasNavigation('planning');queueCanvasNavigation('project');};
 switchHomeGlobalView=function(view){cancelCanvasNavigationDrag(canvasNavigators.get('planning'));navigationSwitchHome(view);queueCanvasNavigation('planning');};
 window.addEventListener('youth-island:state-changed',()=>{queueCanvasNavigation('planning');queueCanvasNavigation('project');});
+
+// Every page uses the same fallback; installed scene assets are not user settings.
+const pageBackgroundSettings=getIslandSettings;
+getIslandSettings=function(){
+  const settings=pageBackgroundSettings();
+  if(!settings.wallpapers||typeof settings.wallpapers!=='object'||Array.isArray(settings.wallpapers))settings.wallpapers={};
+  return settings;
+};
+function setPageWallpaper(ids,target){
+  const key=resolveWallpaperFor(target),configured=typeof WALLPAPER_PRESETS[key]==='string',css=configured?WALLPAPER_PRESETS[key]:WALLPAPER_PRESETS.grid;
+  for(const id of ids){
+    const page=document.getElementById(id);if(!page)continue;
+    page.style.setProperty('background',css,'important');
+    page.dataset.islandWallpaper=configured?key:'default-grid';
+  }
+}
+function applyExecutionWallpaper(){
+  const target=evidenceSession?.pavilionId||'all';
+  setPageWallpaper(['exec-task-workspace','exec-popup-task-view','exec-popup-project-view'],target);
+}
+function applyMindmapWallpaper(){
+  const project=getDomainState().projects.find(p=>p.id===window.currentTertiaryProjId);
+  setPageWallpaper(['tertiary-workspace-view','tertiary-canvas-stage'],project?.pavilion||'all');
+}
+applyPavilionWallpaper=function(){
+  setPageWallpaper(['secondary-workspace-view','ws-specialized-container'],currentWsPavilion||'study');
+};
+applyIslandWallpaper=function(){
+  setPageWallpaper(['island-canvas-stage','gallery-stage-view'],'all');
+  applyPavilionWallpaper();applyMindmapWallpaper();applyExecutionWallpaper();
+};
+const pageBackgroundRestore=restoreBusinessViews,pageBackgroundSection=switchMainSection,pageBackgroundHome=switchHomeGlobalView,pageBackgroundExecution=renderDomainExecution,pageBackgroundEditor=syncBgEditor;
+restoreBusinessViews=function(...args){const result=pageBackgroundRestore(...args);applyIslandWallpaper();return result;};
+switchMainSection=function(...args){const result=pageBackgroundSection(...args);applyIslandWallpaper();return result;};
+switchHomeGlobalView=function(...args){const result=pageBackgroundHome(...args);applyIslandWallpaper();return result;};
+renderDomainExecution=function(...args){const result=pageBackgroundExecution(...args);applyExecutionWallpaper();return result;};
+syncBgEditor=function(){
+  pageBackgroundEditor();const hint=document.getElementById('bg-editor-hint');if(!hint)return;
+  const s=getIslandSettings();
+  if(selectedBgTarget!=='all'&&s.bgGlobal)hint.textContent='全局背景已开启；所有页面使用全局设置，未设置全局背景时显示网格线。';
+  else if(selectedBgTarget==='all')hint.textContent='未设置全局背景时默认显示网格线；开启全局背景可统一所有页面。';
+  else hint.textContent='未单独设置时沿用全局背景；全局也未设置时显示网格线。';
+};
 
 // PRODUCT_RULES_END
 </script>

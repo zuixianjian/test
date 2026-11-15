@@ -1,0 +1,13 @@
+/* Page surfaces only. Cards, forms, dialog sheets and data tables keep their own styles. */
+#island-canvas-stage,
+#secondary-workspace-view,
+#ws-specialized-container,
+#tertiary-workspace-view,
+#tertiary-canvas-stage,
+#exec-task-workspace,
+#exec-popup-task-view,
+#exec-popup-project-view,
+#gallery-stage-view {
+  background:linear-gradient(#c8c4b8 1px,transparent 1px) 0 0 / 16px 16px,linear-gradient(90deg,#c8c4b8 1px,transparent 1px) 0 0 / 16px 16px,#f7f3e8!important;
+}
+[data-island-wallpaper="default-grid"], [data-island-wallpaper="grid"] { box-shadow:none!important; }
