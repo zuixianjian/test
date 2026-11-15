@@ -1,6 +1,6 @@
 # 终身岛民 · Obsidian 成长工作台
 
-当前版本 **1.2.1**。音频打卡提供专用“选择录音 / 录制音频”，保留真实原件、时长与回放；文字和照片不能代替音频交付。保留规划与执行分离、分阶段悬赏弹窗、照片/视频系统入口、单卡片新增节点及严格今日筛选。
+当前版本 **1.2.2**。按PRD完成页面、控件、字段与笔记的闭环复查，补齐规划编辑标志、旧新增入口、项目周期约束、完整笔记与来源索引、项目改名链接、公约镜像、目录切换及命令状态。审查清单区分运行采集、源码追踪与实际业务验收，不把原型模板当作已完成功能。
 
 产品契约见 [PRD](PRD_Youth_Holistic_Growth_System.md)，交互设计见 [高保真设计预览](high_fidelity_ui_preview.html)，修复与验收范围见 [1.1.0 交付记录](PLUGIN_REVIEW_1.1.0.md)。原始问题证据保留在 [审查报告](audit/PRD_DESIGN_PLUGIN_CLOSED_LOOP_AUDIT.md)。
 
@@ -25,6 +25,8 @@
 1.2.0移除规划节点的执行/验收/阅读打卡控件；执行展示打开时的只读规划标准，实际复盘独立保存，回到规划才能派生后续计划。悬赏按发布、揭榜、核准分区；媒体统一支持选择照片/视频、拍照和拍视频，并等待原件写完再保存关闭。验证与Android宿主限制见[规划与执行及媒体入口交付记录](PLUGIN_REVIEW_1.2.0.md)。
 
 1.2.1为音频任务补充系统录制请求，执行页只显示录音选择与录制，不混入拍照/视频按钮。补全Android常见录音文件的空MIME类型，实际音频完成校验与回放继续使用原有记录和附件事务。验证范围及宿主限制见[音频打卡交付记录](PLUGIN_REVIEW_1.2.1.md)。
+
+1.2.2复查与修复见[逐项审查报告](audit/1.2.2/REVIEW.md)，[按钮清单](audit/1.2.2/CONTROLS.md)、[字段清单](audit/1.2.2/FIELDS.md)与[文件矩阵](audit/1.2.2/FILES.md)。完整规划和原始执行标准导出到笔记；同名场馆使用独立分类，折叠/跟随/布局偏好可恢复。数据目录需关闭工作台后显式应用，不把当前数据自动写入其他目录。
 
 执行中心的日/周/月从同一调度结果读取任务。规划场馆使用项目甘特与结构化脑图；实训、习惯、复盘、目标及自定义表单按各自标准校验。验收记录连接源节点、真实附件、项目进度、随记和成果。悬赏需要家长寄语及核验，生活高光保存照片或视频原件，亲子公约保存真实姓名、条款与签署版本。
 
@@ -52,6 +54,11 @@ npm.cmd run test:creator
 npm.cmd run test:creator:design
 npm.cmd run test:phase-media
 npm.cmd run test:phase-media:design
+npm.cmd run test:closure
+npm.cmd run test:closure:design
+npm.cmd run audit:closure
+# 一次运行全部浏览器场景，可替代上方各项浏览器命令
+npm.cmd run test:browser:all
 npm.cmd run package-android
 ```
 
@@ -68,6 +75,7 @@ npm.cmd run package-android
 | `src/runtime/homeExecutionQueue.js` | 首页执行队列、空态、轮播恢复、跨日刷新与前置导航 |
 | `src/runtime/nodeCreator.js` / `src/ui/nodeCreator.html` / `src/ui/nodeCreator.css` | 单卡片新增弹窗、类型草稿、校验和真实新增事务 |
 | `src/runtime/planningBoundary.js` | 执行标准快照、规划编辑边界、实际复盘后续规划 |
+| `src/runtime/closedLoopIntegrity.js` | 跨模块边界、项目周期、统一新增入口、场馆与呈现偏好、完整成果导出 |
 | `src/runtime/mediaPicker.js` | 系统选择/拍摄入口、原件写入、来源绑定与关闭等待 |
 | `src/runtime/bountyDialog.js` / `src/ui/bountyDialog.html` / `src/ui/phaseMedia.css` | 悬赏分阶段弹窗、状态与响应式媒体入口 |
 | `src/runtime/closedLoopRuntime.js` | 领域状态、规划编辑、同源任务与统计投影 |
@@ -75,6 +83,7 @@ npm.cmd run package-android
 | `src/runtime/closedLoopModules.js` | 悬赏、公约、随记、真实导出、Canvas边界与设计适配器 |
 | `src/types/domain.ts` | schemaVersion 3数据契约；旧models接口仅用于兼容 |
 | `src/storage/VaultStorageAdapter.ts` | 串行完整提交、备份、领域投影、附件与Markdown |
+| `src/storage/MarkdownExport.ts` | 六类规划字段、实际结果/标准快照及当前公约的笔记格式 |
 | `src/ui/closedLoop.css` | 共享表单、规划和弹窗样式 |
 | `high_fidelity_ui_preview.html` | 原始视觉与共享规则生成块，浏览器可直接打开 |
 | `scripts/sync_product_design.mjs` | 将共享规则与样式写入设计HTML |
@@ -84,9 +93,9 @@ npm.cmd run package-android
 
 ## 安装
 
-解压 `release/youth-holistic-growth-island-1.2.1.zip`，将其中整个 `youth-holistic-growth-island` 文件夹复制到知识库的 `.obsidian/plugins/`。安装文件包括 `manifest.json`、`versions.json`、`main.js`、`styles.css`和ASCII命名的场景/头像资源。已有仓库升级前保留一份备份，然后重启或重载插件。
+解压 `release/youth-holistic-growth-island-1.2.2.zip`，将其中整个 `youth-holistic-growth-island` 文件夹复制到知识库的 `.obsidian/plugins/`。安装文件包括 `manifest.json`、`versions.json`、`main.js`、`styles.css`和ASCII命名的场景/头像资源。已有仓库升级前保留一份备份，然后重启或重载插件。
 
-BRAT用户需选择正式Release版本1.2.1或Latest，执行更新后**完全关闭并重新打开Obsidian**。旧版本在保存失败时可能未清理旧运行时，仅切换页面不能保证加载新代码；到插件设置确认当前版本v1.2.1和保存状态。发布需推送与manifest一致的数字标签，单独推送master不会产生BRAT更新；工作流发布前执行构建、类型检查和纯规则测试。
+BRAT用户需选择正式Release版本1.2.2或Latest，执行更新后**完全关闭并重新打开Obsidian**。旧版本在保存失败时可能未清理旧运行时，仅切换页面不能保证加载新代码；到插件设置确认当前版本v1.2.2和保存状态。发布需推送与manifest一致的数字标签，单独推送master不会产生BRAT更新；工作流发布前执行构建、类型检查和纯规则测试。
 
 通过侧栏指南针或命令打开。设置中可指定数据子目录、默认执行/规划视图以及是否随Obsidian启动。
 
@@ -95,5 +104,7 @@ BRAT用户需选择正式Release版本1.2.1或Latest，执行更新后**完全�
 `00_Island_Core/domain_state.json`是schemaVersion 3完整提交，包含节点、记录、边及其他模块状态；`.previous.json`保留上一版。项目与节点JSON按storageRevision导出，同版本外部修改可导入；过期导出不会覆盖较新的完整提交。损坏的主档案会暂停自动写入。会话快照与页面HTML不作为事实来源。
 
 脑图节点、线路和视口保存在插件的领域JSON中，项目Markdown直接由结构化节点及执行记录生成。独立HTML预览使用自己的浏览器数据，和Obsidian仓库互不混用。
+
+启用笔记导出后，`00_Island_Core/notes_index.md`列出实际项目、日记及公约文件，JSON索引同时记录节点与记录ID。`family_pact.md`跟随当前签署版本；`personal_code.md`手写内容保留。项目改名保留已知旧文件并链接当前笔记。Markdown与其他模块JSON均为投影；受支持的项目/节点JSON编辑需保持稳定ID、依赖及边一致，不提供自动语义冲突合并。
 
 1.0.15的PRD与测试留在`docs/history/`供追溯，不能当作当前验收契约。当前没有自动语义冲突合并、传感器采集或AI识别能力。

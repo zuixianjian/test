@@ -1,0 +1,52 @@
+{
+  "version": "1.2.2",
+  "suite": "phase-media",
+  "checks": [
+    "planning graph contains standards and planning actions, with no checkin, acceptance or result-entry controls",
+    "execution displays the complete original planning standard as read-only content",
+    "planning transactions are rejected while execution is active",
+    "review result and original snapshot are saved separately without overwriting planning input",
+    "execution does not expose a planning-mutation derive button",
+    "later planning derives the actual review actions once without rewriting the original plan",
+    "active execution keeps its start-time planning snapshot even if external data changes",
+    "gallery, rear photo camera and rear video camera are distinct native file inputs",
+    "real user photo-input activation starts saving and blocks premature submission",
+    "selected photo is linked to the actual execution draft and original name",
+    "video capture input stores video originals with its own media type",
+    "unsupported selection does not create an attachment fact",
+    "Android files with empty MIME can use a recognized extension without altering bytes",
+    "submission validates the frozen standard and leaves later planning changes untouched",
+    "recorded execution cannot replace its evidence through media controls",
+    "audio checkin shows only separate native recording and existing-audio selection inputs",
+    "audio checkin cannot pass with reflection alone and no audio original",
+    "audio input rejects photo files without adding an attachment fact",
+    "native audio recording input saves a real audio original with measured duration",
+    "empty-MIME Android AMR recordings retain bytes and acquire an audio type",
+    "validated audio record links its planning standard and locks further replacement",
+    "saved audio can be reopened in the actual audio playback control",
+    "empty contract dialog starts with a clean publishing form",
+    "redesigned contract publishes actual fields into the canonical contract",
+    "contract evidence is real, visible and requires a fresh parent verification",
+    "parent verification creates a real record and locks the completed contract",
+    "journal offers the same gallery and separate photo/video capture controls",
+    "journal selection saves a real original into its own date",
+    "life highlight provides the same three media sources",
+    "life highlight cannot be submitted while its selected original is still saving",
+    "life highlight supports a real video original and preview entry",
+    "view-close flush waits for in-flight original media writes",
+    "media metadata is attached before the closing save can proceed",
+    "contract layout and footer fit a portrait Android-sized viewport"
+  ],
+  "screenshot": true,
+  "portrait": true,
+  "capturePages": [
+    {
+      "name": "execution-standard-design",
+      "code": "window.closeBountyModal();window.openDomainTask('phase-photo@'+window.domainDate())"
+    },
+    {
+      "name": "audio-execution-design",
+      "code": "window.closeExecCardPopupView();window.openDomainTask('phase-audio@'+window.domainDate())"
+    }
+  ]
+}

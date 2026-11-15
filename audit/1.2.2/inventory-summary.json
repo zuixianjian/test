@@ -1,0 +1,17 @@
+{
+  "version": "1.2.2",
+  "pages": 51,
+  "liveControlInstances": 2480,
+  "templateControls": 450,
+  "controlRows": 2930,
+  "contractFields": 216,
+  "storedFieldPaths": 418,
+  "displayInstances": 3854,
+  "staticFunctions": 631,
+  "unresolvedStaticInlineFunctions": [],
+  "limitations": [
+    "A reachable function is not proof of a complete transaction.",
+    "Not every presentation button was independently clicked; source traces and module-level regression evidence are distinguished.",
+    "No user Vault or Android device was provided; generated files and real ItemView/StorageAdapter are tested using isolated fixtures and simulated Obsidian APIs."
+  ]
+}

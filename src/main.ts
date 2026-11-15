@@ -9,6 +9,7 @@ import {
   YouthIslandView,
 } from "./views/YouthIslandView";
 import { YouthIslandSettingTab } from "./settings/YouthIslandSettingTab";
+import { validateVaultRoot } from "./core/GrowthMetrics";
 
 export default class YouthGrowthIslandPlugin extends Plugin {
   public settings: YouthIslandPluginSettings = DEFAULT_PLUGIN_SETTINGS;
@@ -21,10 +22,14 @@ export default class YouthGrowthIslandPlugin extends Plugin {
     (window as any).__saveIslandAttachment = (file: File) => this.vaultStorage.saveAttachment(file);
     (window as any).__islandAttachmentUrl = (path: string) => this.vaultStorage.attachmentUrl(path);
     (window as any).__exportIslandDocument = (path: string, content: string) => this.vaultStorage.exportDocument(path, content);
+    (window as any).__islandProjectNotePath = (project: any) => this.settings.autoSyncVaultMarkdown ? this.vaultStorage.projectNotePath(project) : "";
+    (window as any).__islandDocumentPath = (path: string) => this.vaultStorage.documentPath(path);
     this.register(() => {
       delete (window as any).__saveIslandAttachment;
       delete (window as any).__islandAttachmentUrl;
       delete (window as any).__exportIslandDocument;
+      delete (window as any).__islandProjectNotePath;
+      delete (window as any).__islandDocumentPath;
       delete (window as any).__toggleObsidianSidebar;
     });
 
@@ -100,9 +105,8 @@ export default class YouthGrowthIslandPlugin extends Plugin {
       callback: async () => {
         await this.activateIslandView();
         const win = window as any;
-        if (typeof win.switchMainSection === "function") {
-          win.switchMainSection("ws");
-        }
+        const project = win.getDomainState?.().projects.find((p: any) => p.id === win.currentTertiaryProjId);
+        win.enterSecondaryWorkspace?.(project?.pavilion || "study", "gantt");
       },
     });
 
@@ -112,9 +116,9 @@ export default class YouthGrowthIslandPlugin extends Plugin {
       callback: async () => {
         await this.activateIslandView();
         const win = window as any;
-        if (typeof win.switchMainSection === "function") {
-          win.switchMainSection("tertiary");
-        }
+        const project = win.getDomainState?.().projects.find((p: any) => p.id === win.currentTertiaryProjId);
+        if (project) win.enterTertiaryWorkspace?.(project.id);
+        else { win.enterSecondaryWorkspace?.("study", "gantt"); new Notice("请先选择项目，再打开其脑图。"); }
       },
     });
 
@@ -134,9 +138,11 @@ export default class YouthGrowthIslandPlugin extends Plugin {
       id: "sync-youth-island-vault",
       name: "立即同步本地 Vault 知识库目录树与双链 Markdown",
       callback: async () => {
-        await this.activateIslandView();
-        await this.vaultStorage.syncRuntimeToVault();
-        new Notice("✅ 终身岛民：已同步本地 Vault 十大目录树与双链 Markdown 档案！");
+        try {
+          await this.activateIslandView();
+          const saved = await this.vaultStorage.syncRuntimeToVault(), status = this.vaultStorage.getSaveStatus();
+          new Notice(!saved ? "成长档案尚未成功读取，未写入数据。" : status.exportError ? `成长数据已保存，笔记导出待重试：${status.exportError}` : "成长档案及当前启用的笔记导出已同步。");
+        } catch (error) { new Notice(`同步未完成：${error instanceof Error ? error.message : error}`); }
       },
     });
 
@@ -190,6 +196,21 @@ export default class YouthGrowthIslandPlugin extends Plugin {
 
   public async saveSettings(): Promise<void> {
     await this.saveData(this.settings);
+  }
+
+  public async updateStorageRoot(value: string): Promise<boolean> {
+    const next = validateVaultRoot(value.trim()), previous = this.settings.vaultRootFolder;
+    if (next === previous) return true;
+    if (this.app.workspace.getLeavesOfType(VIEW_TYPE_YOUTH_ISLAND).length) {
+      new Notice("请先关闭成长工作台，让当前档案保存完成，再应用新目录。重新打开后将读取目标目录的数据。");
+      return false;
+    }
+    await this.vaultStorage.waitForPendingSaves();
+    this.settings.vaultRootFolder = next;
+    try { await this.saveSettings(); }
+    catch (error) { this.settings.vaultRootFolder = previous; throw error; }
+    new Notice("数据目录已应用。重新打开工作台后读取目标目录；原目录文件保留。");
+    return true;
   }
 
   public async onunload(): Promise<void> {

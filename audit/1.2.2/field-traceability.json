@@ -1,0 +1,1730 @@
+[
+  {
+    "entity": "Attachment",
+    "field": "id",
+    "type": "string",
+    "writer": "统一附件服务",
+    "reader": "执行/悬赏/随记/高光/导出",
+    "storage": "attachments原件 + 所属记录media"
+  },
+  {
+    "entity": "Attachment",
+    "field": "path",
+    "type": "string",
+    "writer": "统一附件服务",
+    "reader": "执行/悬赏/随记/高光/导出",
+    "storage": "attachments原件 + 所属记录media"
+  },
+  {
+    "entity": "Attachment",
+    "field": "name",
+    "type": "string",
+    "writer": "统一附件服务",
+    "reader": "执行/悬赏/随记/高光/导出",
+    "storage": "attachments原件 + 所属记录media"
+  },
+  {
+    "entity": "Attachment",
+    "field": "type",
+    "type": "\"image\" | \"video\" | \"audio\"",
+    "writer": "统一附件服务",
+    "reader": "执行/悬赏/随记/高光/导出",
+    "storage": "attachments原件 + 所属记录media"
+  },
+  {
+    "entity": "Attachment",
+    "field": "mime",
+    "type": "string",
+    "writer": "统一附件服务",
+    "reader": "执行/悬赏/随记/高光/导出",
+    "storage": "attachments原件 + 所属记录media"
+  },
+  {
+    "entity": "Attachment",
+    "field": "size",
+    "type": "number",
+    "writer": "统一附件服务",
+    "reader": "执行/悬赏/随记/高光/导出",
+    "storage": "attachments原件 + 所属记录media"
+  },
+  {
+    "entity": "Attachment",
+    "field": "uploadedAt",
+    "type": "string",
+    "writer": "统一附件服务",
+    "reader": "执行/悬赏/随记/高光/导出",
+    "storage": "attachments原件 + 所属记录media"
+  },
+  {
+    "entity": "Attachment",
+    "field": "duration",
+    "type": "number | null",
+    "writer": "统一附件服务",
+    "reader": "执行/悬赏/随记/高光/导出",
+    "storage": "attachments原件 + 所属记录media"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "id",
+    "type": "string",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "projectId",
+    "type": "string",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "pavilionId",
+    "type": "string",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "title",
+    "type": "string",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "nodeType",
+    "type": "NodeType",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "isCheckinNode",
+    "type": "boolean",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "status",
+    "type": "\"pending\" | \"completed\" | \"archived\"",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "plannedDate",
+    "type": "string",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "frequency",
+    "type": "\"once\" | \"daily\" | \"weekdays\" | \"weekly\"",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "dependencies",
+    "type": "string[]",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "weight",
+    "type": "number",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "canvasPosition",
+    "type": "{ x: number; y: number }",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "canvasPosition.x",
+    "type": "number",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "canvasPosition.y",
+    "type": "number",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "groupId",
+    "type": "string | null",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "groupRoot",
+    "type": "string | null",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "createdAt",
+    "type": "string",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "updatedAt",
+    "type": "string",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "executionRecords",
+    "type": "string[]",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "readCount",
+    "type": "number",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "lastReadTime",
+    "type": "string | null",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "achievementId",
+    "type": "string | null",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload",
+    "type": "{\n    description: string; plannedMinutes: number; evidenceType: \"none\" | \"text\" | \"photo\" | \"video\" | \"audio\";\n    metrics: Array<{ id: string; name: string; targetValue: string; unit?: string }>;\n    checklist: Array<{ id: string; title: string; required: boolean }>;\n    improvementList: Array<{ id: string; actionItem: string; isChecked: boolean; derivedNodeId?: string }>;\n    customFieldsSchema: Array<{ key: string; label: string; type: \"text\" | \"number\" | \"boolean\" | \"date\"; required: boolean }>;\n    textContent: string; acceptanceCriteria: string; targetDeadline: string | null;\n    derivedFrom?: { nodeId: string; recordId: string | null; actionId: string };\n  }",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.description",
+    "type": "string",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.plannedMinutes",
+    "type": "number",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.evidenceType",
+    "type": "\"none\" | \"text\" | \"photo\" | \"video\" | \"audio\"",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.metrics",
+    "type": "Array<{ id: string; name: string; targetValue: string; unit?: string }>",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.metrics[].id",
+    "type": "string",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.metrics[].name",
+    "type": "string",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.metrics[].targetValue",
+    "type": "string",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.metrics[].unit",
+    "type": "string",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.checklist",
+    "type": "Array<{ id: string; title: string; required: boolean }>",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.checklist[].id",
+    "type": "string",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.checklist[].title",
+    "type": "string",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.checklist[].required",
+    "type": "boolean",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.improvementList",
+    "type": "Array<{ id: string; actionItem: string; isChecked: boolean; derivedNodeId?: string }>",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.improvementList[].id",
+    "type": "string",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.improvementList[].actionItem",
+    "type": "string",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.improvementList[].isChecked",
+    "type": "boolean",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.improvementList[].derivedNodeId",
+    "type": "string",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.customFieldsSchema",
+    "type": "Array<{ key: string; label: string; type: \"text\" | \"number\" | \"boolean\" | \"date\"; required: boolean }>",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.customFieldsSchema[].key",
+    "type": "string",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.customFieldsSchema[].label",
+    "type": "string",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.customFieldsSchema[].type",
+    "type": "\"text\" | \"number\" | \"boolean\" | \"date\"",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.customFieldsSchema[].required",
+    "type": "boolean",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.textContent",
+    "type": "string",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.acceptanceCriteria",
+    "type": "string",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.targetDeadline",
+    "type": "string | null",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.derivedFrom",
+    "type": "{ nodeId: string; recordId: string | null; actionId: string }",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.derivedFrom.nodeId",
+    "type": "string",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.derivedFrom.recordId",
+    "type": "string | null",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "DomainWorkNode",
+    "field": "cardPayload.derivedFrom.actionId",
+    "type": "string",
+    "writer": "规划编辑 / 新增 / 显式派生",
+    "reader": "调度 / 只读标准 / 项目笔记",
+    "storage": "nodesByProject → nodes_<id>.json"
+  },
+  {
+    "entity": "TaskInstance",
+    "field": "id",
+    "type": "string",
+    "writer": "调度器从节点和记录派生",
+    "reader": "日 / 周 / 月 / HUD / 同一执行入口",
+    "storage": "可重建投影；DOM不是事实源"
+  },
+  {
+    "entity": "TaskInstance",
+    "field": "nodeId",
+    "type": "string | null",
+    "writer": "调度器从节点和记录派生",
+    "reader": "日 / 周 / 月 / HUD / 同一执行入口",
+    "storage": "可重建投影；DOM不是事实源"
+  },
+  {
+    "entity": "TaskInstance",
+    "field": "projectId",
+    "type": "string | null",
+    "writer": "调度器从节点和记录派生",
+    "reader": "日 / 周 / 月 / HUD / 同一执行入口",
+    "storage": "可重建投影；DOM不是事实源"
+  },
+  {
+    "entity": "TaskInstance",
+    "field": "bountyId",
+    "type": "string",
+    "writer": "调度器从节点和记录派生",
+    "reader": "日 / 周 / 月 / HUD / 同一执行入口",
+    "storage": "可重建投影；DOM不是事实源"
+  },
+  {
+    "entity": "TaskInstance",
+    "field": "pavilionId",
+    "type": "string",
+    "writer": "调度器从节点和记录派生",
+    "reader": "日 / 周 / 月 / HUD / 同一执行入口",
+    "storage": "可重建投影；DOM不是事实源"
+  },
+  {
+    "entity": "TaskInstance",
+    "field": "title",
+    "type": "string",
+    "writer": "调度器从节点和记录派生",
+    "reader": "日 / 周 / 月 / HUD / 同一执行入口",
+    "storage": "可重建投影；DOM不是事实源"
+  },
+  {
+    "entity": "TaskInstance",
+    "field": "date",
+    "type": "string",
+    "writer": "调度器从节点和记录派生",
+    "reader": "日 / 周 / 月 / HUD / 同一执行入口",
+    "storage": "可重建投影；DOM不是事实源"
+  },
+  {
+    "entity": "TaskInstance",
+    "field": "nodeType",
+    "type": "NodeType | \"bounty\"",
+    "writer": "调度器从节点和记录派生",
+    "reader": "日 / 周 / 月 / HUD / 同一执行入口",
+    "storage": "可重建投影；DOM不是事实源"
+  },
+  {
+    "entity": "TaskInstance",
+    "field": "status",
+    "type": "TaskStatus",
+    "writer": "调度器从节点和记录派生",
+    "reader": "日 / 周 / 月 / HUD / 同一执行入口",
+    "storage": "可重建投影；DOM不是事实源"
+  },
+  {
+    "entity": "TaskInstance",
+    "field": "recordId",
+    "type": "string | null",
+    "writer": "调度器从节点和记录派生",
+    "reader": "日 / 周 / 月 / HUD / 同一执行入口",
+    "storage": "可重建投影；DOM不是事实源"
+  },
+  {
+    "entity": "TaskInstance",
+    "field": "contract",
+    "type": "boolean",
+    "writer": "调度器从节点和记录派生",
+    "reader": "日 / 周 / 月 / HUD / 同一执行入口",
+    "storage": "可重建投影；DOM不是事实源"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "id",
+    "type": "string",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "taskInstanceId",
+    "type": "string",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "nodeId",
+    "type": "string | null",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "projectId",
+    "type": "string | null",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "pavilionId",
+    "type": "string",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "bountyId",
+    "type": "string",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "date",
+    "type": "string",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "scheduledDate",
+    "type": "string",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "completedAt",
+    "type": "string",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "title",
+    "type": "string",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "validated",
+    "type": "boolean",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "reflection",
+    "type": "string",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "focusSeconds",
+    "type": "number",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "media",
+    "type": "Attachment[]",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "metricValues",
+    "type": "Record<string, string>",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "metricConfirmations",
+    "type": "Record<string, boolean>",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "metrics",
+    "type": "Array<{ id: string; name: string; targetValue: string; actual: string; passed: boolean }>",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "metrics[].id",
+    "type": "string",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "metrics[].name",
+    "type": "string",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "metrics[].targetValue",
+    "type": "string",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "metrics[].actual",
+    "type": "string",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "metrics[].passed",
+    "type": "boolean",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "checklistResults",
+    "type": "Record<string, boolean>",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "customFieldValues",
+    "type": "Record<string, string | number | boolean>",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "improvementList",
+    "type": "DomainWorkNode[\"cardPayload\"][\"improvementList\"]",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "sourceSnapshot",
+    "type": "Pick<DomainWorkNode, \"title\" | \"nodeType\" | \"projectId\" | \"cardPayload\">",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "CheckinRecord",
+    "field": "legacyUnverified",
+    "type": "boolean",
+    "writer": "类型校验通过的实际提交 / 家长核准",
+    "reader": "节点引用 / 项目进度 / 随记 / 成果",
+    "storage": "records；标准快照不随后续规划变化"
+  },
+  {
+    "entity": "FamilyPact",
+    "field": "childName",
+    "type": "string",
+    "writer": "双方确认签署新版本",
+    "reader": "只读公约 / 裁决 / 当前镜像 / 显式导出",
+    "storage": "family、versions → family_pact.json/md"
+  },
+  {
+    "entity": "FamilyPact",
+    "field": "guardianNames",
+    "type": "string",
+    "writer": "双方确认签署新版本",
+    "reader": "只读公约 / 裁决 / 当前镜像 / 显式导出",
+    "storage": "family、versions → family_pact.json/md"
+  },
+  {
+    "entity": "FamilyPact",
+    "field": "version",
+    "type": "number",
+    "writer": "双方确认签署新版本",
+    "reader": "只读公约 / 裁决 / 当前镜像 / 显式导出",
+    "storage": "family、versions → family_pact.json/md"
+  },
+  {
+    "entity": "FamilyPact",
+    "field": "signedAt",
+    "type": "string | null",
+    "writer": "双方确认签署新版本",
+    "reader": "只读公约 / 裁决 / 当前镜像 / 显式导出",
+    "storage": "family、versions → family_pact.json/md"
+  },
+  {
+    "entity": "FamilyPact",
+    "field": "clauses",
+    "type": "Array<{ id: string; text: string }>",
+    "writer": "双方确认签署新版本",
+    "reader": "只读公约 / 裁决 / 当前镜像 / 显式导出",
+    "storage": "family、versions → family_pact.json/md"
+  },
+  {
+    "entity": "FamilyPact",
+    "field": "clauses[].id",
+    "type": "string",
+    "writer": "双方确认签署新版本",
+    "reader": "只读公约 / 裁决 / 当前镜像 / 显式导出",
+    "storage": "family、versions → family_pact.json/md"
+  },
+  {
+    "entity": "FamilyPact",
+    "field": "clauses[].text",
+    "type": "string",
+    "writer": "双方确认签署新版本",
+    "reader": "只读公约 / 裁决 / 当前镜像 / 显式导出",
+    "storage": "family、versions → family_pact.json/md"
+  },
+  {
+    "entity": "FamilyPact",
+    "field": "versions",
+    "type": "FamilyPact[]",
+    "writer": "双方确认签署新版本",
+    "reader": "只读公约 / 裁决 / 当前镜像 / 显式导出",
+    "storage": "family、versions → family_pact.json/md"
+  },
+  {
+    "entity": "DomainEvent",
+    "field": "id",
+    "type": "string",
+    "writer": "成功的领域事务",
+    "reader": "当日流水 / 日记 / 来源记录",
+    "storage": "events + todayAutoLogs.sourceId"
+  },
+  {
+    "entity": "DomainEvent",
+    "field": "kind",
+    "type": "string",
+    "writer": "成功的领域事务",
+    "reader": "当日流水 / 日记 / 来源记录",
+    "storage": "events + todayAutoLogs.sourceId"
+  },
+  {
+    "entity": "DomainEvent",
+    "field": "sourceId",
+    "type": "string | null",
+    "writer": "成功的领域事务",
+    "reader": "当日流水 / 日记 / 来源记录",
+    "storage": "events + todayAutoLogs.sourceId"
+  },
+  {
+    "entity": "DomainEvent",
+    "field": "date",
+    "type": "string",
+    "writer": "成功的领域事务",
+    "reader": "当日流水 / 日记 / 来源记录",
+    "storage": "events + todayAutoLogs.sourceId"
+  },
+  {
+    "entity": "DomainEvent",
+    "field": "timestamp",
+    "type": "string",
+    "writer": "成功的领域事务",
+    "reader": "当日流水 / 日记 / 来源记录",
+    "storage": "events + todayAutoLogs.sourceId"
+  },
+  {
+    "entity": "DomainEvent",
+    "field": "text",
+    "type": "string",
+    "writer": "成功的领域事务",
+    "reader": "当日流水 / 日记 / 来源记录",
+    "storage": "events + todayAutoLogs.sourceId"
+  },
+  {
+    "entity": "DomainEvent",
+    "field": "projectId",
+    "type": "string",
+    "writer": "成功的领域事务",
+    "reader": "当日流水 / 日记 / 来源记录",
+    "storage": "events + todayAutoLogs.sourceId"
+  },
+  {
+    "entity": "DomainEvent",
+    "field": "nodeId",
+    "type": "string",
+    "writer": "成功的领域事务",
+    "reader": "当日流水 / 日记 / 来源记录",
+    "storage": "events + todayAutoLogs.sourceId"
+  },
+  {
+    "entity": "DomainEvent",
+    "field": "recordId",
+    "type": "string",
+    "writer": "成功的领域事务",
+    "reader": "当日流水 / 日记 / 来源记录",
+    "storage": "events + todayAutoLogs.sourceId"
+  },
+  {
+    "entity": "Project",
+    "field": "id",
+    "type": "运行时契约",
+    "writer": "规划新增 / 编辑 / 归档、问道与裁决派发",
+    "reader": "甘特 / 脑图 / 调度 / 结业 / 笔记",
+    "storage": "projects → 分场馆projects.json → 项目笔记"
+  },
+  {
+    "entity": "Project",
+    "field": "pavilion",
+    "type": "运行时契约",
+    "writer": "规划新增 / 编辑 / 归档、问道与裁决派发",
+    "reader": "甘特 / 脑图 / 调度 / 结业 / 笔记",
+    "storage": "projects → 分场馆projects.json → 项目笔记"
+  },
+  {
+    "entity": "Project",
+    "field": "category",
+    "type": "运行时契约",
+    "writer": "规划新增 / 编辑 / 归档、问道与裁决派发",
+    "reader": "甘特 / 脑图 / 调度 / 结业 / 笔记",
+    "storage": "projects → 分场馆projects.json → 项目笔记"
+  },
+  {
+    "entity": "Project",
+    "field": "title",
+    "type": "运行时契约",
+    "writer": "规划新增 / 编辑 / 归档、问道与裁决派发",
+    "reader": "甘特 / 脑图 / 调度 / 结业 / 笔记",
+    "storage": "projects → 分场馆projects.json → 项目笔记"
+  },
+  {
+    "entity": "Project",
+    "field": "desc",
+    "type": "运行时契约",
+    "writer": "规划新增 / 编辑 / 归档、问道与裁决派发",
+    "reader": "甘特 / 脑图 / 调度 / 结业 / 笔记",
+    "storage": "projects → 分场馆projects.json → 项目笔记"
+  },
+  {
+    "entity": "Project",
+    "field": "startDate",
+    "type": "运行时契约",
+    "writer": "规划新增 / 编辑 / 归档、问道与裁决派发",
+    "reader": "甘特 / 脑图 / 调度 / 结业 / 笔记",
+    "storage": "projects → 分场馆projects.json → 项目笔记"
+  },
+  {
+    "entity": "Project",
+    "field": "endDate",
+    "type": "运行时契约",
+    "writer": "规划新增 / 编辑 / 归档、问道与裁决派发",
+    "reader": "甘特 / 脑图 / 调度 / 结业 / 笔记",
+    "storage": "projects → 分场馆projects.json → 项目笔记"
+  },
+  {
+    "entity": "Project",
+    "field": "isArchived",
+    "type": "运行时契约",
+    "writer": "规划新增 / 编辑 / 归档、问道与裁决派发",
+    "reader": "甘特 / 脑图 / 调度 / 结业 / 笔记",
+    "storage": "projects → 分场馆projects.json → 项目笔记"
+  },
+  {
+    "entity": "Project",
+    "field": "archivedAt",
+    "type": "运行时契约",
+    "writer": "规划新增 / 编辑 / 归档、问道与裁决派发",
+    "reader": "甘特 / 脑图 / 调度 / 结业 / 笔记",
+    "storage": "projects → 分场馆projects.json → 项目笔记"
+  },
+  {
+    "entity": "Project",
+    "field": "sourceInquiryId",
+    "type": "运行时契约",
+    "writer": "规划新增 / 编辑 / 归档、问道与裁决派发",
+    "reader": "甘特 / 脑图 / 调度 / 结业 / 笔记",
+    "storage": "projects → 分场馆projects.json → 项目笔记"
+  },
+  {
+    "entity": "Project",
+    "field": "sourceViolationId",
+    "type": "运行时契约",
+    "writer": "规划新增 / 编辑 / 归档、问道与裁决派发",
+    "reader": "甘特 / 脑图 / 调度 / 结业 / 笔记",
+    "storage": "projects → 分场馆projects.json → 项目笔记"
+  },
+  {
+    "entity": "Project",
+    "field": "completedDays",
+    "type": "运行时契约",
+    "writer": "规划新增 / 编辑 / 归档、问道与裁决派发",
+    "reader": "甘特 / 脑图 / 调度 / 结业 / 笔记",
+    "storage": "projects → 分场馆projects.json → 项目笔记"
+  },
+  {
+    "entity": "Project",
+    "field": "createdAt",
+    "type": "运行时契约",
+    "writer": "规划新增 / 编辑 / 归档、问道与裁决派发",
+    "reader": "甘特 / 脑图 / 调度 / 结业 / 笔记",
+    "storage": "projects → 分场馆projects.json → 项目笔记"
+  },
+  {
+    "entity": "Bounty",
+    "field": "id",
+    "type": "运行时契约",
+    "writer": "发布 / 揭榜 / 原件 / 家长核准",
+    "reader": "告示 / 独立任务 / 履约 / 历史 / 成果",
+    "storage": "bounties；items全历史 + activeId导出"
+  },
+  {
+    "entity": "Bounty",
+    "field": "title",
+    "type": "运行时契约",
+    "writer": "发布 / 揭榜 / 原件 / 家长核准",
+    "reader": "告示 / 独立任务 / 履约 / 历史 / 成果",
+    "storage": "bounties；items全历史 + activeId导出"
+  },
+  {
+    "entity": "Bounty",
+    "field": "criteria",
+    "type": "运行时契约",
+    "writer": "发布 / 揭榜 / 原件 / 家长核准",
+    "reader": "告示 / 独立任务 / 履约 / 历史 / 成果",
+    "storage": "bounties；items全历史 + activeId导出"
+  },
+  {
+    "entity": "Bounty",
+    "field": "reward",
+    "type": "运行时契约",
+    "writer": "发布 / 揭榜 / 原件 / 家长核准",
+    "reader": "告示 / 独立任务 / 履约 / 历史 / 成果",
+    "storage": "bounties；items全历史 + activeId导出"
+  },
+  {
+    "entity": "Bounty",
+    "field": "createdDate",
+    "type": "运行时契约",
+    "writer": "发布 / 揭榜 / 原件 / 家长核准",
+    "reader": "告示 / 独立任务 / 履约 / 历史 / 成果",
+    "storage": "bounties；items全历史 + activeId导出"
+  },
+  {
+    "entity": "Bounty",
+    "field": "endDate",
+    "type": "运行时契约",
+    "writer": "发布 / 揭榜 / 原件 / 家长核准",
+    "reader": "告示 / 独立任务 / 履约 / 历史 / 成果",
+    "storage": "bounties；items全历史 + activeId导出"
+  },
+  {
+    "entity": "Bounty",
+    "field": "days",
+    "type": "运行时契约",
+    "writer": "发布 / 揭榜 / 原件 / 家长核准",
+    "reader": "告示 / 独立任务 / 履约 / 历史 / 成果",
+    "storage": "bounties；items全历史 + activeId导出"
+  },
+  {
+    "entity": "Bounty",
+    "field": "pavilionId",
+    "type": "运行时契约",
+    "writer": "发布 / 揭榜 / 原件 / 家长核准",
+    "reader": "告示 / 独立任务 / 履约 / 历史 / 成果",
+    "storage": "bounties；items全历史 + activeId导出"
+  },
+  {
+    "entity": "Bounty",
+    "field": "pavilionLabel",
+    "type": "运行时契约",
+    "writer": "发布 / 揭榜 / 原件 / 家长核准",
+    "reader": "告示 / 独立任务 / 履约 / 历史 / 成果",
+    "storage": "bounties；items全历史 + activeId导出"
+  },
+  {
+    "entity": "Bounty",
+    "field": "acceptedDate",
+    "type": "运行时契约",
+    "writer": "发布 / 揭榜 / 原件 / 家长核准",
+    "reader": "告示 / 独立任务 / 履约 / 历史 / 成果",
+    "storage": "bounties；items全历史 + activeId导出"
+  },
+  {
+    "entity": "Bounty",
+    "field": "status",
+    "type": "运行时契约",
+    "writer": "发布 / 揭榜 / 原件 / 家长核准",
+    "reader": "告示 / 独立任务 / 履约 / 历史 / 成果",
+    "storage": "bounties；items全历史 + activeId导出"
+  },
+  {
+    "entity": "Bounty",
+    "field": "evidence",
+    "type": "运行时契约",
+    "writer": "发布 / 揭榜 / 原件 / 家长核准",
+    "reader": "告示 / 独立任务 / 履约 / 历史 / 成果",
+    "storage": "bounties；items全历史 + activeId导出"
+  },
+  {
+    "entity": "Bounty",
+    "field": "parentComment",
+    "type": "运行时契约",
+    "writer": "发布 / 揭榜 / 原件 / 家长核准",
+    "reader": "告示 / 独立任务 / 履约 / 历史 / 成果",
+    "storage": "bounties；items全历史 + activeId导出"
+  },
+  {
+    "entity": "Bounty",
+    "field": "verifiedAt",
+    "type": "运行时契约",
+    "writer": "发布 / 揭榜 / 原件 / 家长核准",
+    "reader": "告示 / 独立任务 / 履约 / 历史 / 成果",
+    "storage": "bounties；items全历史 + activeId导出"
+  },
+  {
+    "entity": "Bounty",
+    "field": "verifiedDate",
+    "type": "运行时契约",
+    "writer": "发布 / 揭榜 / 原件 / 家长核准",
+    "reader": "告示 / 独立任务 / 履约 / 历史 / 成果",
+    "storage": "bounties；items全历史 + activeId导出"
+  },
+  {
+    "entity": "Bounty",
+    "field": "verifiedBy",
+    "type": "运行时契约",
+    "writer": "发布 / 揭榜 / 原件 / 家长核准",
+    "reader": "告示 / 独立任务 / 履约 / 历史 / 成果",
+    "storage": "bounties；items全历史 + activeId导出"
+  },
+  {
+    "entity": "Bounty",
+    "field": "achievementId",
+    "type": "运行时契约",
+    "writer": "发布 / 揭榜 / 原件 / 家长核准",
+    "reader": "告示 / 独立任务 / 履约 / 历史 / 成果",
+    "storage": "bounties；items全历史 + activeId导出"
+  },
+  {
+    "entity": "Bounty",
+    "field": "childReport",
+    "type": "运行时契约",
+    "writer": "发布 / 揭榜 / 原件 / 家长核准",
+    "reader": "告示 / 独立任务 / 履约 / 历史 / 成果",
+    "storage": "bounties；items全历史 + activeId导出"
+  },
+  {
+    "entity": "Treasury",
+    "field": "ledger[].id",
+    "type": "运行时契约",
+    "writer": "合法金额的真实收入 / 支出",
+    "reader": "收支筛选、余额、来源事件",
+    "storage": "TREASURY_STATE → ledger.json；proof是说明，不是附件"
+  },
+  {
+    "entity": "Treasury",
+    "field": "ledger[].time",
+    "type": "运行时契约",
+    "writer": "合法金额的真实收入 / 支出",
+    "reader": "收支筛选、余额、来源事件",
+    "storage": "TREASURY_STATE → ledger.json；proof是说明，不是附件"
+  },
+  {
+    "entity": "Treasury",
+    "field": "ledger[].date",
+    "type": "运行时契约",
+    "writer": "合法金额的真实收入 / 支出",
+    "reader": "收支筛选、余额、来源事件",
+    "storage": "TREASURY_STATE → ledger.json；proof是说明，不是附件"
+  },
+  {
+    "entity": "Treasury",
+    "field": "ledger[].type",
+    "type": "运行时契约",
+    "writer": "合法金额的真实收入 / 支出",
+    "reader": "收支筛选、余额、来源事件",
+    "storage": "TREASURY_STATE → ledger.json；proof是说明，不是附件"
+  },
+  {
+    "entity": "Treasury",
+    "field": "ledger[].category",
+    "type": "运行时契约",
+    "writer": "合法金额的真实收入 / 支出",
+    "reader": "收支筛选、余额、来源事件",
+    "storage": "TREASURY_STATE → ledger.json；proof是说明，不是附件"
+  },
+  {
+    "entity": "Treasury",
+    "field": "ledger[].amount",
+    "type": "运行时契约",
+    "writer": "合法金额的真实收入 / 支出",
+    "reader": "收支筛选、余额、来源事件",
+    "storage": "TREASURY_STATE → ledger.json；proof是说明，不是附件"
+  },
+  {
+    "entity": "Treasury",
+    "field": "ledger[].balanceAfter",
+    "type": "运行时契约",
+    "writer": "合法金额的真实收入 / 支出",
+    "reader": "收支筛选、余额、来源事件",
+    "storage": "TREASURY_STATE → ledger.json；proof是说明，不是附件"
+  },
+  {
+    "entity": "Treasury",
+    "field": "ledger[].note",
+    "type": "运行时契约",
+    "writer": "合法金额的真实收入 / 支出",
+    "reader": "收支筛选、余额、来源事件",
+    "storage": "TREASURY_STATE → ledger.json；proof是说明，不是附件"
+  },
+  {
+    "entity": "Treasury",
+    "field": "ledger[].proof",
+    "type": "运行时契约",
+    "writer": "合法金额的真实收入 / 支出",
+    "reader": "收支筛选、余额、来源事件",
+    "storage": "TREASURY_STATE → ledger.json；proof是说明，不是附件"
+  },
+  {
+    "entity": "Treasury",
+    "field": "totalBalance",
+    "type": "运行时契约",
+    "writer": "合法金额的真实收入 / 支出",
+    "reader": "收支筛选、余额、来源事件",
+    "storage": "TREASURY_STATE → ledger.json；proof是说明，不是附件"
+  },
+  {
+    "entity": "Treasury",
+    "field": "totalIncome",
+    "type": "运行时契约",
+    "writer": "合法金额的真实收入 / 支出",
+    "reader": "收支筛选、余额、来源事件",
+    "storage": "TREASURY_STATE → ledger.json；proof是说明，不是附件"
+  },
+  {
+    "entity": "Treasury",
+    "field": "totalExpense",
+    "type": "运行时契约",
+    "writer": "合法金额的真实收入 / 支出",
+    "reader": "收支筛选、余额、来源事件",
+    "storage": "TREASURY_STATE → ledger.json；proof是说明，不是附件"
+  },
+  {
+    "entity": "Treasury",
+    "field": "currentRecordType",
+    "type": "运行时契约",
+    "writer": "合法金额的真实收入 / 支出",
+    "reader": "收支筛选、余额、来源事件",
+    "storage": "TREASURY_STATE → ledger.json；proof是说明，不是附件"
+  },
+  {
+    "entity": "Journal",
+    "field": "date",
+    "type": "运行时契约",
+    "writer": "主观录入 / 真实事件 / 附件 / 封存 / 跨日保存",
+    "reader": "当日 / 历史 / 日期笔记 / 原件回放",
+    "storage": "NOTE_STATE → journal.json → YYYY/YYYY-MM-DD.md"
+  },
+  {
+    "entity": "Journal",
+    "field": "text",
+    "type": "运行时契约",
+    "writer": "主观录入 / 真实事件 / 附件 / 封存 / 跨日保存",
+    "reader": "当日 / 历史 / 日期笔记 / 原件回放",
+    "storage": "NOTE_STATE → journal.json → YYYY/YYYY-MM-DD.md"
+  },
+  {
+    "entity": "Journal",
+    "field": "mood",
+    "type": "运行时契约",
+    "writer": "主观录入 / 真实事件 / 附件 / 封存 / 跨日保存",
+    "reader": "当日 / 历史 / 日期笔记 / 原件回放",
+    "storage": "NOTE_STATE → journal.json → YYYY/YYYY-MM-DD.md"
+  },
+  {
+    "entity": "Journal",
+    "field": "energy",
+    "type": "运行时契约",
+    "writer": "主观录入 / 真实事件 / 附件 / 封存 / 跨日保存",
+    "reader": "当日 / 历史 / 日期笔记 / 原件回放",
+    "storage": "NOTE_STATE → journal.json → YYYY/YYYY-MM-DD.md"
+  },
+  {
+    "entity": "Journal",
+    "field": "autoLogs",
+    "type": "运行时契约",
+    "writer": "主观录入 / 真实事件 / 附件 / 封存 / 跨日保存",
+    "reader": "当日 / 历史 / 日期笔记 / 原件回放",
+    "storage": "NOTE_STATE → journal.json → YYYY/YYYY-MM-DD.md"
+  },
+  {
+    "entity": "Journal",
+    "field": "media",
+    "type": "运行时契约",
+    "writer": "主观录入 / 真实事件 / 附件 / 封存 / 跨日保存",
+    "reader": "当日 / 历史 / 日期笔记 / 原件回放",
+    "storage": "NOTE_STATE → journal.json → YYYY/YYYY-MM-DD.md"
+  },
+  {
+    "entity": "Journal",
+    "field": "draft",
+    "type": "运行时契约",
+    "writer": "主观录入 / 真实事件 / 附件 / 封存 / 跨日保存",
+    "reader": "当日 / 历史 / 日期笔记 / 原件回放",
+    "storage": "NOTE_STATE → journal.json → YYYY/YYYY-MM-DD.md"
+  },
+  {
+    "entity": "Journal",
+    "field": "updatedAt",
+    "type": "运行时契约",
+    "writer": "主观录入 / 真实事件 / 附件 / 封存 / 跨日保存",
+    "reader": "当日 / 历史 / 日期笔记 / 原件回放",
+    "storage": "NOTE_STATE → journal.json → YYYY/YYYY-MM-DD.md"
+  },
+  {
+    "entity": "Journal",
+    "field": "versions",
+    "type": "运行时契约",
+    "writer": "主观录入 / 真实事件 / 附件 / 封存 / 跨日保存",
+    "reader": "当日 / 历史 / 日期笔记 / 原件回放",
+    "storage": "NOTE_STATE → journal.json → YYYY/YYYY-MM-DD.md"
+  },
+  {
+    "entity": "Journal",
+    "field": "dateKey",
+    "type": "运行时契约",
+    "writer": "主观录入 / 真实事件 / 附件 / 封存 / 跨日保存",
+    "reader": "当日 / 历史 / 日期笔记 / 原件回放",
+    "storage": "NOTE_STATE → journal.json → YYYY/YYYY-MM-DD.md"
+  },
+  {
+    "entity": "Journal",
+    "field": "journalText",
+    "type": "运行时契约",
+    "writer": "主观录入 / 真实事件 / 附件 / 封存 / 跨日保存",
+    "reader": "当日 / 历史 / 日期笔记 / 原件回放",
+    "storage": "NOTE_STATE → journal.json → YYYY/YYYY-MM-DD.md"
+  },
+  {
+    "entity": "Journal",
+    "field": "currentMood",
+    "type": "运行时契约",
+    "writer": "主观录入 / 真实事件 / 附件 / 封存 / 跨日保存",
+    "reader": "当日 / 历史 / 日期笔记 / 原件回放",
+    "storage": "NOTE_STATE → journal.json → YYYY/YYYY-MM-DD.md"
+  },
+  {
+    "entity": "Journal",
+    "field": "currentEnergy",
+    "type": "运行时契约",
+    "writer": "主观录入 / 真实事件 / 附件 / 封存 / 跨日保存",
+    "reader": "当日 / 历史 / 日期笔记 / 原件回放",
+    "storage": "NOTE_STATE → journal.json → YYYY/YYYY-MM-DD.md"
+  },
+  {
+    "entity": "Journal",
+    "field": "todayAutoLogs",
+    "type": "运行时契约",
+    "writer": "主观录入 / 真实事件 / 附件 / 封存 / 跨日保存",
+    "reader": "当日 / 历史 / 日期笔记 / 原件回放",
+    "storage": "NOTE_STATE → journal.json → YYYY/YYYY-MM-DD.md"
+  },
+  {
+    "entity": "Journal",
+    "field": "mediaList",
+    "type": "运行时契约",
+    "writer": "主观录入 / 真实事件 / 附件 / 封存 / 跨日保存",
+    "reader": "当日 / 历史 / 日期笔记 / 原件回放",
+    "storage": "NOTE_STATE → journal.json → YYYY/YYYY-MM-DD.md"
+  },
+  {
+    "entity": "Journal",
+    "field": "historyEntries",
+    "type": "运行时契约",
+    "writer": "主观录入 / 真实事件 / 附件 / 封存 / 跨日保存",
+    "reader": "当日 / 历史 / 日期笔记 / 原件回放",
+    "storage": "NOTE_STATE → journal.json → YYYY/YYYY-MM-DD.md"
+  },
+  {
+    "entity": "Inquiry",
+    "field": "id",
+    "type": "运行时契约",
+    "writer": "本人提问 / 明确的本地经典参考 / 幂等转化",
+    "reader": "问道池、关联修身项目、结业回流",
+    "storage": "INQUIRY_POOL_STATE → inquiries.json"
+  },
+  {
+    "entity": "Inquiry",
+    "field": "question",
+    "type": "运行时契约",
+    "writer": "本人提问 / 明确的本地经典参考 / 幂等转化",
+    "reader": "问道池、关联修身项目、结业回流",
+    "storage": "INQUIRY_POOL_STATE → inquiries.json"
+  },
+  {
+    "entity": "Inquiry",
+    "field": "classic",
+    "type": "运行时契约",
+    "writer": "本人提问 / 明确的本地经典参考 / 幂等转化",
+    "reader": "问道池、关联修身项目、结业回流",
+    "storage": "INQUIRY_POOL_STATE → inquiries.json"
+  },
+  {
+    "entity": "Inquiry",
+    "field": "classicFull",
+    "type": "运行时契约",
+    "writer": "本人提问 / 明确的本地经典参考 / 幂等转化",
+    "reader": "问道池、关联修身项目、结业回流",
+    "storage": "INQUIRY_POOL_STATE → inquiries.json"
+  },
+  {
+    "entity": "Inquiry",
+    "field": "guide",
+    "type": "运行时契约",
+    "writer": "本人提问 / 明确的本地经典参考 / 幂等转化",
+    "reader": "问道池、关联修身项目、结业回流",
+    "storage": "INQUIRY_POOL_STATE → inquiries.json"
+  },
+  {
+    "entity": "Inquiry",
+    "field": "converted",
+    "type": "运行时契约",
+    "writer": "本人提问 / 明确的本地经典参考 / 幂等转化",
+    "reader": "问道池、关联修身项目、结业回流",
+    "storage": "INQUIRY_POOL_STATE → inquiries.json"
+  },
+  {
+    "entity": "Inquiry",
+    "field": "linkedProjectId",
+    "type": "运行时契约",
+    "writer": "本人提问 / 明确的本地经典参考 / 幂等转化",
+    "reader": "问道池、关联修身项目、结业回流",
+    "storage": "INQUIRY_POOL_STATE → inquiries.json"
+  },
+  {
+    "entity": "Inquiry",
+    "field": "resolutionStatus",
+    "type": "运行时契约",
+    "writer": "本人提问 / 明确的本地经典参考 / 幂等转化",
+    "reader": "问道池、关联修身项目、结业回流",
+    "storage": "INQUIRY_POOL_STATE → inquiries.json"
+  },
+  {
+    "entity": "Achievement",
+    "field": "id",
+    "type": "运行时契约",
+    "writer": "真实验收、核准、首次真实里程碑或生活高光",
+    "reader": "动态分组 / 实测详情 / 原件 / 回源 / 档案导出",
+    "storage": "ACHIEVEMENT_STATE → achievements.json → exports/*.md"
+  },
+  {
+    "entity": "Achievement",
+    "field": "title",
+    "type": "运行时契约",
+    "writer": "真实验收、核准、首次真实里程碑或生活高光",
+    "reader": "动态分组 / 实测详情 / 原件 / 回源 / 档案导出",
+    "storage": "ACHIEVEMENT_STATE → achievements.json → exports/*.md"
+  },
+  {
+    "entity": "Achievement",
+    "field": "date",
+    "type": "运行时契约",
+    "writer": "真实验收、核准、首次真实里程碑或生活高光",
+    "reader": "动态分组 / 实测详情 / 原件 / 回源 / 档案导出",
+    "storage": "ACHIEVEMENT_STATE → achievements.json → exports/*.md"
+  },
+  {
+    "entity": "Achievement",
+    "field": "desc",
+    "type": "运行时契约",
+    "writer": "真实验收、核准、首次真实里程碑或生活高光",
+    "reader": "动态分组 / 实测详情 / 原件 / 回源 / 档案导出",
+    "storage": "ACHIEVEMENT_STATE → achievements.json → exports/*.md"
+  },
+  {
+    "entity": "Achievement",
+    "field": "category",
+    "type": "运行时契约",
+    "writer": "真实验收、核准、首次真实里程碑或生活高光",
+    "reader": "动态分组 / 实测详情 / 原件 / 回源 / 档案导出",
+    "storage": "ACHIEVEMENT_STATE → achievements.json → exports/*.md"
+  },
+  {
+    "entity": "Achievement",
+    "field": "projectType",
+    "type": "运行时契约",
+    "writer": "真实验收、核准、首次真实里程碑或生活高光",
+    "reader": "动态分组 / 实测详情 / 原件 / 回源 / 档案导出",
+    "storage": "ACHIEVEMENT_STATE → achievements.json → exports/*.md"
+  },
+  {
+    "entity": "Achievement",
+    "field": "projectName",
+    "type": "运行时契约",
+    "writer": "真实验收、核准、首次真实里程碑或生活高光",
+    "reader": "动态分组 / 实测详情 / 原件 / 回源 / 档案导出",
+    "storage": "ACHIEVEMENT_STATE → achievements.json → exports/*.md"
+  },
+  {
+    "entity": "Achievement",
+    "field": "sourceProjectId",
+    "type": "运行时契约",
+    "writer": "真实验收、核准、首次真实里程碑或生活高光",
+    "reader": "动态分组 / 实测详情 / 原件 / 回源 / 档案导出",
+    "storage": "ACHIEVEMENT_STATE → achievements.json → exports/*.md"
+  },
+  {
+    "entity": "Achievement",
+    "field": "sourceNodeId",
+    "type": "运行时契约",
+    "writer": "真实验收、核准、首次真实里程碑或生活高光",
+    "reader": "动态分组 / 实测详情 / 原件 / 回源 / 档案导出",
+    "storage": "ACHIEVEMENT_STATE → achievements.json → exports/*.md"
+  },
+  {
+    "entity": "Achievement",
+    "field": "sourceRecordId",
+    "type": "运行时契约",
+    "writer": "真实验收、核准、首次真实里程碑或生活高光",
+    "reader": "动态分组 / 实测详情 / 原件 / 回源 / 档案导出",
+    "storage": "ACHIEVEMENT_STATE → achievements.json → exports/*.md"
+  },
+  {
+    "entity": "Achievement",
+    "field": "sourceRecordIds",
+    "type": "运行时契约",
+    "writer": "真实验收、核准、首次真实里程碑或生活高光",
+    "reader": "动态分组 / 实测详情 / 原件 / 回源 / 档案导出",
+    "storage": "ACHIEVEMENT_STATE → achievements.json → exports/*.md"
+  },
+  {
+    "entity": "Achievement",
+    "field": "bountyId",
+    "type": "运行时契约",
+    "writer": "真实验收、核准、首次真实里程碑或生活高光",
+    "reader": "动态分组 / 实测详情 / 原件 / 回源 / 档案导出",
+    "storage": "ACHIEVEMENT_STATE → achievements.json → exports/*.md"
+  },
+  {
+    "entity": "Achievement",
+    "field": "milestoneKey",
+    "type": "运行时契约",
+    "writer": "真实验收、核准、首次真实里程碑或生活高光",
+    "reader": "动态分组 / 实测详情 / 原件 / 回源 / 档案导出",
+    "storage": "ACHIEVEMENT_STATE → achievements.json → exports/*.md"
+  },
+  {
+    "entity": "Achievement",
+    "field": "metrics",
+    "type": "运行时契约",
+    "writer": "真实验收、核准、首次真实里程碑或生活高光",
+    "reader": "动态分组 / 实测详情 / 原件 / 回源 / 档案导出",
+    "storage": "ACHIEVEMENT_STATE → achievements.json → exports/*.md"
+  },
+  {
+    "entity": "Achievement",
+    "field": "media",
+    "type": "运行时契约",
+    "writer": "真实验收、核准、首次真实里程碑或生活高光",
+    "reader": "动态分组 / 实测详情 / 原件 / 回源 / 档案导出",
+    "storage": "ACHIEVEMENT_STATE → achievements.json → exports/*.md"
+  },
+  {
+    "entity": "Achievement",
+    "field": "proof",
+    "type": "运行时契约",
+    "writer": "真实验收、核准、首次真实里程碑或生活高光",
+    "reader": "动态分组 / 实测详情 / 原件 / 回源 / 档案导出",
+    "storage": "ACHIEVEMENT_STATE → achievements.json → exports/*.md"
+  },
+  {
+    "entity": "Achievement",
+    "field": "issuer",
+    "type": "运行时契约",
+    "writer": "真实验收、核准、首次真实里程碑或生活高光",
+    "reader": "动态分组 / 实测详情 / 原件 / 回源 / 档案导出",
+    "storage": "ACHIEVEMENT_STATE → achievements.json → exports/*.md"
+  },
+  {
+    "entity": "Achievement",
+    "field": "image",
+    "type": "运行时契约",
+    "writer": "真实验收、核准、首次真实里程碑或生活高光",
+    "reader": "动态分组 / 实测详情 / 原件 / 回源 / 档案导出",
+    "storage": "ACHIEVEMENT_STATE → achievements.json → exports/*.md"
+  },
+  {
+    "entity": "Presentation",
+    "field": "viewports.planning",
+    "type": "运行时契约",
+    "writer": "界面操作与设置，非成长验收",
+    "reader": "视口 / 地图 / 自定义场馆 / 外观 / 撤销",
+    "storage": "完整提交；navigation与viewports独立保存"
+  },
+  {
+    "entity": "Presentation",
+    "field": "viewports.projects",
+    "type": "运行时契约",
+    "writer": "界面操作与设置，非成长验收",
+    "reader": "视口 / 地图 / 自定义场馆 / 外观 / 撤销",
+    "storage": "完整提交；navigation与viewports独立保存"
+  },
+  {
+    "entity": "Presentation",
+    "field": "navigation.planning",
+    "type": "运行时契约",
+    "writer": "界面操作与设置，非成长验收",
+    "reader": "视口 / 地图 / 自定义场馆 / 外观 / 撤销",
+    "storage": "完整提交；navigation与viewports独立保存"
+  },
+  {
+    "entity": "Presentation",
+    "field": "navigation.projects",
+    "type": "运行时契约",
+    "writer": "界面操作与设置，非成长验收",
+    "reader": "视口 / 地图 / 自定义场馆 / 外观 / 撤销",
+    "storage": "完整提交；navigation与viewports独立保存"
+  },
+  {
+    "entity": "Presentation",
+    "field": "historyByProject",
+    "type": "运行时契约",
+    "writer": "界面操作与设置，非成长验收",
+    "reader": "视口 / 地图 / 自定义场馆 / 外观 / 撤销",
+    "storage": "完整提交；navigation与viewports独立保存"
+  },
+  {
+    "entity": "Presentation",
+    "field": "USER_PROFILE_STATE.settings",
+    "type": "运行时契约",
+    "writer": "界面操作与设置，非成长验收",
+    "reader": "视口 / 地图 / 自定义场馆 / 外观 / 撤销",
+    "storage": "完整提交；navigation与viewports独立保存"
+  },
+  {
+    "entity": "Presentation",
+    "field": "PAVILION_META",
+    "type": "运行时契约",
+    "writer": "界面操作与设置，非成长验收",
+    "reader": "视口 / 地图 / 自定义场馆 / 外观 / 撤销",
+    "storage": "完整提交；navigation与viewports独立保存"
+  },
+  {
+    "entity": "DerivedHUD",
+    "field": "continuousDays",
+    "type": "运行时契约",
+    "writer": "有效records、违约、保护、今日实例派生",
+    "reader": "HUD、周月、里程碑；不以DOM数量计算",
+    "storage": "统计投影；阅读、设置、记账不产生有效打卡"
+  },
+  {
+    "entity": "DerivedHUD",
+    "field": "streakDays",
+    "type": "运行时契约",
+    "writer": "有效records、违约、保护、今日实例派生",
+    "reader": "HUD、周月、里程碑；不以DOM数量计算",
+    "storage": "统计投影；阅读、设置、记账不产生有效打卡"
+  },
+  {
+    "entity": "DerivedHUD",
+    "field": "maxContinuousDays",
+    "type": "运行时契约",
+    "writer": "有效records、违约、保护、今日实例派生",
+    "reader": "HUD、周月、里程碑；不以DOM数量计算",
+    "storage": "统计投影；阅读、设置、记账不产生有效打卡"
+  },
+  {
+    "entity": "DerivedHUD",
+    "field": "fulfillmentRate",
+    "type": "运行时契约",
+    "writer": "有效records、违约、保护、今日实例派生",
+    "reader": "HUD、周月、里程碑；不以DOM数量计算",
+    "storage": "统计投影；阅读、设置、记账不产生有效打卡"
+  },
+  {
+    "entity": "DerivedHUD",
+    "field": "completedTodayCount",
+    "type": "运行时契约",
+    "writer": "有效records、违约、保护、今日实例派生",
+    "reader": "HUD、周月、里程碑；不以DOM数量计算",
+    "storage": "统计投影；阅读、设置、记账不产生有效打卡"
+  },
+  {
+    "entity": "DerivedHUD",
+    "field": "totalTodayCount",
+    "type": "运行时契约",
+    "writer": "有效records、违约、保护、今日实例派生",
+    "reader": "HUD、周月、里程碑；不以DOM数量计算",
+    "storage": "统计投影；阅读、设置、记账不产生有效打卡"
+  },
+  {
+    "entity": "DerivedHUD",
+    "field": "totalFocusMinutes",
+    "type": "运行时契约",
+    "writer": "有效records、违约、保护、今日实例派生",
+    "reader": "HUD、周月、里程碑；不以DOM数量计算",
+    "storage": "统计投影；阅读、设置、记账不产生有效打卡"
+  },
+  {
+    "entity": "DerivedHUD",
+    "field": "todayFocusMinutes",
+    "type": "运行时契约",
+    "writer": "有效records、违约、保护、今日实例派生",
+    "reader": "HUD、周月、里程碑；不以DOM数量计算",
+    "storage": "统计投影；阅读、设置、记账不产生有效打卡"
+  }
+]

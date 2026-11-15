@@ -96,6 +96,8 @@ export function validateDomainExecution(node,input) {
   const errors=[];const p=node.cardPayload;const text=String(input.reflection||'').trim();const media=(input.media||[]).filter(m=>m.path);
   if(!Number.isFinite(Number(input.focusSeconds||0))||Number(input.focusSeconds||0)<0)errors.push('专注时长必须为有效的非负秒数');
   const type=p.evidenceType;
+  if(!['none','text','photo','video','audio'].includes(type))errors.push('规划物证类型无效，请先返回规划修正');
+  if(node.nodeType==='drill'&&(!Number.isFinite(Number(p.plannedMinutes))||Number(p.plannedMinutes)<0||Number(p.plannedMinutes)>120))errors.push('规划专注时长须为0～120分钟，请先返回规划修正');
   if(['photo','video','audio'].includes(type)&&!media.some(m=>m.type===(type==='photo'?'image':type)))errors.push('请提交规划要求的'+({photo:'照片',video:'视频',audio:'音频'}[type])+'物证');
   if(type==='text'&&text.length<15)errors.push('文字交付至少15字');
   if(node.nodeType==='drill'&&(input.focusSeconds||0)<p.plannedMinutes*60)errors.push('实际专注时长尚未达到规划的'+p.plannedMinutes+'分钟');
@@ -107,8 +109,10 @@ export function validateDomainExecution(node,input) {
   if(node.nodeType==='goal'&&metrics.some(m=>!String(m.name).trim()||!String(m.targetValue??'').trim()))errors.push('目标验收指标须包含名称和明确的目标标准');
   if(node.nodeType==='goal'&&metrics.some(m=>!m.passed))errors.push('目标实测指标尚未全部达标或未确认文字验收');
   if(node.nodeType==='custom')for(const f of p.customFieldsSchema){const value=input.customFieldValues?.[f.key];
-    if(f.required&&(value===undefined||value===null||value===''))errors.push('请填写 '+f.label);
-    if(value!==undefined&&value!==''&&f.type==='number'&&!Number.isFinite(Number(value)))errors.push(f.label+' 必须是数字');
+    const blank=value===undefined||value===null||typeof value==='string'&&!value.trim();
+    if(f.required&&blank)errors.push('请填写 '+f.label);
+    if(!blank&&f.type==='number'&&!Number.isFinite(Number(value)))errors.push(f.label+' 必须是数字');
+    if(!blank&&f.type==='boolean'&&typeof value!=='boolean')errors.push(f.label+' 必须是是/否结果');
     if(value&&f.type==='date'&&!domainValidDate(value))errors.push(f.label+' 必须是有效日期');
   }
   if(!media.length&&!text&&!(input.focusSeconds>=60)&&!Object.values(input.checklistResults||{}).some(Boolean)&&!metrics.length&&!Object.values(input.customFieldValues||{}).some(v=>v!==''&&v!==undefined))errors.push('请保留真实执行内容');

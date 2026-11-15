@@ -2,6 +2,7 @@ import { App, normalizePath, Notice } from "obsidian";
 import { YouthIslandPluginSettings } from "../types/models";
 import { globalIslandEventBus } from "../core/EventBus";
 import { localDateKey, safeFileStem, validateVaultRoot } from "../core/GrowthMetrics";
+import { executionMarkdown, familyMarkdown, isNoteDate, planningMarkdown, projectNoteRelativePath } from "./MarkdownExport";
 
 const PAVILIONS: Record<string, string> = {
   study: "01_School_校史馆", dojo: "02_Dojo_武道馆",
@@ -22,6 +23,7 @@ export class VaultStorageAdapter {
   private lastSavedAt: string | null = null;
   private lastNotice = "";
   private lastNoticeAt = 0;
+  private hydratedRoot: string | null = null;
   constructor(private app: App, private getSettings: () => YouthIslandPluginSettings) {}
 
   private resolvePath(relative: string): string {
@@ -60,6 +62,11 @@ export class VaultStorageAdapter {
     // A parse/read failure is not an empty vault: never overwrite the damaged original.
     return JSON.parse(await this.app.vault.adapter.read(full));
   }
+  private validDomainCommit(value: any): boolean {
+    return value?.schemaVersion === 3 && Array.isArray(value.projects) && Array.isArray(value.records)
+      && value.nodesByProject && typeof value.nodesByProject === "object" && !Array.isArray(value.nodesByProject)
+      && value.stores && typeof value.stores === "object" && !Array.isArray(value.stores);
+  }
 
   public getSaveStatus(): { lastSavedAt: string | null; error: string; exportError: string } {
     return { lastSavedAt: this.lastSavedAt, error: this.lastSaveError, exportError: this.lastExportError };
@@ -79,7 +86,7 @@ export class VaultStorageAdapter {
       await this.writeText(pending, text);
       if (await adapter.read(this.resolvePath(pending)) !== text) throw new Error("待提交文件校验失败");
       if (previous !== undefined) {
-        let valid = false; try { JSON.parse(previous); valid = true; } catch { /* Corrupt cache is archived by the caller. */ }
+        let valid = false; try { const parsed = JSON.parse(previous); valid = relative !== "00_Island_Core/domain_state.json" || this.validDomainCommit(parsed); } catch { /* Corrupt cache is archived by the caller. */ }
         if (valid) await this.writeText(backup, previous);
       }
       await this.writeText(relative, text);
@@ -97,7 +104,8 @@ export class VaultStorageAdapter {
     try { primary = await this.readJson("00_Island_Core/domain_state.json"); } catch (error) { primaryError = error; }
     let pending: any;
     try { pending = await this.readJson("00_Island_Core/domain_state.pending.json"); } catch { /* Preserve an unreadable journal; do not use it as a fact source. */ }
-    const valid = (value: any) => value?.schemaVersion === 3 && Array.isArray(value.projects) && Array.isArray(value.records) && value.nodesByProject && value.stores;
+    const valid = (value: any) => this.validDomainCommit(value);
+    if (primary !== undefined && !valid(primary)) primaryError = new Error("领域档案结构不完整，已暂停保存。请检查 domain_state.json 的项目、节点、记录及 stores。");
     if (valid(pending) && (primaryError || !primary || (pending.storageRevision || 0) > (primary.storageRevision || 0))) {
       if (primaryError) {
         const raw = await this.app.vault.adapter.read(this.resolvePath("00_Island_Core/domain_state.json"));
@@ -122,6 +130,7 @@ export class VaultStorageAdapter {
   public async hydrateRuntimeFromVault(): Promise<void> {
     this.hydrated = false;
     this.blocked = false;
+    this.hydratedRoot = null;
     const win = window as any;
     try {
       const primary = await this.readDomainCommit();
@@ -221,6 +230,7 @@ export class VaultStorageAdapter {
         const saved = await this.readJson(path); if (saved !== undefined) restore(key, saved);
       }
       this.hydrated = true;
+      this.hydratedRoot = validateVaultRoot(this.getSettings().vaultRootFolder || "");
     } catch (error) {
       this.blocked = true;
       throw error;
@@ -242,6 +252,7 @@ export class VaultStorageAdapter {
 
   public async syncRuntimeToVault(): Promise<boolean> {
     if (!this.hydrated || this.blocked) return false; // Commands before opening the view cannot erase saved data.
+    this.assertHydratedRoot();
     if (this.syncTimer) { clearTimeout(this.syncTimer); this.syncTimer = null; }
     const win = window as any;
     if (typeof win.captureDomainLayout === "function") win.captureDomainLayout();
@@ -270,8 +281,9 @@ export class VaultStorageAdapter {
     await this.ensureVaultStructure();
     const fullSnapshot = this.resolvePath(SNAPSHOT);
     const adapter = this.app.vault.adapter;
+    let previousDomain: any;
     if (state.DOMAIN_STATE) {
-      const previousDomain = await this.readDomainCommit();
+      previousDomain = await this.readDomainCommit();
       const revision = Math.max(Date.now(), (previousDomain?.storageRevision || 0) + 1);
       state.DOMAIN_STATE.storageRevision = revision;
       state.DOMAIN_STATE.projects = state.GANTT_PROJECTS;
@@ -299,6 +311,9 @@ export class VaultStorageAdapter {
     await this.writeJson("00_Island_Core/island_settings.json", state.USER_PROFILE_STATE.settings || {});
     await this.writeJson("00_Island_Core/island_topology.json", state.PAVILION_META);
     const projects = state.GANTT_PROJECTS || [];
+    let previousNotes: any;
+    try { previousNotes = await this.readJson("00_Island_Core/notes_index.json"); } catch { /* Rebuild a derived index from the committed entities. */ }
+    const projectNotes: any[] = [];
     const keys = new Set([...Object.keys(PAVILIONS), ...projects.map((p: any) => p.pavilion || p.moduleKey || "study"), ...Object.keys(state.PAVILION_META || {}).filter(key => key.startsWith("custom-"))]);
     for (const key of keys as Set<string>) {
       const dir = this.pavilionDir(key);
@@ -308,8 +323,14 @@ export class VaultStorageAdapter {
       for (const project of list) {
         const data = state.PROJECT_CANVAS_STORE?.[project.id] || { cardsHtml: "", edges: [] };
         await this.writeJson(`${dir}/02_Projects/nodes_${safeFileStem(project.id)}.json`, { ...data, storageRevision: state.DOMAIN_STATE?.storageRevision || 0 });
-        const stem = `${safeFileStem(project.title)}--${safeFileStem(project.id)}`;
-        if (this.getSettings().autoSyncVaultMarkdown) await this.writeText(`${dir}/02_Projects/${stem}.md`, this.projectMarkdown(project, key, data, state.DOMAIN_STATE));
+        if (this.getSettings().autoSyncVaultMarkdown) {
+          const oldProject = previousDomain?.projects?.find((item: any) => item.id === project.id);
+          const path = this.projectNotePath(project), previous = previousNotes?.projects?.find((item: any) => item.projectId === project.id) || (oldProject ? { path: this.projectNotePath(oldProject) } : undefined);
+          const aliases = [...new Set([...(previous?.aliases || []), ...(previous?.path && previous.path !== path ? [previous.path] : [])])].filter(alias => alias !== path);
+          await this.writeText(projectNoteRelativePath(project, dir), this.projectMarkdown(project, key, data, state.DOMAIN_STATE));
+          for (const alias of aliases) await this.updateHistoricalNoteLink(String(alias), path, project.id);
+          projectNotes.push({ projectId: project.id, path, aliases, nodeIds: (data.nodes || []).map((node: any) => node.id) });
+        }
       }
     }
     await this.writeJson("05_Treasury_藏金屋/ledger.json", state.TREASURY_STATE);
@@ -328,6 +349,9 @@ export class VaultStorageAdapter {
         entries = entries.map((entry: any) => entry.date === date ? { ...entry, text: note.journalText ?? entry.text, draft: entry.draft || note.journalText !== entry.text, autoLogs: note.todayAutoLogs, media: note.mediaList, mood: note.currentMood, energy: note.currentEnergy } : entry);
       }
       const written = new Set<string>();
+      for (const record of state.DOMAIN_STATE?.records || []) {
+        if (isNoteDate(record.date) && !entries.some((entry: any) => entry.date === record.date)) entries.push({ date: record.date, text: "", autoLogs: [], media: [] });
+      }
       for (const entry of entries) {
         if (!/^\d{4}-\d{2}-\d{2}$/.test(entry.date) || written.has(entry.date)) continue;
         written.add(entry.date);
@@ -336,6 +360,15 @@ export class VaultStorageAdapter {
       const code = "07_Baseline_个人行为规范/personal_code.md";
       // The family's actual constitution must not be replaced by a hardcoded sample.
       if (!(await adapter.exists(this.resolvePath(code)))) await this.writeText(code, "---\ntype: personal-constitution\n---\n\n# 个人行为规范\n\n请在亲子共同讨论后，记录已确立的行为规范。\n");
+      await this.writeText("07_Baseline_个人行为规范/family_pact.md", familyMarkdown(state.DOMAIN_STATE?.family));
+      const journals = [...written].map(date => ({ date, path: this.resolvePath(`08_Daily_每日随记/${date.slice(0, 4)}/${date}.md`), recordIds: (state.DOMAIN_STATE?.records || []).filter((record: any) => record.date === date).map((record: any) => record.id) }));
+      const retiredProjects = [...(previousNotes?.retiredProjects || []), ...(previousNotes?.projects || [])].filter((item: any, index: number, all: any[]) => !projects.some((project: any) => project.id === item.projectId) && all.findIndex(other => other.projectId === item.projectId) === index);
+      await this.writeJson("00_Island_Core/notes_index.json", {
+        storageRevision: state.DOMAIN_STATE?.storageRevision || 0,
+        projects: projectNotes, retiredProjects, journals,
+        family: { version: state.DOMAIN_STATE?.family?.version || 0, path: this.resolvePath("07_Baseline_个人行为规范/family_pact.md") }
+      });
+      await this.writeText("00_Island_Core/notes_index.md", "# 成长笔记索引\n\n从稳定来源ID查询当前笔记。Markdown是导出投影，领域事实保存在domain_state.json。\n\n## 项目\n" + projectNotes.map(item => `- [[${item.path}]]；项目ID: ${item.projectId}`).join("\n") + "\n\n## 每日随记\n" + journals.map(item => `- [[${item.path}|${item.date}]]；记录ID: ${item.recordIds.join("、") || "无执行记录"}`).join("\n") + "\n\n## 保留的历史项目导出\n" + retiredProjects.map((item: any) => `- [[${item.path}]]；项目ID: ${item.projectId}（当前规划中已移除，历史文件保留）`).join("\n") + `\n\n[[${this.resolvePath("07_Baseline_个人行为规范/family_pact.md")}|当前共同签署公约]]\n`);
     }
     globalIslandEventBus.emit("vault:synced", { timestamp: state.updatedAt });
     this.lastExportError = "";
@@ -348,6 +381,7 @@ export class VaultStorageAdapter {
   }
 
   public async saveAttachment(file: File): Promise<{ path: string; url: string }> {
+    this.assertHydratedRoot();
     if (!/^(image|video|audio)\//.test(file.type)) throw new Error("请选择照片、视频或音频文件");
     if (file.size > 200 * 1024 * 1024) throw new Error("单个附件不能超过 200 MB");
     const path = this.resolvePath(`attachments/${localDateKey()}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${safeFileStem(file.name.replace(/\.[^.]+$/, ""))}.${file.name.split(".").pop()?.replace(/[^a-z0-9]/gi, "") || "bin"}`);
@@ -356,7 +390,27 @@ export class VaultStorageAdapter {
     return { path, url: this.app.vault.adapter.getResourcePath(path) };
   }
   public attachmentUrl(path: string): string { return this.app.vault.adapter.getResourcePath(path); }
+  public projectNotePath(project: any): string { return this.resolvePath(projectNoteRelativePath(project, this.pavilionDir(project.pavilion))); }
+  private async updateHistoricalNoteLink(path: string, current: string, id: string): Promise<void> {
+    const normalized = normalizePath(path), prefix = this.resolvePath("");
+    if (!normalized.endsWith(`--${safeFileStem(id)}.md`) || !normalized.includes("/02_Projects/") || normalized.split("/").includes("..") || (prefix && !normalized.startsWith(prefix.replace(/\/$/, "") + "/"))) return;
+    const adapter = this.app.vault.adapter;
+    if (!await adapter.exists(normalized)) return;
+    const content = await adapter.read(normalized);
+    if (!content.includes(`project_id: ${JSON.stringify(id)}\n`) || !content.includes("type: growth-project")) return;
+    const marker = "<!-- island-current-project-note -->", end = "<!-- /island-current-project-note -->";
+    const startAt = content.indexOf(marker), endAt = content.indexOf(end, startAt);
+    const base = startAt >= 0 && endAt >= startAt ? content.slice(0, startAt) + content.slice(endAt + end.length) : content;
+    await adapter.write(normalized, base.trimEnd() + `\n\n${marker}\n这是保留的历史导出。[[${current}|查看此项目当前笔记]]\n${end}\n`);
+  }
+  public documentPath(relative: string): string { return this.resolvePath(relative); }
+  private assertHydratedRoot(): void {
+    if (this.hydratedRoot !== null && this.hydratedRoot !== validateVaultRoot(this.getSettings().vaultRootFolder || "")) throw new Error("数据目录已改变，请重新打开工作台读取目标目录。当前数据不会写入新目录。");
+  }
   public async exportDocument(path: string, content: string): Promise<void> {
+    this.assertHydratedRoot();
+    if (!await this.syncRuntimeToVault()) throw new Error("成长档案尚未成功读取，未导出文件。");
+    if (this.lastExportError) throw new Error(`关联笔记导出尚未完成：${this.lastExportError}`);
     await this.writeText(path, content);
     new Notice(`已导出真实档案：${path}`);
   }
@@ -364,48 +418,23 @@ export class VaultStorageAdapter {
     const logs = (entry.autoLogs || []).map((log: any) => {
       if (typeof log === "string") return log;
       const project = domain?.projects?.find((p: any) => p.id === log.projectId);
-      const link = project ? ` [[${this.resolvePath(`${this.pavilionDir(project.pavilion)}/02_Projects/${safeFileStem(project.title)}--${safeFileStem(project.id)}.md`)}|来源项目]]` : "";
+      const link = project ? ` [[${this.projectNotePath(project)}|来源项目]]` : "";
       return `${log.time ? `[${log.time}] ` : ""}${log.text || ""}${log.sourceId ? `（来源ID: ${log.sourceId}）` : ""}${link}`;
     });
     const media = entry.media || entry.mediaList || [];
     const text = String(entry.text || entry.reflection || entry.content || "");
-    return `---\ntype: daily-journal\ndate: ${entry.date}\nmood: ${JSON.stringify(entry.mood || "focused")}\nenergy_level: ${entry.energy ?? 4}\nauto_logs: ${JSON.stringify(logs)}\nmedia_attachments: ${JSON.stringify(media.map((m: any) => ({ type: m.type, path: m.path || "", desc: m.caption || m.name || "" })))}\ncontent_reflection: ${JSON.stringify(text)}\n---\n\n# ${entry.date} 每日随记\n\n## 客观事实流水\n${logs.map((l: string) => `- ${l}`).join("\n")}\n\n## 心流随笔\n${text}\n\n## 影像物证\n${media.filter((m: any) => m.path).map((m: any) => `![[${m.path}]]`).join("\n")}\n\n[[${this.resolvePath("07_Baseline_个人行为规范/personal_code.md")}|个人行为规范]]\n`;
+    const records = (domain?.records || []).filter((record: any) => record.date === entry.date);
+    return `---\ntype: daily-journal\ngenerated_by: youth-holistic-growth-island\ndate: ${entry.date}\ndraft: ${entry.draft !== false}\nmood: ${JSON.stringify(entry.mood || null)}\nenergy_level: ${entry.energy ?? "null"}\nauto_logs: ${JSON.stringify(logs)}\nmedia_attachments: ${JSON.stringify(media.map((m: any) => ({ id: m.id, type: m.type, path: m.path || "", desc: m.caption || m.name || "" })))}\ncontent_reflection: ${JSON.stringify(text)}\n---\n\n# ${entry.date} 每日随记\n\n## 客观事实流水\n${logs.map((l: string) => `- ${l}`).join("\n") || "尚无自动事件"}\n\n## 心流随笔\n${text}\n\n## 当日原始执行记录\n${records.map((record: any) => { const project = domain?.projects?.find((p: any) => p.id === record.projectId); return executionMarkdown(record) + (project ? `\n\n[[${this.projectNotePath(project)}|来源项目]]` : ""); }).join("\n\n") || "尚无执行记录"}\n\n## 附件原件\n${media.filter((m: any) => m.path).map((m: any) => `![[${m.path}]]`).join("\n")}\n\n[[${this.resolvePath("07_Baseline_个人行为规范/family_pact.md")}|当前共同签署公约]]\n[[${this.resolvePath("07_Baseline_个人行为规范/personal_code.md")}|个人行为规范笔记]]\n`;
   }
   private projectMarkdown(project: any, key: string, data: any, domain?: any): string {
-    const planning = this.projectPlanningMarkdown(data);
-    const records = (domain?.records || []).filter((r: any) => r.projectId === project.id);
-    const executions = records.map((record: any) => {
-      const actual = [
-        ...(record.metrics || []).map((m: any) => `- ${m.name}：目标 ${m.targetValue}；实测 ${m.actual}`),
-        ...Object.entries(record.customFieldValues || {}).map(([name, value]) => `- ${record.sourceSnapshot?.cardPayload?.customFieldsSchema?.find((f: any) => f.key === name)?.label || name}：${value}`),
-        ...(record.improvementList || []).map((item: any) => `- 后续提升：${item.actionItem}`)
-      ].join("\n");
-      return `### ${record.title || "执行记录"}\n记录ID: ${record.id}\n源节点ID: ${record.nodeId}\n计划日: ${record.scheduledDate || record.date}\n实际提交日: ${record.date}\n验收: ${record.validated ? "通过" : "历史未核验"}\n实际专注: ${record.focusSeconds || 0}秒\n\n${record.reflection || ""}\n\n${actual}\n\n${(record.media || []).filter((m: any) => m.path).map((m: any) => `![[${m.path}]]`).join("\n")}\n\n[[${this.resolvePath(`08_Daily_每日随记/${record.date.slice(0, 4)}/${record.date}.md`)}|当日随记]]`;
-    }).join("\n\n");
-    return `---\ntype: growth-project\nproject_id: ${JSON.stringify(project.id)}\npavilion: ${JSON.stringify(key)}\ncategory: ${JSON.stringify(project.category || "")}\nstart_date: ${JSON.stringify(project.startDate || "")}\nend_date: ${JSON.stringify(project.endDate || "")}\n---\n\n# ${project.title}\n\n${project.desc || ""}\n\n## 当前规划\n\n${planning}\n\n## 原始执行记录\n\n${executions || "尚无执行记录"}\n\n[[${this.resolvePath("07_Baseline_个人行为规范/personal_code.md")}|个人行为规范]]\n`;
-  }
-
-  private projectPlanningMarkdown(data: any): string {
-    if (Array.isArray(data?.nodes)) {
-      return data.nodes.map((n: any) => n.nodeType === "text" ? n.cardPayload?.textContent || "" : `### ${n.title || "节点"}\n${n.desc || n.cardPayload?.description || ""}\n${(n.cardPayload?.metrics || []).map((m: any) => `${m.name}: ${m.targetValue}`).join("\n")}`).join("\n\n");
-    } else if (data?.cardsHtml && typeof document !== "undefined") {
-      const holder = document.createElement("div");
-      holder.innerHTML = data.cardsHtml;
-      return Array.from(holder.querySelectorAll<HTMLElement>(".tertiary-card")).map(card => {
-        const clone = card.cloneNode(true) as HTMLElement;
-        clone.querySelectorAll("button, .work-card-connect-handle").forEach(el => el.remove());
-        clone.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("input, textarea").forEach(el => {
-          const text = document.createTextNode(el.type === "checkbox" ? ((el as HTMLInputElement).checked ? "[x] " : "[ ] ") : `${el.value}\n`);
-          el.replaceWith(text);
-        });
-        return clone.textContent?.trim() || "";
-      }).join("\n\n");
-    }
-    return "";
+    const records = (domain?.records || []).filter((record: any) => record.projectId === project.id);
+    const executions = records.map((record: any) => executionMarkdown(record) + (isNoteDate(record.date) ? `\n\n[[${this.resolvePath(`08_Daily_每日随记/${record.date.slice(0, 4)}/${record.date}.md`)}|当日随记]]` : "")).join("\n\n");
+    return `---\ntype: growth-project\ngenerated_by: youth-holistic-growth-island\nproject_id: ${JSON.stringify(project.id)}\npavilion: ${JSON.stringify(key)}\ncategory: ${JSON.stringify(project.category || "")}\nstart_date: ${JSON.stringify(project.startDate || "")}\nend_date: ${JSON.stringify(project.endDate || "")}\narchived: ${!!project.isArchived}\nsource_inquiry_id: ${JSON.stringify(project.sourceInquiryId || null)}\nsource_violation_id: ${JSON.stringify(project.sourceViolationId || null)}\n---\n\n# ${project.title}\n\n${project.desc || ""}\n\n## 当前规划\n\n${planningMarkdown(data)}\n\n## 原始执行记录\n\n${executions || "尚无执行记录"}\n\n[[${this.resolvePath("07_Baseline_个人行为规范/family_pact.md")}|当前共同签署公约]]\n[[${this.resolvePath("07_Baseline_个人行为规范/personal_code.md")}|个人行为规范笔记]]\n\n本文件是领域数据的笔记投影。规划请在插件或受支持的同版本JSON中维护；执行事实以记录及其标准快照为准。\n`;
   }
   public async dispose(): Promise<void> {
     this.disposed = true;
     if (this.syncTimer) { clearTimeout(this.syncTimer); this.syncTimer = null; }
     await this.queue.catch(() => {});
   }
+  public async waitForPendingSaves(): Promise<void> { await this.queue; }
 }

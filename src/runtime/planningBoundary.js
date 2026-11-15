@@ -32,7 +32,8 @@ deriveNodesFromReflectionCard=function(id,event){
   source.groupId=source.groupId||domainId('group');source.groupRoot=id;
   for(const action of record.improvementList.filter(i=>i.isChecked!==false&&i.actionItem?.trim())){
     if(nodes.some(n=>n.cardPayload.derivedFrom?.recordId===record.id&&n.cardPayload.derivedFrom?.actionId===action.id))continue;
-    const date=domainDefaultNodeDate(project),child=domainNode({title:action.actionItem.slice(0,30),nodeType:'drill',plannedDate:date,groupId:source.groupId,groupRoot:id,cardPayload:{description:action.actionItem,plannedMinutes:20,evidenceType:'photo',derivedFrom:{nodeId:id,recordId:record.id,actionId:action.id}}},project);
+    const date=project.startDate>domainDate()?project.startDate:domainDate();if(project.endDate<date)project.endDate=date;
+    const child=domainNode({title:action.actionItem.slice(0,30),nodeType:'drill',plannedDate:date,groupId:source.groupId,groupRoot:id,cardPayload:{description:action.actionItem,plannedMinutes:20,evidenceType:'photo',derivedFrom:{nodeId:id,recordId:record.id,actionId:action.id}}},project);
     child.canvasPosition={x:source.canvasPosition.x+400,y:source.canvasPosition.y+count*400};nodes.push(child);
     window.PROJECT_CANVAS_STORE[project.id].edges.push({id:domainId('edge'),sourceId:id,targetId:child.id,type:'派生',label:'复盘后续规划'});count++;
   }

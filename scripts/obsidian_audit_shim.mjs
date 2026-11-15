@@ -1,0 +1,14 @@
+// Minimal Obsidian host surface; product implementations remain the actual classes.
+export const auditShim = `
+export class Notice {constructor(message){(window.__auditNotices||=[]).push(message);console.log(message)}}
+export class TFile {} export class App {} export class Plugin {}
+export class PluginSettingTab {constructor(app,plugin){this.app=app;this.plugin=plugin;this.containerEl=document.createElement('section');document.body.append(this.containerEl);}}
+export class Setting {
+ constructor(parent){this.settingEl=document.createElement('div');this.settingEl.className='setting-item';this.nameEl=document.createElement('label');this.descEl=document.createElement('p');this.controlEl=document.createElement('div');this.settingEl.append(this.nameEl,this.descEl,this.controlEl);parent.append(this.settingEl);}
+ setName(name){this.nameEl.textContent=name;return this;} setDesc(desc){this.descEl.textContent=desc;return this;}
+ component(tag,type){const element=document.createElement(tag);if(type)element.type=type;this.controlEl.append(element);const component={inputEl:element,buttonEl:element,setValue:value=>{if(type==='checkbox')element.checked=value;else element.value=value;return component;},setPlaceholder:value=>{element.placeholder=value;return component;},setButtonText:value=>{element.textContent=value;return component;},setCta:()=>component,onClick:fn=>{element.onclick=fn;return component;},onChange:fn=>{element.onchange=()=>fn(type==='checkbox'?element.checked:element.value);return component;},addOption:(value,label)=>{const option=document.createElement('option');option.value=value;option.textContent=label;element.append(option);return component;}};return component;}
+ addText(fn){fn(this.component('input','text'));return this;} addButton(fn){fn(this.component('button'));return this;} addToggle(fn){fn(this.component('input','checkbox'));return this;} addDropdown(fn){fn(this.component('select'));return this;}
+}
+export const normalizePath=p=>p.split(String.fromCharCode(92)).join('/').split('/').filter(Boolean).join('/');
+export class ItemView {constructor(leaf){this.leaf=leaf;this.app=leaf.app;this.cleanups=[];this.containerEl=document.createElement('div');this.containerEl.className='workspace-leaf-content';this.containerEl.dataset.type='youth-holistic-growth-island-view';this.contentEl=document.createElement('div');this.contentEl.className='view-content';this.containerEl.append(this.contentEl);document.body.append(this.containerEl);}registerEvent(off){if(typeof off==='function')this.cleanups.push(off);}registerDomEvent(target,type,listener,options){target.addEventListener(type,listener,options);this.cleanups.push(()=>target.removeEventListener(type,listener,options));}releaseTestComponent(){for(const cleanup of this.cleanups.splice(0))cleanup();this.containerEl.remove();}}
+`;

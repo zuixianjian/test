@@ -12551,7 +12551,7 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
 </style>
 </head>
 <body>
-<div class="global-header product-contract-banner" data-product-contract="3">1.2.1 闭环交互预览 · 按项目/节点/每日任务实例关联 · 本预览数据保存在当前浏览器，组件画板样例不计为实际执行</div>
+<div class="global-header product-contract-banner" data-product-contract="3">1.2.2 闭环交互预览 · 按项目/节点/每日任务实例关联 · 本预览数据保存在当前浏览器，组件画板样例不计为实际执行</div>
   <!-- 顶部主控导航栏 (设备控制与主模态切换) -->
   <header class="global-header">
     <div class="system-title-group">
@@ -14980,7 +14980,7 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
         <label style="display: block; font-size: 13px; font-weight: 900; color: #4e3012; margin-bottom: 6px;">
           模块名称 <span style="font-size: 11px; font-weight: 600; color: #8c6b45;">（必填，如：创客工坊、古琴雅室、自然探索）</span>
         </label>
-        <input type="text" id="input-module-name" class="add-module-text-input" placeholder="请输入模块名称 (最多 6 个字)..." maxlength="6" autofocus>
+        <input type="text" id="input-module-name" class="add-module-text-input" placeholder="请输入场馆名称（2～30字）" maxlength="30" autofocus>
       </div>
 
       <!-- 2. 模块图标选择 -->
@@ -15031,7 +15031,7 @@ body.has-exec-fullscreen .a-my-island-work-minimap {
       <!-- 3. 规划定位 / 状态标签 -->
       <div class="form-group-block">
         <label style="display: block; font-size: 13px; font-weight: 900; color: #4e3012; margin-bottom: 6px;">
-          规划定位 / 状态标签 <span style="font-size: 11px; font-weight: 600; color: #8c6b45;">（卡片下方展示的副标题）</span>
+          场馆说明 <span style="font-size: 11px; font-weight: 600; color: #8c6b45;">（显示在场馆名称下方，不代表执行状态）</span>
         </label>
         <input type="text" id="input-module-badge" class="add-module-text-input" placeholder="如：规划筹备中 / 自由探索 / 兴趣拓展" value="规划筹备中" maxlength="8">
       </div>
@@ -27249,6 +27249,8 @@ function validateDomainExecution(node,input) {
   const errors=[];const p=node.cardPayload;const text=String(input.reflection||'').trim();const media=(input.media||[]).filter(m=>m.path);
   if(!Number.isFinite(Number(input.focusSeconds||0))||Number(input.focusSeconds||0)<0)errors.push('专注时长必须为有效的非负秒数');
   const type=p.evidenceType;
+  if(!['none','text','photo','video','audio'].includes(type))errors.push('规划物证类型无效，请先返回规划修正');
+  if(node.nodeType==='drill'&&(!Number.isFinite(Number(p.plannedMinutes))||Number(p.plannedMinutes)<0||Number(p.plannedMinutes)>120))errors.push('规划专注时长须为0～120分钟，请先返回规划修正');
   if(['photo','video','audio'].includes(type)&&!media.some(m=>m.type===(type==='photo'?'image':type)))errors.push('请提交规划要求的'+({photo:'照片',video:'视频',audio:'音频'}[type])+'物证');
   if(type==='text'&&text.length<15)errors.push('文字交付至少15字');
   if(node.nodeType==='drill'&&(input.focusSeconds||0)<p.plannedMinutes*60)errors.push('实际专注时长尚未达到规划的'+p.plannedMinutes+'分钟');
@@ -27260,8 +27262,10 @@ function validateDomainExecution(node,input) {
   if(node.nodeType==='goal'&&metrics.some(m=>!String(m.name).trim()||!String(m.targetValue??'').trim()))errors.push('目标验收指标须包含名称和明确的目标标准');
   if(node.nodeType==='goal'&&metrics.some(m=>!m.passed))errors.push('目标实测指标尚未全部达标或未确认文字验收');
   if(node.nodeType==='custom')for(const f of p.customFieldsSchema){const value=input.customFieldValues?.[f.key];
-    if(f.required&&(value===undefined||value===null||value===''))errors.push('请填写 '+f.label);
-    if(value!==undefined&&value!==''&&f.type==='number'&&!Number.isFinite(Number(value)))errors.push(f.label+' 必须是数字');
+    const blank=value===undefined||value===null||typeof value==='string'&&!value.trim();
+    if(f.required&&blank)errors.push('请填写 '+f.label);
+    if(!blank&&f.type==='number'&&!Number.isFinite(Number(value)))errors.push(f.label+' 必须是数字');
+    if(!blank&&f.type==='boolean'&&typeof value!=='boolean')errors.push(f.label+' 必须是是/否结果');
     if(value&&f.type==='date'&&!domainValidDate(value))errors.push(f.label+' 必须是有效日期');
   }
   if(!media.length&&!text&&!(input.focusSeconds>=60)&&!Object.values(input.checklistResults||{}).some(Boolean)&&!metrics.length&&!Object.values(input.customFieldValues||{}).some(v=>v!==''&&v!==undefined))errors.push('请保留真实执行内容');
@@ -27956,10 +27960,42 @@ handleDeleteActiveEdge=function(){
   if(target&&['前置','依赖','阻塞'].includes(edge.type)&&!window.TERTIARY_EDGES.some(e=>e.sourceId===edge.sourceId&&e.targetId===edge.targetId&&['前置','依赖','阻塞'].includes(e.type)))target.dependencies=target.dependencies.filter(id=>id!==edge.sourceId);
   document.getElementById('tertiary-edge-popover')?.classList.add('is-hidden');saveCurrentProjectCanvasSnapshot();renderTertiaryEdges();refreshDomainProjections();notifyIslandStateChanged();return true;
 };
-function editDomainList(id,key){const node=getDomainNode(id);const list=node.cardPayload[key]||[];const sample=key==='customFieldsSchema'?'[{"key":"count","label":"完成次数","type":"number","required":true}]':key==='metrics'?'[{"name":"正确率","targetValue":"≥98%"}]':key==='checklist'?'[{"title":"完成规范动作","required":true}]':'[{"actionItem":"下一次的具体行动","isChecked":true}]';
-  document.getElementById('domain-list-editor')?.remove();const modal=document.createElement('div');modal.className='domain-modal';modal.id='domain-list-editor';modal.innerHTML='<div class="note-card-box"><h3>编辑'+({metrics:'通关指标',checklist:'防守清单',improvementList:'提升行动',customFieldsSchema:'填报项目'}[key])+'</h3><div id="domain-list-rows"></div><button class="ui-btn" id="domain-list-add">➕ 增加一项</button><div id="domain-list-error" role="alert"></div><button class="ui-btn primary" id="domain-list-save">保存</button><button class="ui-btn" onclick="document.getElementById(\'domain-list-editor\').remove()">取消</button></div>';(document.querySelector('.youth-island-plugin-root')||document.body).appendChild(modal);
-  const rows=modal.querySelector('#domain-list-rows');const add=item=>{const row=document.createElement('div');row.className='domain-list-row';row.dataset.id=item.id||domainId('item');row.dataset.key=item.key||domainId('field');row.innerHTML='<input class="domain-item-label" placeholder="'+(key==='metrics'?'指标名称':key==='customFieldsSchema'?'填报项目名称':'具体行动')+'">'+(key==='metrics'?'<input class="domain-item-target" placeholder="例如 ≥98% 或文字验收标准">':'')+(key==='customFieldsSchema'?'<select class="domain-item-type"><option value="text">文字</option><option value="number">数字</option><option value="boolean">是/否</option><option value="date">日期</option></select><label><input class="domain-item-required" type="checkbox" checked>必填</label>':'')+'<button class="ui-btn">移除</button>';row.querySelector('.domain-item-label').value=item.name||item.title||item.actionItem||item.label||'';if(key==='metrics')row.querySelector('.domain-item-target').value=item.targetValue||'';if(key==='customFieldsSchema'){row.querySelector('select').value=item.type||'text';row.querySelector('input[type=checkbox]').checked=item.required!==false;}row.querySelector('button').onclick=()=>row.remove();rows.appendChild(row);};(list.length?list:[{}]).forEach(add);modal.querySelector('#domain-list-add').onclick=()=>add({});modal.querySelector('#domain-list-save').onclick=()=>{if(!planningWriteAllowed())return;const parsed=Array.from(rows.children).map(row=>{const label=row.querySelector('.domain-item-label').value.trim(),id=row.dataset.id;if(!label)return null;if(key==='metrics')return {id,name:label,targetValue:row.querySelector('.domain-item-target').value.trim()};if(key==='customFieldsSchema')return {key:row.dataset.key,label,type:row.querySelector('select').value,required:row.querySelector('input[type=checkbox]').checked};const existing=list.find(x=>x.id===id);return key==='checklist'?{id,title:label,required:true}:{...existing,id,actionItem:label,isChecked:true};}).filter(Boolean);if(!parsed.length){modal.querySelector('#domain-list-error').textContent='请至少填写一项';return;}recordDomainHistory();node.cardPayload[key]=parsed;renderDomainCanvas(node.projectId);saveCurrentProjectCanvasSnapshot();refreshDomainProjections();modal.remove();notifyIslandStateChanged();};
+function editDomainList(id,key){
+  const node=getDomainNode(id),allowed=['metrics','checklist','improvementList','customFieldsSchema'];
+  if(!node||!allowed.includes(key))return false;
+  const list=node.cardPayload[key]||[];
+  document.getElementById('domain-list-editor')?.remove();
+  const modal=document.createElement('div');modal.className='domain-modal';modal.id='domain-list-editor';
+  modal.innerHTML='<div class="note-card-box"><h3>编辑'+({metrics:'通关指标',checklist:'防守清单',improvementList:'提升行动',customFieldsSchema:'填报项目'}[key])+'</h3><div id="domain-list-rows"></div><button class="ui-btn" id="domain-list-add">➕ 增加一项</button><div id="domain-list-error" role="alert"></div><button class="ui-btn primary" id="domain-list-save">保存</button><button class="ui-btn" onclick="document.getElementById(\'domain-list-editor\').remove()">取消</button></div>';
+  (document.querySelector('.youth-island-plugin-root')||document.body).appendChild(modal);
+  const rows=modal.querySelector('#domain-list-rows');
+  const add=item=>{
+    const row=document.createElement('div');row.className='domain-list-row';row.dataset.id=item.id||domainId('item');row.dataset.key=item.key||domainId('field');
+    const flag=key==='improvementList'?'isChecked':'required';
+    row.innerHTML='<input class="domain-item-label" placeholder="名称或具体行动">'+(key==='metrics'?'<input class="domain-item-target" placeholder="目标值或文字验收标准">':'')+(key==='customFieldsSchema'?'<select class="domain-item-type"><option value="text">文字</option><option value="number">数字</option><option value="boolean">是/否</option><option value="date">日期</option></select>':'')+(key!=='metrics'?'<label><input class="domain-item-required" type="checkbox">'+(key==='improvementList'?'参与后续派生':key==='customFieldsSchema'?'必填':'必需')+'</label>':'')+'<button class="ui-btn">移除</button>';
+    row.querySelector('.domain-item-label').value=item.name||item.title||item.actionItem||item.label||'';
+    if(key==='metrics')row.querySelector('.domain-item-target').value=item.targetValue||'';
+    if(key==='customFieldsSchema')row.querySelector('select').value=item.type||'text';
+    const checkbox=row.querySelector('input[type=checkbox]');if(checkbox)checkbox.checked=item[flag]!==false;
+    row.querySelector('button').onclick=()=>row.remove();rows.appendChild(row);
+  };
+  (list.length?list:[{}]).forEach(add);modal.querySelector('#domain-list-add').onclick=()=>add({});
+  modal.querySelector('#domain-list-save').onclick=()=>{
+    if(!planningWriteAllowed())return;
+    if(getDomainNode(id)!==node){modal.querySelector('#domain-list-error').textContent='节点已更新，请关闭并重新打开编辑器。';return;}
+    const parsed=Array.from(rows.children).map(row=>{
+      const label=row.querySelector('.domain-item-label').value.trim(),id=row.dataset.id;if(!label)return null;
+      const old=list.find(item=>item.id===id)||{};
+      if(key==='metrics')return {...old,id,name:label,targetValue:row.querySelector('.domain-item-target').value.trim()};
+      const checked=row.querySelector('input[type=checkbox]').checked;
+      if(key==='customFieldsSchema')return {key:row.dataset.key,label,type:row.querySelector('select').value,required:checked};
+      return key==='checklist'?{...old,id,title:label,required:checked}:{...old,id,actionItem:label,isChecked:checked};
+    }).filter(Boolean);
+    if(!parsed.length||key==='metrics'&&parsed.some(item=>!item.targetValue)){modal.querySelector('#domain-list-error').textContent='请至少填写一项，指标必须同时填写目标。';return;}
+    recordDomainHistory();node.cardPayload[key]=parsed;renderDomainCanvas(node.projectId);saveCurrentProjectCanvasSnapshot();refreshDomainProjections();modal.remove();notifyIslandStateChanged();
+  };
 }
+
 function openDomainEditor(title,text,onSave){document.getElementById('domain-editor')?.remove();const modal=document.createElement('div');modal.id='domain-editor';modal.className='domain-modal';modal.innerHTML='<div class="note-card-box"><h3>'+escapeIslandText(title)+'</h3><textarea id="domain-editor-text" style="width:100%;min-height:240px;"></textarea><div id="domain-editor-error" role="alert"></div><button class="ui-btn primary" id="domain-editor-save">保存</button><button class="ui-btn" onclick="document.getElementById(\'domain-editor\').remove()">取消</button></div>';document.querySelector('.youth-island-plugin-root')?.appendChild(modal)||document.body.appendChild(modal);modal.querySelector('textarea').value=text;modal.querySelector('#domain-editor-save').onclick=()=>{try{onSave(modal.querySelector('textarea').value);modal.remove();notifyIslandStateChanged();}catch(error){modal.querySelector('#domain-editor-error').textContent=error.message;}};}
 createTertiaryCustomPlanningCard=function(config){const state=getDomainState(),project=state.projects.find(p=>p.id===window.currentTertiaryProjId);if(!project){showIslandToast('请先选择项目再新增节点');return null;}recordDomainHistory();const nodes=state.nodesByProject[project.id]||(state.nodesByProject[project.id]=[]);const node=domainNode({...config,plannedDate:config.plannedDate||domainDefaultNodeDate(project)},project);node.canvasPosition=config.canvasPosition||{x:80+(nodes.length%3)*400,y:90+Math.floor(nodes.length/3)*440};nodes.push(node);renderDomainCanvas(project.id);saveCurrentProjectCanvasSnapshot();refreshDomainProjections();domainEvent('node.created',node.id,'新增规划节点《'+node.title+'》',{projectId:project.id});return document.getElementById(node.id);};
 buildStarterCanvasForProject=function(project){const a=domainNode({id:'projnode-'+project.id+'-1',archetype:'goal',title:project.title+' · 阶段验收',isCheckinNode:false,evidenceType:'text'},project),b=domainNode({id:'projnode-'+project.id+'-2',archetype:'drill',title:project.title+' · 实训',duration:20,evidenceType:'photo'},project),c=domainNode({id:'projnode-'+project.id+'-3',archetype:'review',title:project.title+' · 复盘',dependencies:[b.id],evidenceType:'text'},project);a.canvasPosition={x:80,y:90};b.canvasPosition={x:480,y:90};c.canvasPosition={x:880,y:90};return {nodes:[a,b,c],edges:[{id:domainId('edge'),sourceId:b.id,targetId:c.id,label:'前置完成',type:'前置'}],cardsHtml:''};};
@@ -28097,7 +28133,7 @@ function allDomainMedia(){const s=getDomainState();return [...s.records.flatMap(
 function openDomainMedia(id){const media=allDomainMedia().find(m=>m.id===id);if(!media?.path){showIslandToast('这条旧记录没有附件原件');return false;}const modal=document.getElementById('note-media-preview-modal'),body=document.getElementById('note-preview-modal-body');body.replaceChildren();const el=document.createElement(media.type==='image'?'img':media.type);el.src=window.__islandAttachmentUrl(media.path);el.style.cssText='max-width:100%;max-height:65vh';if(media.type!=='image')el.controls=true;body.appendChild(el);document.getElementById('note-preview-modal-title').textContent=media.name;modal.style.zIndex='26000';modal.style.display='flex';return true;}
 openNoteMediaPreviewModal=openDomainMedia;
 handleAccidentalImageUpload=async function(input){const file=input.files?.[0];if(!file)return;try{window.__accidentalDomainMedia=await persistDomainMedia(file);const preview=document.getElementById('achieve-acc-image-preview');preview.textContent='已保存原件：'+file.name;preview.style.display='block';}catch(error){showIslandToast(error.message);}};
-submitRegisterAccidentalAchievement=function(){const title=document.getElementById('achieve-acc-title').value.trim(),desc=document.getElementById('achieve-acc-desc').value.trim(),date=document.getElementById('achieve-acc-date').value;if(title.length<2||title.length>30||desc.length<20||desc.length>300||!domainValidDate(date)||date>domainDate()||!window.__accidentalDomainMedia){showIslandToast('请填写2～30字标题、20～300字描述、真实日期并上传照片原件');return false;}const media=window.__accidentalDomainMedia;const item={id:domainId('achievement'),date,title,desc,category:document.getElementById('achieve-acc-category').value,issuer:document.getElementById('achieve-acc-issuer').value.trim(),image:media.path,media:[media]};window.ACHIEVEMENT_STATE.accidentalItems.unshift(item);window.__accidentalDomainMedia=null;closeRegisterAccidentalAchievementModal();updateAchieveWorkspaceLiveDOM();domainEvent('achievement.accidental',item.id,'记录生活高光《'+title+'》');return true;};
+submitRegisterAccidentalAchievement=function(){const title=document.getElementById('achieve-acc-title').value.trim(),desc=document.getElementById('achieve-acc-desc').value.trim(),date=document.getElementById('achieve-acc-date').value;if(title.length<2||title.length>30||desc.length<20||desc.length>300||!domainValidDate(date)||date>domainDate()||!window.__accidentalDomainMedia||!['image','video'].includes(window.__accidentalDomainMedia.type)){showIslandToast('请填写2～30字标题、20～300字描述、真实日期并上传照片或视频原件');return false;}const media=window.__accidentalDomainMedia;const item={id:domainId('achievement'),date,title,desc,category:document.getElementById('achieve-acc-category').value,issuer:document.getElementById('achieve-acc-issuer').value.trim(),image:media.path,media:[media]};window.ACHIEVEMENT_STATE.accidentalItems.unshift(item);window.__accidentalDomainMedia=null;closeRegisterAccidentalAchievementModal();updateAchieveWorkspaceLiveDOM();domainEvent('achievement.accidental',item.id,'记录生活高光《'+title+'》');return true;};
 
 function sealDomainJournal(draft=false){const note=window.NOTE_STATE,today=ensureBusinessDate(),text=document.getElementById('note-journal-textarea')?.value??note.journalText;if(!draft&&(text.trim().length<30||text.length>500)){showIslandToast('封存随笔须为30～500字；短随笔会自动保留草稿');return false;}const index=note.historyEntries.findIndex(e=>e.date===today),previous=index>=0?note.historyEntries[index]:null;const entry={id:previous?.id||'entry-'+today,date:today,text,mood:note.currentMood,energy:note.currentEnergy,autoLogs:[...note.todayAutoLogs],media:[...note.mediaList],draft,updatedAt:new Date().toISOString(),versions:[...(previous?.versions||[]),...(previous?[{text:previous.text,savedAt:previous.updatedAt}]:[])]};if(index>=0)note.historyEntries.splice(index,1,entry);else note.historyEntries.unshift(entry);note.journalText=text;notifyIslandStateChanged();return entry;}
 saveNoteDailyEntry=function(){const entry=sealDomainJournal();if(!entry)return false;const target=document.getElementById('note-history-list');if(target)target.innerHTML=renderNoteHistoryEntriesHtml();domainEvent('journal.sealed',entry.id,'封存 '+entry.date+' 的心流随记');showIslandToast('当日随记已封存');return true;};
@@ -28219,7 +28255,7 @@ submitStreakFreeze=function(){
 };
 const domainOriginalAchievementOpen=openAchievementDetailModal;
 openAchievementDetailModal=function(type,id){window.activeDomainAchievementId=id;domainOriginalAchievementOpen(type,id);};
-function captureDomainLayout(){for(const [key,meta] of Object.entries(PAVILION_META)){if(!key.startsWith('custom-'))continue;const node=document.getElementById('node-'+key);if(node)meta.position={left:node.style.left,top:node.style.top};}}
+function captureDomainLayout(){for(const [key,meta] of Object.entries(PAVILION_META)){const node=document.getElementById('node-'+key);if(node)meta.position={left:node.style.left,top:node.style.top};}}
 const domainRestore=restoreBusinessViews;
 restoreBusinessViews=function(){domainRestore();applyAvatarSettings();const grid=document.getElementById('island-pavilion-grid');for(const [key,meta] of Object.entries(PAVILION_META)){if(!key.startsWith('custom-')||!grid)continue;let node=document.getElementById('node-'+key);if(!node){node=document.createElement('div');node.id='node-'+key;node.className='pavilion-node custom-module-node';node.innerHTML='<div class="pavilion-card-body"><div class="pavilion-3d-visual">'+escapeIslandText(meta.icon||'🎯')+'</div></div><div class="pavilion-card-label">'+escapeIslandText(meta.name)+'</div><div class="pavilion-view-badge"></div>';node.onclick=()=>handlePavilionClick(key);grid.appendChild(node);initNodeDragging(node);}node.style.left=meta.position?.left||'50%';node.style.top=meta.position?.top||'50%';for(const [container,cls,handler] of [['gantt-category-filters','gantt-filter-btn','filterGanttCategory'],['proj-category-picker','proj-cat-chip','selectProjCategory']]){const parent=document.getElementById(container);if(parent&&!Array.from(parent.children).some(el=>el.dataset.cat===meta.cat)){const button=document.createElement('button');button.className=cls;button.dataset.cat=meta.cat;button.textContent=meta.name;button.onclick=()=>handler==='filterGanttCategory'?filterGanttCategory(meta.cat):selectProjCategory(button,meta.cat);parent.appendChild(button);}}}updatePavilionBadges();
   const st=window.USER_PROFILE_STATE;st.streakFreezeAllowance=2;st.streakFreezeUsed=(st.freezeRecords||[]).filter(r=>r.date.slice(0,7)===domainDate().slice(0,7)).length;
@@ -28307,7 +28343,7 @@ function renderPlanningNodeCard(node){
     footer='<span>资料与想法 · 不计入履约</span><span class="node-footer-chip">规划便签</span>';
   }
   body+=planningCardSettings(node);
-  return '<article class="a-my-island-work-node-card tertiary-card tertiary-'+legacy+'-card domain-node-card" id="'+escapeIslandText(node.id)+'" data-domain-node="true" data-node-type="'+type+'" data-label="'+escapeIslandText(node.title)+'" data-group-id="'+escapeIslandText(node.groupId||'')+'" data-group-root="'+escapeIslandText(node.groupRoot||'')+'" style="position:absolute;left:'+Number(node.canvasPosition.x)+'px;top:'+Number(node.canvasPosition.y)+'px;width:340px;"><header class="work-node-card-header" ondblclick="'+planningCardAction('toggleTertiaryCardMinimize('+JSON.stringify(node.id)+',event)')+'" title="拖动标题栏移动；双击折叠或展开"><div class="node-card-kicker"><span class="work-node-badge">'+meta[0]+' '+meta[1]+'</span><span class="node-card-status" id="status-text-'+escapeIslandText(node.id)+'">'+status+'</span><button type="button" class="node-card-collapse-toggle" aria-label="折叠或展开节点" onclick="'+planningCardAction('toggleTertiaryCardMinimize('+JSON.stringify(node.id)+',event)')+'">⌃</button></div><div class="node-card-title-row"><span class="work-node-title">'+escapeIslandText(node.title)+'</span><button type="button" class="node-title-edit" aria-label="编辑节点名称" onclick="'+planningCardAction('editPlanningCardTitle('+JSON.stringify(node.id)+',event)')+'">✎</button></div><p class="node-card-subtitle">'+meta[2]+'</p></header><div class="work-node-body domain-planning-body">'+body+'</div><footer class="node-card-footer">'+footer+'</footer><button type="button" class="work-card-connect-handle" data-card-id="'+escapeIslandText(node.id)+'" aria-label="从此节点连接路线" title="拖向目标节点，或点击选择连线起点" onclick="startOrFinishConnecting(this.dataset.cardId,event)">🔗</button></article>';
+  return '<article class="a-my-island-work-node-card tertiary-card tertiary-'+legacy+'-card domain-node-card'+(getDomainState().navigation?.projects?.[node.projectId]?.collapsedNodeIds?.includes(node.id)?' is-minimized':'')+'" id="'+escapeIslandText(node.id)+'" data-domain-node="true" data-node-type="'+type+'" data-label="'+escapeIslandText(node.title)+'" data-group-id="'+escapeIslandText(node.groupId||'')+'" data-group-root="'+escapeIslandText(node.groupRoot||'')+'" style="position:absolute;left:'+Number(node.canvasPosition.x)+'px;top:'+Number(node.canvasPosition.y)+'px;width:340px;"><header class="work-node-card-header" ondblclick="'+planningCardAction('toggleTertiaryCardMinimize('+JSON.stringify(node.id)+',event)')+'" title="拖动标题栏移动；双击折叠或展开"><div class="node-card-kicker"><span class="work-node-badge">'+meta[0]+' '+meta[1]+'</span><span class="node-card-status" id="status-text-'+escapeIslandText(node.id)+'">'+status+'</span><button type="button" class="node-card-collapse-toggle" aria-label="折叠或展开节点" onclick="'+planningCardAction('toggleTertiaryCardMinimize('+JSON.stringify(node.id)+',event)')+'">⌃</button></div><div class="node-card-title-row"><span class="work-node-title">'+escapeIslandText(node.title)+'</span><button type="button" class="node-title-edit" aria-label="编辑节点名称" onclick="'+planningCardAction('editPlanningCardTitle('+JSON.stringify(node.id)+',event)')+'">✎</button></div><p class="node-card-subtitle">'+meta[2]+'</p></header><div class="work-node-body domain-planning-body">'+body+'</div><footer class="node-card-footer">'+footer+'</footer><button type="button" class="work-card-connect-handle" data-card-id="'+escapeIslandText(node.id)+'" aria-label="从此节点连接路线" title="拖向目标节点，或点击选择连线起点" onclick="startOrFinishConnecting(this.dataset.cardId,event)">🔗</button></article>';
 }
 
 // Today's coverflow cards share the original five-type design and canonical task instances.
@@ -28561,7 +28597,8 @@ deriveNodesFromReflectionCard=function(id,event){
   source.groupId=source.groupId||domainId('group');source.groupRoot=id;
   for(const action of record.improvementList.filter(i=>i.isChecked!==false&&i.actionItem?.trim())){
     if(nodes.some(n=>n.cardPayload.derivedFrom?.recordId===record.id&&n.cardPayload.derivedFrom?.actionId===action.id))continue;
-    const date=domainDefaultNodeDate(project),child=domainNode({title:action.actionItem.slice(0,30),nodeType:'drill',plannedDate:date,groupId:source.groupId,groupRoot:id,cardPayload:{description:action.actionItem,plannedMinutes:20,evidenceType:'photo',derivedFrom:{nodeId:id,recordId:record.id,actionId:action.id}}},project);
+    const date=project.startDate>domainDate()?project.startDate:domainDate();if(project.endDate<date)project.endDate=date;
+    const child=domainNode({title:action.actionItem.slice(0,30),nodeType:'drill',plannedDate:date,groupId:source.groupId,groupRoot:id,cardPayload:{description:action.actionItem,plannedMinutes:20,evidenceType:'photo',derivedFrom:{nodeId:id,recordId:record.id,actionId:action.id}}},project);
     child.canvasPosition={x:source.canvasPosition.x+400,y:source.canvasPosition.y+count*400};nodes.push(child);
     window.PROJECT_CANVAS_STORE[project.id].edges.push({id:domainId('edge'),sourceId:id,targetId:child.id,type:'派生',label:'复盘后续规划'});count++;
   }
@@ -28607,6 +28644,7 @@ function refreshMediaBusy(context,owner){
   document.querySelectorAll('.island-native-media-input').forEach(input=>{if(input.dataset.mediaContext===context&&input.dataset.mediaOwner===owner){input.disabled=busy||(context==='execution'&&!!evidenceSession?.saved);input.parentElement.setAttribute('aria-disabled',String(input.disabled));input.closest('.island-media-picker').setAttribute('aria-busy',String(busy));input.closest('.island-media-picker').querySelector('.island-media-status').textContent=busy?'正在保存原件…':'原件保存到当前知识库';}});
   if(context==='execution'&&evidenceSession?.taskId===owner){const button=document.getElementById('island-real-submit');if(button)button.disabled=busy||evidenceSession.saved;}
   if(context==='bounty'&&window.BOUNTY_STATE?.id===owner){const button=document.getElementById('bounty-action-redeem-btn');if(button)button.disabled=busy||window.BOUNTY_STATE.status!=='accepted';}
+  if(context==='achievement'&&window.__accidentalUploadToken===owner){const button=document.querySelector('#register-accidental-achievement-modal [onclick="submitRegisterAccidentalAchievement()"]');if(button)button.disabled=busy;}
 }
 async function processNativeMediaFiles(input){
   const files=Array.from(input.files||[]),context=input.dataset.mediaContext,owner=input.dataset.mediaOwner,key=context+':'+owner;
@@ -28661,6 +28699,10 @@ renderNoteSpecializedWorkspace=function(){const holder=document.createElement('d
 renderNoteMediaGalleryHtml=function(){return window.NOTE_STATE.mediaList.map(m=>'<div class="note-history-card"><button class="ui-btn" onclick="openDomainMedia('+escapeIslandText(JSON.stringify(m.id))+')">'+escapeIslandText(m.name)+'</button><span>'+escapeIslandText(m.type==='image'?'照片原件':m.duration==null?'视频 / 录音原件':Math.round(m.duration)+'秒')+'</span><button class="ui-btn" onclick="removeNoteMedia('+escapeIslandText(JSON.stringify(m.id))+')">移除</button></div>').join('');};
 const nativeMediaAchievementOpen=openRegisterAccidentalAchievementModal;
 openRegisterAccidentalAchievementModal=function(){nativeMediaAchievementOpen();window.__accidentalUploadToken=domainId('highlight');window.__accidentalDomainMedia=null;const input=document.getElementById('accidental-image-file');if(input){const container=input.parentElement;container.innerHTML=mediaPickerControls('achievement');container.parentElement.querySelector('label').textContent='照片或视频物证';}else{const controls=document.querySelector('#register-accidental-achievement-modal .island-media-picker');if(controls)controls.outerHTML=mediaPickerControls('achievement');}};
+const nativeMediaAchievementClose=closeRegisterAccidentalAchievementModal;
+closeRegisterAccidentalAchievementModal=function(){window.__accidentalUploadToken=null;window.__accidentalDomainMedia=null;return nativeMediaAchievementClose();};
+const mediaSubmitAchievement=submitRegisterAccidentalAchievement;
+submitRegisterAccidentalAchievement=function(){if(mediaJobs.has('achievement:'+window.__accidentalUploadToken)){showIslandToast('请等待原件保存完成');return false;}return mediaSubmitAchievement();};
 const mediaSubmitExecution=submitRealExecution;
 submitRealExecution=function(){if(evidenceSession&&mediaJobs.has('execution:'+evidenceSession.taskId)){showIslandToast('请等待原件保存完成');return false;}return mediaSubmitExecution();};
 const mediaRedeemBounty=completeBountyDemo;
@@ -28699,6 +28741,82 @@ function handleBountyDialogKeydown(event){
   event.stopPropagation();if(event.key==='Escape'){event.preventDefault();closeBountyModal();return;}
   if(event.key==='Tab'){const list=Array.from(document.querySelectorAll('#bounty-modal-backdrop button,#bounty-modal-backdrop input,#bounty-modal-backdrop textarea,#bounty-modal-backdrop select')).filter(e=>!e.disabled&&e.getClientRects().length),first=list[0],last=list.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}
 }
+
+// Cross-module transactions audited against PRD 1.2.2.
+const integrityConfirmProject=confirmAddNewProject;
+confirmAddNewProject=function(){
+  const id=document.getElementById('input-proj-edit-id')?.value,project=getDomainState().projects.find(p=>p.id===id);
+  if(project){
+    const start=document.getElementById('input-proj-start').value,end=document.getElementById('input-proj-end').value;
+    const outside=(getDomainState().nodesByProject[id]||[]).filter(node=>node.plannedDate<start||node.plannedDate>end);
+    if(outside.length){showIslandToast('新周期会排除已有节点，请先调整节点计划日：'+outside.map(n=>n.title).join('、'));return false;}
+  }
+  return integrityConfirmProject();
+};
+confirmAddProject=confirmAddNewProject;
+
+// This legacy entry must create the same structured node as the ordinary creator.
+handleConfirmTertiaryCreateModule=submitNodeCreator;
+openTertiaryCreateModuleModal=function(){if(!openNodeCreator())return false;selectNodeCreatorType('custom');return true;};
+closeTertiaryCreateModuleModal=closeNodeCreator;
+createCustomModule=openTertiaryCreateModuleModal;
+const integrityCollapse=toggleTertiaryCardMinimize,integrityCycleLayout=cycleHomeLayout,integrityFollow=toggleChildrenFollowToolbar;
+toggleTertiaryCardMinimize=function(id,event){
+  const result=integrityCollapse(id,event),node=getDomainNode(id);if(!node)return result;
+  const nav=getDomainState().navigation,previous=nav.projects[node.projectId]||{collapsed:false},ids=new Set(previous.collapsedNodeIds||[]);
+  if(document.getElementById(id)?.classList.contains('is-minimized'))ids.add(id);else ids.delete(id);
+  nav.projects[node.projectId]={...previous,collapsedNodeIds:[...ids]};notifyIslandStateChanged();return result;
+};
+cycleHomeLayout=function(){
+  const prefs=getDomainState().navigation.planning,nodes=Array.from(document.querySelectorAll('#island-pavilion-grid .pavilion-node')).filter(node=>getComputedStyle(node).display!=='none');
+  if(currentHomeLayoutIndex===0)prefs.freeLayout=Object.fromEntries(nodes.map(node=>[node.id,{left:node.style.left,top:node.style.top}]));
+  const result=integrityCycleLayout();
+  if(currentHomeLayoutIndex===1){const cols=Math.ceil(Math.sqrt(nodes.length)),rows=Math.ceil(nodes.length/cols);nodes.forEach((node,i)=>{node.style.left=((i%cols+1)*100/(cols+1))+'%';node.style.top=((Math.floor(i/cols)+1)*100/(rows+1))+'%';});}
+  if(currentHomeLayoutIndex===0&&prefs.freeLayout)for(const node of nodes){const pos=prefs.freeLayout[node.id];if(pos){node.style.left=pos.left;node.style.top=pos.top;}}
+  prefs.layoutIndex=currentHomeLayoutIndex;captureDomainLayout();notifyIslandStateChanged();return result;
+};
+toggleChildrenFollowToolbar=function(){const result=integrityFollow();getDomainState().navigation.followChildren=childrenFollowEnabled;notifyIslandStateChanged();return result;};
+
+confirmAddNewModule=function(){
+  const name=document.getElementById('input-module-name')?.value.trim(),description=document.getElementById('input-module-badge')?.value.trim()||'';
+  if(!name||name.length<2||name.length>30){showIslandToast('场馆名称须为2～30字');return false;}
+  const id=domainId('custom'),icon=String(selectedModuleIcon||'🎨');
+  PAVILION_META[id]={name,icon,description,cat:id,specializedTitle:name+'规划空间',hasGantt:true,hasTertiary:true,position:{left:'50%',top:'50%'}};
+  window.PAVILION_CARDS=window.PAVILION_CARDS||{};window.PAVILION_CARDS[id]={id,name,icon,category:id,description};
+  closeAddModuleModal();restoreBusinessViews();domainEvent('pavilion.created',id,'新增规划场馆《'+name+'》');return id;
+};
+const integrityRestore=restoreBusinessViews;
+restoreBusinessViews=function(){
+  integrityRestore();const nav=getDomainState().navigation;
+  if(typeof nav.followChildren==='boolean')childrenFollowEnabled=nav.followChildren;
+  document.querySelectorAll('#btn-ws-children-follow,#btn-tertiary-children-follow').forEach(button=>button.classList.toggle('is-active',childrenFollowEnabled));
+  if(Number.isInteger(nav.planning.layoutIndex)&&nav.planning.layoutIndex>=0&&nav.planning.layoutIndex<3){currentHomeLayoutIndex=nav.planning.layoutIndex;const label=document.getElementById('lbl-home-layout');if(label)label.textContent=homeLayoutNames[currentHomeLayoutIndex];document.getElementById('btn-home-layout')?.classList.toggle('is-active',currentHomeLayoutIndex===0);}
+  for(const [id,meta]of Object.entries(PAVILION_META)){
+    const node=document.getElementById('node-'+id);if(!node)continue;
+    if(meta.position?.left)node.style.left=meta.position.left;if(meta.position?.top)node.style.top=meta.position.top;
+    if(!id.startsWith('custom-'))continue;let caption=node.querySelector('.custom-module-description');if(!caption){caption=document.createElement('div');caption.className='custom-module-description';caption.style.cssText='font-size:10px;color:#8c7355;text-align:center';node.querySelector('.pavilion-card-label')?.after(caption);}caption.textContent=meta.description||'';
+  }
+};
+
+exportDomainDocument=async function(path,title,content){
+  try{
+    if(window.__exportIslandDocument){await window.__exportIslandDocument(path,content);return true;}
+    const url=URL.createObjectURL(new Blob([content],{type:'text/markdown;charset=utf-8'})),link=document.createElement('a');link.href=url;link.download=title+'.md';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return true;
+  }catch(error){showIslandToast('档案导出失败：'+error.message);return false;}
+};
+function domainNotePath(relative){return window.__islandDocumentPath?window.__islandDocumentPath(relative):relative;}
+exportDomainAchievement=async function(id){
+  const award=[...window.ACHIEVEMENT_STATE.cultivationItems,...window.ACHIEVEMENT_STATE.accidentalItems].find(a=>a.id===id);if(!award)return false;
+  const state=getDomainState(),project=state.projects.find(p=>p.id===award.sourceProjectId),recordIds=[...new Set([award.sourceRecordId,...(award.sourceRecordIds||[])].filter(Boolean))],records=state.records.filter(r=>recordIds.includes(r.id));
+  const projectPath=project&&window.__islandProjectNotePath?.(project);
+  const source=projectPath?'[['+projectPath+'|来源项目]]':project?'来源项目：'+project.title+'（笔记自动导出未启用）':award.bountyId?'来源：亲子悬赏契约':'来源：生活高光或历史记录';
+  const standards=records.map(r=>'### 来源记录 '+r.id+'\n任务实例ID：'+(r.taskInstanceId||r.taskId||'历史缺失')+'\n计划日：'+(r.scheduledDate||'历史缺失')+'\n实际日：'+r.date+'\n实际专注：'+(r.focusSeconds||0)+'秒\n\n'+(r.reflection||'')+'\n\n'+(r.sourceSnapshot?'```json\n'+JSON.stringify(r.sourceSnapshot,null,2)+'\n```':'历史标准快照不完整')).join('\n\n');
+  const body='# '+award.title+'\n\n成果ID：'+award.id+'\n日期：'+award.date+'\n源项目ID：'+(award.sourceProjectId||'无')+'\n源节点ID：'+(award.sourceNodeId||'无')+'\n源契约ID：'+(award.bountyId||'无')+'\n源记录ID：'+(recordIds.join('、')||'历史缺失或生活高光')+'\n审核/授予说明：'+(award.issuer||'未记录')+'\n\n'+source+'\n\n'+(award.metrics||[]).map(m=>'- '+m.name+'：目标 '+(m.target??m.targetValue??'未记录')+'；实测 '+(m.actual??'未记录')).join('\n')+'\n\n'+(award.desc||'')+'\n\n'+standards+'\n\n'+(award.media||[]).filter(m=>m.path).map(m=>'原件ID：'+m.id+'\n![['+m.path+']]').join('\n\n');
+  return exportDomainDocument('exports/achievement-'+award.id+'.md',award.title,body);
+};
+const integrityJournalMood=switchNoteMood,integrityJournalEnergy=switchNoteEnergy;
+switchNoteMood=function(...args){ensureBusinessDate();const result=integrityJournalMood(...args);notifyIslandStateChanged();return result;};
+switchNoteEnergy=function(...args){ensureBusinessDate();const result=integrityJournalEnergy(...args);notifyIslandStateChanged();return result;};
 
 // One gesture/viewport implementation for the planning sandbox and project canvas.
 function canvasLocalPoint(stage,clientX,clientY){const r=stage.getBoundingClientRect();return {x:(clientX-r.left)*stage.clientWidth/(r.width||1),y:(clientY-r.top)*stage.clientHeight/(r.height||1)};}
@@ -29033,7 +29151,7 @@ function bindCanvasNavigation(nav){
 }
 function toggleCanvasNavigation(kind,forceState){
   const nav=getCanvasNavigator(kind);if(!nav)return;const prefs=canvasNavigationPreferences(),collapsed=typeof forceState==='boolean'?!forceState:!canvasNavigationPreference(kind).collapsed;
-  if(kind==='planning')prefs.planning={collapsed};else if(window.currentTertiaryProjId)prefs.projects[window.currentTertiaryProjId]={collapsed};
+  if(kind==='planning')prefs.planning={...prefs.planning,collapsed};else if(window.currentTertiaryProjId)prefs.projects[window.currentTertiaryProjId]={...prefs.projects[window.currentTertiaryProjId],collapsed};
   cancelCanvasNavigationDrag(nav);queueCanvasNavigation(kind,true);notifyIslandStateChanged();
 }
 updateIslandMinimap=function(){queueCanvasNavigation('planning');};

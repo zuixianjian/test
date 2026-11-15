@@ -92,6 +92,114 @@ function validateVaultRoot(value) {
   return path.replace(/\/+$/g, "");
 }
 
+// src/storage/MarkdownExport.ts
+var names = { goal: "\u76EE\u6807", drill: "\u5B9E\u8BAD", habit: "\u4E60\u60EF", review: "\u590D\u76D8", custom: "\u81EA\u5B9A\u4E49", text: "\u6587\u672C" };
+var frequencies = { once: "\u4E00\u6B21", daily: "\u6BCF\u65E5", weekdays: "\u5DE5\u4F5C\u65E5", weekly: "\u6BCF\u5468" };
+var evidence = { none: "\u65E0\u9700\u9644\u4EF6", text: "\u6587\u5B57\u8BF4\u660E", photo: "\u7167\u7247\u539F\u4EF6", video: "\u89C6\u9891\u539F\u4EF6", audio: "\u97F3\u9891\u539F\u4EF6" };
+var isNoteDate = (value) => typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
+var projectNoteRelativePath = (project, dir) => `${dir}/02_Projects/${safeFileStem(project.title)}--${safeFileStem(project.id)}.md`;
+var lines = (values, render) => (values || []).map(render).join("\n") || "\u672A\u8BBE\u7F6E";
+function mediaMarkdown(media = []) {
+  return media.filter((m) => m.path).map((m) => `- \u539F\u4EF6ID: ${m.id || "\u5386\u53F2\u7F3A\u5931"}\uFF1B\u6587\u4EF6: ${m.name || "\u672A\u547D\u540D"}\uFF1B\u7C7B\u578B: ${m.mime || m.type || "\u672A\u77E5"}\uFF1B\u5927\u5C0F: ${m.size ?? "\u672A\u8BB0\u5F55"}\u5B57\u8282${m.duration == null ? "" : `\uFF1B\u65F6\u957F: ${m.duration}\u79D2`}
+![[${m.path}]]`).join("\n");
+}
+function planningMarkdown(data) {
+  return (data?.nodes || []).map((node) => {
+    const p = node.cardPayload || {};
+    return `### ${node.title || "\u672A\u547D\u540D\u8282\u70B9"}
+\u8282\u70B9ID: ${node.id}
+\u7C7B\u578B: ${names[node.nodeType] || node.nodeType}
+\u8BA1\u5212\u65E5: ${node.plannedDate || "\u672A\u8BBE\u7F6E"}
+\u9891\u6B21: ${frequencies[node.frequency] || node.frequency || "\u672A\u8BBE\u7F6E"}
+\u52A0\u5165\u6267\u884C: ${node.isCheckinNode ? "\u662F" : "\u5426"}
+\u6743\u91CD: ${node.weight ?? 1}
+\u524D\u7F6E\u8282\u70B9ID: ${(node.dependencies || []).join("\u3001") || "\u65E0"}
+\u6240\u5C5E\u7EC4/\u6839\u8282\u70B9: ${node.groupId || "\u65E0"} / ${node.groupRoot || "\u65E0"}
+\u753B\u5E03\u4F4D\u7F6E: ${JSON.stringify(node.canvasPosition || null)}
+\u8BA1\u5212\u4E13\u6CE8: ${p.plannedMinutes ?? 0}\u5206\u949F
+\u7269\u8BC1\u8981\u6C42: ${evidence[p.evidenceType] || p.evidenceType || "\u672A\u8BBE\u7F6E"}
+\u671F\u671B\u5B8C\u6210: ${p.targetDeadline || "\u672A\u8BBE\u7F6E"}
+
+${p.description || ""}
+
+${p.textContent !== p.description ? p.textContent || "" : ""}
+
+\u76EE\u6807\u6307\u6807:
+${lines(p.metrics, (m) => `- ${m.name}\uFF1A${m.targetValue}${m.unit && !String(m.targetValue).endsWith(m.unit) ? m.unit : ""}\uFF08ID: ${m.id || "\u5386\u53F2\u7F3A\u5931"}\uFF09`)}
+
+\u9A8C\u6536\u6807\u51C6: ${p.acceptanceCriteria || "\u672A\u8BBE\u7F6E"}
+
+\u89C4\u5212\u6E05\u5355:
+${lines(p.checklist, (c) => `- ${c.title}\uFF08${c.required === false ? "\u9009\u586B" : "\u5FC5\u9700"}\uFF1BID: ${c.id}\uFF09`)}
+
+\u89C4\u5212\u63D0\u5347\u884C\u52A8:
+${lines(p.improvementList, (a) => `- ${a.actionItem}\uFF08${a.isChecked === false ? "\u4E0D\u6D3E\u751F" : "\u53C2\u4E0E\u6D3E\u751F"}\uFF1BID: ${a.id}${a.derivedNodeId ? `\uFF1B\u5DF2\u6D3E\u751F\u8282\u70B9: ${a.derivedNodeId}` : ""}\uFF09`)}
+
+\u81EA\u5B9A\u4E49\u5B57\u6BB5\u6807\u51C6:
+${lines(p.customFieldsSchema, (f) => `- ${f.label}\uFF08\u952E: ${f.key}\uFF1B\u7C7B\u578B: ${f.type}\uFF1B${f.required ? "\u5FC5\u586B" : "\u9009\u586B"}\uFF09`)}${p.derivedFrom ? `
+
+\u6D3E\u751F\u6765\u6E90: ${JSON.stringify(p.derivedFrom)}` : ""}`;
+  }).join("\n\n") + `
+
+### \u8282\u70B9\u8FDE\u7EBF
+${lines(data?.edges, (edge) => `- ${edge.sourceId} \u2192 ${edge.targetId}\uFF1B${edge.type || "\u5173\u8054"}\uFF1B${edge.label || "\u65E0\u6807\u7B7E"}\uFF08ID: ${edge.id}\uFF09`)}`;
+}
+function executionMarkdown(record) {
+  const p = record.sourceSnapshot?.cardPayload;
+  const actual = [
+    ...(record.metrics || []).map((m) => `- ${m.name}\uFF1A\u76EE\u6807 ${m.targetValue ?? m.target ?? "\u5386\u53F2\u672A\u8BB0\u5F55"}\uFF1B\u5B9E\u6D4B ${m.actual}\uFF1B${m.passed === false ? "\u672A\u901A\u8FC7" : "\u901A\u8FC7"}`),
+    ...Object.entries(record.checklistResults || {}).map(([id, value]) => `- \u6E05\u5355 ${p?.checklist?.find((c) => c.id === id)?.title || id}\uFF1A${value ? "\u5DF2\u5C65\u884C" : "\u672A\u5C65\u884C"}`),
+    ...Object.entries(record.customFieldValues || {}).map(([key, value]) => `- ${p?.customFieldsSchema?.find((f) => f.key === key)?.label || key}\uFF1A${value}`),
+    ...(record.improvementList || []).map((a) => `- \u5B9E\u9645\u63D0\u5347\u884C\u52A8\uFF1A${a.actionItem}\uFF08ID: ${a.id}\uFF09`)
+  ].join("\n");
+  return `### ${record.title || "\u6267\u884C\u8BB0\u5F55"}
+\u8BB0\u5F55ID: ${record.id}
+\u4EFB\u52A1\u5B9E\u4F8BID: ${record.taskInstanceId || record.taskId || "\u5386\u53F2\u7F3A\u5931"}
+\u6E90\u8282\u70B9ID: ${record.nodeId || "\u65E0"}
+\u6E90\u9879\u76EEID: ${record.projectId || "\u65E0"}
+\u6E90\u5951\u7EA6ID: ${record.bountyId || "\u65E0"}
+\u8BA1\u5212\u65E5: ${record.scheduledDate || record.date || "\u5386\u53F2\u7F3A\u5931"}
+\u5B9E\u9645\u63D0\u4EA4\u65E5: ${record.date || "\u5386\u53F2\u7F3A\u5931"}
+\u63D0\u4EA4\u65F6\u95F4: ${record.completedAt || "\u5386\u53F2\u7F3A\u5931"}
+\u9A8C\u6536: ${record.validated === true ? "\u901A\u8FC7" : "\u5386\u53F2\u672A\u6838\u9A8C"}
+\u5B9E\u9645\u4E13\u6CE8: ${record.focusSeconds || 0}\u79D2
+
+${record.reflection || ""}
+
+${actual}
+
+${p ? `<details>
+<summary>\u672C\u6B21\u6267\u884C\u91C7\u7528\u7684\u89C4\u5212\u6807\u51C6\u5FEB\u7167</summary>
+
+\`\`\`json
+${JSON.stringify(record.sourceSnapshot, null, 2)}
+\`\`\`
+</details>` : "\u5386\u53F2\u6765\u6E90\u6807\u51C6\u5FEB\u7167\u4E0D\u5B8C\u6574"}
+
+${mediaMarkdown(record.media)}`;
+}
+function familyMarkdown(family) {
+  const f = family || {};
+  return `---
+type: family-pact
+generated_by: youth-holistic-growth-island
+version: ${f.version || 0}
+signed_at: ${JSON.stringify(f.signedAt || null)}
+---
+
+# \u4EB2\u5B50\u5171\u540C\u516C\u7EA6
+
+${f.signedAt ? `\u5B69\u5B50\uFF1A${f.childName}
+\u76D1\u62A4\u4EBA\uFF1A${f.guardianNames}
+\u7B7E\u7F72\u65F6\u95F4\uFF1A${f.signedAt}
+\u7248\u672C\uFF1A${f.version}
+
+${lines(f.clauses, (c) => `- ${c.text}\uFF08\u6761\u6B3EID: ${c.id}\uFF09`)}` : "\u5C1A\u672A\u5171\u540C\u7B7E\u7F72\u3002\u7ECF\u5178\u53C2\u8003\u548C\u4E2A\u4EBA\u624B\u5199\u7B14\u8BB0\u4E0D\u4EE3\u8868\u5BB6\u5EAD\u5DF2\u540C\u610F\u7684\u6761\u6B3E\u3002"}
+
+\u672C\u6587\u4EF6\u7531\u5BB6\u5EAD\u6863\u6848\u5BFC\u51FA\uFF1B\u4FEE\u6539\u6761\u6B3E\u8BF7\u56DE\u63D2\u4EF6\u5171\u540C\u786E\u8BA4\u5E76\u7B7E\u7F72\u65B0\u7248\u672C\u3002
+`;
+}
+
 // src/storage/VaultStorageAdapter.ts
 var PAVILIONS = {
   study: "01_School_\u6821\u53F2\u9986",
@@ -116,6 +224,7 @@ var VaultStorageAdapter = class {
     this.lastSavedAt = null;
     this.lastNotice = "";
     this.lastNoticeAt = 0;
+    this.hydratedRoot = null;
   }
   resolvePath(relative) {
     const root = validateVaultRoot(this.getSettings().vaultRootFolder || "");
@@ -161,6 +270,9 @@ var VaultStorageAdapter = class {
       return void 0;
     return JSON.parse(await this.app.vault.adapter.read(full));
   }
+  validDomainCommit(value) {
+    return value?.schemaVersion === 3 && Array.isArray(value.projects) && Array.isArray(value.records) && value.nodesByProject && typeof value.nodesByProject === "object" && !Array.isArray(value.nodesByProject) && value.stores && typeof value.stores === "object" && !Array.isArray(value.stores);
+  }
   getSaveStatus() {
     return { lastSavedAt: this.lastSavedAt, error: this.lastSaveError, exportError: this.lastExportError };
   }
@@ -185,8 +297,8 @@ var VaultStorageAdapter = class {
       if (previous !== void 0) {
         let valid = false;
         try {
-          JSON.parse(previous);
-          valid = true;
+          const parsed = JSON.parse(previous);
+          valid = relative !== "00_Island_Core/domain_state.json" || this.validDomainCommit(parsed);
         } catch {
         }
         if (valid)
@@ -222,7 +334,9 @@ var VaultStorageAdapter = class {
       pending = await this.readJson("00_Island_Core/domain_state.pending.json");
     } catch {
     }
-    const valid = (value) => value?.schemaVersion === 3 && Array.isArray(value.projects) && Array.isArray(value.records) && value.nodesByProject && value.stores;
+    const valid = (value) => this.validDomainCommit(value);
+    if (primary !== void 0 && !valid(primary))
+      primaryError = new Error("\u9886\u57DF\u6863\u6848\u7ED3\u6784\u4E0D\u5B8C\u6574\uFF0C\u5DF2\u6682\u505C\u4FDD\u5B58\u3002\u8BF7\u68C0\u67E5 domain_state.json \u7684\u9879\u76EE\u3001\u8282\u70B9\u3001\u8BB0\u5F55\u53CA stores\u3002");
     if (valid(pending) && (primaryError || !primary || (pending.storageRevision || 0) > (primary.storageRevision || 0))) {
       if (primaryError) {
         const raw = await this.app.vault.adapter.read(this.resolvePath("00_Island_Core/domain_state.json"));
@@ -256,6 +370,7 @@ var VaultStorageAdapter = class {
   async hydrateRuntimeFromVault() {
     this.hydrated = false;
     this.blocked = false;
+    this.hydratedRoot = null;
     const win = window;
     try {
       const primary = await this.readDomainCommit();
@@ -383,6 +498,7 @@ var VaultStorageAdapter = class {
           restore(key, saved);
       }
       this.hydrated = true;
+      this.hydratedRoot = validateVaultRoot(this.getSettings().vaultRootFolder || "");
     } catch (error) {
       this.blocked = true;
       throw error;
@@ -405,6 +521,7 @@ var VaultStorageAdapter = class {
   async syncRuntimeToVault() {
     if (!this.hydrated || this.blocked)
       return false;
+    this.assertHydratedRoot();
     if (this.syncTimer) {
       clearTimeout(this.syncTimer);
       this.syncTimer = null;
@@ -447,8 +564,9 @@ var VaultStorageAdapter = class {
     await this.ensureVaultStructure();
     const fullSnapshot = this.resolvePath(SNAPSHOT);
     const adapter = this.app.vault.adapter;
+    let previousDomain;
     if (state.DOMAIN_STATE) {
-      const previousDomain = await this.readDomainCommit();
+      previousDomain = await this.readDomainCommit();
       const revision = Math.max(Date.now(), (previousDomain?.storageRevision || 0) + 1);
       state.DOMAIN_STATE.storageRevision = revision;
       state.DOMAIN_STATE.projects = state.GANTT_PROJECTS;
@@ -477,6 +595,12 @@ var VaultStorageAdapter = class {
       await this.writeJson("00_Island_Core/island_settings.json", state.USER_PROFILE_STATE.settings || {});
       await this.writeJson("00_Island_Core/island_topology.json", state.PAVILION_META);
       const projects = state.GANTT_PROJECTS || [];
+      let previousNotes;
+      try {
+        previousNotes = await this.readJson("00_Island_Core/notes_index.json");
+      } catch {
+      }
+      const projectNotes = [];
       const keys = /* @__PURE__ */ new Set([...Object.keys(PAVILIONS), ...projects.map((p) => p.pavilion || p.moduleKey || "study"), ...Object.keys(state.PAVILION_META || {}).filter((key) => key.startsWith("custom-"))]);
       for (const key of keys) {
         const dir = this.pavilionDir(key);
@@ -486,9 +610,15 @@ var VaultStorageAdapter = class {
         for (const project of list) {
           const data = state.PROJECT_CANVAS_STORE?.[project.id] || { cardsHtml: "", edges: [] };
           await this.writeJson(`${dir}/02_Projects/nodes_${safeFileStem(project.id)}.json`, { ...data, storageRevision: state.DOMAIN_STATE?.storageRevision || 0 });
-          const stem = `${safeFileStem(project.title)}--${safeFileStem(project.id)}`;
-          if (this.getSettings().autoSyncVaultMarkdown)
-            await this.writeText(`${dir}/02_Projects/${stem}.md`, this.projectMarkdown(project, key, data, state.DOMAIN_STATE));
+          if (this.getSettings().autoSyncVaultMarkdown) {
+            const oldProject = previousDomain?.projects?.find((item) => item.id === project.id);
+            const path = this.projectNotePath(project), previous = previousNotes?.projects?.find((item) => item.projectId === project.id) || (oldProject ? { path: this.projectNotePath(oldProject) } : void 0);
+            const aliases = [.../* @__PURE__ */ new Set([...previous?.aliases || [], ...previous?.path && previous.path !== path ? [previous.path] : []])].filter((alias) => alias !== path);
+            await this.writeText(projectNoteRelativePath(project, dir), this.projectMarkdown(project, key, data, state.DOMAIN_STATE));
+            for (const alias of aliases)
+              await this.updateHistoricalNoteLink(String(alias), path, project.id);
+            projectNotes.push({ projectId: project.id, path, aliases, nodeIds: (data.nodes || []).map((node) => node.id) });
+          }
         }
       }
       await this.writeJson("05_Treasury_\u85CF\u91D1\u5C4B/ledger.json", state.TREASURY_STATE);
@@ -507,6 +637,10 @@ var VaultStorageAdapter = class {
           entries = entries.map((entry) => entry.date === date ? { ...entry, text: note.journalText ?? entry.text, draft: entry.draft || note.journalText !== entry.text, autoLogs: note.todayAutoLogs, media: note.mediaList, mood: note.currentMood, energy: note.currentEnergy } : entry);
         }
         const written = /* @__PURE__ */ new Set();
+        for (const record of state.DOMAIN_STATE?.records || []) {
+          if (isNoteDate(record.date) && !entries.some((entry) => entry.date === record.date))
+            entries.push({ date: record.date, text: "", autoLogs: [], media: [] });
+        }
         for (const entry of entries) {
           if (!/^\d{4}-\d{2}-\d{2}$/.test(entry.date) || written.has(entry.date))
             continue;
@@ -516,6 +650,20 @@ var VaultStorageAdapter = class {
         const code = "07_Baseline_\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303/personal_code.md";
         if (!await adapter.exists(this.resolvePath(code)))
           await this.writeText(code, "---\ntype: personal-constitution\n---\n\n# \u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303\n\n\u8BF7\u5728\u4EB2\u5B50\u5171\u540C\u8BA8\u8BBA\u540E\uFF0C\u8BB0\u5F55\u5DF2\u786E\u7ACB\u7684\u884C\u4E3A\u89C4\u8303\u3002\n");
+        await this.writeText("07_Baseline_\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303/family_pact.md", familyMarkdown(state.DOMAIN_STATE?.family));
+        const journals = [...written].map((date2) => ({ date: date2, path: this.resolvePath(`08_Daily_\u6BCF\u65E5\u968F\u8BB0/${date2.slice(0, 4)}/${date2}.md`), recordIds: (state.DOMAIN_STATE?.records || []).filter((record) => record.date === date2).map((record) => record.id) }));
+        const retiredProjects = [...previousNotes?.retiredProjects || [], ...previousNotes?.projects || []].filter((item, index, all) => !projects.some((project) => project.id === item.projectId) && all.findIndex((other) => other.projectId === item.projectId) === index);
+        await this.writeJson("00_Island_Core/notes_index.json", {
+          storageRevision: state.DOMAIN_STATE?.storageRevision || 0,
+          projects: projectNotes,
+          retiredProjects,
+          journals,
+          family: { version: state.DOMAIN_STATE?.family?.version || 0, path: this.resolvePath("07_Baseline_\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303/family_pact.md") }
+        });
+        await this.writeText("00_Island_Core/notes_index.md", "# \u6210\u957F\u7B14\u8BB0\u7D22\u5F15\n\n\u4ECE\u7A33\u5B9A\u6765\u6E90ID\u67E5\u8BE2\u5F53\u524D\u7B14\u8BB0\u3002Markdown\u662F\u5BFC\u51FA\u6295\u5F71\uFF0C\u9886\u57DF\u4E8B\u5B9E\u4FDD\u5B58\u5728domain_state.json\u3002\n\n## \u9879\u76EE\n" + projectNotes.map((item) => `- [[${item.path}]]\uFF1B\u9879\u76EEID: ${item.projectId}`).join("\n") + "\n\n## \u6BCF\u65E5\u968F\u8BB0\n" + journals.map((item) => `- [[${item.path}|${item.date}]]\uFF1B\u8BB0\u5F55ID: ${item.recordIds.join("\u3001") || "\u65E0\u6267\u884C\u8BB0\u5F55"}`).join("\n") + "\n\n## \u4FDD\u7559\u7684\u5386\u53F2\u9879\u76EE\u5BFC\u51FA\n" + retiredProjects.map((item) => `- [[${item.path}]]\uFF1B\u9879\u76EEID: ${item.projectId}\uFF08\u5F53\u524D\u89C4\u5212\u4E2D\u5DF2\u79FB\u9664\uFF0C\u5386\u53F2\u6587\u4EF6\u4FDD\u7559\uFF09`).join("\n") + `
+
+[[${this.resolvePath("07_Baseline_\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303/family_pact.md")}|\u5F53\u524D\u5171\u540C\u7B7E\u7F72\u516C\u7EA6]]
+`);
       }
       globalIslandEventBus.emit("vault:synced", { timestamp: state.updatedAt });
       this.lastExportError = "";
@@ -528,6 +676,7 @@ var VaultStorageAdapter = class {
     }
   }
   async saveAttachment(file) {
+    this.assertHydratedRoot();
     if (!/^(image|video|audio)\//.test(file.type))
       throw new Error("\u8BF7\u9009\u62E9\u7167\u7247\u3001\u89C6\u9891\u6216\u97F3\u9891\u6587\u4EF6");
     if (file.size > 200 * 1024 * 1024)
@@ -540,7 +689,43 @@ var VaultStorageAdapter = class {
   attachmentUrl(path) {
     return this.app.vault.adapter.getResourcePath(path);
   }
+  projectNotePath(project) {
+    return this.resolvePath(projectNoteRelativePath(project, this.pavilionDir(project.pavilion)));
+  }
+  async updateHistoricalNoteLink(path, current, id) {
+    const normalized = (0, import_obsidian.normalizePath)(path), prefix = this.resolvePath("");
+    if (!normalized.endsWith(`--${safeFileStem(id)}.md`) || !normalized.includes("/02_Projects/") || normalized.split("/").includes("..") || prefix && !normalized.startsWith(prefix.replace(/\/$/, "") + "/"))
+      return;
+    const adapter = this.app.vault.adapter;
+    if (!await adapter.exists(normalized))
+      return;
+    const content = await adapter.read(normalized);
+    if (!content.includes(`project_id: ${JSON.stringify(id)}
+`) || !content.includes("type: growth-project"))
+      return;
+    const marker = "<!-- island-current-project-note -->", end = "<!-- /island-current-project-note -->";
+    const startAt = content.indexOf(marker), endAt = content.indexOf(end, startAt);
+    const base = startAt >= 0 && endAt >= startAt ? content.slice(0, startAt) + content.slice(endAt + end.length) : content;
+    await adapter.write(normalized, base.trimEnd() + `
+
+${marker}
+\u8FD9\u662F\u4FDD\u7559\u7684\u5386\u53F2\u5BFC\u51FA\u3002[[${current}|\u67E5\u770B\u6B64\u9879\u76EE\u5F53\u524D\u7B14\u8BB0]]
+${end}
+`);
+  }
+  documentPath(relative) {
+    return this.resolvePath(relative);
+  }
+  assertHydratedRoot() {
+    if (this.hydratedRoot !== null && this.hydratedRoot !== validateVaultRoot(this.getSettings().vaultRootFolder || ""))
+      throw new Error("\u6570\u636E\u76EE\u5F55\u5DF2\u6539\u53D8\uFF0C\u8BF7\u91CD\u65B0\u6253\u5F00\u5DE5\u4F5C\u53F0\u8BFB\u53D6\u76EE\u6807\u76EE\u5F55\u3002\u5F53\u524D\u6570\u636E\u4E0D\u4F1A\u5199\u5165\u65B0\u76EE\u5F55\u3002");
+  }
   async exportDocument(path, content) {
+    this.assertHydratedRoot();
+    if (!await this.syncRuntimeToVault())
+      throw new Error("\u6210\u957F\u6863\u6848\u5C1A\u672A\u6210\u529F\u8BFB\u53D6\uFF0C\u672A\u5BFC\u51FA\u6587\u4EF6\u3002");
+    if (this.lastExportError)
+      throw new Error(`\u5173\u8054\u7B14\u8BB0\u5BFC\u51FA\u5C1A\u672A\u5B8C\u6210\uFF1A${this.lastExportError}`);
     await this.writeText(path, content);
     new import_obsidian.Notice(`\u5DF2\u5BFC\u51FA\u771F\u5B9E\u6863\u6848\uFF1A${path}`);
   }
@@ -549,67 +734,63 @@ var VaultStorageAdapter = class {
       if (typeof log === "string")
         return log;
       const project = domain?.projects?.find((p) => p.id === log.projectId);
-      const link = project ? ` [[${this.resolvePath(`${this.pavilionDir(project.pavilion)}/02_Projects/${safeFileStem(project.title)}--${safeFileStem(project.id)}.md`)}|\u6765\u6E90\u9879\u76EE]]` : "";
+      const link = project ? ` [[${this.projectNotePath(project)}|\u6765\u6E90\u9879\u76EE]]` : "";
       return `${log.time ? `[${log.time}] ` : ""}${log.text || ""}${log.sourceId ? `\uFF08\u6765\u6E90ID: ${log.sourceId}\uFF09` : ""}${link}`;
     });
     const media = entry.media || entry.mediaList || [];
     const text = String(entry.text || entry.reflection || entry.content || "");
+    const records = (domain?.records || []).filter((record) => record.date === entry.date);
     return `---
 type: daily-journal
+generated_by: youth-holistic-growth-island
 date: ${entry.date}
-mood: ${JSON.stringify(entry.mood || "focused")}
-energy_level: ${entry.energy ?? 4}
+draft: ${entry.draft !== false}
+mood: ${JSON.stringify(entry.mood || null)}
+energy_level: ${entry.energy ?? "null"}
 auto_logs: ${JSON.stringify(logs)}
-media_attachments: ${JSON.stringify(media.map((m) => ({ type: m.type, path: m.path || "", desc: m.caption || m.name || "" })))}
+media_attachments: ${JSON.stringify(media.map((m) => ({ id: m.id, type: m.type, path: m.path || "", desc: m.caption || m.name || "" })))}
 content_reflection: ${JSON.stringify(text)}
 ---
 
 # ${entry.date} \u6BCF\u65E5\u968F\u8BB0
 
 ## \u5BA2\u89C2\u4E8B\u5B9E\u6D41\u6C34
-${logs.map((l) => `- ${l}`).join("\n")}
+${logs.map((l) => `- ${l}`).join("\n") || "\u5C1A\u65E0\u81EA\u52A8\u4E8B\u4EF6"}
 
 ## \u5FC3\u6D41\u968F\u7B14
 ${text}
 
-## \u5F71\u50CF\u7269\u8BC1
+## \u5F53\u65E5\u539F\u59CB\u6267\u884C\u8BB0\u5F55
+${records.map((record) => {
+      const project = domain?.projects?.find((p) => p.id === record.projectId);
+      return executionMarkdown(record) + (project ? `
+
+[[${this.projectNotePath(project)}|\u6765\u6E90\u9879\u76EE]]` : "");
+    }).join("\n\n") || "\u5C1A\u65E0\u6267\u884C\u8BB0\u5F55"}
+
+## \u9644\u4EF6\u539F\u4EF6
 ${media.filter((m) => m.path).map((m) => `![[${m.path}]]`).join("\n")}
 
-[[${this.resolvePath("07_Baseline_\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303/personal_code.md")}|\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303]]
+[[${this.resolvePath("07_Baseline_\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303/family_pact.md")}|\u5F53\u524D\u5171\u540C\u7B7E\u7F72\u516C\u7EA6]]
+[[${this.resolvePath("07_Baseline_\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303/personal_code.md")}|\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303\u7B14\u8BB0]]
 `;
   }
   projectMarkdown(project, key, data, domain) {
-    const planning = this.projectPlanningMarkdown(data);
-    const records = (domain?.records || []).filter((r) => r.projectId === project.id);
-    const executions = records.map((record) => {
-      const actual = [
-        ...(record.metrics || []).map((m) => `- ${m.name}\uFF1A\u76EE\u6807 ${m.targetValue}\uFF1B\u5B9E\u6D4B ${m.actual}`),
-        ...Object.entries(record.customFieldValues || {}).map(([name, value]) => `- ${record.sourceSnapshot?.cardPayload?.customFieldsSchema?.find((f) => f.key === name)?.label || name}\uFF1A${value}`),
-        ...(record.improvementList || []).map((item) => `- \u540E\u7EED\u63D0\u5347\uFF1A${item.actionItem}`)
-      ].join("\n");
-      return `### ${record.title || "\u6267\u884C\u8BB0\u5F55"}
-\u8BB0\u5F55ID: ${record.id}
-\u6E90\u8282\u70B9ID: ${record.nodeId}
-\u8BA1\u5212\u65E5: ${record.scheduledDate || record.date}
-\u5B9E\u9645\u63D0\u4EA4\u65E5: ${record.date}
-\u9A8C\u6536: ${record.validated ? "\u901A\u8FC7" : "\u5386\u53F2\u672A\u6838\u9A8C"}
-\u5B9E\u9645\u4E13\u6CE8: ${record.focusSeconds || 0}\u79D2
+    const records = (domain?.records || []).filter((record) => record.projectId === project.id);
+    const executions = records.map((record) => executionMarkdown(record) + (isNoteDate(record.date) ? `
 
-${record.reflection || ""}
-
-${actual}
-
-${(record.media || []).filter((m) => m.path).map((m) => `![[${m.path}]]`).join("\n")}
-
-[[${this.resolvePath(`08_Daily_\u6BCF\u65E5\u968F\u8BB0/${record.date.slice(0, 4)}/${record.date}.md`)}|\u5F53\u65E5\u968F\u8BB0]]`;
-    }).join("\n\n");
+[[${this.resolvePath(`08_Daily_\u6BCF\u65E5\u968F\u8BB0/${record.date.slice(0, 4)}/${record.date}.md`)}|\u5F53\u65E5\u968F\u8BB0]]` : "")).join("\n\n");
     return `---
 type: growth-project
+generated_by: youth-holistic-growth-island
 project_id: ${JSON.stringify(project.id)}
 pavilion: ${JSON.stringify(key)}
 category: ${JSON.stringify(project.category || "")}
 start_date: ${JSON.stringify(project.startDate || "")}
 end_date: ${JSON.stringify(project.endDate || "")}
+archived: ${!!project.isArchived}
+source_inquiry_id: ${JSON.stringify(project.sourceInquiryId || null)}
+source_violation_id: ${JSON.stringify(project.sourceViolationId || null)}
 ---
 
 # ${project.title}
@@ -618,35 +799,17 @@ ${project.desc || ""}
 
 ## \u5F53\u524D\u89C4\u5212
 
-${planning}
+${planningMarkdown(data)}
 
 ## \u539F\u59CB\u6267\u884C\u8BB0\u5F55
 
 ${executions || "\u5C1A\u65E0\u6267\u884C\u8BB0\u5F55"}
 
-[[${this.resolvePath("07_Baseline_\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303/personal_code.md")}|\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303]]
+[[${this.resolvePath("07_Baseline_\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303/family_pact.md")}|\u5F53\u524D\u5171\u540C\u7B7E\u7F72\u516C\u7EA6]]
+[[${this.resolvePath("07_Baseline_\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303/personal_code.md")}|\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303\u7B14\u8BB0]]
+
+\u672C\u6587\u4EF6\u662F\u9886\u57DF\u6570\u636E\u7684\u7B14\u8BB0\u6295\u5F71\u3002\u89C4\u5212\u8BF7\u5728\u63D2\u4EF6\u6216\u53D7\u652F\u6301\u7684\u540C\u7248\u672CJSON\u4E2D\u7EF4\u62A4\uFF1B\u6267\u884C\u4E8B\u5B9E\u4EE5\u8BB0\u5F55\u53CA\u5176\u6807\u51C6\u5FEB\u7167\u4E3A\u51C6\u3002
 `;
-  }
-  projectPlanningMarkdown(data) {
-    if (Array.isArray(data?.nodes)) {
-      return data.nodes.map((n) => n.nodeType === "text" ? n.cardPayload?.textContent || "" : `### ${n.title || "\u8282\u70B9"}
-${n.desc || n.cardPayload?.description || ""}
-${(n.cardPayload?.metrics || []).map((m) => `${m.name}: ${m.targetValue}`).join("\n")}`).join("\n\n");
-    } else if (data?.cardsHtml && typeof document !== "undefined") {
-      const holder = document.createElement("div");
-      holder.innerHTML = data.cardsHtml;
-      return Array.from(holder.querySelectorAll(".tertiary-card")).map((card) => {
-        const clone = card.cloneNode(true);
-        clone.querySelectorAll("button, .work-card-connect-handle").forEach((el) => el.remove());
-        clone.querySelectorAll("input, textarea").forEach((el) => {
-          const text = document.createTextNode(el.type === "checkbox" ? el.checked ? "[x] " : "[ ] " : `${el.value}
-`);
-          el.replaceWith(text);
-        });
-        return clone.textContent?.trim() || "";
-      }).join("\n\n");
-    }
-    return "";
   }
   async dispose() {
     this.disposed = true;
@@ -657,13 +820,16 @@ ${(n.cardPayload?.metrics || []).map((m) => `${m.name}: ${m.targetValue}`).join(
     await this.queue.catch(() => {
     });
   }
+  async waitForPendingSaves() {
+    await this.queue;
+  }
 };
 
 // src/views/YouthIslandView.ts
 var import_obsidian2 = require("obsidian");
 
 // src/ui/template.ts
-var ISLAND_UI_HTML = `<div class="global-header product-contract-banner" data-product-contract="3">1.2.1 \u95ED\u73AF\u4EA4\u4E92\u9884\u89C8 \xB7 \u6309\u9879\u76EE/\u8282\u70B9/\u6BCF\u65E5\u4EFB\u52A1\u5B9E\u4F8B\u5173\u8054 \xB7 \u672C\u9884\u89C8\u6570\u636E\u4FDD\u5B58\u5728\u5F53\u524D\u6D4F\u89C8\u5668\uFF0C\u7EC4\u4EF6\u753B\u677F\u6837\u4F8B\u4E0D\u8BA1\u4E3A\u5B9E\u9645\u6267\u884C</div>
+var ISLAND_UI_HTML = `<div class="global-header product-contract-banner" data-product-contract="3">1.2.2 \u95ED\u73AF\u4EA4\u4E92\u9884\u89C8 \xB7 \u6309\u9879\u76EE/\u8282\u70B9/\u6BCF\u65E5\u4EFB\u52A1\u5B9E\u4F8B\u5173\u8054 \xB7 \u672C\u9884\u89C8\u6570\u636E\u4FDD\u5B58\u5728\u5F53\u524D\u6D4F\u89C8\u5668\uFF0C\u7EC4\u4EF6\u753B\u677F\u6837\u4F8B\u4E0D\u8BA1\u4E3A\u5B9E\u9645\u6267\u884C</div>
   <!-- \u9876\u90E8\u4E3B\u63A7\u5BFC\u822A\u680F (\u8BBE\u5907\u63A7\u5236\u4E0E\u4E3B\u6A21\u6001\u5207\u6362) -->
   <header class="global-header">
     <div class="system-title-group">
@@ -3092,7 +3258,7 @@ var ISLAND_UI_HTML = `<div class="global-header product-contract-banner" data-pr
         <label style="display: block; font-size: 13px; font-weight: 900; color: #4e3012; margin-bottom: 6px;">
           \u6A21\u5757\u540D\u79F0 <span style="font-size: 11px; font-weight: 600; color: #8c6b45;">\uFF08\u5FC5\u586B\uFF0C\u5982\uFF1A\u521B\u5BA2\u5DE5\u574A\u3001\u53E4\u7434\u96C5\u5BA4\u3001\u81EA\u7136\u63A2\u7D22\uFF09</span>
         </label>
-        <input type="text" id="input-module-name" class="add-module-text-input" placeholder="\u8BF7\u8F93\u5165\u6A21\u5757\u540D\u79F0 (\u6700\u591A 6 \u4E2A\u5B57)..." maxlength="6" autofocus>
+        <input type="text" id="input-module-name" class="add-module-text-input" placeholder="\u8BF7\u8F93\u5165\u573A\u9986\u540D\u79F0\uFF082\uFF5E30\u5B57\uFF09" maxlength="30" autofocus>
       </div>
 
       <!-- 2. \u6A21\u5757\u56FE\u6807\u9009\u62E9 -->
@@ -3143,7 +3309,7 @@ var ISLAND_UI_HTML = `<div class="global-header product-contract-banner" data-pr
       <!-- 3. \u89C4\u5212\u5B9A\u4F4D / \u72B6\u6001\u6807\u7B7E -->
       <div class="form-group-block">
         <label style="display: block; font-size: 13px; font-weight: 900; color: #4e3012; margin-bottom: 6px;">
-          \u89C4\u5212\u5B9A\u4F4D / \u72B6\u6001\u6807\u7B7E <span style="font-size: 11px; font-weight: 600; color: #8c6b45;">\uFF08\u5361\u7247\u4E0B\u65B9\u5C55\u793A\u7684\u526F\u6807\u9898\uFF09</span>
+          \u573A\u9986\u8BF4\u660E <span style="font-size: 11px; font-weight: 600; color: #8c6b45;">\uFF08\u663E\u793A\u5728\u573A\u9986\u540D\u79F0\u4E0B\u65B9\uFF0C\u4E0D\u4EE3\u8868\u6267\u884C\u72B6\u6001\uFF09</span>
         </label>
         <input type="text" id="input-module-badge" class="add-module-text-input" placeholder="\u5982\uFF1A\u89C4\u5212\u7B79\u5907\u4E2D / \u81EA\u7531\u63A2\u7D22 / \u5174\u8DA3\u62D3\u5C55" value="\u89C4\u5212\u7B79\u5907\u4E2D" maxlength="8">
       </div>
@@ -11456,7 +11622,7 @@ function bootPrototypeRuntime() {
     const duration = getAttr("data-duration", "25 \u5206\u949F");
     const time = getAttr("data-time", "\u4ECA\u65E5 16:30 ~ 17:00");
     const instruction = getAttr("data-instruction", "\u6309\u653B\u575A\u6807\u51C6\u63A8\u8FDB\uFF0C\u5B8C\u6210\u624B\u7A3F\u7559\u75D5\u4E0E\u53CD\u601D\u603B\u7ED3\u3002");
-    const evidence = getAttr("data-evidence", "\u2713 \u7269\u8BC1\u6863\u6848\u5DF2\u5B58\u8BC1\u52A0\u76D6\u9632\u4F2A\u65F6\u95F4\u6233");
+    const evidence2 = getAttr("data-evidence", "\u2713 \u7269\u8BC1\u6863\u6848\u5DF2\u5B58\u8BC1\u52A0\u76D6\u9632\u4F2A\u65F6\u95F4\u6233");
     const reflection = getAttr("data-reflection", "\u201C\u77E5\u6B62\u800C\u540E\u6709\u5B9A\uFF0C\u6309\u90E8\u5C31\u73ED\u653B\u514B\u5361\u70B9\u3002\u201D");
     const modal = document.getElementById("task-detail-inspector-modal");
     if (!modal) {
@@ -11493,7 +11659,7 @@ function bootPrototypeRuntime() {
       timeEl.textContent = time;
     const eviEl = document.getElementById("td-modal-evidence-content");
     if (eviEl)
-      eviEl.innerHTML = evidence.replace(/\n/g, "<br>");
+      eviEl.innerHTML = evidence2.replace(/\n/g, "<br>");
     const refEl = document.getElementById("td-modal-reflection-content");
     if (refEl)
       refEl.textContent = reflection;
@@ -14387,7 +14553,7 @@ function bootPrototypeRuntime() {
   function domainNode(config, project) {
     const type = domainType(config.nodeType || config.cardType || config.archetype);
     const payload = config.cardPayload || {};
-    const evidence = config.evidenceType || payload.evidenceType || config.checkinType || config.evidence || config.deliverableType || (type === "drill" ? "photo" : type === "goal" ? "text" : "none");
+    const evidence2 = config.evidenceType || payload.evidenceType || config.checkinType || config.evidence || config.deliverableType || (type === "drill" ? "photo" : type === "goal" ? "text" : "none");
     const map = { image: "photo", timer: "none", composite: "photo" };
     const now = (/* @__PURE__ */ new Date()).toISOString();
     return {
@@ -14411,7 +14577,7 @@ function bootPrototypeRuntime() {
         ...payload,
         description: payload.description || config.description || config.formula || config.quote || config.cause || config.content || "",
         plannedMinutes: Number(payload.plannedMinutes ?? config.plannedMinutes ?? config.duration ?? (type === "drill" ? 20 : 0)),
-        evidenceType: map[evidence] || evidence,
+        evidenceType: map[evidence2] || evidence2,
         metrics: (payload.metrics || config.metrics || []).map((m) => ({ id: m.id || domainId("metric"), name: m.name || String(m), targetValue: m.targetValue ?? m.val ?? m.target ?? "", unit: m.unit || "" })),
         checklist: (payload.checklist || config.checklistItems || []).map((c) => typeof c === "string" ? { id: domainId("item"), title: c, required: true } : c),
         improvementList: (payload.improvementList || config.improvements || []).map((c) => typeof c === "string" ? { id: domainId("improvement"), actionItem: c, isChecked: true, derivedNodeId: null } : c),
@@ -14534,6 +14700,10 @@ function bootPrototypeRuntime() {
     if (!Number.isFinite(Number(input.focusSeconds || 0)) || Number(input.focusSeconds || 0) < 0)
       errors.push("\u4E13\u6CE8\u65F6\u957F\u5FC5\u987B\u4E3A\u6709\u6548\u7684\u975E\u8D1F\u79D2\u6570");
     const type = p.evidenceType;
+    if (!["none", "text", "photo", "video", "audio"].includes(type))
+      errors.push("\u89C4\u5212\u7269\u8BC1\u7C7B\u578B\u65E0\u6548\uFF0C\u8BF7\u5148\u8FD4\u56DE\u89C4\u5212\u4FEE\u6B63");
+    if (node.nodeType === "drill" && (!Number.isFinite(Number(p.plannedMinutes)) || Number(p.plannedMinutes) < 0 || Number(p.plannedMinutes) > 120))
+      errors.push("\u89C4\u5212\u4E13\u6CE8\u65F6\u957F\u987B\u4E3A0\uFF5E120\u5206\u949F\uFF0C\u8BF7\u5148\u8FD4\u56DE\u89C4\u5212\u4FEE\u6B63");
     if (["photo", "video", "audio"].includes(type) && !media.some((m) => m.type === (type === "photo" ? "image" : type)))
       errors.push("\u8BF7\u63D0\u4EA4\u89C4\u5212\u8981\u6C42\u7684" + { photo: "\u7167\u7247", video: "\u89C6\u9891", audio: "\u97F3\u9891" }[type] + "\u7269\u8BC1");
     if (type === "text" && text.length < 15)
@@ -14556,10 +14726,13 @@ function bootPrototypeRuntime() {
     if (node.nodeType === "custom")
       for (const f of p.customFieldsSchema) {
         const value = input.customFieldValues?.[f.key];
-        if (f.required && (value === void 0 || value === null || value === ""))
+        const blank = value === void 0 || value === null || typeof value === "string" && !value.trim();
+        if (f.required && blank)
           errors.push("\u8BF7\u586B\u5199 " + f.label);
-        if (value !== void 0 && value !== "" && f.type === "number" && !Number.isFinite(Number(value)))
+        if (!blank && f.type === "number" && !Number.isFinite(Number(value)))
           errors.push(f.label + " \u5FC5\u987B\u662F\u6570\u5B57");
+        if (!blank && f.type === "boolean" && typeof value !== "boolean")
+          errors.push(f.label + " \u5FC5\u987B\u662F\u662F/\u5426\u7ED3\u679C");
         if (value && f.type === "date" && !domainValidDate(value))
           errors.push(f.label + " \u5FC5\u987B\u662F\u6709\u6548\u65E5\u671F");
       }
@@ -15851,9 +16024,10 @@ function bootPrototypeRuntime() {
     return true;
   };
   function editDomainList(id, key) {
-    const node = getDomainNode(id);
+    const node = getDomainNode(id), allowed = ["metrics", "checklist", "improvementList", "customFieldsSchema"];
+    if (!node || !allowed.includes(key))
+      return false;
     const list = node.cardPayload[key] || [];
-    const sample = key === "customFieldsSchema" ? '[{"key":"count","label":"\u5B8C\u6210\u6B21\u6570","type":"number","required":true}]' : key === "metrics" ? '[{"name":"\u6B63\u786E\u7387","targetValue":"\u226598%"}]' : key === "checklist" ? '[{"title":"\u5B8C\u6210\u89C4\u8303\u52A8\u4F5C","required":true}]' : '[{"actionItem":"\u4E0B\u4E00\u6B21\u7684\u5177\u4F53\u884C\u52A8","isChecked":true}]';
     document.getElementById("domain-list-editor")?.remove();
     const modal = document.createElement("div");
     modal.className = "domain-modal";
@@ -15866,14 +16040,16 @@ function bootPrototypeRuntime() {
       row.className = "domain-list-row";
       row.dataset.id = item.id || domainId("item");
       row.dataset.key = item.key || domainId("field");
-      row.innerHTML = '<input class="domain-item-label" placeholder="' + (key === "metrics" ? "\u6307\u6807\u540D\u79F0" : key === "customFieldsSchema" ? "\u586B\u62A5\u9879\u76EE\u540D\u79F0" : "\u5177\u4F53\u884C\u52A8") + '">' + (key === "metrics" ? '<input class="domain-item-target" placeholder="\u4F8B\u5982 \u226598% \u6216\u6587\u5B57\u9A8C\u6536\u6807\u51C6">' : "") + (key === "customFieldsSchema" ? '<select class="domain-item-type"><option value="text">\u6587\u5B57</option><option value="number">\u6570\u5B57</option><option value="boolean">\u662F/\u5426</option><option value="date">\u65E5\u671F</option></select><label><input class="domain-item-required" type="checkbox" checked>\u5FC5\u586B</label>' : "") + '<button class="ui-btn">\u79FB\u9664</button>';
+      const flag = key === "improvementList" ? "isChecked" : "required";
+      row.innerHTML = '<input class="domain-item-label" placeholder="\u540D\u79F0\u6216\u5177\u4F53\u884C\u52A8">' + (key === "metrics" ? '<input class="domain-item-target" placeholder="\u76EE\u6807\u503C\u6216\u6587\u5B57\u9A8C\u6536\u6807\u51C6">' : "") + (key === "customFieldsSchema" ? '<select class="domain-item-type"><option value="text">\u6587\u5B57</option><option value="number">\u6570\u5B57</option><option value="boolean">\u662F/\u5426</option><option value="date">\u65E5\u671F</option></select>' : "") + (key !== "metrics" ? '<label><input class="domain-item-required" type="checkbox">' + (key === "improvementList" ? "\u53C2\u4E0E\u540E\u7EED\u6D3E\u751F" : key === "customFieldsSchema" ? "\u5FC5\u586B" : "\u5FC5\u9700") + "</label>" : "") + '<button class="ui-btn">\u79FB\u9664</button>';
       row.querySelector(".domain-item-label").value = item.name || item.title || item.actionItem || item.label || "";
       if (key === "metrics")
         row.querySelector(".domain-item-target").value = item.targetValue || "";
-      if (key === "customFieldsSchema") {
+      if (key === "customFieldsSchema")
         row.querySelector("select").value = item.type || "text";
-        row.querySelector("input[type=checkbox]").checked = item.required !== false;
-      }
+      const checkbox = row.querySelector("input[type=checkbox]");
+      if (checkbox)
+        checkbox.checked = item[flag] !== false;
       row.querySelector("button").onclick = () => row.remove();
       rows.appendChild(row);
     };
@@ -15882,19 +16058,24 @@ function bootPrototypeRuntime() {
     modal.querySelector("#domain-list-save").onclick = () => {
       if (!planningWriteAllowed())
         return;
+      if (getDomainNode(id) !== node) {
+        modal.querySelector("#domain-list-error").textContent = "\u8282\u70B9\u5DF2\u66F4\u65B0\uFF0C\u8BF7\u5173\u95ED\u5E76\u91CD\u65B0\u6253\u5F00\u7F16\u8F91\u5668\u3002";
+        return;
+      }
       const parsed = Array.from(rows.children).map((row) => {
         const label = row.querySelector(".domain-item-label").value.trim(), id2 = row.dataset.id;
         if (!label)
           return null;
+        const old = list.find((item) => item.id === id2) || {};
         if (key === "metrics")
-          return { id: id2, name: label, targetValue: row.querySelector(".domain-item-target").value.trim() };
+          return { ...old, id: id2, name: label, targetValue: row.querySelector(".domain-item-target").value.trim() };
+        const checked = row.querySelector("input[type=checkbox]").checked;
         if (key === "customFieldsSchema")
-          return { key: row.dataset.key, label, type: row.querySelector("select").value, required: row.querySelector("input[type=checkbox]").checked };
-        const existing = list.find((x) => x.id === id2);
-        return key === "checklist" ? { id: id2, title: label, required: true } : { ...existing, id: id2, actionItem: label, isChecked: true };
+          return { key: row.dataset.key, label, type: row.querySelector("select").value, required: checked };
+        return key === "checklist" ? { ...old, id: id2, title: label, required: checked } : { ...old, id: id2, actionItem: label, isChecked: checked };
       }).filter(Boolean);
-      if (!parsed.length) {
-        modal.querySelector("#domain-list-error").textContent = "\u8BF7\u81F3\u5C11\u586B\u5199\u4E00\u9879";
+      if (!parsed.length || key === "metrics" && parsed.some((item) => !item.targetValue)) {
+        modal.querySelector("#domain-list-error").textContent = "\u8BF7\u81F3\u5C11\u586B\u5199\u4E00\u9879\uFF0C\u6307\u6807\u5FC5\u987B\u540C\u65F6\u586B\u5199\u76EE\u6807\u3002";
         return;
       }
       recordDomainHistory();
@@ -16543,8 +16724,8 @@ function bootPrototypeRuntime() {
   };
   submitRegisterAccidentalAchievement = function() {
     const title = document.getElementById("achieve-acc-title").value.trim(), desc = document.getElementById("achieve-acc-desc").value.trim(), date = document.getElementById("achieve-acc-date").value;
-    if (title.length < 2 || title.length > 30 || desc.length < 20 || desc.length > 300 || !domainValidDate(date) || date > domainDate() || !window2.__accidentalDomainMedia) {
-      showIslandToast("\u8BF7\u586B\u51992\uFF5E30\u5B57\u6807\u9898\u300120\uFF5E300\u5B57\u63CF\u8FF0\u3001\u771F\u5B9E\u65E5\u671F\u5E76\u4E0A\u4F20\u7167\u7247\u539F\u4EF6");
+    if (title.length < 2 || title.length > 30 || desc.length < 20 || desc.length > 300 || !domainValidDate(date) || date > domainDate() || !window2.__accidentalDomainMedia || !["image", "video"].includes(window2.__accidentalDomainMedia.type)) {
+      showIslandToast("\u8BF7\u586B\u51992\uFF5E30\u5B57\u6807\u9898\u300120\uFF5E300\u5B57\u63CF\u8FF0\u3001\u771F\u5B9E\u65E5\u671F\u5E76\u4E0A\u4F20\u7167\u7247\u6216\u89C6\u9891\u539F\u4EF6");
       return false;
     }
     const media = window2.__accidentalDomainMedia;
@@ -17050,8 +17231,6 @@ function bootPrototypeRuntime() {
   };
   function captureDomainLayout() {
     for (const [key, meta] of Object.entries(PAVILION_META)) {
-      if (!key.startsWith("custom-"))
-        continue;
       const node = document.getElementById("node-" + key);
       if (node)
         meta.position = { left: node.style.left, top: node.style.top };
@@ -17275,7 +17454,7 @@ function bootPrototypeRuntime() {
       body += planningCardSection("\u{1F680} \u63D0\u5347\u884C\u52A8", '<ol class="node-improvements">' + list + "</ol>" + (!list ? '<p class="node-card-empty">\u628A\u590D\u76D8\u7ED3\u8BBA\u53D8\u6210\u4E0B\u4E00\u6B21\u7684\u5177\u4F53\u884C\u52A8\u3002</p>' : ""), planningCardListButton(node, "improvementList", "\u7F16\u8F91\u884C\u52A8"));
       footer = '<span>\u7F16\u6392\u540E\u7EED\u6210\u957F\u8BA1\u5212</span><button type="button" class="node-primary-action" onclick="' + planningCardAction("deriveNodesFromReflectionCard(" + JSON.stringify(node.id) + ",event)") + '">\u{1F331} \u6D3E\u751F\u540E\u7EED\u89C4\u5212</button>';
     } else if (type === "custom") {
-      const names = { text: "\u6587\u5B57", number: "\u6570\u5B57", boolean: "\u662F / \u5426", date: "\u65E5\u671F" }, list = p.customFieldsSchema.map((field) => '<div class="node-custom-field"><span>' + escapeIslandText(field.label) + '</span><span class="node-field-kind">' + escapeIslandText(names[field.type] || field.type) + (field.required ? " \xB7 \u5FC5\u586B" : " \xB7 \u9009\u586B") + "</span></div>").join("");
+      const names2 = { text: "\u6587\u5B57", number: "\u6570\u5B57", boolean: "\u662F / \u5426", date: "\u65E5\u671F" }, list = p.customFieldsSchema.map((field) => '<div class="node-custom-field"><span>' + escapeIslandText(field.label) + '</span><span class="node-field-kind">' + escapeIslandText(names2[field.type] || field.type) + (field.required ? " \xB7 \u5FC5\u586B" : " \xB7 \u9009\u586B") + "</span></div>").join("");
       body += planningCardSection("\u{1F4CB} \u81EA\u5B9A\u4E49\u5B57\u6BB5", list || '<p class="node-card-empty">\u6DFB\u52A0\u9700\u8981\u586B\u62A5\u7684\u9879\u76EE\u4E0E\u5B57\u6BB5\u7C7B\u578B\u3002</p>', planningCardListButton(node, "customFieldsSchema", "\u7EF4\u62A4\u5B57\u6BB5"));
       footer = '<span>\u6267\u884C\u65F6\u586B\u5199\u5B9E\u9645\u7ED3\u679C</span><span class="node-footer-chip">' + p.customFieldsSchema.length + " \u4E2A\u5B57\u6BB5</span>";
     } else {
@@ -17283,7 +17462,7 @@ function bootPrototypeRuntime() {
       footer = '<span>\u8D44\u6599\u4E0E\u60F3\u6CD5 \xB7 \u4E0D\u8BA1\u5165\u5C65\u7EA6</span><span class="node-footer-chip">\u89C4\u5212\u4FBF\u7B7E</span>';
     }
     body += planningCardSettings(node);
-    return '<article class="a-my-island-work-node-card tertiary-card tertiary-' + legacy + '-card domain-node-card" id="' + escapeIslandText(node.id) + '" data-domain-node="true" data-node-type="' + type + '" data-label="' + escapeIslandText(node.title) + '" data-group-id="' + escapeIslandText(node.groupId || "") + '" data-group-root="' + escapeIslandText(node.groupRoot || "") + '" style="position:absolute;left:' + Number(node.canvasPosition.x) + "px;top:" + Number(node.canvasPosition.y) + 'px;width:340px;"><header class="work-node-card-header" ondblclick="' + planningCardAction("toggleTertiaryCardMinimize(" + JSON.stringify(node.id) + ",event)") + '" title="\u62D6\u52A8\u6807\u9898\u680F\u79FB\u52A8\uFF1B\u53CC\u51FB\u6298\u53E0\u6216\u5C55\u5F00"><div class="node-card-kicker"><span class="work-node-badge">' + meta[0] + " " + meta[1] + '</span><span class="node-card-status" id="status-text-' + escapeIslandText(node.id) + '">' + status + '</span><button type="button" class="node-card-collapse-toggle" aria-label="\u6298\u53E0\u6216\u5C55\u5F00\u8282\u70B9" onclick="' + planningCardAction("toggleTertiaryCardMinimize(" + JSON.stringify(node.id) + ",event)") + '">\u2303</button></div><div class="node-card-title-row"><span class="work-node-title">' + escapeIslandText(node.title) + '</span><button type="button" class="node-title-edit" aria-label="\u7F16\u8F91\u8282\u70B9\u540D\u79F0" onclick="' + planningCardAction("editPlanningCardTitle(" + JSON.stringify(node.id) + ",event)") + '">\u270E</button></div><p class="node-card-subtitle">' + meta[2] + '</p></header><div class="work-node-body domain-planning-body">' + body + '</div><footer class="node-card-footer">' + footer + '</footer><button type="button" class="work-card-connect-handle" data-card-id="' + escapeIslandText(node.id) + '" aria-label="\u4ECE\u6B64\u8282\u70B9\u8FDE\u63A5\u8DEF\u7EBF" title="\u62D6\u5411\u76EE\u6807\u8282\u70B9\uFF0C\u6216\u70B9\u51FB\u9009\u62E9\u8FDE\u7EBF\u8D77\u70B9" onclick="startOrFinishConnecting(this.dataset.cardId,event)">\u{1F517}</button></article>';
+    return '<article class="a-my-island-work-node-card tertiary-card tertiary-' + legacy + "-card domain-node-card" + (getDomainState().navigation?.projects?.[node.projectId]?.collapsedNodeIds?.includes(node.id) ? " is-minimized" : "") + '" id="' + escapeIslandText(node.id) + '" data-domain-node="true" data-node-type="' + type + '" data-label="' + escapeIslandText(node.title) + '" data-group-id="' + escapeIslandText(node.groupId || "") + '" data-group-root="' + escapeIslandText(node.groupRoot || "") + '" style="position:absolute;left:' + Number(node.canvasPosition.x) + "px;top:" + Number(node.canvasPosition.y) + 'px;width:340px;"><header class="work-node-card-header" ondblclick="' + planningCardAction("toggleTertiaryCardMinimize(" + JSON.stringify(node.id) + ",event)") + '" title="\u62D6\u52A8\u6807\u9898\u680F\u79FB\u52A8\uFF1B\u53CC\u51FB\u6298\u53E0\u6216\u5C55\u5F00"><div class="node-card-kicker"><span class="work-node-badge">' + meta[0] + " " + meta[1] + '</span><span class="node-card-status" id="status-text-' + escapeIslandText(node.id) + '">' + status + '</span><button type="button" class="node-card-collapse-toggle" aria-label="\u6298\u53E0\u6216\u5C55\u5F00\u8282\u70B9" onclick="' + planningCardAction("toggleTertiaryCardMinimize(" + JSON.stringify(node.id) + ",event)") + '">\u2303</button></div><div class="node-card-title-row"><span class="work-node-title">' + escapeIslandText(node.title) + '</span><button type="button" class="node-title-edit" aria-label="\u7F16\u8F91\u8282\u70B9\u540D\u79F0" onclick="' + planningCardAction("editPlanningCardTitle(" + JSON.stringify(node.id) + ",event)") + '">\u270E</button></div><p class="node-card-subtitle">' + meta[2] + '</p></header><div class="work-node-body domain-planning-body">' + body + '</div><footer class="node-card-footer">' + footer + '</footer><button type="button" class="work-card-connect-handle" data-card-id="' + escapeIslandText(node.id) + '" aria-label="\u4ECE\u6B64\u8282\u70B9\u8FDE\u63A5\u8DEF\u7EBF" title="\u62D6\u5411\u76EE\u6807\u8282\u70B9\uFF0C\u6216\u70B9\u51FB\u9009\u62E9\u8FDE\u7EBF\u8D77\u70B9" onclick="startOrFinishConnecting(this.dataset.cardId,event)">\u{1F517}</button></article>';
   }
   let homeExecutionDate = null;
   function homeExecutionType(type) {
@@ -17315,8 +17494,8 @@ function bootPrototypeRuntime() {
       const types = { text: "\u6587\u5B57", number: "\u6570\u5B57", boolean: "\u662F / \u5426", date: "\u65E5\u671F" };
       body += homeExecutionPanel("\u{1F4CB} \u81EA\u5B9A\u4E49\u4E1A\u52A1\u5B57\u6BB5", (p.customFieldsSchema || []).map((f) => '<div class="home-execution-field"><span>' + escapeIslandText(f.label) + "</span><small>" + escapeIslandText(types[f.type] || f.type) + " \xB7 " + (f.required ? "\u5FC5\u586B" : "\u9009\u586B") + "</small></div>").join("") || '<p class="home-execution-muted">\u8BF7\u5728\u89C4\u5212\u4E2D\u7EF4\u62A4\u9700\u8981\u586B\u62A5\u7684\u9879\u76EE</p>', "is-dashed");
     }
-    const evidence = task.nodeType === "bounty" ? "\u7167\u7247\u6216\u89C6\u9891\u539F\u4EF6" : domainEvidenceLabel(p.evidenceType || "none");
-    body += homeExecutionPanel("\u{1F4E6} \u4EA4\u4ED8\u7269\u8BC1\u8981\u6C42", "<p>" + escapeIslandText(evidence) + "</p>" + button(blocked ? "\u67E5\u770B\u524D\u7F6E\u8981\u6C42" : completed ? "\u{1F4C2} \u67E5\u770B\u5DF2\u4EA4\u4ED8\u5185\u5BB9" : "\u{1F4CE} \u8FDB\u5165\u6253\u5361\u9875\u586B\u5199\u4E0E\u63D0\u4EA4", "home-execution-delivery-button"), "home-execution-delivery");
+    const evidence2 = task.nodeType === "bounty" ? "\u7167\u7247\u6216\u89C6\u9891\u539F\u4EF6" : domainEvidenceLabel(p.evidenceType || "none");
+    body += homeExecutionPanel("\u{1F4E6} \u4EA4\u4ED8\u7269\u8BC1\u8981\u6C42", "<p>" + escapeIslandText(evidence2) + "</p>" + button(blocked ? "\u67E5\u770B\u524D\u7F6E\u8981\u6C42" : completed ? "\u{1F4C2} \u67E5\u770B\u5DF2\u4EA4\u4ED8\u5185\u5BB9" : "\u{1F4CE} \u8FDB\u5165\u6253\u5361\u9875\u586B\u5199\u4E0E\u63D0\u4EA4", "home-execution-delivery-button"), "home-execution-delivery");
     if (blocked)
       body += '<p class="home-task-blocked">\u8BF7\u5148\u5B8C\u6210\uFF1A' + escapeIslandText((node?.dependencies || []).map((id) => getDomainNode(id)?.title || "\u7F3A\u5931\u7684\u524D\u7F6E\u8282\u70B9").join("\u3001")) + "</p>";
     const status = blocked ? "\u5F85\u524D\u7F6E\u5B8C\u6210" : completed ? "\u2713 \u4ECA\u65E5\u5DF2\u5B8C\u6210" : "\u{1F7E1} \u4ECA\u65E5\u5F85\u6253\u5361";
@@ -17700,7 +17879,10 @@ function bootPrototypeRuntime() {
     for (const action of record.improvementList.filter((i) => i.isChecked !== false && i.actionItem?.trim())) {
       if (nodes.some((n) => n.cardPayload.derivedFrom?.recordId === record.id && n.cardPayload.derivedFrom?.actionId === action.id))
         continue;
-      const date = domainDefaultNodeDate(project), child = domainNode({ title: action.actionItem.slice(0, 30), nodeType: "drill", plannedDate: date, groupId: source.groupId, groupRoot: id, cardPayload: { description: action.actionItem, plannedMinutes: 20, evidenceType: "photo", derivedFrom: { nodeId: id, recordId: record.id, actionId: action.id } } }, project);
+      const date = project.startDate > domainDate() ? project.startDate : domainDate();
+      if (project.endDate < date)
+        project.endDate = date;
+      const child = domainNode({ title: action.actionItem.slice(0, 30), nodeType: "drill", plannedDate: date, groupId: source.groupId, groupRoot: id, cardPayload: { description: action.actionItem, plannedMinutes: 20, evidenceType: "photo", derivedFrom: { nodeId: id, recordId: record.id, actionId: action.id } } }, project);
       child.canvasPosition = { x: source.canvasPosition.x + 400, y: source.canvasPosition.y + count * 400 };
       nodes.push(child);
       window2.PROJECT_CANVAS_STORE[project.id].edges.push({ id: domainId("edge"), sourceId: id, targetId: child.id, type: "\u6D3E\u751F", label: "\u590D\u76D8\u540E\u7EED\u89C4\u5212" });
@@ -17786,6 +17968,11 @@ function bootPrototypeRuntime() {
       const button = document.getElementById("bounty-action-redeem-btn");
       if (button)
         button.disabled = busy || window2.BOUNTY_STATE.status !== "accepted";
+    }
+    if (context === "achievement" && window2.__accidentalUploadToken === owner) {
+      const button = document.querySelector('#register-accidental-achievement-modal [onclick="submitRegisterAccidentalAchievement()"]');
+      if (button)
+        button.disabled = busy;
     }
   }
   async function processNativeMediaFiles(input) {
@@ -17907,6 +18094,20 @@ function bootPrototypeRuntime() {
         controls.outerHTML = mediaPickerControls("achievement");
     }
   };
+  const nativeMediaAchievementClose = closeRegisterAccidentalAchievementModal;
+  closeRegisterAccidentalAchievementModal = function() {
+    window2.__accidentalUploadToken = null;
+    window2.__accidentalDomainMedia = null;
+    return nativeMediaAchievementClose();
+  };
+  const mediaSubmitAchievement = submitRegisterAccidentalAchievement;
+  submitRegisterAccidentalAchievement = function() {
+    if (mediaJobs.has("achievement:" + window2.__accidentalUploadToken)) {
+      showIslandToast("\u8BF7\u7B49\u5F85\u539F\u4EF6\u4FDD\u5B58\u5B8C\u6210");
+      return false;
+    }
+    return mediaSubmitAchievement();
+  };
   const mediaSubmitExecution = submitRealExecution;
   submitRealExecution = function() {
     if (evidenceSession && mediaJobs.has("execution:" + evidenceSession.taskId)) {
@@ -17966,8 +18167,8 @@ function bootPrototypeRuntime() {
         document.getElementById("bounty-action-redeem-btn").disabled = true;
       }
     }
-    const names = { published: "\u5F85\u63ED\u699C", accepted: "\u8FDB\u884C\u4E2D", redeemed: "\u5DF2\u5151\u73B0" };
-    document.getElementById("domain-bounty-history").innerHTML = "<h3>\u5951\u7EA6\u8BB0\u5F55</h3>" + getDomainState().bounties.map((item) => '<button type="button" class="bounty-history-item" aria-pressed="' + (item.id === id) + '" onclick="selectDomainBounty(' + escapeIslandText(JSON.stringify(item.id)) + ')"><span>' + escapeIslandText(item.title) + "</span><small>" + escapeIslandText(names[item.status] || item.status) + "</small></button>").join("");
+    const names2 = { published: "\u5F85\u63ED\u699C", accepted: "\u8FDB\u884C\u4E2D", redeemed: "\u5DF2\u5151\u73B0" };
+    document.getElementById("domain-bounty-history").innerHTML = "<h3>\u5951\u7EA6\u8BB0\u5F55</h3>" + getDomainState().bounties.map((item) => '<button type="button" class="bounty-history-item" aria-pressed="' + (item.id === id) + '" onclick="selectDomainBounty(' + escapeIslandText(JSON.stringify(item.id)) + ')"><span>' + escapeIslandText(item.title) + "</span><small>" + escapeIslandText(names2[item.status] || item.status) + "</small></button>").join("");
     bountyDialogLastId = id;
   };
   const bountyDialogOpen = openBountyModal, bountyDialogClose = closeBountyModal;
@@ -18000,6 +18201,167 @@ function bootPrototypeRuntime() {
       }
     }
   }
+  const integrityConfirmProject = confirmAddNewProject;
+  confirmAddNewProject = function() {
+    const id = document.getElementById("input-proj-edit-id")?.value, project = getDomainState().projects.find((p) => p.id === id);
+    if (project) {
+      const start = document.getElementById("input-proj-start").value, end = document.getElementById("input-proj-end").value;
+      const outside = (getDomainState().nodesByProject[id] || []).filter((node) => node.plannedDate < start || node.plannedDate > end);
+      if (outside.length) {
+        showIslandToast("\u65B0\u5468\u671F\u4F1A\u6392\u9664\u5DF2\u6709\u8282\u70B9\uFF0C\u8BF7\u5148\u8C03\u6574\u8282\u70B9\u8BA1\u5212\u65E5\uFF1A" + outside.map((n) => n.title).join("\u3001"));
+        return false;
+      }
+    }
+    return integrityConfirmProject();
+  };
+  confirmAddProject = confirmAddNewProject;
+  handleConfirmTertiaryCreateModule = submitNodeCreator;
+  openTertiaryCreateModuleModal = function() {
+    if (!openNodeCreator())
+      return false;
+    selectNodeCreatorType("custom");
+    return true;
+  };
+  closeTertiaryCreateModuleModal = closeNodeCreator;
+  createCustomModule = openTertiaryCreateModuleModal;
+  const integrityCollapse = toggleTertiaryCardMinimize, integrityCycleLayout = cycleHomeLayout, integrityFollow = toggleChildrenFollowToolbar;
+  toggleTertiaryCardMinimize = function(id, event) {
+    const result = integrityCollapse(id, event), node = getDomainNode(id);
+    if (!node)
+      return result;
+    const nav = getDomainState().navigation, previous = nav.projects[node.projectId] || { collapsed: false }, ids = new Set(previous.collapsedNodeIds || []);
+    if (document.getElementById(id)?.classList.contains("is-minimized"))
+      ids.add(id);
+    else
+      ids.delete(id);
+    nav.projects[node.projectId] = { ...previous, collapsedNodeIds: [...ids] };
+    notifyIslandStateChanged();
+    return result;
+  };
+  cycleHomeLayout = function() {
+    const prefs = getDomainState().navigation.planning, nodes = Array.from(document.querySelectorAll("#island-pavilion-grid .pavilion-node")).filter((node) => getComputedStyle(node).display !== "none");
+    if (currentHomeLayoutIndex === 0)
+      prefs.freeLayout = Object.fromEntries(nodes.map((node) => [node.id, { left: node.style.left, top: node.style.top }]));
+    const result = integrityCycleLayout();
+    if (currentHomeLayoutIndex === 1) {
+      const cols = Math.ceil(Math.sqrt(nodes.length)), rows = Math.ceil(nodes.length / cols);
+      nodes.forEach((node, i) => {
+        node.style.left = (i % cols + 1) * 100 / (cols + 1) + "%";
+        node.style.top = (Math.floor(i / cols) + 1) * 100 / (rows + 1) + "%";
+      });
+    }
+    if (currentHomeLayoutIndex === 0 && prefs.freeLayout)
+      for (const node of nodes) {
+        const pos = prefs.freeLayout[node.id];
+        if (pos) {
+          node.style.left = pos.left;
+          node.style.top = pos.top;
+        }
+      }
+    prefs.layoutIndex = currentHomeLayoutIndex;
+    captureDomainLayout();
+    notifyIslandStateChanged();
+    return result;
+  };
+  toggleChildrenFollowToolbar = function() {
+    const result = integrityFollow();
+    getDomainState().navigation.followChildren = childrenFollowEnabled;
+    notifyIslandStateChanged();
+    return result;
+  };
+  confirmAddNewModule = function() {
+    const name = document.getElementById("input-module-name")?.value.trim(), description = document.getElementById("input-module-badge")?.value.trim() || "";
+    if (!name || name.length < 2 || name.length > 30) {
+      showIslandToast("\u573A\u9986\u540D\u79F0\u987B\u4E3A2\uFF5E30\u5B57");
+      return false;
+    }
+    const id = domainId("custom"), icon = String(selectedModuleIcon || "\u{1F3A8}");
+    PAVILION_META[id] = { name, icon, description, cat: id, specializedTitle: name + "\u89C4\u5212\u7A7A\u95F4", hasGantt: true, hasTertiary: true, position: { left: "50%", top: "50%" } };
+    window2.PAVILION_CARDS = window2.PAVILION_CARDS || {};
+    window2.PAVILION_CARDS[id] = { id, name, icon, category: id, description };
+    closeAddModuleModal();
+    restoreBusinessViews();
+    domainEvent("pavilion.created", id, "\u65B0\u589E\u89C4\u5212\u573A\u9986\u300A" + name + "\u300B");
+    return id;
+  };
+  const integrityRestore = restoreBusinessViews;
+  restoreBusinessViews = function() {
+    integrityRestore();
+    const nav = getDomainState().navigation;
+    if (typeof nav.followChildren === "boolean")
+      childrenFollowEnabled = nav.followChildren;
+    document.querySelectorAll("#btn-ws-children-follow,#btn-tertiary-children-follow").forEach((button) => button.classList.toggle("is-active", childrenFollowEnabled));
+    if (Number.isInteger(nav.planning.layoutIndex) && nav.planning.layoutIndex >= 0 && nav.planning.layoutIndex < 3) {
+      currentHomeLayoutIndex = nav.planning.layoutIndex;
+      const label = document.getElementById("lbl-home-layout");
+      if (label)
+        label.textContent = homeLayoutNames[currentHomeLayoutIndex];
+      document.getElementById("btn-home-layout")?.classList.toggle("is-active", currentHomeLayoutIndex === 0);
+    }
+    for (const [id, meta] of Object.entries(PAVILION_META)) {
+      const node = document.getElementById("node-" + id);
+      if (!node)
+        continue;
+      if (meta.position?.left)
+        node.style.left = meta.position.left;
+      if (meta.position?.top)
+        node.style.top = meta.position.top;
+      if (!id.startsWith("custom-"))
+        continue;
+      let caption = node.querySelector(".custom-module-description");
+      if (!caption) {
+        caption = document.createElement("div");
+        caption.className = "custom-module-description";
+        caption.style.cssText = "font-size:10px;color:#8c7355;text-align:center";
+        node.querySelector(".pavilion-card-label")?.after(caption);
+      }
+      caption.textContent = meta.description || "";
+    }
+  };
+  exportDomainDocument = async function(path, title, content) {
+    try {
+      if (window2.__exportIslandDocument) {
+        await window2.__exportIslandDocument(path, content);
+        return true;
+      }
+      const url = URL.createObjectURL(new Blob([content], { type: "text/markdown;charset=utf-8" })), link = document.createElement("a");
+      link.href = url;
+      link.download = title + ".md";
+      link.click();
+      setTimeout2(() => URL.revokeObjectURL(url), 1e3);
+      return true;
+    } catch (error) {
+      showIslandToast("\u6863\u6848\u5BFC\u51FA\u5931\u8D25\uFF1A" + error.message);
+      return false;
+    }
+  };
+  function domainNotePath(relative) {
+    return window2.__islandDocumentPath ? window2.__islandDocumentPath(relative) : relative;
+  }
+  exportDomainAchievement = async function(id) {
+    const award = [...window2.ACHIEVEMENT_STATE.cultivationItems, ...window2.ACHIEVEMENT_STATE.accidentalItems].find((a) => a.id === id);
+    if (!award)
+      return false;
+    const state = getDomainState(), project = state.projects.find((p) => p.id === award.sourceProjectId), recordIds = [...new Set([award.sourceRecordId, ...award.sourceRecordIds || []].filter(Boolean))], records = state.records.filter((r) => recordIds.includes(r.id));
+    const projectPath = project && window2.__islandProjectNotePath?.(project);
+    const source = projectPath ? "[[" + projectPath + "|\u6765\u6E90\u9879\u76EE]]" : project ? "\u6765\u6E90\u9879\u76EE\uFF1A" + project.title + "\uFF08\u7B14\u8BB0\u81EA\u52A8\u5BFC\u51FA\u672A\u542F\u7528\uFF09" : award.bountyId ? "\u6765\u6E90\uFF1A\u4EB2\u5B50\u60AC\u8D4F\u5951\u7EA6" : "\u6765\u6E90\uFF1A\u751F\u6D3B\u9AD8\u5149\u6216\u5386\u53F2\u8BB0\u5F55";
+    const standards = records.map((r) => "### \u6765\u6E90\u8BB0\u5F55 " + r.id + "\n\u4EFB\u52A1\u5B9E\u4F8BID\uFF1A" + (r.taskInstanceId || r.taskId || "\u5386\u53F2\u7F3A\u5931") + "\n\u8BA1\u5212\u65E5\uFF1A" + (r.scheduledDate || "\u5386\u53F2\u7F3A\u5931") + "\n\u5B9E\u9645\u65E5\uFF1A" + r.date + "\n\u5B9E\u9645\u4E13\u6CE8\uFF1A" + (r.focusSeconds || 0) + "\u79D2\n\n" + (r.reflection || "") + "\n\n" + (r.sourceSnapshot ? "```json\n" + JSON.stringify(r.sourceSnapshot, null, 2) + "\n```" : "\u5386\u53F2\u6807\u51C6\u5FEB\u7167\u4E0D\u5B8C\u6574")).join("\n\n");
+    const body = "# " + award.title + "\n\n\u6210\u679CID\uFF1A" + award.id + "\n\u65E5\u671F\uFF1A" + award.date + "\n\u6E90\u9879\u76EEID\uFF1A" + (award.sourceProjectId || "\u65E0") + "\n\u6E90\u8282\u70B9ID\uFF1A" + (award.sourceNodeId || "\u65E0") + "\n\u6E90\u5951\u7EA6ID\uFF1A" + (award.bountyId || "\u65E0") + "\n\u6E90\u8BB0\u5F55ID\uFF1A" + (recordIds.join("\u3001") || "\u5386\u53F2\u7F3A\u5931\u6216\u751F\u6D3B\u9AD8\u5149") + "\n\u5BA1\u6838/\u6388\u4E88\u8BF4\u660E\uFF1A" + (award.issuer || "\u672A\u8BB0\u5F55") + "\n\n" + source + "\n\n" + (award.metrics || []).map((m) => "- " + m.name + "\uFF1A\u76EE\u6807 " + (m.target ?? m.targetValue ?? "\u672A\u8BB0\u5F55") + "\uFF1B\u5B9E\u6D4B " + (m.actual ?? "\u672A\u8BB0\u5F55")).join("\n") + "\n\n" + (award.desc || "") + "\n\n" + standards + "\n\n" + (award.media || []).filter((m) => m.path).map((m) => "\u539F\u4EF6ID\uFF1A" + m.id + "\n![[" + m.path + "]]").join("\n\n");
+    return exportDomainDocument("exports/achievement-" + award.id + ".md", award.title, body);
+  };
+  const integrityJournalMood = switchNoteMood, integrityJournalEnergy = switchNoteEnergy;
+  switchNoteMood = function(...args) {
+    ensureBusinessDate();
+    const result = integrityJournalMood(...args);
+    notifyIslandStateChanged();
+    return result;
+  };
+  switchNoteEnergy = function(...args) {
+    ensureBusinessDate();
+    const result = integrityJournalEnergy(...args);
+    notifyIslandStateChanged();
+    return result;
+  };
   function canvasLocalPoint(stage, clientX, clientY) {
     const r = stage.getBoundingClientRect();
     return { x: (clientX - r.left) * stage.clientWidth / (r.width || 1), y: (clientY - r.top) * stage.clientHeight / (r.height || 1) };
@@ -18418,12 +18780,12 @@ function bootPrototypeRuntime() {
     svg.style.setProperty("height", height + "px", "important");
   }
   renderTertiaryEdges = function() {
-    const lines = document.getElementById("tertiary-lines-group"), labels = document.getElementById("tertiary-edge-labels-layer"), defs = document.getElementById("tertiary-svg-defs");
-    if (!lines || !labels || !defs)
+    const lines2 = document.getElementById("tertiary-lines-group"), labels = document.getElementById("tertiary-edge-labels-layer"), defs = document.getElementById("tertiary-svg-defs");
+    if (!lines2 || !labels || !defs)
       return;
     const layouts = layoutCanvasEdges();
     resizeCanvasEdgeSurface(layouts);
-    lines.replaceChildren();
+    lines2.replaceChildren();
     labels.replaceChildren();
     defs.replaceChildren();
     const svg = (tag, attributes) => {
@@ -18448,7 +18810,7 @@ function bootPrototypeRuntime() {
         line.setAttribute("marker-start", "url(#" + markerId + ")");
       for (const path of [hit, line]) {
         bindCanvasEdgeActivation(path, edge.id);
-        lines.appendChild(path);
+        lines2.appendChild(path);
       }
       const label = document.createElement("button");
       label.type = "button";
@@ -19105,9 +19467,9 @@ function bootPrototypeRuntime() {
       return;
     const prefs = canvasNavigationPreferences(), collapsed = typeof forceState === "boolean" ? !forceState : !canvasNavigationPreference(kind).collapsed;
     if (kind === "planning")
-      prefs.planning = { collapsed };
+      prefs.planning = { ...prefs.planning, collapsed };
     else if (window2.currentTertiaryProjId)
-      prefs.projects[window2.currentTertiaryProjId] = { collapsed };
+      prefs.projects[window2.currentTertiaryProjId] = { ...prefs.projects[window2.currentTertiaryProjId], collapsed };
     cancelCanvasNavigationDrag(nav);
     queueCanvasNavigation(kind, true);
     notifyIslandStateChanged();
@@ -20229,6 +20591,8 @@ function bootPrototypeRuntime() {
     window2.invalidateBountyVerification = invalidateBountyVerification;
   if (typeof handleBountyDialogKeydown === "function")
     window2.handleBountyDialogKeydown = handleBountyDialogKeydown;
+  if (typeof domainNotePath === "function")
+    window2.domainNotePath = domainNotePath;
   if (typeof canvasLocalPoint === "function")
     window2.canvasLocalPoint = canvasLocalPoint;
   if (typeof readPlanViewport === "function")
@@ -20556,9 +20920,9 @@ var YouthIslandView = class extends import_obsidian2.ItemView {
     const win = window;
     if (!this.hooksInstalled)
       this.registerDomEvent(window, "youth-island:domain-event", (event) => {
-        const names = { "checkin.completed": "checkin:success", "project.created": "project:created", "inquiry.converted": "project:created", "pact.violation": "pact:violation", "achievement.created": "medal:unlocked", "achievement.accidental": "medal:unlocked", "bounty.redeemed": "bounty:updated", "treasury.recorded": "treasury:recorded", "journal.sealed": "journal:saved" };
+        const names2 = { "checkin.completed": "checkin:success", "project.created": "project:created", "inquiry.converted": "project:created", "pact.violation": "pact:violation", "achievement.created": "medal:unlocked", "achievement.accidental": "medal:unlocked", "bounty.redeemed": "bounty:updated", "treasury.recorded": "treasury:recorded", "journal.sealed": "journal:saved" };
         globalIslandEventBus.emit("domain:committed", event.detail);
-        const name = names[event.detail?.kind];
+        const name = names2[event.detail?.kind];
         if (name)
           globalIslandEventBus.emit(name, event.detail);
       });
@@ -20672,10 +21036,12 @@ var YouthIslandSettingTab = class extends import_obsidian3.PluginSettingTab {
       text: `\u5F53\u524D\u7248\u672C v${this.plugin.manifest.version}\u3002\u914D\u7F6E\u672C\u5730\u4ED3\u5E93\u5B58\u50A8\u8DEF\u5F84\u3001\u53CC\u94FE\u7B14\u8BB0\u751F\u6210\u4E0E\u542F\u52A8\u884C\u4E3A\u3002`
     });
     const status = this.plugin.vaultStorage.getSaveStatus();
+    let pendingRoot = this.plugin.settings.vaultRootFolder;
     new import_obsidian3.Setting(containerEl).setName("\u6210\u957F\u6570\u636E\u4FDD\u5B58\u72B6\u6001").setDesc(status.error ? `\u4FDD\u5B58\u672A\u5B8C\u6210\uFF1A${status.error}` : status.exportError ? `\u6210\u957F\u6863\u6848\u5DF2\u4FDD\u5B58\uFF0C\u5BFC\u51FA\u5F85\u91CD\u8BD5\uFF1A${status.exportError}` : status.lastSavedAt ? `\u6700\u8FD1\u4FDD\u5B58\uFF1A${new Date(status.lastSavedAt).toLocaleString()}` : "\u6253\u5F00\u6210\u957F\u5DE5\u4F5C\u53F0\u540E\u5F00\u59CB\u4FDD\u5B58\u3002").addButton((button) => button.setButtonText("\u7ACB\u5373\u4FDD\u5B58 / \u91CD\u8BD5").onClick(async () => {
       try {
         const saved = await this.plugin.vaultStorage.syncRuntimeToVault();
-        new import_obsidian3.Notice(saved ? "\u6210\u957F\u6570\u636E\u5DF2\u4FDD\u5B58\u3002" : "\u8BF7\u5148\u6253\u5F00\u6210\u957F\u5DE5\u4F5C\u53F0\u5E76\u6210\u529F\u8BFB\u53D6\u6863\u6848\u3002");
+        const result = this.plugin.vaultStorage.getSaveStatus();
+        new import_obsidian3.Notice(!saved ? "\u8BF7\u5148\u6253\u5F00\u6210\u957F\u5DE5\u4F5C\u53F0\u5E76\u6210\u529F\u8BFB\u53D6\u6863\u6848\u3002" : result.exportError ? `\u6210\u957F\u6570\u636E\u5DF2\u4FDD\u5B58\uFF0C\u5BFC\u51FA\u5F85\u91CD\u8BD5\uFF1A${result.exportError}` : "\u6210\u957F\u6570\u636E\u5DF2\u4FDD\u5B58\u3002");
       } catch (error) {
         new import_obsidian3.Notice(`\u4FDD\u5B58\u672A\u5B8C\u6210\uFF1A${error instanceof Error ? error.message : error}`);
       }
@@ -20684,19 +21050,20 @@ var YouthIslandSettingTab = class extends import_obsidian3.PluginSettingTab {
     new import_obsidian3.Setting(containerEl).setName("Vault \u6570\u636E\u5B58\u50A8\u6839\u76EE\u5F55").setDesc(
       "\u7559\u7A7A\u5219\u76F4\u63A5\u5728\u5F53\u524D Obsidian \u4ED3\u5E93\u6839\u76EE\u5F55\u4E0B\u521B\u5EFA 00_Island_Core ~ 09_Bounties_\u60AC\u8D4F\u516C\u544A \u5341\u5927\u6807\u51C6\u76EE\u5F55\uFF1B\u4E5F\u53EF\u6307\u5B9A\u5B50\u6587\u4EF6\u5939\uFF08\u4F8B\u5982\uFF1AYouth_Growth_Vault\uFF09\u3002"
     ).addText(
-      (text) => text.setPlaceholder("\u7559\u7A7A\u9ED8\u8BA4\u4ED3\u5E93\u6839\u76EE\u5F55").setValue(this.plugin.settings.vaultRootFolder).onChange(async (value) => {
-        try {
-          validateVaultRoot(value);
-        } catch (error) {
-          new import_obsidian3.Notice(String(error.message));
-          return;
-        }
-        this.plugin.settings.vaultRootFolder = value.trim();
-        await this.plugin.saveSettings();
+      (text) => text.setPlaceholder("\u7559\u7A7A\u9ED8\u8BA4\u4ED3\u5E93\u6839\u76EE\u5F55").setValue(this.plugin.settings.vaultRootFolder).onChange((value) => {
+        pendingRoot = value;
       })
-    );
+    ).addButton((button) => button.setButtonText("\u5E94\u7528\u76EE\u5F55").onClick(async () => {
+      try {
+        validateVaultRoot(pendingRoot);
+        if (await this.plugin.updateStorageRoot(pendingRoot))
+          this.display();
+      } catch (error) {
+        new import_obsidian3.Notice(`\u76EE\u5F55\u672A\u4FEE\u6539\uFF1A${error instanceof Error ? error.message : error}`);
+      }
+    }));
     new import_obsidian3.Setting(containerEl).setName("\u81EA\u52A8\u540C\u6B65\u751F\u6210 Obsidian \u53CC\u94FE Markdown \u7B14\u8BB0").setDesc(
-      "\u5F00\u542F\u540E\uFF0C\u5C06\u5B9E\u9645\u968F\u8BB0\u548C\u9879\u76EE\u5BFC\u51FA\u4E3A\u53CC\u94FE\u7B14\u8BB0\u3002\u516C\u7EA6\u5728\u63D2\u4EF6\u5185\u5171\u540C\u7B7E\u7F72\u540E\u5355\u72EC\u5BFC\u51FA\uFF1B\u5DF2\u6709\u7684\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303\u4E0D\u4F1A\u88AB\u540E\u53F0\u8986\u76D6\u3002"
+      "\u5F00\u542F\u540E\u5BFC\u51FA\u5B8C\u6574\u9879\u76EE\u3001\u6267\u884C\u3001\u968F\u8BB0\u53CA\u5F53\u524D\u7B7E\u7F72\u516C\u7EA6\uFF0C\u5E76\u751F\u6210\u7B14\u8BB0\u7D22\u5F15\u3002\u5DF2\u6709\u7684\u4E2A\u4EBA\u884C\u4E3A\u89C4\u8303\u624B\u5199\u7B14\u8BB0\u4FDD\u7559\u3002"
     ).addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.autoSyncVaultMarkdown).onChange(async (value) => {
         this.plugin.settings.autoSyncVaultMarkdown = value;
@@ -20720,7 +21087,8 @@ var YouthIslandSettingTab = class extends import_obsidian3.PluginSettingTab {
         try {
           await this.plugin.activateIslandView();
           const saved = await this.plugin.vaultStorage.syncRuntimeToVault();
-          new import_obsidian3.Notice(saved ? "\u2705 \u5DF2\u4FDD\u5B58\u5B8C\u6574\u6210\u957F\u6863\u6848\u53CA\u5F53\u524D\u542F\u7528\u7684\u5BFC\u51FA\u6587\u4EF6\u3002" : "\u6210\u957F\u6863\u6848\u5C1A\u672A\u5C31\u7EEA\uFF0C\u672A\u5199\u5165\u4EFB\u4F55\u6570\u636E\u3002\u8BF7\u5148\u68C0\u67E5\u5DE5\u4F5C\u53F0\u4E2D\u7684\u8BFB\u53D6\u63D0\u793A\u3002");
+          const result = this.plugin.vaultStorage.getSaveStatus();
+          new import_obsidian3.Notice(!saved ? "\u6210\u957F\u6863\u6848\u5C1A\u672A\u5C31\u7EEA\uFF0C\u672A\u5199\u5165\u6570\u636E\u3002\u8BF7\u5148\u68C0\u67E5\u8BFB\u53D6\u63D0\u793A\u3002" : result.exportError ? `\u6210\u957F\u6570\u636E\u5DF2\u4FDD\u5B58\uFF0C\u5BFC\u51FA\u5F85\u91CD\u8BD5\uFF1A${result.exportError}` : "\u5DF2\u4FDD\u5B58\u5B8C\u6574\u6210\u957F\u6863\u6848\u53CA\u5F53\u524D\u542F\u7528\u7684\u5BFC\u51FA\u6587\u4EF6\u3002");
         } catch (error) {
           new import_obsidian3.Notice("\u540C\u6B65\u672A\u5B8C\u6210\uFF1A" + String(error instanceof Error ? error.message : error));
         }
@@ -20741,10 +21109,14 @@ var YouthGrowthIslandPlugin = class extends import_obsidian4.Plugin {
     window.__saveIslandAttachment = (file) => this.vaultStorage.saveAttachment(file);
     window.__islandAttachmentUrl = (path) => this.vaultStorage.attachmentUrl(path);
     window.__exportIslandDocument = (path, content) => this.vaultStorage.exportDocument(path, content);
+    window.__islandProjectNotePath = (project) => this.settings.autoSyncVaultMarkdown ? this.vaultStorage.projectNotePath(project) : "";
+    window.__islandDocumentPath = (path) => this.vaultStorage.documentPath(path);
     this.register(() => {
       delete window.__saveIslandAttachment;
       delete window.__islandAttachmentUrl;
       delete window.__exportIslandDocument;
+      delete window.__islandProjectNotePath;
+      delete window.__islandDocumentPath;
       delete window.__toggleObsidianSidebar;
     });
     window.__toggleObsidianSidebar = (side) => {
@@ -20814,9 +21186,8 @@ var YouthGrowthIslandPlugin = class extends import_obsidian4.Plugin {
       callback: async () => {
         await this.activateIslandView();
         const win = window;
-        if (typeof win.switchMainSection === "function") {
-          win.switchMainSection("ws");
-        }
+        const project = win.getDomainState?.().projects.find((p) => p.id === win.currentTertiaryProjId);
+        win.enterSecondaryWorkspace?.(project?.pavilion || "study", "gantt");
       }
     });
     this.addCommand({
@@ -20825,8 +21196,12 @@ var YouthGrowthIslandPlugin = class extends import_obsidian4.Plugin {
       callback: async () => {
         await this.activateIslandView();
         const win = window;
-        if (typeof win.switchMainSection === "function") {
-          win.switchMainSection("tertiary");
+        const project = win.getDomainState?.().projects.find((p) => p.id === win.currentTertiaryProjId);
+        if (project)
+          win.enterTertiaryWorkspace?.(project.id);
+        else {
+          win.enterSecondaryWorkspace?.("study", "gantt");
+          new import_obsidian4.Notice("\u8BF7\u5148\u9009\u62E9\u9879\u76EE\uFF0C\u518D\u6253\u5F00\u5176\u8111\u56FE\u3002");
         }
       }
     });
@@ -20845,9 +21220,13 @@ var YouthGrowthIslandPlugin = class extends import_obsidian4.Plugin {
       id: "sync-youth-island-vault",
       name: "\u7ACB\u5373\u540C\u6B65\u672C\u5730 Vault \u77E5\u8BC6\u5E93\u76EE\u5F55\u6811\u4E0E\u53CC\u94FE Markdown",
       callback: async () => {
-        await this.activateIslandView();
-        await this.vaultStorage.syncRuntimeToVault();
-        new import_obsidian4.Notice("\u2705 \u7EC8\u8EAB\u5C9B\u6C11\uFF1A\u5DF2\u540C\u6B65\u672C\u5730 Vault \u5341\u5927\u76EE\u5F55\u6811\u4E0E\u53CC\u94FE Markdown \u6863\u6848\uFF01");
+        try {
+          await this.activateIslandView();
+          const saved = await this.vaultStorage.syncRuntimeToVault(), status = this.vaultStorage.getSaveStatus();
+          new import_obsidian4.Notice(!saved ? "\u6210\u957F\u6863\u6848\u5C1A\u672A\u6210\u529F\u8BFB\u53D6\uFF0C\u672A\u5199\u5165\u6570\u636E\u3002" : status.exportError ? `\u6210\u957F\u6570\u636E\u5DF2\u4FDD\u5B58\uFF0C\u7B14\u8BB0\u5BFC\u51FA\u5F85\u91CD\u8BD5\uFF1A${status.exportError}` : "\u6210\u957F\u6863\u6848\u53CA\u5F53\u524D\u542F\u7528\u7684\u7B14\u8BB0\u5BFC\u51FA\u5DF2\u540C\u6B65\u3002");
+        } catch (error) {
+          new import_obsidian4.Notice(`\u540C\u6B65\u672A\u5B8C\u6210\uFF1A${error instanceof Error ? error.message : error}`);
+        }
       }
     });
     this.addSettingTab(new YouthIslandSettingTab(this.app, this));
@@ -20892,6 +21271,25 @@ var YouthGrowthIslandPlugin = class extends import_obsidian4.Plugin {
   }
   async saveSettings() {
     await this.saveData(this.settings);
+  }
+  async updateStorageRoot(value) {
+    const next = validateVaultRoot(value.trim()), previous = this.settings.vaultRootFolder;
+    if (next === previous)
+      return true;
+    if (this.app.workspace.getLeavesOfType(VIEW_TYPE_YOUTH_ISLAND).length) {
+      new import_obsidian4.Notice("\u8BF7\u5148\u5173\u95ED\u6210\u957F\u5DE5\u4F5C\u53F0\uFF0C\u8BA9\u5F53\u524D\u6863\u6848\u4FDD\u5B58\u5B8C\u6210\uFF0C\u518D\u5E94\u7528\u65B0\u76EE\u5F55\u3002\u91CD\u65B0\u6253\u5F00\u540E\u5C06\u8BFB\u53D6\u76EE\u6807\u76EE\u5F55\u7684\u6570\u636E\u3002");
+      return false;
+    }
+    await this.vaultStorage.waitForPendingSaves();
+    this.settings.vaultRootFolder = next;
+    try {
+      await this.saveSettings();
+    } catch (error) {
+      this.settings.vaultRootFolder = previous;
+      throw error;
+    }
+    new import_obsidian4.Notice("\u6570\u636E\u76EE\u5F55\u5DF2\u5E94\u7528\u3002\u91CD\u65B0\u6253\u5F00\u5DE5\u4F5C\u53F0\u540E\u8BFB\u53D6\u76EE\u6807\u76EE\u5F55\uFF1B\u539F\u76EE\u5F55\u6587\u4EF6\u4FDD\u7559\u3002");
+    return true;
   }
   async onunload() {
     try {

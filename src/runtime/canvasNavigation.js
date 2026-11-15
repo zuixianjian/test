@@ -82,7 +82,7 @@ function bindCanvasNavigation(nav){
 }
 function toggleCanvasNavigation(kind,forceState){
   const nav=getCanvasNavigator(kind);if(!nav)return;const prefs=canvasNavigationPreferences(),collapsed=typeof forceState==='boolean'?!forceState:!canvasNavigationPreference(kind).collapsed;
-  if(kind==='planning')prefs.planning={collapsed};else if(window.currentTertiaryProjId)prefs.projects[window.currentTertiaryProjId]={collapsed};
+  if(kind==='planning')prefs.planning={...prefs.planning,collapsed};else if(window.currentTertiaryProjId)prefs.projects[window.currentTertiaryProjId]={...prefs.projects[window.currentTertiaryProjId],collapsed};
   cancelCanvasNavigationDrag(nav);queueCanvasNavigation(kind,true);notifyIslandStateChanged();
 }
 updateIslandMinimap=function(){queueCanvasNavigation('planning');};

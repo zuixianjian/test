@@ -21,13 +21,15 @@ export class YouthIslandSettingTab extends PluginSettingTab {
       text: `当前版本 v${this.plugin.manifest.version}。配置本地仓库存储路径、双链笔记生成与启动行为。`,
     });
     const status = this.plugin.vaultStorage.getSaveStatus();
+    let pendingRoot = this.plugin.settings.vaultRootFolder;
     new Setting(containerEl)
       .setName("成长数据保存状态")
       .setDesc(status.error ? `保存未完成：${status.error}` : status.exportError ? `成长档案已保存，导出待重试：${status.exportError}` : status.lastSavedAt ? `最近保存：${new Date(status.lastSavedAt).toLocaleString()}` : "打开成长工作台后开始保存。")
       .addButton(button => button.setButtonText("立即保存 / 重试").onClick(async () => {
         try {
           const saved = await this.plugin.vaultStorage.syncRuntimeToVault();
-          new Notice(saved ? "成长数据已保存。" : "请先打开成长工作台并成功读取档案。");
+          const result = this.plugin.vaultStorage.getSaveStatus();
+          new Notice(!saved ? "请先打开成长工作台并成功读取档案。" : result.exportError ? `成长数据已保存，导出待重试：${result.exportError}` : "成长数据已保存。");
         } catch (error) { new Notice(`保存未完成：${error instanceof Error ? error.message : error}`); }
         this.display();
       }));
@@ -41,18 +43,17 @@ export class YouthIslandSettingTab extends PluginSettingTab {
         text
           .setPlaceholder("留空默认仓库根目录")
           .setValue(this.plugin.settings.vaultRootFolder)
-          .onChange(async (value) => {
-            try { validateVaultRoot(value); }
-            catch (error) { new Notice(String((error as Error).message)); return; }
-            this.plugin.settings.vaultRootFolder = value.trim();
-            await this.plugin.saveSettings();
-          })
-      );
+          .onChange(value => { pendingRoot = value; })
+      )
+      .addButton(button => button.setButtonText("应用目录").onClick(async () => {
+        try { validateVaultRoot(pendingRoot); if (await this.plugin.updateStorageRoot(pendingRoot)) this.display(); }
+        catch (error) { new Notice(`目录未修改：${error instanceof Error ? error.message : error}`); }
+      }));
 
     new Setting(containerEl)
       .setName("自动同步生成 Obsidian 双链 Markdown 笔记")
       .setDesc(
-        "开启后，将实际随记和项目导出为双链笔记。公约在插件内共同签署后单独导出；已有的个人行为规范不会被后台覆盖。"
+        "开启后导出完整项目、执行、随记及当前签署公约，并生成笔记索引。已有的个人行为规范手写笔记保留。"
       )
       .addToggle((toggle) =>
         toggle.setValue(this.plugin.settings.autoSyncVaultMarkdown).onChange(async (value) => {
@@ -96,7 +97,8 @@ export class YouthIslandSettingTab extends PluginSettingTab {
             try {
               await this.plugin.activateIslandView();
               const saved = await this.plugin.vaultStorage.syncRuntimeToVault();
-              new Notice(saved ? "✅ 已保存完整成长档案及当前启用的导出文件。" : "成长档案尚未就绪，未写入任何数据。请先检查工作台中的读取提示。");
+              const result = this.plugin.vaultStorage.getSaveStatus();
+              new Notice(!saved ? "成长档案尚未就绪，未写入数据。请先检查读取提示。" : result.exportError ? `成长数据已保存，导出待重试：${result.exportError}` : "已保存完整成长档案及当前启用的导出文件。");
             } catch (error) {
               new Notice("同步未完成：" + String(error instanceof Error ? error.message : error));
             }

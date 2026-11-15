@@ -33,6 +33,7 @@ function refreshMediaBusy(context,owner){
   document.querySelectorAll('.island-native-media-input').forEach(input=>{if(input.dataset.mediaContext===context&&input.dataset.mediaOwner===owner){input.disabled=busy||(context==='execution'&&!!evidenceSession?.saved);input.parentElement.setAttribute('aria-disabled',String(input.disabled));input.closest('.island-media-picker').setAttribute('aria-busy',String(busy));input.closest('.island-media-picker').querySelector('.island-media-status').textContent=busy?'正在保存原件…':'原件保存到当前知识库';}});
   if(context==='execution'&&evidenceSession?.taskId===owner){const button=document.getElementById('island-real-submit');if(button)button.disabled=busy||evidenceSession.saved;}
   if(context==='bounty'&&window.BOUNTY_STATE?.id===owner){const button=document.getElementById('bounty-action-redeem-btn');if(button)button.disabled=busy||window.BOUNTY_STATE.status!=='accepted';}
+  if(context==='achievement'&&window.__accidentalUploadToken===owner){const button=document.querySelector('#register-accidental-achievement-modal [onclick="submitRegisterAccidentalAchievement()"]');if(button)button.disabled=busy;}
 }
 async function processNativeMediaFiles(input){
   const files=Array.from(input.files||[]),context=input.dataset.mediaContext,owner=input.dataset.mediaOwner,key=context+':'+owner;
@@ -87,6 +88,10 @@ renderNoteSpecializedWorkspace=function(){const holder=document.createElement('d
 renderNoteMediaGalleryHtml=function(){return window.NOTE_STATE.mediaList.map(m=>'<div class="note-history-card"><button class="ui-btn" onclick="openDomainMedia('+escapeIslandText(JSON.stringify(m.id))+')">'+escapeIslandText(m.name)+'</button><span>'+escapeIslandText(m.type==='image'?'照片原件':m.duration==null?'视频 / 录音原件':Math.round(m.duration)+'秒')+'</span><button class="ui-btn" onclick="removeNoteMedia('+escapeIslandText(JSON.stringify(m.id))+')">移除</button></div>').join('');};
 const nativeMediaAchievementOpen=openRegisterAccidentalAchievementModal;
 openRegisterAccidentalAchievementModal=function(){nativeMediaAchievementOpen();window.__accidentalUploadToken=domainId('highlight');window.__accidentalDomainMedia=null;const input=document.getElementById('accidental-image-file');if(input){const container=input.parentElement;container.innerHTML=mediaPickerControls('achievement');container.parentElement.querySelector('label').textContent='照片或视频物证';}else{const controls=document.querySelector('#register-accidental-achievement-modal .island-media-picker');if(controls)controls.outerHTML=mediaPickerControls('achievement');}};
+const nativeMediaAchievementClose=closeRegisterAccidentalAchievementModal;
+closeRegisterAccidentalAchievementModal=function(){window.__accidentalUploadToken=null;window.__accidentalDomainMedia=null;return nativeMediaAchievementClose();};
+const mediaSubmitAchievement=submitRegisterAccidentalAchievement;
+submitRegisterAccidentalAchievement=function(){if(mediaJobs.has('achievement:'+window.__accidentalUploadToken)){showIslandToast('请等待原件保存完成');return false;}return mediaSubmitAchievement();};
 const mediaSubmitExecution=submitRealExecution;
 submitRealExecution=function(){if(evidenceSession&&mediaJobs.has('execution:'+evidenceSession.taskId)){showIslandToast('请等待原件保存完成');return false;}return mediaSubmitExecution();};
 const mediaRedeemBounty=completeBountyDemo;

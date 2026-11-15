@@ -2,7 +2,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import ts from 'typescript';
 
-const output = path.resolve('audit'); fs.mkdirSync(output,{recursive:true});
+const args=process.argv.slice(2),current=args.indexOf('--current');
+if(current>=0)args.splice(current,1);
+const outArg=args.indexOf('--output'),version=JSON.parse(fs.readFileSync('manifest.json','utf8')).version;
+const output = path.resolve(outArg>=0?args[outArg+1]:current>=0?path.join('audit',version):'audit'); fs.mkdirSync(output,{recursive:true});
+if(outArg>=0)args.splice(outArg,2);
 const runtimePath='src/runtime/prototypeScript.ts';
 const text=fs.readFileSync(runtimePath,'utf8');
 const file=ts.createSourceFile(runtimePath,text,ts.ScriptTarget.Latest,true,ts.ScriptKind.TS);
@@ -29,12 +33,15 @@ for(const statement of boot.body.statements){
     const expression=statement.expression;
     const name=ts.isIdentifier(expression.left)?expression.left.text:ts.isPropertyAccessExpression(expression.left)&&expression.left.expression.getText(file)==='window'?expression.left.name.text:null;
     if(name&&expression.operatorToken.kind===ts.SyntaxKind.EqualsToken&&(ts.isFunctionExpression(expression.right)||ts.isArrowFunction(expression.right)))collect(name,expression.right,'override');
+    else if(name&&expression.operatorToken.kind===ts.SyntaxKind.EqualsToken&&ts.isIdentifier(expression.right)&&catalog.has(expression.right.text)){
+      const alias={...catalog.get(expression.right.text),name,aliasOf:expression.right.text,assignmentLine:file.getLineAndCharacterOfPosition(expression.getStart(file)).line+1};catalog.set(name,alias);history.push(alias);
+    }
   }
 }
 const all=[...catalog.values()];
 fs.writeFileSync(path.join(output,'functions.json'),JSON.stringify(all,null,2));
 const body=JSON.parse(fs.readFileSync('src/ui/template.ts','utf8').match(/ISLAND_UI_HTML: string = ([\s\S]*);\s*$/)[1]);
-fs.writeFileSync(path.join(output,'template.html'),body);
+fs.writeFileSync(path.join(output,'template.html'),body.replace(/[ \t]+$/gm,''));
 const inline=[];
 for(const match of body.matchAll(/\bon(click|change|input|dblclick|keydown|pointerdown|mousedown)="([^"]*)"/g)){
   const code=match[2].replace(/&apos;/g,"'").replace(/&quot;/g,'"').replace(/&amp;/g,'&');
@@ -46,6 +53,6 @@ const stubs=all.filter(f=>!f.aliasOf&&f.calls.includes('showIslandToast')&&f.cal
 fs.writeFileSync(path.join(output,'toast-only-candidates.json'),JSON.stringify(stubs,null,2));
 const summary={resolvedFunctions:all.length,functionDeclarationsAndOverrides:history.length,inlineEventInstances:inline.length,uniqueInlineFunctions:new Set(inline.flatMap(e=>e.names)).size,unresolved:[...new Set(inline.flatMap(e=>e.names).filter(n=>!catalog.has(n)&&!['event','setTimeout','alert','confirm','prompt'].includes(n)))],toastOnlyCandidates:stubs.map(f=>({name:f.name,line:f.line}))};
 fs.writeFileSync(path.join(output,'static-summary.json'),JSON.stringify(summary,null,2));
-if(!process.argv[2])console.log(JSON.stringify(summary,null,2));
+if(!args.length)console.log(JSON.stringify(summary,null,2));
 
-if(process.argv[2])for(const name of process.argv.slice(2)){const f=catalog.get(name);console.log('\n'+name+' @ '+f?.line+'\n'+f?.code);}
+if(args.length)for(const name of args){const f=catalog.get(name);console.log('\n'+name+' @ '+f?.line+'\n'+f?.code);}

@@ -19,7 +19,7 @@ const start='// PRODUCT_RULES_START',end='// PRODUCT_RULES_END';
 const growth=ts.transpileModule(fs.readFileSync('src/core/GrowthMetrics.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2020}}).outputText.replace(/^export /gm,'');
 const domain=fs.readFileSync('src/core/domain.mjs','utf8').replace(/^export /gm,'');
 const canvas=fs.readFileSync('src/core/canvas.mjs','utf8').replace(/^export /gm,'');
-const script=[growth,domain,canvas,...['businessRules.js','closedLoopRuntime.js','closedLoopWorkflows.js','closedLoopModules.js','nodeCards.js','homeExecutionQueue.js','nodeCreator.js','planningBoundary.js','mediaPicker.js','bountyDialog.js','canvasInteractions.js','canvasNavigation.js'].map(f=>fs.readFileSync('src/runtime/'+f,'utf8'))].join('\n');
+const script=[growth,domain,canvas,...['businessRules.js','closedLoopRuntime.js','closedLoopWorkflows.js','closedLoopModules.js','nodeCards.js','homeExecutionQueue.js','nodeCreator.js','planningBoundary.js','mediaPicker.js','bountyDialog.js','closedLoopIntegrity.js','canvasInteractions.js','canvasNavigation.js'].map(f=>fs.readFileSync('src/runtime/'+f,'utf8'))].join('\n');
 const block=start+'\n'+script+'\n'+end;
 if(html.includes(start))html=html.slice(0,html.indexOf(start))+block+html.slice(html.indexOf(end)+end.length);
 else html=html.replace('</script>',block+'\n</script>');
